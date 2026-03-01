@@ -2729,97 +2729,6 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
 <script>
 // ── CESIUM INIT ──────────────────────────────────────────────
-// ── UTILITY: Toggle collapsible panels ─────────────────────────────────────
-function togglePanel(panelId, chevronId) {
-  const panel = document.getElementById(panelId);
-  const chevron = document.getElementById(chevronId);
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
-}
-
-// ── FEEDBACK SUBMISSION ──────────────────────────────────────────────────────
-async function submitFeedback() {
-  const type    = document.getElementById('fb-type').value;
-  const message = document.getElementById('fb-message').value.trim();
-  const email   = document.getElementById('fb-email').value.trim();
-  const status  = document.getElementById('fb-status');
-
-  if (!message) {
-    status.style.display = 'block';
-    status.style.background = 'rgba(255,68,68,0.1)';
-    status.style.color = '#ff4444';
-    status.style.border = '1px solid rgba(255,68,68,0.3)';
-    status.textContent = '⚠ Please enter a message.';
-    return;
-  }
-
-  try {
-    const res = await fetch('/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, message, email,
-        url: window.location.href,
-        user: currentUser ? currentUser.username : 'anonymous',
-        ua: navigator.userAgent.slice(0, 120),
-      })
-    });
-    status.style.display = 'block';
-    if (res.ok) {
-      status.style.background = 'rgba(0,255,136,0.08)';
-      status.style.color = '#00ff88';
-      status.style.border = '1px solid rgba(0,255,136,0.3)';
-      status.textContent = '✓ Feedback submitted — thank you!';
-      document.getElementById('fb-message').value = '';
-      document.getElementById('fb-email').value = '';
-    } else {
-      status.style.background = 'rgba(255,68,68,0.1)';
-      status.style.color = '#ff4444';
-      status.style.border = '1px solid rgba(255,68,68,0.3)';
-      status.textContent = '✗ Submit failed — try again.';
-    }
-  } catch(e) {
-    status.style.display = 'block';
-    status.style.background = 'rgba(255,68,68,0.1)';
-    status.style.color = '#ff4444';
-    status.style.border = '1px solid rgba(255,68,68,0.3)';
-    status.textContent = '✗ Network error.';
-  }
-}
-
-// ── ADMIN PASSCODE CHECK ─────────────────────────────────────────────────────
-async function checkAdminPasscode() {
-  const code   = document.getElementById('admin-passcode').value.trim();
-  const status = document.getElementById('admin-code-status');
-  if (!code) return;
-
-  try {
-    const res = await fetch('/admin/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passcode: code })
-    });
-    status.style.display = 'block';
-    if (res.ok) {
-      status.style.background = 'rgba(0,255,136,0.08)';
-      status.style.color = '#00ff88';
-      status.style.border = '1px solid rgba(0,255,136,0.3)';
-      status.textContent = '✓ Correct — opening admin console...';
-      document.getElementById('admin-passcode').value = '';
-      setTimeout(() => { window.location.href = '/admin'; }, 800);
-    } else {
-      status.style.background = 'rgba(255,68,68,0.1)';
-      status.style.color = '#ff4444';
-      status.style.border = '1px solid rgba(255,68,68,0.3)';
-      status.textContent = '✗ Incorrect passcode.';
-      document.getElementById('admin-passcode').value = '';
-    }
-  } catch(e) {
-    status.style.display = 'block';
-    status.style.color = '#ff4444';
-    status.textContent = '✗ Network error.';
-  }
-}
 
 Cesium.Ion.defaultAccessToken = '__CESIUM_TOKEN__';
 
@@ -3095,7 +3004,7 @@ async function initUserState() {
 
   if (currentUser && currentUser.username) {
     userLabel.innerHTML = `Logged in as <span class="user-name">${currentUser.username}</span>`;
-    const adminLnk = d.role === 'admin' ? ' &nbsp; <a href="/admin" style="color:#ff6b6b;">⬡ Admin</a>' : '';
+    const adminLnk = currentUser.role === 'admin' ? ' &nbsp; <a href="/admin" style="color:#ff6b6b;">⬡ Admin</a>' : '';
     userActions.innerHTML = '<a href="/preferences">⚙ Prefs</a>' + adminLnk + ' &nbsp; <a href="/logout">Sign out</a>';
     runBtn.style.display = 'block';
     runLocked.style.display = 'none';
@@ -3775,81 +3684,6 @@ async function runDetection() {
     resetBtn();
   }
 }
-
-// ── LANDING PAGE: Feedback submission ────────────────────────────────────────
-async function lpSubmitFeedback() {
-  const type    = document.getElementById('lp-fb-type').value;
-  const message = document.getElementById('lp-fb-message').value.trim();
-  const email   = document.getElementById('lp-fb-email').value.trim();
-  const status  = document.getElementById('lp-fb-status');
-
-  if (!message) {
-    status.style.display = 'block';
-    status.style.background = 'rgba(255,68,68,0.1)';
-    status.style.color = '#ff4444';
-    status.style.border = '1px solid rgba(255,68,68,0.3)';
-    status.textContent = '⚠ Please enter a message.';
-    return;
-  }
-  try {
-    const res = await fetch('/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, message, email, user: 'landing-page', url: window.location.href, ua: navigator.userAgent.slice(0,120) })
-    });
-    status.style.display = 'block';
-    if (res.ok) {
-      status.style.background = 'rgba(0,255,136,0.08)';
-      status.style.color = '#00ff88';
-      status.style.border = '1px solid rgba(0,255,136,0.3)';
-      status.textContent = '✓ Submitted — thank you!';
-      document.getElementById('lp-fb-message').value = '';
-      document.getElementById('lp-fb-email').value = '';
-    } else {
-      status.style.background = 'rgba(255,68,68,0.1)';
-      status.style.color = '#ff4444';
-      status.style.border = '1px solid rgba(255,68,68,0.3)';
-      status.textContent = '✗ Failed — try again.';
-    }
-  } catch(e) {
-    status.style.display = 'block';
-    status.style.color = '#ff4444';
-    status.textContent = '✗ Network error.';
-  }
-}
-
-// ── LANDING PAGE: Admin passcode check ────────────────────────────────────────
-async function lpCheckAdmin() {
-  const code   = document.getElementById('lp-admin-passcode').value.trim();
-  const status = document.getElementById('lp-admin-status');
-  if (!code) return;
-  try {
-    const res = await fetch('/admin/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passcode: code })
-    });
-    status.style.display = 'block';
-    if (res.ok) {
-      status.style.background = 'rgba(0,255,136,0.08)';
-      status.style.color = '#00ff88';
-      status.style.border = '1px solid rgba(0,255,136,0.3)';
-      status.textContent = '✓ Correct — opening admin console...';
-      document.getElementById('lp-admin-passcode').value = '';
-      setTimeout(() => { window.location.href = '/admin'; }, 800);
-    } else {
-      status.style.background = 'rgba(255,68,68,0.1)';
-      status.style.color = '#ff4444';
-      status.style.border = '1px solid rgba(255,68,68,0.3)';
-      status.textContent = '✗ Incorrect passcode.';
-      document.getElementById('lp-admin-passcode').value = '';
-    }
-  } catch(e) {
-    status.style.display = 'block';
-    status.style.color = '#ff4444';
-    status.textContent = '✗ Network error.';
-  }
-}
 </script>
 </body>
 </html>
@@ -4464,6 +4298,66 @@ const metricObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.3 });
 const metricsGrid = document.querySelector('.metrics-grid');
 if (metricsGrid) metricObserver.observe(metricsGrid);
+// ── LANDING PAGE: Feedback submission ────────────────────────────────────────
+async function lpSubmitFeedback() {
+  const type    = document.getElementById('lp-fb-type').value;
+  const message = document.getElementById('lp-fb-message').value.trim();
+  const email   = document.getElementById('lp-fb-email').value.trim();
+  const status  = document.getElementById('lp-fb-status');
+  if (!message) {
+    status.style.cssText = 'display:block;background:rgba(255,68,68,0.1);color:#ff4444;border:1px solid rgba(255,68,68,0.3);padding:7px 10px;border-radius:3px;font-family:Share Tech Mono,monospace;font-size:10px;margin-top:10px;';
+    status.textContent = '\u26a0 Please enter a message.';
+    return;
+  }
+  try {
+    const res = await fetch('/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, message, email, user: 'landing-page',
+        url: window.location.href, ua: navigator.userAgent.slice(0,120) })
+    });
+    if (res.ok) {
+      status.style.cssText = 'display:block;background:rgba(0,255,136,0.08);color:#00ff88;border:1px solid rgba(0,255,136,0.3);padding:7px 10px;border-radius:3px;font-family:Share Tech Mono,monospace;font-size:10px;margin-top:10px;';
+      status.textContent = '\u2713 Submitted \u2014 thank you!';
+      document.getElementById('lp-fb-message').value = '';
+      document.getElementById('lp-fb-email').value = '';
+    } else {
+      status.style.cssText = 'display:block;background:rgba(255,68,68,0.1);color:#ff4444;border:1px solid rgba(255,68,68,0.3);padding:7px 10px;border-radius:3px;font-family:Share Tech Mono,monospace;font-size:10px;margin-top:10px;';
+      status.textContent = '\u2717 Failed \u2014 try again.';
+    }
+  } catch(e) {
+    status.style.cssText = 'display:block;color:#ff4444;font-size:10px;margin-top:8px;';
+    status.textContent = '\u2717 Network error.';
+  }
+}
+
+// ── LANDING PAGE: Admin passcode check ───────────────────────────────────────
+async function lpCheckAdmin() {
+  const code   = document.getElementById('lp-admin-passcode').value.trim();
+  const status = document.getElementById('lp-admin-status');
+  if (!code) return;
+  try {
+    const res = await fetch('/admin/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: code })
+    });
+    if (res.ok) {
+      status.style.cssText = 'display:block;background:rgba(0,255,136,0.08);color:#00ff88;border:1px solid rgba(0,255,136,0.3);padding:7px 10px;border-radius:3px;font-family:Share Tech Mono,monospace;font-size:10px;margin-top:10px;';
+      status.textContent = '\u2713 Correct \u2014 opening admin console...';
+      document.getElementById('lp-admin-passcode').value = '';
+      setTimeout(() => { window.location.href = '/admin'; }, 800);
+    } else {
+      status.style.cssText = 'display:block;background:rgba(255,68,68,0.1);color:#ff4444;border:1px solid rgba(255,68,68,0.3);padding:7px 10px;border-radius:3px;font-family:Share Tech Mono,monospace;font-size:10px;margin-top:10px;';
+      status.textContent = '\u2717 Incorrect passcode.';
+      document.getElementById('lp-admin-passcode').value = '';
+    }
+  } catch(e) {
+    status.style.cssText = 'display:block;color:#ff4444;font-size:10px;margin-top:8px;';
+    status.textContent = '\u2717 Network error.';
+  }
+}
+
 </script>
 </body>
 </html>"""
