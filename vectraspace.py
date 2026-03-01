@@ -143,8 +143,7 @@ def _load_env():
     """Read .env from the same folder as this script and inject into os.environ."""
     env_path = Path(__file__).parent / ".env"
     if not env_path.exists():
-        print(f"[WARN] .env not found at {env_path}")
-        return
+        return  # Normal in production — env vars come from platform
     print(f"[INFO] Loading .env from {env_path}")
     with open(env_path, "r") as f:
         for line in f:
@@ -571,10 +570,37 @@ def check_conjunctions(all_tracks: list, cfg: Config, ts,
 
     skipped = 0
 
+
+    # ── ISS/CSS module filter ─────────────────────────────────────────────
+    # Objects that are docked/attached modules of the same station will
+    # always be close — skip pairs where both names contain the same
+    # station keyword to avoid false-positive conjunction alerts.
+    STATION_KEYWORDS = [
+        "ISS", "ZARYA", "ZVEZDA", "UNITY", "DESTINY", "HARMONY",
+        "TRANQUILITY", "SERENITY", "COLUMBUS", "KIBO", "QUEST",
+        "PIRS", "POISK", "RASSVET", "NAUKA", "PRICHAL",
+        "CSS", "TIANHE", "WENTIAN", "MENGTIAN",
+    ]
+    def _same_station(n1: str, n2: str) -> bool:
+        n1u, n2u = n1.upper(), n2.upper()
+        for kw in STATION_KEYWORDS:
+            if kw in n1u and kw in n2u:
+                return True
+        # Also skip if names are identical except for a trailing number/letter
+        import re as _re
+        base1 = _re.sub(r'[\s\-_][\dA-Z]$', '', n1u)
+        base2 = _re.sub(r'[\s\-_][\dA-Z]$', '', n2u)
+        return base1 == base2 and len(base1) > 4
+    
     for i in range(n):
         t1 = all_tracks[i]
         for j in range(i + 1, n):
             t2 = all_tracks[j]
+
+            # Skip ISS/CSS module pairs — they're always close
+            if _same_station(t1.name, t2.name):
+                skipped += 1
+                continue
 
             if min_dist_matrix is not None:
                 min_dist_coarse = float(min_dist_matrix[i, j])
@@ -1406,12 +1432,18 @@ def create_user(username: str, password: str, role: str = "operator", cfg: Confi
         return
     if cfg is None:
         cfg = CFG
+    username = username.strip().lower()  # always lowercase for consistent lookup
     users = _load_users(cfg)
     hashed = _bcrypt.hashpw(password.encode(), _bcrypt.gensalt(rounds=12)).decode()
-    users[username] = {"username": username, "password_hash": hashed, "role": role}
+    import time as _t
+    users[username] = {
+        "username": username, "password_hash": hashed, "role": role,
+        "email": "", "approved": True, "created_at": _t.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
     p = Path(cfg.users_file)
     with open(p, "w") as f:
         json.dump(list(users.values()), f, indent=2)
+    log.info(f"User '{username}' created with role '{role}'")
     print(f"User '{username}' ({role}) added to {p}")
 
 
@@ -2472,7 +2504,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     <div id="header">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
         <div class="logo">VectraSpace // Mission Control</div>
-        <a href="/" style="font-family:'Share Tech Mono',monospace;font-size:8px;
+        <a href="/welcome" style="font-family:'Share Tech Mono',monospace;font-size:8px;
                            letter-spacing:2px;color:var(--muted);text-decoration:none;
                            padding:3px 8px;border:1px solid var(--border);border-radius:3px;
                            text-transform:uppercase;transition:all 0.2s;"
@@ -4848,6 +4880,11 @@ def build_api(cfg: Config):
             return RedirectResponse(url="/dashboard", status_code=302)
         return HTMLResponse(content=LANDING_HTML)
 
+    @app.get("/welcome", response_class=HTMLResponse)
+    def landing_welcome():
+        """Always shows landing page — used by dashboard Home button."""
+        return HTMLResponse(content=LANDING_HTML)
+
     # ── Dashboard UI ──────────────────────────────────────────
     @app.get("/dashboard", response_class=HTMLResponse)
     def dashboard():
@@ -5246,11 +5283,26 @@ def build_api(cfg: Config):
         """
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
-            log.warning("ANTHROPIC_API_KEY not set — returning CelesTrak fallback")
+            log.warning("ANTHROPIC_API_KEY not set — returning basic info")
+            clean = sat_name.strip().upper()
             return JSONResponse({
-                "error": "Satellite info service unavailable",
+                "fullName": clean,
+                "noradId": None,
+                "country": "Unknown",
+                "launchDate": None,
+                "launchSite": None,
+                "orbitType": "Unknown",
+                "periodMin": None,
+                "inclinationDeg": None,
+                "apogeeKm": None,
+                "perigeeKm": None,
+                "rcsSize": None,
+                "operationalStatus": "Unknown",
+                "owner": "Unknown",
+                "objectType": "UNKNOWN",
+                "note": "Set ANTHROPIC_API_KEY for detailed satellite information.",
                 "celestrak_url": f"https://celestrak.org/satcat/records.php?NAME={sat_name}",
-            }, status_code=503)
+            })
 
         import asyncio
         from functools import partial
@@ -5597,7 +5649,7 @@ def build_api(cfg: Config):
     # ── Auth middleware (if users.json exists) ────────────────
     if HAS_AUTH and Path(cfg.users_file).exists():
         PUBLIC_PATHS = {"/login", "/health", "/demo-results", "/signup",
-                        "/forgot-password", "/reset-password", "/", "/admin", "/admin/data",
+                        "/forgot-password", "/reset-password", "/", "/welcome", "/admin", "/admin/data",
                         "/feedback", "/admin/verify"}
         # Routes accessible without auth (demo mode)
         DEMO_ALLOWED = {"/", "/history", "/conjunctions", "/sat-info", "/admin", "/admin/data"}
@@ -6026,11 +6078,21 @@ if __name__ == "__main__":
         # ── Auto-create admin from env vars (for Render/cloud deploys) ───────
         # Set ADMIN_USER + ADMIN_PASS in environment to skip the --create-user step.
         # Only runs if users.json doesn't exist yet — safe to leave set permanently.
-        _admin_user = os.environ.get("ADMIN_USER", "").strip()
+        _admin_user = os.environ.get("ADMIN_USER", "").strip().lower()
         _admin_pass = os.environ.get("ADMIN_PASS", "").strip()
-        if _admin_user and _admin_pass and not Path(CFG.users_file).exists():
-            create_user(_admin_user, _admin_pass, "admin", cfg=CFG)
-            log.info(f"Auto-created admin user '{_admin_user}' from environment")
+        if _admin_user and _admin_pass:
+            users_exist = Path(CFG.users_file).exists()
+            existing = {}
+            if users_exist:
+                try:
+                    existing = {u["username"]: u for u in json.load(open(CFG.users_file))}
+                except Exception:
+                    pass
+            if _admin_user not in existing:
+                create_user(_admin_user, _admin_pass, "admin", cfg=CFG)
+                log.info(f"Auto-created admin user '{_admin_user}' from environment")
+            else:
+                log.info(f"Admin user '{_admin_user}' already exists — skipping auto-create")
 
         import webbrowser, threading
         port = int(os.environ.get("PORT", args.port))
