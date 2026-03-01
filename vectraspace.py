@@ -4978,6 +4978,15 @@ if __name__ == "__main__":
         # Ensure DB is initialized on startup
         init_db(CFG)
 
+        # ── Auto-create admin from env vars (for Render/cloud deploys) ───────
+        # Set ADMIN_USER + ADMIN_PASS in environment to skip the --create-user step.
+        # Only runs if users.json doesn't exist yet — safe to leave set permanently.
+        _admin_user = os.environ.get("ADMIN_USER", "").strip()
+        _admin_pass = os.environ.get("ADMIN_PASS", "").strip()
+        if _admin_user and _admin_pass and not Path(CFG.users_file).exists():
+            create_user(_admin_user, _admin_pass, "admin", cfg=CFG)
+            log.info(f"Auto-created admin user '{_admin_user}' from environment")
+
         import webbrowser, threading
         port = int(os.environ.get("PORT", args.port))
         base_url = os.environ.get("VECTRASPACE_BASE_URL", f"http://localhost:{port}").rstrip("/")
