@@ -2315,10 +2315,139 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   #top-pairs-list .tp-row .tp-sats { color: var(--text); }
   #top-pairs-list .tp-row .tp-count { color: var(--accent); }
   #top-pairs-list .tp-row .tp-dist { color: var(--accent2); }
+
+  /* ── MOBILE HAMBURGER BUTTON ── */
+  #hamburger {
+    display: none;
+    position: fixed;
+    top: 12px; left: 12px;
+    z-index: 200;
+    background: rgba(7,16,26,0.92);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 40px; height: 40px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+  }
+  #hamburger:hover { border-color: var(--accent); }
+  #hamburger span {
+    display: block;
+    width: 18px; height: 2px;
+    background: var(--text);
+    border-radius: 1px;
+    transition: all 0.25s;
+  }
+  #hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  #hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  #hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ── MOBILE SIDEBAR OVERLAY ── */
+  #sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 150;
+    backdrop-filter: blur(2px);
+  }
+
+  /* ── RESPONSIVE BREAKPOINTS ── */
+  @media (max-width: 768px) {
+    #hamburger { display: flex; }
+    #sidebar-overlay.active { display: block; }
+
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 160;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 300px !important;
+      min-width: 300px !important;
+      box-shadow: 4px 0 40px rgba(0,0,0,0.6);
+    }
+    #sidebar.open {
+      transform: translateX(0);
+    }
+
+    /* Globe takes full screen on mobile */
+    #globe-container {
+      width: 100vw;
+    }
+
+    /* Globe overlays: reposition to avoid hamburger button */
+    #globe-header {
+      top: 12px;
+      left: 60px;
+      font-size: 8px;
+      padding: 6px 10px;
+    }
+    #sat-counter {
+      top: 12px;
+      right: 12px;
+      font-size: 8px;
+      padding: 6px 10px;
+    }
+    #sat-counter span { font-size: 14px; }
+
+    /* Globe controls: scrollable on mobile */
+    #globe-controls {
+      bottom: 16px;
+      left: 8px;
+      right: 8px;
+      transform: none;
+      overflow-x: auto;
+      border-radius: 6px;
+      padding: 6px 10px;
+      gap: 6px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #globe-controls::-webkit-scrollbar { display: none; }
+    .ctrl-btn { font-size: 9px; padding: 4px 8px; white-space: nowrap; flex-shrink: 0; }
+    #speed-label { font-size: 9px; flex-shrink: 0; }
+
+    /* Tooltip: full width at bottom on mobile */
+    #tooltip {
+      left: 8px !important;
+      right: 8px !important;
+      top: auto !important;
+      bottom: 80px;
+      max-width: none;
+    }
+
+    /* Sat modal: full screen on mobile */
+    #sat-modal-overlay { align-items: flex-end; }
+    #sat-modal { width: 100%; border-radius: 12px 12px 0 0; max-height: 85vh; }
+
+    /* Status bar: compact */
+    #status-bar { padding: 6px 12px; }
+    #status-text { font-size: 9px; }
+
+    /* Log panel: shorter on mobile */
+    #log-panel { height: 90px; }
+  }
+
+  @media (max-width: 480px) {
+    #sidebar { width: 280px !important; min-width: 280px !important; }
+    #globe-header { display: none; }
+  }
 </style>
 </head>
 <body>
 <div id="app">
+
+  <!-- ── MOBILE HAMBURGER ── -->
+  <button id="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
   <!-- ── SIDEBAR ── -->
   <div id="sidebar">
@@ -2556,6 +2685,25 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 // ── CESIUM INIT ──────────────────────────────────────────────
 Cesium.Ion.defaultAccessToken = '__CESIUM_TOKEN__';
 
+// ── MOBILE SIDEBAR TOGGLE ─────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar  = document.getElementById('sidebar');
+  const overlay  = document.getElementById('sidebar-overlay');
+  const hamburger = document.getElementById('hamburger');
+  const isOpen = sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('active', !isOpen);
+  hamburger.classList.toggle('open', !isOpen);
+}
+
+// Close sidebar when a result card is clicked on mobile
+function closeSidebarOnMobile() {
+  if (window.innerWidth <= 768) {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar.classList.contains('open')) toggleSidebar();
+  }
+}
+
 let viewer;
 let viewerReady = false;
 
@@ -2577,12 +2725,15 @@ const COLORS = {
 };
 
 async function initCesium() {
-  // ── Terrain: try Cesium World Terrain (Ion), fall back to smooth ellipsoid ──
+  // ── Terrain: Cesium World Terrain (Ion) for photorealistic 3D elevation ──
   let terrainProvider;
   try {
-    terrainProvider = await Cesium.createWorldTerrainAsync();
+    terrainProvider = await Cesium.createWorldTerrainAsync({
+      requestWaterMask: true,
+      requestVertexNormals: true,   // enables per-vertex lighting for realistic shading
+    });
   } catch(e) {
-    console.warn('World terrain unavailable (check CESIUM_ION_TOKEN) — using ellipsoid fallback');
+    console.warn('World terrain unavailable — using ellipsoid fallback');
     terrainProvider = new Cesium.EllipsoidTerrainProvider();
   }
 
@@ -2608,34 +2759,61 @@ async function initCesium() {
         negativeZ: 'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg',
       }
     }),
-    contextOptions: { requestWebgl2: true }
+    contextOptions: {
+      requestWebgl2: true,
+      webgl: {
+        powerPreference: 'high-performance',
+        antialias: true,
+      }
+    },
+    orderIndependentTranslucency: true,
+    shadows: true,
+    terrainShadows: Cesium.ShadowMode.RECEIVE_ONLY,
   });
 
-  // ── Imagery: try Cesium World Imagery (Ion), fall back to free OSM tiles ──
+  // ── Imagery: Cesium World Imagery with Aerial + Labels (photorealistic) ──
   viewer.imageryLayers.removeAll();
   try {
-    viewer.imageryLayers.add(new Cesium.ImageryLayer(
-      await Cesium.createWorldImageryAsync({ style: Cesium.IonWorldImageryStyle.AERIAL })
-    ));
+    // Primary: high-res aerial imagery from Ion
+    const aerial = await Cesium.createWorldImageryAsync({
+      style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS
+    });
+    viewer.imageryLayers.add(new Cesium.ImageryLayer(aerial, {
+      brightness: 1.0,
+      contrast: 1.1,
+      saturation: 1.1,
+      gamma: 1.0,
+    }));
   } catch(e) {
-    console.warn('World imagery unavailable (check CESIUM_ION_TOKEN) — using OpenStreetMap fallback');
+    console.warn('World imagery unavailable — using OSM fallback');
     viewer.imageryLayers.add(new Cesium.ImageryLayer(
-      new Cesium.OpenStreetMapImageryProvider({
-        url: 'https://tile.openstreetmap.org/',
-        maximumLevel: 18,
-      })
+      new Cesium.OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/', maximumLevel: 18 })
     ));
   }
 
+  // ── Photorealistic scene settings ─────────────────────────────────────────
   viewer.scene.globe.enableLighting = true;
-  viewer.scene.globe.atmosphereLightIntensity = 10.0;
-  viewer.scene.atmosphere.brightnessShift = 0.1;
+  viewer.scene.globe.atmosphereLightIntensity = 15.0;    // brighter sun
+  viewer.scene.globe.atmosphereMieCoefficient = 0.006;   // realistic haze
+  viewer.scene.globe.atmosphereRayleighCoefficient = new Cesium.Cartesian3(5.5e-6, 13.0e-6, 28.4e-6);
   viewer.scene.globe.showGroundAtmosphere = true;
+  viewer.scene.globe.depthTestAgainstTerrain = false;    // keep sat trails visible
+  viewer.scene.globe.maximumScreenSpaceError = 1.5;      // higher terrain detail
+  viewer.scene.atmosphere.brightnessShift = 0.15;
+  viewer.scene.atmosphere.hueShift = 0.0;
+  viewer.scene.atmosphere.saturationShift = 0.1;
   viewer.scene.fog.enabled = true;
-  viewer.scene.fog.density = 0.0002;
+  viewer.scene.fog.density = 0.00012;
+  viewer.scene.fog.minimumBrightness = 0.05;
   viewer.scene.skyAtmosphere.show = true;
+  viewer.scene.skyAtmosphere.atmosphereLightIntensity = 15.0;
   viewer.scene.sun = new Cesium.Sun();
   viewer.scene.moon = new Cesium.Moon();
+  viewer.scene.shadowMap.enabled = true;
+  viewer.scene.shadowMap.softShadows = true;
+  viewer.scene.shadowMap.size = 2048;
+  viewer.scene.highDynamicRange = true;                  // HDR rendering
+  viewer.scene.globe.translucency.enabled = false;
   viewer.clock.currentTime = Cesium.JulianDate.now();
   viewer.clock.shouldAnimate = false;
 
@@ -3055,6 +3233,7 @@ function renderResults(conjunctions) {
 function flyToConjunction(idx) {
   const c = conjData[idx];
   if (!c) return;
+  closeSidebarOnMobile();
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(c.midpoint[0], c.midpoint[1], c.midpoint[2] + 3000000),
     duration: 2.0,
