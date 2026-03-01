@@ -1602,9 +1602,11 @@ _AUTH_CSS = """
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #050a0f; color: #c8dff0; font-family: 'Exo 2', sans-serif;
          display: flex; align-items: center; justify-content: center;
-         min-height: 100vh; padding: 24px 16px; }
+         min-height: 100vh; padding: 24px 16px;
+         overflow-x: hidden; }
+  html { overflow-x: hidden; }
   .card { background: #090f17; border: 1px solid #0d2137; border-radius: 8px;
-          padding: 40px 36px; width: 420px;
+          padding: 40px 36px; width: 100%; max-width: 420px;
           box-shadow: 0 0 40px rgba(0,212,255,0.08); }
   .logo { font-family: 'Share Tech Mono', monospace; font-size: 10px;
           color: #00d4ff; letter-spacing: 4px; margin-bottom: 6px; }
@@ -1640,12 +1642,19 @@ _AUTH_CSS = """
   .hint { font-size: 9px; color: #4a6a85; margin-top: 3px; font-family: 'Share Tech Mono', monospace; }
   .pw-rules { font-size: 9px; color: #4a6a85; margin-top: 6px; font-family: 'Share Tech Mono', monospace;
               padding: 6px 8px; background: #040a10; border-radius: 3px; }
+  @media (max-width: 480px) {
+    body { padding: 0; align-items: flex-start; padding-top: 32px; }
+    .card { padding: 28px 20px; border-radius: 0;
+            border-left: none; border-right: none; margin: 0; }
+    h1 { font-size: 18px; }
+  }
 """
 
 LOGIN_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VectraSpace — Sign In</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
 <style>{AUTH_CSS}</style>
@@ -1679,6 +1688,7 @@ SIGNUP_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VectraSpace — Create Account</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
 <style>{AUTH_CSS}</style>
@@ -1724,6 +1734,7 @@ FORGOT_PASSWORD_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VectraSpace — Reset Password</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
 <style>{AUTH_CSS}</style>
@@ -5105,10 +5116,11 @@ def build_api(cfg: Config):
         if not _check_login_rate_limit(client_ip):
             return _login_page_with_err("Too many login attempts. Try again in 60s.")
         form = await request.form()
-        username = str(form.get("username", "")).strip()
+        username = str(form.get("username", "")).strip().lower()
         password = str(form.get("password", "")).strip()
         users = _load_users(cfg)
-        user = users.get(username)
+        # Try exact match first, then lowercase fallback
+        user = users.get(username) or users.get(username.lower())
         if not user or not _verify_password(password, user.get("password_hash", "")):
             return _login_page_with_err("Invalid username or password.")
         if not user.get("approved", True):
@@ -5376,7 +5388,7 @@ def build_api(cfg: Config):
     # ── Auth middleware (if users.json exists) ────────────────
     if HAS_AUTH and Path(cfg.users_file).exists():
         PUBLIC_PATHS = {"/login", "/health", "/demo-results", "/signup",
-                        "/forgot-password", "/reset-password", "/"}
+                        "/forgot-password", "/reset-password", "/", "/admin", "/admin/data"}
         # Routes accessible without auth (demo mode)
         DEMO_ALLOWED = {"/", "/history", "/conjunctions", "/sat-info", "/admin", "/admin/data"}
 
