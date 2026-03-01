@@ -2643,81 +2643,6 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     </div><!-- /scroll -->
 
-      <!-- ── FEEDBACK TAB ── -->
-      <div class="section" id="feedback-section">
-        <div class="section-title" style="cursor:pointer;user-select:none;"
-             onclick="togglePanel('feedback-panel','feedback-chevron')">
-          Feedback &amp; Bug Reports
-          <span id="feedback-chevron" style="float:right;transition:transform 0.2s;">▾</span>
-        </div>
-        <div id="feedback-panel" style="display:none;">
-          <div style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;
-                      letter-spacing:1px;margin-bottom:10px;line-height:1.6;">
-            Found a bug or have a suggestion? Let us know.
-          </div>
-          <div class="field">
-            <label>Type</label>
-            <select id="fb-type" style="width:100%;background:#0a1520;border:1px solid var(--border);
-                    border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;
-                    font-size:11px;padding:7px 10px;outline:none;">
-              <option value="bug">🐛 Bug Report</option>
-              <option value="feature">💡 Feature Request</option>
-              <option value="ux">📱 UX / UI Issue</option>
-              <option value="data">📡 Data / Accuracy Issue</option>
-              <option value="other">💬 Other</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Message</label>
-            <textarea id="fb-message" rows="4"
-                      placeholder="Describe the issue or idea..."
-                      style="width:100%;background:#0a1520;border:1px solid var(--border);
-                             border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;
-                             font-size:11px;padding:8px 10px;outline:none;resize:vertical;
-                             transition:border-color 0.2s;"></textarea>
-          </div>
-          <div class="field">
-            <label>Your Email (optional)</label>
-            <input type="email" id="fb-email" placeholder="for follow-up"
-                   style="font-size:11px;">
-          </div>
-          <button onclick="submitFeedback()"
-                  style="margin-top:8px;padding:8px;font-size:10px;letter-spacing:2px;">
-            SUBMIT FEEDBACK
-          </button>
-          <div id="fb-status" style="display:none;margin-top:8px;font-family:'Share Tech Mono',monospace;
-                                     font-size:10px;padding:6px 10px;border-radius:3px;"></div>
-        </div>
-      </div>
-
-      <!-- ── ADMIN ACCESS TAB ── -->
-      <div class="section" id="admin-access-section">
-        <div class="section-title" style="cursor:pointer;user-select:none;color:#ff6b6b;"
-             onclick="togglePanel('admin-access-panel','admin-chevron')">
-          ⬡ Admin Access
-          <span id="admin-chevron" style="float:right;transition:transform 0.2s;">▾</span>
-        </div>
-        <div id="admin-access-panel" style="display:none;">
-          <div style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;
-                      letter-spacing:1px;margin-bottom:10px;line-height:1.6;">
-            Enter the admin passcode to open the admin console.
-          </div>
-          <div class="field">
-            <label>Passcode</label>
-            <input type="password" id="admin-passcode" placeholder="••••"
-                   style="font-size:14px;letter-spacing:6px;"
-                   onkeydown="if(event.key==='Enter') checkAdminPasscode()">
-          </div>
-          <button onclick="checkAdminPasscode()"
-                  style="margin-top:8px;padding:8px;font-size:10px;letter-spacing:2px;
-                         border-color:#ff6b6b;color:#ff6b6b;">
-            OPEN ADMIN CONSOLE
-          </button>
-          <div id="admin-code-status" style="display:none;margin-top:8px;font-family:'Share Tech Mono',monospace;
-                                             font-size:10px;padding:6px 10px;border-radius:3px;"></div>
-        </div>
-      </div>
-
     <div id="status-bar">
       <div id="status-dot"></div>
       <div id="status-text">Initializing...</div>
@@ -2905,8 +2830,8 @@ async function initCesium() {
   let terrainProvider;
   try {
     terrainProvider = await Cesium.createWorldTerrainAsync({
-      requestWaterMask: true,
-      requestVertexNormals: true,   // enables per-vertex lighting for realistic shading
+      requestWaterMask: false,
+      requestVertexNormals: false,  // skip extra requests for faster load
     });
   } catch(e) {
     console.warn('World terrain unavailable — using ellipsoid fallback');
@@ -2935,31 +2860,18 @@ async function initCesium() {
         negativeZ: 'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg',
       }
     }),
-    contextOptions: {
-      requestWebgl2: true,
-      webgl: {
-        powerPreference: 'high-performance',
-        antialias: true,
-      }
-    },
-    orderIndependentTranslucency: true,
-    shadows: true,
-    terrainShadows: Cesium.ShadowMode.RECEIVE_ONLY,
+    contextOptions: { requestWebgl2: true },
+    shadows: false,
+    orderIndependentTranslucency: false,
   });
 
-  // ── Imagery: Cesium World Imagery with Aerial + Labels (photorealistic) ──
+  // ── Imagery: Bing-style aerial from Ion (photorealistic, fast) ────────────
   viewer.imageryLayers.removeAll();
   try {
-    // Primary: high-res aerial imagery from Ion
     const aerial = await Cesium.createWorldImageryAsync({
-      style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS
+      style: Cesium.IonWorldImageryStyle.AERIAL
     });
-    viewer.imageryLayers.add(new Cesium.ImageryLayer(aerial, {
-      brightness: 1.0,
-      contrast: 1.1,
-      saturation: 1.1,
-      gamma: 1.0,
-    }));
+    viewer.imageryLayers.add(new Cesium.ImageryLayer(aerial));
   } catch(e) {
     console.warn('World imagery unavailable — using OSM fallback');
     viewer.imageryLayers.add(new Cesium.ImageryLayer(
@@ -2967,39 +2879,23 @@ async function initCesium() {
     ));
   }
 
-  // ── Photorealistic scene settings ─────────────────────────────────────────
+  // ── Scene settings: photorealistic but load-optimised ────────────────────
   viewer.scene.globe.enableLighting = true;
-  viewer.scene.globe.atmosphereLightIntensity = 15.0;    // brighter sun
-  viewer.scene.globe.atmosphereMieCoefficient = 0.006;   // realistic haze
-  viewer.scene.globe.atmosphereRayleighCoefficient = new Cesium.Cartesian3(5.5e-6, 13.0e-6, 28.4e-6);
+  viewer.scene.globe.atmosphereLightIntensity = 12.0;
   viewer.scene.globe.showGroundAtmosphere = true;
-  viewer.scene.globe.depthTestAgainstTerrain = false;    // keep sat trails visible
-  viewer.scene.globe.maximumScreenSpaceError = 1.5;      // higher terrain detail
-  viewer.scene.atmosphere.brightnessShift = 0.15;
-  viewer.scene.atmosphere.hueShift = 0.0;
-  viewer.scene.atmosphere.saturationShift = 0.1;
+  viewer.scene.globe.depthTestAgainstTerrain = false;
+  viewer.scene.globe.maximumScreenSpaceError = 4;        // fewer tiles = faster
+  viewer.scene.globe.tileCacheSize = 100;
+  viewer.scene.atmosphere.brightnessShift = 0.1;
   viewer.scene.fog.enabled = true;
-  viewer.scene.fog.density = 0.00012;
-  viewer.scene.fog.minimumBrightness = 0.05;
+  viewer.scene.fog.density = 0.0002;
   viewer.scene.skyAtmosphere.show = true;
-  viewer.scene.skyAtmosphere.atmosphereLightIntensity = 15.0;
   viewer.scene.sun = new Cesium.Sun();
   viewer.scene.moon = new Cesium.Moon();
-  viewer.scene.shadowMap.enabled = true;
-  viewer.scene.shadowMap.softShadows = true;
-  viewer.scene.shadowMap.size = 2048;
-  viewer.scene.highDynamicRange = true;                  // HDR rendering
+  viewer.scene.highDynamicRange = false;                 // skip HDR pass
   viewer.scene.globe.translucency.enabled = false;
   viewer.clock.currentTime = Cesium.JulianDate.now();
   viewer.clock.shouldAnimate = false;
-
-  // ── 3D Buildings (OSM) — Google Earth style ──────────────────────────────
-  try {
-    const osmBuildings = await Cesium.createOsmBuildingsAsync();
-    viewer.scene.primitives.add(osmBuildings);
-  } catch(e) {
-    console.warn('OSM 3D buildings unavailable:', e.message);
-  }
 
   viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(0, 20, 25000000),
@@ -3800,6 +3696,81 @@ async function runDetection() {
     resetBtn();
   }
 }
+
+// ── LANDING PAGE: Feedback submission ────────────────────────────────────────
+async function lpSubmitFeedback() {
+  const type    = document.getElementById('lp-fb-type').value;
+  const message = document.getElementById('lp-fb-message').value.trim();
+  const email   = document.getElementById('lp-fb-email').value.trim();
+  const status  = document.getElementById('lp-fb-status');
+
+  if (!message) {
+    status.style.display = 'block';
+    status.style.background = 'rgba(255,68,68,0.1)';
+    status.style.color = '#ff4444';
+    status.style.border = '1px solid rgba(255,68,68,0.3)';
+    status.textContent = '⚠ Please enter a message.';
+    return;
+  }
+  try {
+    const res = await fetch('/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, message, email, user: 'landing-page', url: window.location.href, ua: navigator.userAgent.slice(0,120) })
+    });
+    status.style.display = 'block';
+    if (res.ok) {
+      status.style.background = 'rgba(0,255,136,0.08)';
+      status.style.color = '#00ff88';
+      status.style.border = '1px solid rgba(0,255,136,0.3)';
+      status.textContent = '✓ Submitted — thank you!';
+      document.getElementById('lp-fb-message').value = '';
+      document.getElementById('lp-fb-email').value = '';
+    } else {
+      status.style.background = 'rgba(255,68,68,0.1)';
+      status.style.color = '#ff4444';
+      status.style.border = '1px solid rgba(255,68,68,0.3)';
+      status.textContent = '✗ Failed — try again.';
+    }
+  } catch(e) {
+    status.style.display = 'block';
+    status.style.color = '#ff4444';
+    status.textContent = '✗ Network error.';
+  }
+}
+
+// ── LANDING PAGE: Admin passcode check ────────────────────────────────────────
+async function lpCheckAdmin() {
+  const code   = document.getElementById('lp-admin-passcode').value.trim();
+  const status = document.getElementById('lp-admin-status');
+  if (!code) return;
+  try {
+    const res = await fetch('/admin/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: code })
+    });
+    status.style.display = 'block';
+    if (res.ok) {
+      status.style.background = 'rgba(0,255,136,0.08)';
+      status.style.color = '#00ff88';
+      status.style.border = '1px solid rgba(0,255,136,0.3)';
+      status.textContent = '✓ Correct — opening admin console...';
+      document.getElementById('lp-admin-passcode').value = '';
+      setTimeout(() => { window.location.href = '/admin'; }, 800);
+    } else {
+      status.style.background = 'rgba(255,68,68,0.1)';
+      status.style.color = '#ff4444';
+      status.style.border = '1px solid rgba(255,68,68,0.3)';
+      status.textContent = '✗ Incorrect passcode.';
+      document.getElementById('lp-admin-passcode').value = '';
+    }
+  } catch(e) {
+    status.style.display = 'block';
+    status.style.color = '#ff4444';
+    status.textContent = '✗ Network error.';
+  }
+}
 </script>
 </body>
 </html>
@@ -4022,6 +3993,39 @@ footer { padding: 32px 48px; border-top: 1px solid var(--border); display: flex;
   #hero, #how, #features, #metrics, #architecture, #cta { padding-left: 20px; padding-right: 20px; }
   footer { flex-direction: column; gap: 16px; text-align: center; }
 }
+.feedback-admin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  max-width: 900px; margin: 0 auto; padding: 80px 48px; }
+.fa-card { background: #07101a; border: 1px solid var(--border); border-radius: 8px; padding: 36px 32px; }
+.fa-card:hover { border-color: var(--accent); transition: border-color 0.3s; }
+.fa-card.admin-card:hover { border-color: #ff4444; }
+.fa-eyebrow { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 3px;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
+.admin-card .fa-eyebrow { color: #ff4444; }
+.fa-title { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 700;
+  color: #fff; margin-bottom: 8px; }
+.fa-sub { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted);
+  letter-spacing: 1px; margin-bottom: 24px; line-height: 1.7; }
+.fa-label { display: block; font-family: 'Share Tech Mono', monospace; font-size: 9px;
+  color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; margin-top: 16px; }
+.fa-select, .fa-textarea, .fa-input {
+  width: 100%; background: #040a10; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 11px;
+  padding: 9px 12px; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+.fa-select:focus, .fa-textarea:focus, .fa-input:focus { border-color: var(--accent); }
+.admin-card .fa-input:focus { border-color: #ff4444; }
+.fa-textarea { resize: vertical; min-height: 90px; }
+.fa-btn { display: block; width: 100%; margin-top: 18px; padding: 11px;
+  background: transparent; border: 1px solid var(--accent); border-radius: 4px;
+  color: var(--accent); font-family: 'Share Tech Mono', monospace; font-size: 11px;
+  letter-spacing: 3px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; }
+.fa-btn:hover { background: rgba(0,212,255,0.08); }
+.fa-btn.admin-btn { border-color: #ff4444; color: #ff4444; }
+.fa-btn.admin-btn:hover { background: rgba(255,68,68,0.08); }
+.fa-status { display: none; margin-top: 10px; font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; padding: 7px 10px; border-radius: 3px; letter-spacing: 1px; }
+.admin-input-wrap { position: relative; }
+.admin-input-wrap .fa-input { letter-spacing: 6px; font-size: 18px; }
+@media (max-width: 700px) { .feedback-admin-row { grid-template-columns: 1fr; padding: 48px 20px; } }
 </style>
 </head>
 <body>
@@ -4256,6 +4260,57 @@ footer { padding: 32px 48px; border-top: 1px solid var(--border); display: flex;
     </div>
   </div>
 </section>
+<div class="section-divider"></div>
+
+<!-- ── FEEDBACK + ADMIN ROW ── -->
+<div class="feedback-admin-row">
+
+  <!-- Feedback card -->
+  <div class="fa-card reveal">
+    <div class="fa-eyebrow">// User Feedback</div>
+    <div class="fa-title">Report a Bug or Share an Idea</div>
+    <div class="fa-sub">Found something broken? Have a feature request? We read every submission.</div>
+
+    <label class="fa-label">Type</label>
+    <select id="lp-fb-type" class="fa-select">
+      <option value="bug">🐛 Bug Report</option>
+      <option value="feature">💡 Feature Request</option>
+      <option value="ux">📱 UX / UI Issue</option>
+      <option value="data">📡 Data / Accuracy Issue</option>
+      <option value="other">💬 Other</option>
+    </select>
+
+    <label class="fa-label">Message</label>
+    <textarea id="lp-fb-message" class="fa-textarea" placeholder="Describe the issue or idea..."></textarea>
+
+    <label class="fa-label">Email (optional)</label>
+    <input type="email" id="lp-fb-email" class="fa-input" placeholder="for follow-up replies">
+
+    <button class="fa-btn" onclick="lpSubmitFeedback()">Submit Feedback</button>
+    <div id="lp-fb-status" class="fa-status"></div>
+  </div>
+
+  <!-- Admin card -->
+  <div class="fa-card admin-card reveal reveal-delay-1">
+    <div class="fa-eyebrow" style="color:#ff4444;">// Admin Access</div>
+    <div class="fa-title">Admin Console</div>
+    <div class="fa-sub">Enter the admin passcode to access the management dashboard — user accounts, scan analytics, and feedback inbox.</div>
+
+    <label class="fa-label">Passcode</label>
+    <div class="admin-input-wrap">
+      <input type="password" id="lp-admin-passcode" class="fa-input"
+             placeholder="••••••"
+             onkeydown="if(event.key==='Enter') lpCheckAdmin()">
+    </div>
+
+    <button class="fa-btn admin-btn" onclick="lpCheckAdmin()">Open Admin Console</button>
+    <div id="lp-admin-status" class="fa-status"></div>
+  </div>
+
+</div>
+
+<div class="section-divider"></div>
+
 <footer>
   <div class="footer-logo">VECTRA<span>SPACE</span></div>
   <ul class="footer-links">
