@@ -2936,7 +2936,8 @@ async function initUserState() {
 
   if (currentUser && currentUser.username) {
     userLabel.innerHTML = `Logged in as <span class="user-name">${currentUser.username}</span>`;
-    userActions.innerHTML = '<a href="/preferences">⚙ Prefs</a> &nbsp; <a href="/logout">Sign out</a>';
+    const adminLnk = d.role === 'admin' ? ' &nbsp; <a href="/admin" style="color:#ff6b6b;">⬡ Admin</a>' : '';
+    userActions.innerHTML = '<a href="/preferences">⚙ Prefs</a>' + adminLnk + ' &nbsp; <a href="/logout">Sign out</a>';
     runBtn.style.display = 'block';
     runLocked.style.display = 'none';
     alertSettings.style.display = 'block';
@@ -4154,6 +4155,405 @@ if (metricsGrid) metricObserver.observe(metricsGrid);
 # ║  MODULE 7 — REST API + SSE RUN ENDPOINT                      ║
 # ╚══════════════════════════════════════════════════════════════╝
 
+ADMIN_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VectraSpace — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #030508; --panel: #07101a; --border: #0d2137;
+    --accent: #00d4ff; --accent2: #ff4444; --accent3: #00ff88;
+    --text: #c8dff0; --muted: #3a5a75;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
+         min-height: 100vh; }
+
+  /* ── NAV ── */
+  .admin-nav {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 0 32px; height: 56px; display: flex; align-items: center;
+    justify-content: space-between; position: sticky; top: 0; z-index: 10;
+  }
+  .admin-nav-logo { font-family: 'Orbitron', sans-serif; font-size: 13px;
+    font-weight: 700; color: #fff; letter-spacing: 2px; text-decoration: none; }
+  .admin-nav-logo span { color: var(--accent); }
+  .admin-nav-badge { font-family: 'Share Tech Mono', monospace; font-size: 9px;
+    letter-spacing: 3px; color: var(--accent2); background: rgba(255,68,68,0.1);
+    border: 1px solid rgba(255,68,68,0.3); padding: 3px 10px; border-radius: 2px;
+    text-transform: uppercase; }
+  .admin-nav-links { display: flex; gap: 20px; align-items: center; }
+  .admin-nav-links a { font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 1px; color: var(--muted); text-decoration: none;
+    text-transform: uppercase; transition: color 0.2s; }
+  .admin-nav-links a:hover { color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  .admin-wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }
+
+  /* ── STAT CARDS ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 32px; }
+  .stat-card { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 24px 20px; position: relative; overflow: hidden;
+    transition: border-color 0.2s; }
+  .stat-card:hover { border-color: var(--accent); }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--accent); transform: scaleX(0);
+    transition: transform 0.3s; }
+  .stat-card:hover::before { transform: scaleX(1); }
+  .stat-card.c2::before { background: var(--accent3); }
+  .stat-card.c3::before { background: #ffaa44; }
+  .stat-card.c4::before { background: #aa66ff; }
+  .stat-label { font-family: 'Share Tech Mono', monospace; font-size: 8px;
+    letter-spacing: 3px; color: var(--muted); text-transform: uppercase;
+    margin-bottom: 10px; }
+  .stat-num { font-family: 'Orbitron', sans-serif; font-size: 36px; font-weight: 900;
+    color: var(--accent); line-height: 1; margin-bottom: 4px; }
+  .stat-card.c2 .stat-num { color: var(--accent3); }
+  .stat-card.c3 .stat-num { color: #ffaa44; }
+  .stat-card.c4 .stat-num { color: #aa66ff; }
+  .stat-sub { font-size: 11px; color: var(--muted); }
+
+  /* ── SECTION HEADERS ── */
+  .section-hdr { display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; margin-top: 32px; }
+  .section-hdr h2 { font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
+  .section-hdr .refresh-btn { background: transparent; border: 1px solid var(--border);
+    border-radius: 3px; color: var(--muted); font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; padding: 4px 10px; cursor: pointer; letter-spacing: 1px;
+    transition: all 0.2s; }
+  .section-hdr .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── CHARTS ROW ── */
+  .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px;
+    margin-bottom: 12px; }
+  .chart-card { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 20px; }
+  .chart-title { font-family: 'Share Tech Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+    margin-bottom: 16px; }
+  .chart-wrap { position: relative; height: 180px; }
+
+  /* ── USERS TABLE ── */
+  .table-wrap { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { background: #040a10; font-family: 'Share Tech Mono', monospace;
+    font-size: 8px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+    padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 10px 16px; font-size: 12px; border-bottom: 1px solid #0a1520;
+    color: var(--text); transition: background 0.15s; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #0a1520; }
+  .data-table .td-mono { font-family: 'Share Tech Mono', monospace; font-size: 11px; }
+  .role-badge { font-family: 'Share Tech Mono', monospace; font-size: 8px;
+    letter-spacing: 1px; padding: 2px 8px; border-radius: 2px; text-transform: uppercase; }
+  .role-admin { background: rgba(255,68,68,0.12); color: var(--accent2);
+    border: 1px solid rgba(255,68,68,0.3); }
+  .role-operator { background: rgba(0,212,255,0.08); color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.25); }
+  .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    margin-right: 6px; }
+  .status-ok { background: var(--accent3); box-shadow: 0 0 4px var(--accent3); }
+  .status-pending { background: #ffaa44; }
+
+  /* ── SCANS TABLE ── */
+  .dist-crit { color: var(--accent2); font-weight: 700; }
+  .dist-warn { color: #ffaa44; }
+  .dist-ok   { color: var(--accent3); }
+
+  /* ── ANALYTICS EMBED ── */
+  .analytics-card { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 24px; margin-bottom: 12px; }
+  .analytics-placeholder { text-align: center; padding: 40px 20px; }
+  .analytics-placeholder .icon { font-size: 32px; margin-bottom: 12px; }
+  .analytics-placeholder p { font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  .analytics-placeholder a { color: var(--accent); font-size: 11px; }
+  .umami-script-box { background: #040a10; border: 1px solid var(--border);
+    border-radius: 4px; padding: 12px 16px; margin-top: 16px; font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--accent3); word-break: break-all; text-align: left;
+    cursor: pointer; transition: border-color 0.2s; }
+  .umami-script-box:hover { border-color: var(--accent); }
+  .umami-script-box::before { content: '// Click to copy'; display: block;
+    font-size: 8px; color: var(--muted); letter-spacing: 2px; margin-bottom: 6px; }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align: center; padding: 32px; font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .admin-wrap { padding: 20px 16px; }
+    .data-table td, .data-table th { padding: 8px 12px; }
+  }
+  @media (max-width: 480px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-nav { padding: 0 16px; }
+    .admin-nav-logo { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="admin-nav">
+  <a href="/" class="admin-nav-logo">VECTRA<span>SPACE</span></a>
+  <span class="admin-nav-badge">⬡ Admin Console</span>
+  <div class="admin-nav-links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/preferences">Prefs</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+
+<div class="admin-wrap">
+
+  <!-- ── STAT CARDS ── -->
+  <div class="stat-grid" id="stat-grid">
+    <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-num" id="stat-users">—</div><div class="stat-sub">registered accounts</div></div>
+    <div class="stat-card c2"><div class="stat-label">Total Scans</div><div class="stat-num" id="stat-scans">—</div><div class="stat-sub">pipeline runs</div></div>
+    <div class="stat-card c3"><div class="stat-label">Conjunctions Found</div><div class="stat-num" id="stat-conj">—</div><div class="stat-sub">all time</div></div>
+    <div class="stat-card c4"><div class="stat-label">New Users (7d)</div><div class="stat-num" id="stat-new">—</div><div class="stat-sub">last 7 days</div></div>
+  </div>
+
+  <!-- ── CHARTS ── -->
+  <div class="section-hdr">
+    <h2>Activity</h2>
+    <button class="refresh-btn" onclick="loadAdmin()">↺ Refresh</button>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Scans per Day (30d)</div>
+      <div class="chart-wrap"><canvas id="chart-scans"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Conjunctions by Regime</div>
+      <div class="chart-wrap"><canvas id="chart-regimes"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── USERS TABLE ── -->
+  <div class="section-hdr" style="margin-top:28px;">
+    <h2>Registered Users</h2>
+    <span id="users-count" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;"></span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th>Scans</th>
+        </tr>
+      </thead>
+      <tbody id="users-tbody">
+        <tr><td colspan="6" class="empty">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── RECENT SCANS TABLE ── -->
+  <div class="section-hdr">
+    <h2>Recent Conjunction Events</h2>
+    <span id="scans-count" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;"></span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Time (UTC)</th>
+          <th>User</th>
+          <th>Sat 1</th>
+          <th>Sat 2</th>
+          <th>Regimes</th>
+          <th>Miss Dist</th>
+          <th>Pc</th>
+        </tr>
+      </thead>
+      <tbody id="scans-tbody">
+        <tr><td colspan="7" class="empty">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── ANALYTICS ── -->
+  <div class="section-hdr">
+    <h2>Website Analytics</h2>
+  </div>
+  <div class="analytics-card">
+    <div id="analytics-section">
+      <div class="analytics-placeholder">
+        <div class="icon">📊</div>
+        <p>Umami Analytics Not Configured</p>
+        <p style="font-size:10px;color:var(--text);opacity:0.6;margin:8px 0 16px;font-family:DM Sans,sans-serif;letter-spacing:0;">
+          Add free website analytics in 2 minutes. Tracks visits, pageviews, countries, devices — with no cookies or GDPR issues.
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <a href="https://cloud.umami.is/signup" target="_blank"
+             style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+                    padding:10px 20px;border:1px solid var(--accent);border-radius:3px;
+                    color:var(--accent);text-decoration:none;text-transform:uppercase;
+                    transition:all 0.2s;"
+             onmouseover="this.style.background='rgba(0,212,255,0.1)'"
+             onmouseout="this.style.background='transparent'">
+            → Create Free Umami Account
+          </a>
+          <a href="https://analytics.google.com" target="_blank"
+             style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+                    padding:10px 20px;border:1px solid var(--border);border-radius:3px;
+                    color:var(--muted);text-decoration:none;text-transform:uppercase;
+                    transition:all 0.2s;"
+             onmouseover="this.style.background='rgba(255,255,255,0.03)'"
+             onmouseout="this.style.background='transparent'">
+            → Use Google Analytics
+          </a>
+        </div>
+        <div class="umami-script-box" onclick="copyUmamiInstructions()" id="umami-box">
+Once you have your Umami script tag, add UMAMI_SCRIPT_URL and UMAMI_WEBSITE_ID to your Render environment variables, then redeploy. VectraSpace will inject it automatically into every page.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /admin-wrap -->
+
+<script>
+let chartScans = null;
+let chartRegimes = null;
+
+async function loadAdmin() {
+  try {
+    const res = await fetch('/admin/data');
+    if (res.status === 403) {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Share Tech Mono,monospace;color:#ff4444;letter-spacing:3px;">ACCESS DENIED — ADMIN ONLY</div>';
+      return;
+    }
+    const d = await res.json();
+
+    // Stat cards
+    document.getElementById('stat-users').textContent  = d.total_users;
+    document.getElementById('stat-scans').textContent  = d.total_scan_runs;
+    document.getElementById('stat-conj').textContent   = d.total_conjunctions;
+    document.getElementById('stat-new').textContent    = d.new_users_7d;
+
+    // Users table
+    document.getElementById('users-count').textContent = d.users.length + ' TOTAL';
+    const tbody = document.getElementById('users-tbody');
+    if (!d.users.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No users yet</td></tr>';
+    } else {
+      tbody.innerHTML = d.users.map(u => {
+        const joined = u.created_at ? u.created_at.slice(0,10) : '—';
+        const roleClass = u.role === 'admin' ? 'role-admin' : 'role-operator';
+        const statusDot = u.approved !== false
+          ? '<span class="status-dot status-ok"></span>Active'
+          : '<span class="status-dot status-pending"></span>Pending';
+        return `<tr>
+          <td class="td-mono">${u.username}</td>
+          <td style="color:var(--muted);font-size:11px;">${u.email || '—'}</td>
+          <td><span class="role-badge ${roleClass}">${u.role}</span></td>
+          <td style="font-size:11px;">${statusDot}</td>
+          <td class="td-mono" style="color:var(--muted);">${joined}</td>
+          <td class="td-mono" style="color:var(--accent);">${u.scan_count || 0}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Recent conjunctions table
+    document.getElementById('scans-count').textContent = d.recent_conjunctions.length + ' RECENT';
+    const stbody = document.getElementById('scans-tbody');
+    if (!d.recent_conjunctions.length) {
+      stbody.innerHTML = '<tr><td colspan="7" class="empty">No scans yet</td></tr>';
+    } else {
+      stbody.innerHTML = d.recent_conjunctions.map(c => {
+        const distClass = c.min_dist_km < 1 ? 'dist-crit' : c.min_dist_km < 5 ? 'dist-warn' : 'dist-ok';
+        const t = (c.run_time || '').slice(0,16).replace('T',' ');
+        return `<tr>
+          <td class="td-mono" style="color:var(--muted);font-size:10px;">${t}</td>
+          <td class="td-mono" style="color:var(--accent);">${c.user_id || 'anon'}</td>
+          <td class="td-mono">${c.sat1}</td>
+          <td class="td-mono">${c.sat2}</td>
+          <td style="font-size:10px;color:var(--muted);">${c.regime1}/${c.regime2}</td>
+          <td class="td-mono ${distClass}">${Number(c.min_dist_km).toFixed(2)} km</td>
+          <td class="td-mono" style="color:#ffaa44;">${Number(c.pc_estimate).toExponential(1)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Charts
+    const scanCtx = document.getElementById('chart-scans').getContext('2d');
+    if (chartScans) chartScans.destroy();
+    chartScans = new Chart(scanCtx, {
+      type: 'bar',
+      data: {
+        labels: d.daily_scans.map(x => x.day).reverse(),
+        datasets: [{
+          label: 'Scan Runs',
+          data: d.daily_scans.map(x => x.count).reverse(),
+          backgroundColor: 'rgba(0,212,255,0.25)',
+          borderColor: '#00d4ff',
+          borderWidth: 1,
+          borderRadius: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#3a5a75', font: { size: 8, family: 'Share Tech Mono' }, maxTicksLimit: 10 }, grid: { color: '#0d2137' } },
+          y: { ticks: { color: '#3a5a75', font: { size: 8 } }, grid: { color: '#0d2137' }, beginAtZero: true }
+        }
+      }
+    });
+
+    const regCtx = document.getElementById('chart-regimes').getContext('2d');
+    if (chartRegimes) chartRegimes.destroy();
+    chartRegimes = new Chart(regCtx, {
+      type: 'doughnut',
+      data: {
+        labels: d.regime_breakdown.map(x => x.pair),
+        datasets: [{
+          data: d.regime_breakdown.map(x => x.count),
+          backgroundColor: ['#4da6ff','#ff6b6b','#00ff88','#ffaa44','#aa66ff','#00d4ff'],
+          borderColor: '#07101a', borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: '#3a5a75', font: { family: 'Share Tech Mono', size: 8 }, boxWidth: 10, padding: 8 } } }
+      }
+    });
+
+  } catch(e) {
+    console.error('Admin load failed:', e);
+  }
+}
+
+function copyUmamiInstructions() {
+  const text = 'UMAMI_SCRIPT_URL=https://cloud.umami.is/script.js\nUMEAMI_WEBSITE_ID=your-website-id-here';
+  navigator.clipboard.writeText(text).then(() => {
+    const box = document.getElementById('umami-box');
+    box.style.borderColor = 'var(--accent3)';
+    setTimeout(() => box.style.borderColor = '', 1500);
+  });
+}
+
+loadAdmin();
+</script>
+</body>
+</html>"""
+
 def build_api(cfg: Config):
     if not HAS_FASTAPI:
         log.warning("FastAPI not installed — API disabled. pip install fastapi uvicorn")
@@ -5047,6 +5447,123 @@ def build_api(cfg: Config):
                      for c in debris_conj_only]
 
         return JSONResponse({"debris_tracks": tracks_json, "conjunctions": conj_json})
+
+
+    # ═══════════════════════════════════════════════════════════════
+    # ADMIN ROUTES
+    # ═══════════════════════════════════════════════════════════════
+
+    @app.get("/admin", response_class=HTMLResponse)
+    def admin_page(request: Request):
+        """Admin console — admin role only."""
+        user = request.session.get("user")
+        if not user or user.get("role") != "admin":
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(url="/login?next=/admin", status_code=303)
+        token = os.environ.get("CESIUM_ION_TOKEN", "")
+        html = ADMIN_HTML.replace("__CESIUM_TOKEN__", token)
+        return HTMLResponse(html)
+
+    @app.get("/admin/data")
+    def admin_data(request: Request):
+        """JSON endpoint — returns all admin stats."""
+        user = request.session.get("user")
+        if not user or user.get("role") != "admin":
+            from fastapi.responses import JSONResponse
+            return JSONResponse({"error": "forbidden"}, status_code=403)
+
+        import datetime as _dt
+
+        # ── Users ────────────────────────────────────────────────────
+        all_users = list(_load_users(cfg).values())
+        now = _dt.datetime.utcnow()
+        week_ago = (now - _dt.timedelta(days=7)).isoformat()
+        new_7d = sum(
+            1 for u in all_users
+            if u.get("created_at", "0") >= week_ago
+        )
+
+        # Per-user scan counts
+        try:
+            with sqlite3.connect(cfg.db_path) as con:
+                scan_counts_raw = con.execute(
+                    "SELECT user_id, COUNT(*) FROM conjunctions GROUP BY user_id"
+                ).fetchall()
+            scan_by_user = {r[0]: r[1] for r in scan_counts_raw}
+        except Exception:
+            scan_by_user = {}
+
+        users_out = []
+        for u in sorted(all_users, key=lambda x: x.get("created_at", ""), reverse=True):
+            users_out.append({
+                "username":   u.get("username", ""),
+                "email":      u.get("email", ""),
+                "role":       u.get("role", "operator"),
+                "approved":   u.get("approved", True),
+                "created_at": u.get("created_at", ""),
+                "scan_count": scan_by_user.get(u.get("username", ""), 0),
+            })
+
+        # ── Conjunction DB stats ──────────────────────────────────────
+        try:
+            with sqlite3.connect(cfg.db_path) as con:
+                total_conj = con.execute("SELECT COUNT(*) FROM conjunctions").fetchone()[0]
+
+                # Unique scan runs (distinct run_time values)
+                total_runs = con.execute(
+                    "SELECT COUNT(DISTINCT run_time) FROM conjunctions"
+                ).fetchone()[0]
+
+                # Recent 50 events
+                recent = con.execute(
+                    """SELECT run_time, user_id, sat1, sat2, regime1, regime2,
+                              min_dist_km, pc_estimate
+                       FROM conjunctions
+                       ORDER BY id DESC LIMIT 50"""
+                ).fetchall()
+                recent_out = [
+                    {
+                        "run_time": r[0], "user_id": r[1] or "anon",
+                        "sat1": r[2], "sat2": r[3],
+                        "regime1": r[4], "regime2": r[5],
+                        "min_dist_km": r[6], "pc_estimate": r[7],
+                    }
+                    for r in recent
+                ]
+
+                # Daily scan runs (last 30 days)
+                thirty_ago = (now - _dt.timedelta(days=30)).date().isoformat()
+                daily_raw = con.execute(
+                    """SELECT DATE(run_time) as day, COUNT(DISTINCT run_time) as cnt
+                       FROM conjunctions
+                       WHERE DATE(run_time) >= ?
+                       GROUP BY day ORDER BY day DESC""",
+                    (thirty_ago,)
+                ).fetchall()
+                daily_out = [{"day": r[0], "count": r[1]} for r in daily_raw]
+
+                # Regime breakdown
+                regime_raw = con.execute(
+                    """SELECT regime1 || '/' || regime2 as pair, COUNT(*) as cnt
+                       FROM conjunctions
+                       GROUP BY pair ORDER BY cnt DESC LIMIT 6"""
+                ).fetchall()
+                regime_out = [{"pair": r[0], "count": r[1]} for r in regime_raw]
+
+        except Exception as e:
+            total_conj = 0; total_runs = 0
+            recent_out = []; daily_out = []; regime_out = []
+
+        return {
+            "total_users":        len(all_users),
+            "total_scan_runs":    total_runs,
+            "total_conjunctions": total_conj,
+            "new_users_7d":       new_7d,
+            "users":              users_out,
+            "recent_conjunctions": recent_out,
+            "daily_scans":        daily_out,
+            "regime_breakdown":   regime_out,
+        }
 
     @app.get("/health")
     def health():
