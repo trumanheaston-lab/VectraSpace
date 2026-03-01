@@ -2461,7 +2461,17 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <!-- ── SIDEBAR ── -->
   <div id="sidebar">
     <div id="header">
-      <div class="logo">VectraSpace // Mission Control</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div class="logo">VectraSpace // Mission Control</div>
+        <a href="/" style="font-family:'Share Tech Mono',monospace;font-size:8px;
+                           letter-spacing:2px;color:var(--muted);text-decoration:none;
+                           padding:3px 8px;border:1px solid var(--border);border-radius:3px;
+                           text-transform:uppercase;transition:all 0.2s;"
+           onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'"
+           onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">
+          ← Home
+        </a>
+      </div>
       <h1>Orbital Safety Platform</h1>
       <div class="sub">VectraSpace v11 — Public Release</div>
     </div>
@@ -2651,6 +2661,33 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
   <!-- ── GLOBE ── -->
   <div id="globe-container">
+    <!-- Cesium init overlay -->
+    <div id="cesium-init-overlay" style="
+        position:absolute;inset:0;z-index:50;
+        background:#030508;
+        display:flex;flex-direction:column;
+        align-items:center;justify-content:center;gap:20px;
+        pointer-events:none;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;
+                  letter-spacing:4px;color:#00d4ff;text-transform:uppercase;">
+        VectraSpace
+      </div>
+      <div style="width:220px;">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;
+                    color:#3a5a75;letter-spacing:2px;margin-bottom:8px;
+                    text-transform:uppercase;" id="cesium-init-msg">
+          Initializing Globe...
+        </div>
+        <div style="background:#0a1520;border:1px solid #0d2137;border-radius:3px;
+                    height:3px;overflow:hidden;">
+          <div id="cesium-init-bar" style="
+              height:100%;width:0%;
+              background:linear-gradient(90deg,#00d4ff,#00ff88);
+              border-radius:3px;
+              transition:width 0.4s ease;"></div>
+        </div>
+      </div>
+    </div>
     <div id="cesiumContainer"></div>
     <div id="globe-header">VECTRASPACE // LIVE ORBITAL TRACKING</div>
     <div id="sat-counter">
@@ -2990,7 +3027,49 @@ async function initCesium() {
 
   viewerReady = true;
   console.log('Cesium viewer ready');
+  // Complete + dismiss the init overlay
+  const _bar = document.getElementById('cesium-init-bar');
+  const _msg = document.getElementById('cesium-init-msg');
+  const _overlay = document.getElementById('cesium-init-overlay');
+  if (window._cesiumInitInterval) clearInterval(window._cesiumInitInterval);
+  if (_bar) _bar.style.width = '100%';
+  if (_msg) _msg.textContent = 'Ready';
+  if (_overlay) {
+    setTimeout(() => {
+      _overlay.style.transition = 'opacity 0.6s ease';
+      _overlay.style.opacity = '0';
+      setTimeout(() => { _overlay.style.display = 'none'; }, 650);
+    }, 300);
+  }
 }
+
+// ── CESIUM INIT PROGRESS ─────────────────────────────────────────────────────
+(function() {
+  const bar = document.getElementById('cesium-init-bar');
+  const msg = document.getElementById('cesium-init-msg');
+  if (!bar) return;
+  const steps = [
+    [10, 'Loading terrain...'],
+    [30, 'Connecting to Ion...'],
+    [55, 'Fetching imagery...'],
+    [75, 'Building scene...'],
+    [90, 'Almost ready...'],
+  ];
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < steps.length) {
+      bar.style.width = steps[i][0] + '%';
+      msg.textContent = steps[i][1];
+      i++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 600);
+  // Store cleanup ref for when Cesium is ready
+  window._cesiumInitInterval = interval;
+  window._cesiumInitBar = bar;
+  window._cesiumInitMsg = msg;
+})();
 
 initCesium();
 
@@ -5756,7 +5835,7 @@ def build_api(cfg: Config):
 
     @app.post("/admin/verify")
     async def admin_verify(request: Request):
-        """Check admin passcode from ADMIN_PASSCODE env var."""
+        """Check admin passcode; on success set a short-lived admin-access cookie."""
         try:
             body = await request.json()
         except Exception:
@@ -5766,7 +5845,15 @@ def build_api(cfg: Config):
         if not expected:
             return JSONResponse({"error": "not configured"}, status_code=500)
         if passcode == expected:
-            return JSONResponse({"ok": True})
+            resp = JSONResponse({"ok": True})
+            # Sign token with HMAC so it can't be forged
+            import hmac, hashlib, time
+            ts = str(int(time.time()))
+            sig = hmac.new(cfg.session_secret.encode(), (ts + ":admin").encode(), hashlib.sha256).hexdigest()
+            signed = ts + ":" + sig
+            resp.set_cookie("vs_admin_token", signed, httponly=True,
+                           samesite="lax", max_age=3600)  # 1-hour access
+            return resp
         return JSONResponse({"error": "wrong passcode"}, status_code=403)
 
     # ═══════════════════════════════════════════════════════════════
@@ -5775,11 +5862,27 @@ def build_api(cfg: Config):
 
     @app.get("/admin", response_class=HTMLResponse)
     def admin_page(request: Request):
-        """Admin console — admin role only."""
+        """Admin console — accessible via admin role session OR valid passcode cookie."""
+        # Check 1: logged-in admin role
         user = request.session.get("user")
-        if not user or user.get("role") != "admin":
+        is_admin_user = user and user.get("role") == "admin"
+        # Check 2: passcode cookie
+        admin_token = request.cookies.get("vs_admin_token", "")
+        passcode_ok = False
+        if admin_token:
+            try:
+                import hmac, hashlib, time
+                parts = admin_token.split(":")
+                if len(parts) == 2:
+                    ts, sig = parts
+                    expected_sig = hmac.new(cfg.session_secret.encode(), (ts + ":admin").encode(), hashlib.sha256).hexdigest()
+                    age = int(time.time()) - int(ts)
+                    passcode_ok = hmac.compare_digest(sig, expected_sig) and age < 3600
+            except Exception:
+                passcode_ok = False
+        if not is_admin_user and not passcode_ok:
             from fastapi.responses import RedirectResponse
-            return RedirectResponse(url="/login?next=/admin", status_code=303)
+            return RedirectResponse(url="/?admin_denied=1", status_code=303)
         token = os.environ.get("CESIUM_ION_TOKEN", "")
         html = ADMIN_HTML.replace("__CESIUM_TOKEN__", token)
         return HTMLResponse(html)
@@ -5788,8 +5891,21 @@ def build_api(cfg: Config):
     def admin_data(request: Request):
         """JSON endpoint — returns all admin stats."""
         user = request.session.get("user")
-        if not user or user.get("role") != "admin":
-            from fastapi.responses import JSONResponse
+        is_admin_user = user and user.get("role") == "admin"
+        admin_token = request.cookies.get("vs_admin_token", "")
+        passcode_ok = False
+        if admin_token:
+            try:
+                import hmac, hashlib, time
+                parts = admin_token.split(":")
+                if len(parts) == 2:
+                    ts, sig = parts
+                    expected_sig = hmac.new(cfg.session_secret.encode(), (ts + ":admin").encode(), hashlib.sha256).hexdigest()
+                    age = int(time.time()) - int(ts)
+                    passcode_ok = hmac.compare_digest(sig, expected_sig) and age < 3600
+            except Exception:
+                passcode_ok = False
+        if not is_admin_user and not passcode_ok:
             return JSONResponse({"error": "forbidden"}, status_code=403)
 
         import datetime as _dt
