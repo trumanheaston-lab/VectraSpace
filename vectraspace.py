@@ -4542,7 +4542,7 @@ def build_api(cfg: Config):
     # ── AUTH-01: Self-service signup ──────────────────────────
     # Controlled by SIGNUP_OPEN env var: "true" = open, anything else = closed.
     # Set SIGNUP_OPEN=true in .env to enable public registration.
-    SIGNUP_OPEN = os.environ.get("SIGNUP_OPEN", "false").lower() == "true"
+    SIGNUP_OPEN = os.environ.get("SIGNUP_OPEN", "true").lower() == "true"
 
     _SIGNUP_FORM = """
     <form method="post" action="/signup">
