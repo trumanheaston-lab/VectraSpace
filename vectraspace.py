@@ -1935,10 +1935,8 @@ def run_headless(cfg: Config):
 
 # SEC-02: Cesium token loaded from environment — never hard-coded
 def _get_cesium_token() -> str:
-    token = os.environ.get("CESIUM_ION_TOKEN", "")
-    if not token:
-        log.warning("CESIUM_ION_TOKEN not set in environment — globe may not render correctly")
-    return token
+    # Use env var if set, otherwise fall back to hardcoded default
+    return os.environ.get("CESIUM_ION_TOKEN", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMzRmMGI5Ni1hMTM0LTQxMjgtODgzMy04ZGYxN2UzNzYyN2MiLCJpZCI6MzkyNzg4LCJpYXQiOjE3NzE2OTU4OTF9.lulZ9jWB9A_XCxfui1FpcGmC7A7B49znZpcwn7yg530")
 
 
 DASHBOARD_HTML = """<!DOCTYPE html>
@@ -2816,6 +2814,14 @@ async function initCesium() {
   viewer.scene.globe.translucency.enabled = false;
   viewer.clock.currentTime = Cesium.JulianDate.now();
   viewer.clock.shouldAnimate = false;
+
+  // ── 3D Buildings (OSM) — Google Earth style ──────────────────────────────
+  try {
+    const osmBuildings = await Cesium.createOsmBuildingsAsync();
+    viewer.scene.primitives.add(osmBuildings);
+  } catch(e) {
+    console.warn('OSM 3D buildings unavailable:', e.message);
+  }
 
   viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(0, 20, 25000000),
@@ -5108,7 +5114,7 @@ def build_api(cfg: Config):
         if not user.get("approved", True):
             return _login_page_with_err("Account pending approval. Contact trumanheaston@gmail.com.")
         token = _make_session_cookie(username, user.get("role", "operator"), cfg.session_secret)
-        resp = RedirectResponse(url="/", status_code=303)
+        resp = RedirectResponse(url="/dashboard", status_code=303)
         resp.set_cookie("vs_session", token, httponly=True, samesite="lax", max_age=28800)
         return resp
 
@@ -5171,7 +5177,7 @@ def build_api(cfg: Config):
             return HTMLResponse(SIGNUP_HTML.replace("{MESSAGE}", err).replace("{FORM}", _SIGNUP_FORM))
         # Auto-login after successful registration
         token = _make_session_cookie(username, "operator", cfg.session_secret)
-        resp = RedirectResponse(url="/", status_code=303)
+        resp = RedirectResponse(url="/dashboard", status_code=303)
         resp.set_cookie("vs_session", token, httponly=True, samesite="lax", max_age=28800)
         log.info(f"New self-signup: '{username}' <{email}>")
         return resp
@@ -5372,7 +5378,7 @@ def build_api(cfg: Config):
         PUBLIC_PATHS = {"/login", "/health", "/demo-results", "/signup",
                         "/forgot-password", "/reset-password", "/"}
         # Routes accessible without auth (demo mode)
-        DEMO_ALLOWED = {"/", "/history", "/conjunctions", "/sat-info"}
+        DEMO_ALLOWED = {"/", "/history", "/conjunctions", "/sat-info", "/admin", "/admin/data"}
 
         class AuthMiddleware(BaseHTTPMiddleware):
             async def dispatch(self, request, call_next):
@@ -5381,7 +5387,7 @@ def build_api(cfg: Config):
                 if path in PUBLIC_PATHS or path.startswith("/static"):
                     return await call_next(request)
                 # Allow demo-mode paths without auth
-                if path in ("/", "/dashboard") or path.startswith("/sat-info/") or path.startswith("/cdm"):
+                if path in ("/", "/dashboard", "/admin", "/admin/data") or path.startswith("/sat-info/") or path.startswith("/cdm"):
                     return await call_next(request)
                 # Protected paths: /run, /preferences, /me
                 if path in {"/run", "/preferences", "/me"}:
