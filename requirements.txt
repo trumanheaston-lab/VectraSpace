@@ -1,0 +1,9 @@
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+skyfield>=1.49
+numpy>=1.26
+scipy>=1.12
+requests>=2.31
+bcrypt>=4.1
+itsdangerous>=2.1
+python-multipart>=0.0.9

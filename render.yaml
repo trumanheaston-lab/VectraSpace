@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: vectraspace
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python vectraspace.py --host 0.0.0.0 --no-browser
+    healthCheckPath: /health
+
+    # Render injects PORT automatically — vectraspace.py reads it from os.environ
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true          # Render auto-generates a secure random value
+
+      # ── Email (Gmail App Password — rename account to trumanheaston@gmail.com) ──
+      - key: EMAIL_PROVIDER
+        value: gmail
+      - key: ALERT_EMAIL_FROM
+        value: trumanheaston@gmail.com
+      - key: ALERT_EMAIL_TO
+        value: trumanheaston@gmail.com
+      - key: ALERT_SMTP_PASS
+        sync: false                  # Set manually in Render dashboard (your 16-char App Password)
+
+      # ── App URL (set after first deploy — needed for password reset links) ──
+      - key: VECTRASPACE_BASE_URL
+        sync: false                  # e.g. https://vectraspace.onrender.com
+
+      # ── Optional — fill in if you have them ──
+      - key: CESIUM_ION_TOKEN
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: PUSHOVER_TOKEN
+        sync: false
+      - key: PUSHOVER_USER_KEY
+        sync: false
+      - key: SPACETRACK_USER
+        sync: false
+      - key: SPACETRACK_PASS
+        sync: false
+
+      # ── Security ──
+      - key: SIGNUP_OPEN
+        value: "false"              # Change to "true" to allow public registration
+      - key: ALLOWED_ORIGINS
+        sync: false                 # Set to your domain e.g. https://vectraspace.onrender.com
