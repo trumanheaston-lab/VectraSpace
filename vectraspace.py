@@ -1431,7 +1431,7 @@ def _make_session_cookie(username: str, role: str, secret: str) -> str:
     return s.dumps({"u": username, "r": role})
 
 
-def _verify_session_cookie(token: str, secret: str, max_age: int = 28800):
+def _verify_session_cookie(token: str, secret: str, max_age: int = 2592000):
     """Returns (username, role) or raises on invalid/expired."""
     if not HAS_AUTH:
         raise ValueError("Auth not available")
@@ -1954,7 +1954,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>VectraSpace — Orbital Safety Platform</title>
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
@@ -2388,6 +2388,12 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     /* Globe takes full screen on mobile */
     #globe-container {
       width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+    }
+    #app {
+      height: 100vh;
+      height: 100dvh;
     }
 
     /* Globe overlays: reposition to avoid hamburger button */
@@ -2407,19 +2413,22 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     /* Globe controls: scrollable on mobile */
     #globe-controls {
-      bottom: 16px;
+      bottom: max(16px, env(safe-area-inset-bottom, 16px));
       left: 8px;
       right: 8px;
       transform: none;
       overflow-x: auto;
       border-radius: 6px;
-      padding: 6px 10px;
-      gap: 6px;
+      padding: 8px 12px;
+      gap: 8px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
+      z-index: 20;
+      flex-wrap: nowrap;
+      min-height: 44px;
     }
     #globe-controls::-webkit-scrollbar { display: none; }
-    .ctrl-btn { font-size: 9px; padding: 4px 8px; white-space: nowrap; flex-shrink: 0; }
+    .ctrl-btn { font-size: 10px; padding: 8px 12px; white-space: nowrap; flex-shrink: 0; min-height: 36px; }
     #speed-label { font-size: 9px; flex-shrink: 0; }
 
     /* Tooltip: full width at bottom on mobile */
@@ -4831,7 +4840,12 @@ def build_api(cfg: Config):
 
     # ── Landing page (public marketing page) ─────────────────
     @app.get("/", response_class=HTMLResponse)
-    def landing():
+    def landing(request: Request):
+        # If user already has a valid session, redirect to dashboard
+        user = get_current_user_from_request(request, cfg)
+        if user:
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(url="/dashboard", status_code=302)
         return HTMLResponse(content=LANDING_HTML)
 
     # ── Dashboard UI ──────────────────────────────────────────
@@ -5322,7 +5336,7 @@ def build_api(cfg: Config):
             return _login_page_with_err("Account pending approval. Contact trumanheaston@gmail.com.")
         token = _make_session_cookie(username, user.get("role", "operator"), cfg.session_secret)
         resp = RedirectResponse(url="/dashboard", status_code=303)
-        resp.set_cookie("vs_session", token, httponly=True, samesite="lax", max_age=28800)
+        resp.set_cookie("vs_session", token, httponly=True, samesite="lax", max_age=2592000)
         return resp
 
     @app.get("/logout")
@@ -5385,7 +5399,7 @@ def build_api(cfg: Config):
         # Auto-login after successful registration
         token = _make_session_cookie(username, "operator", cfg.session_secret)
         resp = RedirectResponse(url="/dashboard", status_code=303)
-        resp.set_cookie("vs_session", token, httponly=True, samesite="lax", max_age=28800)
+        resp.set_cookie("vs_session", token, httponly=True, samesite="lax", max_age=2592000)
         log.info(f"New self-signup: '{username}' <{email}>")
         return resp
 
@@ -5520,7 +5534,7 @@ def build_api(cfg: Config):
         # Auto-login after successful reset
         token_cookie = _make_session_cookie(username, "operator", cfg.session_secret)
         resp = RedirectResponse(url="/", status_code=303)
-        resp.set_cookie("vs_session", token_cookie, httponly=True, samesite="lax", max_age=28800)
+        resp.set_cookie("vs_session", token_cookie, httponly=True, samesite="lax", max_age=2592000)
         return resp
 
     # ── Authenticated change-password (for logged-in users in prefs) ──
@@ -5740,13 +5754,14 @@ def build_api(cfg: Config):
             return JSONResponse({"error": "not configured"}, status_code=500)
         if passcode == expected:
             resp = JSONResponse({"ok": True})
-            # Sign token with HMAC so it can't be forged
+            # Sign token using ADMIN_PASSCODE as key so it survives restarts
             import hmac, hashlib, time
             ts = str(int(time.time()))
-            sig = hmac.new(cfg.session_secret.encode(), (ts + ":admin").encode(), hashlib.sha256).hexdigest()
+            key = expected.encode()  # use the passcode itself as key
+            sig = hmac.new(key, (ts + ":admin").encode(), hashlib.sha256).hexdigest()
             signed = ts + ":" + sig
             resp.set_cookie("vs_admin_token", signed, httponly=True,
-                           samesite="lax", max_age=3600)  # 1-hour access
+                           samesite="lax", max_age=86400)  # 24-hour access
             return resp
         return JSONResponse({"error": "wrong passcode"}, status_code=403)
 
@@ -5769,9 +5784,11 @@ def build_api(cfg: Config):
                 parts = admin_token.split(":")
                 if len(parts) == 2:
                     ts, sig = parts
-                    expected_sig = hmac.new(cfg.session_secret.encode(), (ts + ":admin").encode(), hashlib.sha256).hexdigest()
-                    age = int(time.time()) - int(ts)
-                    passcode_ok = hmac.compare_digest(sig, expected_sig) and age < 3600
+                    key = os.environ.get("ADMIN_PASSCODE", "").strip().encode()
+                    if key:
+                        expected_sig = hmac.new(key, (ts + ":admin").encode(), hashlib.sha256).hexdigest()
+                        age = int(time.time()) - int(ts)
+                        passcode_ok = hmac.compare_digest(sig, expected_sig) and age < 86400
             except Exception:
                 passcode_ok = False
         if not is_admin_user and not passcode_ok:
@@ -5794,9 +5811,11 @@ def build_api(cfg: Config):
                 parts = admin_token.split(":")
                 if len(parts) == 2:
                     ts, sig = parts
-                    expected_sig = hmac.new(cfg.session_secret.encode(), (ts + ":admin").encode(), hashlib.sha256).hexdigest()
-                    age = int(time.time()) - int(ts)
-                    passcode_ok = hmac.compare_digest(sig, expected_sig) and age < 3600
+                    key = os.environ.get("ADMIN_PASSCODE", "").strip().encode()
+                    if key:
+                        expected_sig = hmac.new(key, (ts + ":admin").encode(), hashlib.sha256).hexdigest()
+                        age = int(time.time()) - int(ts)
+                        passcode_ok = hmac.compare_digest(sig, expected_sig) and age < 86400
             except Exception:
                 passcode_ok = False
         if not is_admin_user and not passcode_ok:
