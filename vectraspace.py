@@ -2643,6 +2643,81 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     </div><!-- /scroll -->
 
+      <!-- ── FEEDBACK TAB ── -->
+      <div class="section" id="feedback-section">
+        <div class="section-title" style="cursor:pointer;user-select:none;"
+             onclick="togglePanel('feedback-panel','feedback-chevron')">
+          Feedback &amp; Bug Reports
+          <span id="feedback-chevron" style="float:right;transition:transform 0.2s;">▾</span>
+        </div>
+        <div id="feedback-panel" style="display:none;">
+          <div style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;
+                      letter-spacing:1px;margin-bottom:10px;line-height:1.6;">
+            Found a bug or have a suggestion? Let us know.
+          </div>
+          <div class="field">
+            <label>Type</label>
+            <select id="fb-type" style="width:100%;background:#0a1520;border:1px solid var(--border);
+                    border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;
+                    font-size:11px;padding:7px 10px;outline:none;">
+              <option value="bug">🐛 Bug Report</option>
+              <option value="feature">💡 Feature Request</option>
+              <option value="ux">📱 UX / UI Issue</option>
+              <option value="data">📡 Data / Accuracy Issue</option>
+              <option value="other">💬 Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Message</label>
+            <textarea id="fb-message" rows="4"
+                      placeholder="Describe the issue or idea..."
+                      style="width:100%;background:#0a1520;border:1px solid var(--border);
+                             border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;
+                             font-size:11px;padding:8px 10px;outline:none;resize:vertical;
+                             transition:border-color 0.2s;"></textarea>
+          </div>
+          <div class="field">
+            <label>Your Email (optional)</label>
+            <input type="email" id="fb-email" placeholder="for follow-up"
+                   style="font-size:11px;">
+          </div>
+          <button onclick="submitFeedback()"
+                  style="margin-top:8px;padding:8px;font-size:10px;letter-spacing:2px;">
+            SUBMIT FEEDBACK
+          </button>
+          <div id="fb-status" style="display:none;margin-top:8px;font-family:'Share Tech Mono',monospace;
+                                     font-size:10px;padding:6px 10px;border-radius:3px;"></div>
+        </div>
+      </div>
+
+      <!-- ── ADMIN ACCESS TAB ── -->
+      <div class="section" id="admin-access-section">
+        <div class="section-title" style="cursor:pointer;user-select:none;color:#ff6b6b;"
+             onclick="togglePanel('admin-access-panel','admin-chevron')">
+          ⬡ Admin Access
+          <span id="admin-chevron" style="float:right;transition:transform 0.2s;">▾</span>
+        </div>
+        <div id="admin-access-panel" style="display:none;">
+          <div style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;
+                      letter-spacing:1px;margin-bottom:10px;line-height:1.6;">
+            Enter the admin passcode to open the admin console.
+          </div>
+          <div class="field">
+            <label>Passcode</label>
+            <input type="password" id="admin-passcode" placeholder="••••"
+                   style="font-size:14px;letter-spacing:6px;"
+                   onkeydown="if(event.key==='Enter') checkAdminPasscode()">
+          </div>
+          <button onclick="checkAdminPasscode()"
+                  style="margin-top:8px;padding:8px;font-size:10px;letter-spacing:2px;
+                         border-color:#ff6b6b;color:#ff6b6b;">
+            OPEN ADMIN CONSOLE
+          </button>
+          <div id="admin-code-status" style="display:none;margin-top:8px;font-family:'Share Tech Mono',monospace;
+                                             font-size:10px;padding:6px 10px;border-radius:3px;"></div>
+        </div>
+      </div>
+
     <div id="status-bar">
       <div id="status-dot"></div>
       <div id="status-text">Initializing...</div>
@@ -2692,6 +2767,98 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
 <script>
 // ── CESIUM INIT ──────────────────────────────────────────────
+// ── UTILITY: Toggle collapsible panels ─────────────────────────────────────
+function togglePanel(panelId, chevronId) {
+  const panel = document.getElementById(panelId);
+  const chevron = document.getElementById(chevronId);
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+// ── FEEDBACK SUBMISSION ──────────────────────────────────────────────────────
+async function submitFeedback() {
+  const type    = document.getElementById('fb-type').value;
+  const message = document.getElementById('fb-message').value.trim();
+  const email   = document.getElementById('fb-email').value.trim();
+  const status  = document.getElementById('fb-status');
+
+  if (!message) {
+    status.style.display = 'block';
+    status.style.background = 'rgba(255,68,68,0.1)';
+    status.style.color = '#ff4444';
+    status.style.border = '1px solid rgba(255,68,68,0.3)';
+    status.textContent = '⚠ Please enter a message.';
+    return;
+  }
+
+  try {
+    const res = await fetch('/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, message, email,
+        url: window.location.href,
+        user: currentUser ? currentUser.username : 'anonymous',
+        ua: navigator.userAgent.slice(0, 120),
+      })
+    });
+    status.style.display = 'block';
+    if (res.ok) {
+      status.style.background = 'rgba(0,255,136,0.08)';
+      status.style.color = '#00ff88';
+      status.style.border = '1px solid rgba(0,255,136,0.3)';
+      status.textContent = '✓ Feedback submitted — thank you!';
+      document.getElementById('fb-message').value = '';
+      document.getElementById('fb-email').value = '';
+    } else {
+      status.style.background = 'rgba(255,68,68,0.1)';
+      status.style.color = '#ff4444';
+      status.style.border = '1px solid rgba(255,68,68,0.3)';
+      status.textContent = '✗ Submit failed — try again.';
+    }
+  } catch(e) {
+    status.style.display = 'block';
+    status.style.background = 'rgba(255,68,68,0.1)';
+    status.style.color = '#ff4444';
+    status.style.border = '1px solid rgba(255,68,68,0.3)';
+    status.textContent = '✗ Network error.';
+  }
+}
+
+// ── ADMIN PASSCODE CHECK ─────────────────────────────────────────────────────
+async function checkAdminPasscode() {
+  const code   = document.getElementById('admin-passcode').value.trim();
+  const status = document.getElementById('admin-code-status');
+  if (!code) return;
+
+  try {
+    const res = await fetch('/admin/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: code })
+    });
+    status.style.display = 'block';
+    if (res.ok) {
+      status.style.background = 'rgba(0,255,136,0.08)';
+      status.style.color = '#00ff88';
+      status.style.border = '1px solid rgba(0,255,136,0.3)';
+      status.textContent = '✓ Correct — opening admin console...';
+      document.getElementById('admin-passcode').value = '';
+      setTimeout(() => { window.location.href = '/admin'; }, 800);
+    } else {
+      status.style.background = 'rgba(255,68,68,0.1)';
+      status.style.color = '#ff4444';
+      status.style.border = '1px solid rgba(255,68,68,0.3)';
+      status.textContent = '✗ Incorrect passcode.';
+      document.getElementById('admin-passcode').value = '';
+    }
+  } catch(e) {
+    status.style.display = 'block';
+    status.style.color = '#ff4444';
+    status.textContent = '✗ Network error.';
+  }
+}
+
 Cesium.Ion.defaultAccessToken = '__CESIUM_TOKEN__';
 
 // ── MOBILE SIDEBAR TOGGLE ─────────────────────────────────────────────────
@@ -5388,7 +5555,8 @@ def build_api(cfg: Config):
     # ── Auth middleware (if users.json exists) ────────────────
     if HAS_AUTH and Path(cfg.users_file).exists():
         PUBLIC_PATHS = {"/login", "/health", "/demo-results", "/signup",
-                        "/forgot-password", "/reset-password", "/", "/admin", "/admin/data"}
+                        "/forgot-password", "/reset-password", "/", "/admin", "/admin/data",
+                        "/feedback", "/admin/verify"}
         # Routes accessible without auth (demo mode)
         DEMO_ALLOWED = {"/", "/history", "/conjunctions", "/sat-info", "/admin", "/admin/data"}
 
@@ -5466,6 +5634,85 @@ def build_api(cfg: Config):
 
         return JSONResponse({"debris_tracks": tracks_json, "conjunctions": conj_json})
 
+
+    # ═══════════════════════════════════════════════════════════════
+    # FEEDBACK + ADMIN VERIFY ROUTES
+    # ═══════════════════════════════════════════════════════════════
+
+    @app.post("/feedback")
+    async def submit_feedback(request: Request):
+        """Save feedback to feedback.json and optionally email it."""
+        import datetime as _dt
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse({"error": "invalid json"}, status_code=400)
+
+        fb_type = str(body.get("type", "other"))[:50]
+        message = str(body.get("message", "")).strip()[:2000]
+        email   = str(body.get("email", "")).strip()[:200]
+        user    = str(body.get("user", "anonymous"))[:100]
+        url     = str(body.get("url", ""))[:200]
+        ua      = str(body.get("ua", ""))[:200]
+
+        if not message:
+            return JSONResponse({"error": "empty message"}, status_code=400)
+
+        entry = {
+            "id":        __import__('uuid').uuid4().hex[:8],
+            "timestamp": _dt.datetime.utcnow().isoformat(),
+            "type":      fb_type,
+            "message":   message,
+            "email":     email,
+            "user":      user,
+            "url":       url,
+            "ua":        ua,
+        }
+
+        # Append to feedback.json
+        fb_path = Path(cfg.db_path).parent / "feedback.json"
+        try:
+            existing = json.loads(fb_path.read_text()) if fb_path.exists() else []
+        except Exception:
+            existing = []
+        existing.append(entry)
+        fb_path.write_text(json.dumps(existing, indent=2))
+
+        # Email notification to admin
+        try:
+            _send_email(
+                subject=f"[VectraSpace Feedback] {fb_type.upper()} from {user}",
+                html_body=f"""<div style="font-family:monospace;background:#050a0f;color:#c8dff0;padding:24px;">
+<h3 style="color:#00d4ff;">New Feedback — {fb_type.upper()}</h3>
+<p><strong>From:</strong> {user} ({email or 'no email'})</p>
+<p><strong>Time:</strong> {entry['timestamp']}</p>
+<p><strong>Message:</strong></p>
+<pre style="background:#090f17;padding:12px;border-radius:4px;border-left:2px solid #00d4ff;white-space:pre-wrap;">{message}</pre>
+<p style="color:#4a6a85;font-size:11px;">UA: {ua}</p>
+</div>""",
+                plain_body=("Feedback (" + fb_type + ") from " + user + ":\n\n" + message + "\n\nEmail: " + email),
+                cfg=cfg,
+            )
+        except Exception as e:
+            log.warning(f"Could not email feedback notification: {e}")
+
+        log.info(f"Feedback received: [{fb_type}] from {user}")
+        return JSONResponse({"ok": True, "id": entry["id"]})
+
+    @app.post("/admin/verify")
+    async def admin_verify(request: Request):
+        """Check admin passcode from ADMIN_PASSCODE env var."""
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse({"error": "invalid"}, status_code=400)
+        passcode = str(body.get("passcode", "")).strip()
+        expected = os.environ.get("ADMIN_PASSCODE", "").strip()
+        if not expected:
+            return JSONResponse({"error": "not configured"}, status_code=500)
+        if passcode == expected:
+            return JSONResponse({"ok": True})
+        return JSONResponse({"error": "wrong passcode"}, status_code=403)
 
     # ═══════════════════════════════════════════════════════════════
     # ADMIN ROUTES
