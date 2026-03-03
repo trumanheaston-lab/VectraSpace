@@ -1403,98 +1403,174 @@ def send_propagation_complete(total_sats: int, conjunctions: list,
 # ║  MODULE 5b — AUTHENTICATION                                  ║
 # ╚══════════════════════════════════════════════════════════════╝
 
-try:
-    import bcrypt as _bcrypt
-    from itsdangerous import URLSafeTimedSerializer as _Signer, BadSignature as _BadSig
-    HAS_AUTH = True
-except ImportError:
-    HAS_AUTH = False
-    log.warning("bcrypt/itsdangerous not installed — auth disabled. pip install bcrypt itsdangerous")
+# ── AUTH — stdlib only, no bcrypt/itsdangerous ───────────────────────────────
+import hashlib as _hashlib
+import hmac as _hmac
+import secrets as _secrets
+
+_PBKDF2_ITERS  = 260_000   # OWASP 2023 recommendation for PBKDF2-SHA256
+_SESSION_SEP   = "."       # separator inside session token
+_login_attempts: dict = {}  # ip -> [timestamp, ...]
 
 
-def _load_users(cfg: Config) -> dict:
-    p = Path(cfg.users_file)
-    if not p.exists():
-        return {}
-    try:
-        with open(p) as f:
-            users_list = json.load(f)
-        return {u["username"]: u for u in users_list}
-    except Exception as e:
-        log.warning(f"Failed to load users.json: {e}")
-        return {}
+def _hash_password(plain: str) -> str:
+    """Return 'pbkdf2:sha256:iters:salt:hash' string."""
+    salt = _secrets.token_hex(16)
+    dk   = _hashlib.pbkdf2_hmac("sha256", plain.encode(), salt.encode(), _PBKDF2_ITERS)
+    return f"pbkdf2:sha256:{_PBKDF2_ITERS}:{salt}:{dk.hex()}"
 
 
-def create_user(username: str, password: str, role: str = "operator", cfg: Config = None):
-    """CLI utility: add a bcrypt-hashed user to users.json."""
-    if not HAS_AUTH:
-        print("ERROR: bcrypt not installed. pip install bcrypt")
-        return
-    if cfg is None:
-        cfg = CFG
-    username = username.strip().lower()  # always lowercase for consistent lookup
-    users = _load_users(cfg)
-    hashed = _bcrypt.hashpw(password.encode(), _bcrypt.gensalt(rounds=12)).decode()
-    import time as _t
-    users[username] = {
-        "username": username, "password_hash": hashed, "role": role,
-        "email": "", "approved": True, "created_at": _t.strftime("%Y-%m-%dT%H:%M:%SZ"),
-    }
-    p = Path(cfg.users_file)
-    with open(p, "w") as f:
-        json.dump(list(users.values()), f, indent=2)
-    log.info(f"User '{username}' created with role '{role}'")
-    print(f"User '{username}' ({role}) added to {p}")
-
-
-def _verify_password(plain: str, hashed: str) -> bool:
-    if not HAS_AUTH:
+def _verify_password(plain: str, stored: str) -> bool:
+    """Verify against either new pbkdf2 format or legacy bcrypt format."""
+    if not plain or not stored:
         return False
+    if stored.startswith("pbkdf2:sha256:"):
+        try:
+            _, _, iters, salt, hx = stored.split(":")
+            dk = _hashlib.pbkdf2_hmac("sha256", plain.encode(), salt.encode(), int(iters))
+            return _hmac.compare_digest(dk.hex(), hx)
+        except Exception:
+            return False
+    # Legacy bcrypt — try if available
     try:
-        return _bcrypt.checkpw(plain.encode(), hashed.encode())
+        import bcrypt as _bcrypt
+        return _bcrypt.checkpw(plain.encode(), stored.encode())
     except Exception:
         return False
 
 
-def _make_session_cookie(username: str, role: str, secret: str) -> str:
-    if not HAS_AUTH:
-        return ""
-    s = _Signer(secret, salt="vectraspace-session")
-    return s.dumps({"u": username, "r": role})
+def _make_session_token(username: str, role: str, secret: str) -> str:
+    """Create a signed session token: b64(username.role.ts).sig"""
+    import base64, time as _t
+    ts      = str(int(_t.time()))
+    payload = base64.urlsafe_b64encode(f"{username}{_SESSION_SEP}{role}{_SESSION_SEP}{ts}".encode()).decode()
+    sig     = _hmac.new(secret.encode(), payload.encode(), _hashlib.sha256).hexdigest()
+    return f"{payload}{_SESSION_SEP}{sig}"
 
+
+def _verify_session_token(token: str, secret: str, max_age: int = 2592000):
+    """Returns (username, role) or raises ValueError."""
+    import base64, time as _t
+    if not token or token.count(_SESSION_SEP) < 3:
+        raise ValueError("malformed")
+    # last segment is sig, everything before is payload
+    last_dot = token.rfind(_SESSION_SEP)
+    payload  = token[:last_dot]
+    sig      = token[last_dot+1:]
+    expected = _hmac.new(secret.encode(), payload.encode(), _hashlib.sha256).hexdigest()
+    if not _hmac.compare_digest(sig, expected):
+        raise ValueError("bad signature")
+    decoded  = base64.urlsafe_b64decode(payload.encode()).decode()
+    parts    = decoded.split(_SESSION_SEP)
+    if len(parts) != 3:
+        raise ValueError("malformed payload")
+    username, role, ts = parts
+    if int(_t.time()) - int(ts) > max_age:
+        raise ValueError("expired")
+    return username, role
+
+
+# Keep old name as alias so existing call-sites work
+def _make_session_cookie(username: str, role: str, secret: str) -> str:
+    return _make_session_token(username, role, secret)
 
 def _verify_session_cookie(token: str, secret: str, max_age: int = 2592000):
-    """Returns (username, role) or raises on invalid/expired."""
-    if not HAS_AUTH:
-        raise ValueError("Auth not available")
-    s = _Signer(secret, salt="vectraspace-session")
-    data = s.loads(token, max_age=max_age)
-    return data["u"], data["r"]
+    return _verify_session_token(token, secret, max_age)
 
 
-def get_current_user_from_request(request, cfg: Config) -> Optional[dict]:
-    """Returns {'username': str, 'role': str} or None if unauthenticated."""
+def get_current_user_from_request(request, cfg) -> "Optional[dict]":
     token = request.cookies.get("vs_session", "")
     if not token:
         return None
     try:
-        username, role = _verify_session_cookie(token, cfg.session_secret)
+        username, role = _verify_session_token(token, cfg.session_secret)
         return {"username": username, "role": role}
     except Exception:
         return None
 
 
-# In-memory rate limiter for login attempts
-_login_attempts: dict = {}
-
 def _check_login_rate_limit(ip: str) -> bool:
-    now = time.time()
+    import time as _t
+    now = _t.time()
     attempts = [t for t in _login_attempts.get(ip, []) if now - t < 300]
     _login_attempts[ip] = attempts
-    if len(attempts) >= 20:  # 20 attempts per 5 min per real IP
+    if len(attempts) >= 20:
         return False
     _login_attempts[ip].append(now)
     return True
+
+
+def _load_users(cfg) -> dict:
+    """Load users.json → {username: user_dict}. Handles list or dict format."""
+    p = Path(cfg.users_file)
+    if not p.exists():
+        return {}
+    try:
+        raw = json.loads(p.read_text())
+        if isinstance(raw, list):
+            return {u["username"]: u for u in raw if "username" in u}
+        if isinstance(raw, dict):
+            return raw
+    except Exception as e:
+        log.warning(f"Failed to load users.json: {e}")
+    return {}
+
+
+def _save_users(users: dict, cfg) -> None:
+    """Save users dict as a JSON list."""
+    Path(cfg.users_file).write_text(json.dumps(list(users.values()), indent=2))
+
+
+def create_user(username: str, password: str, role: str = "operator", cfg=None):
+    """Create or overwrite a user account. Safe to call at startup."""
+    if cfg is None:
+        cfg = CFG
+    username = username.strip().lower()
+    users    = _load_users(cfg)
+    import time as _t
+    users[username] = {
+        "username":      username,
+        "password_hash": _hash_password(password),
+        "role":          role,
+        "email":         users.get(username, {}).get("email", ""),
+        "approved":      True,
+        "created_at":    users.get(username, {}).get("created_at", _t.strftime("%Y-%m-%dT%H:%M:%SZ")),
+    }
+    _save_users(users, cfg)
+    log.info(f"User '{username}' saved with role '{role}'")
+
+
+def _register_user(username: str, email: str, password: str, cfg, approved: bool = True):
+    """Register new user. Returns (ok, error_msg)."""
+    import time as _t
+    username = username.strip().lower()
+    email    = email.strip().lower()
+    if len(username) < 3:
+        return False, "Username must be at least 3 characters"
+    if not username.replace("_","").replace("-","").isalnum():
+        return False, "Username may only contain letters, numbers, - and _"
+    if "@" not in email:
+        return False, "Invalid email address"
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters"
+    users = _load_users(cfg)
+    if username in users:
+        return False, "Username already taken"
+    if any(u.get("email","").lower() == email for u in users.values()):
+        return False, "An account with that email already exists"
+    users[username] = {
+        "username":      username,
+        "password_hash": _hash_password(password),
+        "role":          "operator",
+        "email":         email,
+        "approved":      approved,
+        "created_at":    _t.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    _save_users(users, cfg)
+    log.info(f"Registered user '{username}' <{email}>")
+    return True, ""
+
+
 
 
 def _get_user_prefs(username: str, cfg: Config) -> dict:
@@ -1544,77 +1620,40 @@ def _save_user_prefs(username: str, prefs: dict, cfg: Config):
 # ── AUTH-02: Password reset token helpers ─────────────────────
 
 def _make_reset_token(username: str, secret: str) -> str:
-    """Generate a signed, time-limited password reset token (valid 1 hour)."""
-    if not HAS_AUTH:
-        return ""
-    s = _Signer(secret, salt="vs-pw-reset")
-    return s.dumps({"u": username})
+    """Signed time-limited reset token (stdlib only)."""
+    import base64, time as _t
+    ts      = str(int(_t.time()))
+    payload = base64.urlsafe_b64encode(f"{username}:{ts}".encode()).decode()
+    sig     = _hmac.new(secret.encode(), payload.encode(), _hashlib.sha256).hexdigest()
+    return f"{payload}.{sig}"
 
 
-def _verify_reset_token(token: str, secret: str, max_age: int = 3600) -> Optional[str]:
-    """Verify a reset token. Returns username or None if invalid/expired."""
-    if not HAS_AUTH:
-        return None
+def _verify_reset_token(token: str, secret: str, max_age: int = 3600) -> "Optional[str]":
+    """Returns username or None if invalid/expired."""
+    import base64, time as _t
     try:
-        s = _Signer(secret, salt="vs-pw-reset")
-        data = s.loads(token, max_age=max_age)
-        return data.get("u")
+        payload, sig = token.rsplit(".", 1)
+        expected = _hmac.new(secret.encode(), payload.encode(), _hashlib.sha256).hexdigest()
+        if not _hmac.compare_digest(sig, expected):
+            return None
+        decoded   = base64.urlsafe_b64decode(payload.encode()).decode()
+        username, ts = decoded.split(":", 1)
+        if int(_t.time()) - int(ts) > max_age:
+            return None
+        return username
     except Exception:
         return None
 
 
-def _update_password(username: str, new_password: str, cfg: Config) -> bool:
-    """Bcrypt-hash and persist a new password to users.json."""
-    if not HAS_AUTH:
-        return False
+def _update_password(username: str, new_password: str, cfg) -> bool:
+    """Hash and persist a new password."""
     users = _load_users(cfg)
     if username not in users:
         return False
-    hashed = _bcrypt.hashpw(new_password.encode(), _bcrypt.gensalt(rounds=12)).decode()
-    users[username]["password_hash"] = hashed
-    p = Path(cfg.users_file)
-    with open(p, "w") as f:
-        json.dump(list(users.values()), f, indent=2)
-    log.info(f"Password updated for user '{username}'")
+    users[username]["password_hash"] = _hash_password(new_password)
+    _save_users(users, cfg)
+    log.info(f"Password updated for '{username}'")
     return True
-
-
-def _register_user(username: str, email: str, password: str,
-                   cfg: Config, approved: bool = True) -> tuple:
-    """
-    Register a new user. Returns (ok: bool, error_msg: str).
-    approved=False means account needs admin approval before login.
-    """
-    if not HAS_AUTH:
-        return False, "Auth library not installed"
-    username = username.strip().lower()
-    email = email.strip().lower()
-    if not username or len(username) < 3:
-        return False, "Username must be at least 3 characters"
-    if not email or "@" not in email:
-        return False, "Invalid email address"
-    if len(password) < 8:
-        return False, "Password must be at least 8 characters"
-    users = _load_users(cfg)
-    if username in users:
-        return False, "Username already taken"
-    # Check email uniqueness
-    if any(u.get("email", "").lower() == email for u in users.values()):
-        return False, "An account with that email already exists"
-    hashed = _bcrypt.hashpw(password.encode(), _bcrypt.gensalt(rounds=12)).decode()
-    users[username] = {
-        "username": username,
-        "password_hash": hashed,
-        "email": email,
-        "role": "operator",
-        "approved": approved,
-        "created_at": datetime.datetime.utcnow().isoformat(),
-    }
-    p = Path(cfg.users_file)
-    with open(p, "w") as f:
-        json.dump(list(users.values()), f, indent=2)
-    log.info(f"Registered user '{username}' (approved={approved})")
-    return True, ""
 
 
 def _get_user_email(username: str, cfg: Config) -> Optional[str]:
@@ -4162,7 +4201,7 @@ footer { padding: 32px 48px; border-top: 1px solid var(--border); display: flex;
           <div style="padding:10px 14px;background:var(--panel);border:1px solid var(--border);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;">SQLite w/ auto-migration</div>
         </div>
         <div style="display:flex;gap:16px;">
-          <div style="padding:10px 14px;background:var(--panel);border:1px solid var(--border);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;">bcrypt + itsdangerous auth</div>
+          <div style="padding:10px 14px;background:var(--panel);border:1px solid var(--border);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;">PBKDF2-SHA256 auth</div>
           <div style="padding:10px 14px;background:var(--panel);border:1px solid rgba(0,212,255,0.3);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);letter-spacing:1px;">⚡ Async event loop</div>
         </div>
       </div>
@@ -5669,7 +5708,7 @@ def build_api(cfg: Config):
         return RedirectResponse(url="/preferences?saved=password", status_code=303)
 
     # ── Auth middleware (if users.json exists) ────────────────
-    if HAS_AUTH and Path(cfg.users_file).exists():
+    if Path(cfg.users_file).exists():
         PUBLIC_PATHS = {"/login", "/health", "/demo-results", "/signup",
                         "/forgot-password", "/reset-password", "/", "/welcome", "/admin", "/admin/data",
                         "/feedback", "/admin/verify"}
@@ -6103,18 +6142,18 @@ if __name__ == "__main__":
         _admin_user = os.environ.get("ADMIN_USER", "").strip().lower()
         _admin_pass = os.environ.get("ADMIN_PASS", "").strip()
         if _admin_user and _admin_pass:
-            users_exist = Path(CFG.users_file).exists()
-            existing = {}
-            if users_exist:
-                try:
-                    existing = {u["username"]: u for u in json.load(open(CFG.users_file))}
-                except Exception:
-                    pass
+            existing = _load_users(CFG)
             if _admin_user not in existing:
                 create_user(_admin_user, _admin_pass, "admin", cfg=CFG)
-                log.info(f"Auto-created admin user '{_admin_user}' from environment")
+                log.info(f"Auto-created admin user '{_admin_user}' from ADMIN_USER/ADMIN_PASS")
             else:
-                log.info(f"Admin user '{_admin_user}' already exists — skipping auto-create")
+                # Always ensure role is admin
+                if existing[_admin_user].get("role") != "admin":
+                    existing[_admin_user]["role"] = "admin"
+                    _save_users(existing, CFG)
+                    log.info(f"Corrected role for '{_admin_user}' to admin")
+                else:
+                    log.info(f"Admin user '{_admin_user}' exists — OK")
 
         import webbrowser, threading
         port = int(os.environ.get("PORT", args.port))
