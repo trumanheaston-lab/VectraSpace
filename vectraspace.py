@@ -1409,7 +1409,7 @@ import hmac as _hmac
 import secrets as _secrets
 
 _PBKDF2_ITERS  = 260_000   # OWASP 2023 recommendation for PBKDF2-SHA256
-_SESSION_SEP   = "."       # separator inside session token
+_SESSION_SEP   = "|"       # outer separator — never appears in base64
 _login_attempts: dict = {}  # ip -> [timestamp, ...]
 
 
@@ -1440,28 +1440,26 @@ def _verify_password(plain: str, stored: str) -> bool:
 
 
 def _make_session_token(username: str, role: str, secret: str) -> str:
-    """Create a signed session token: b64(username.role.ts).sig"""
+    """Create a signed session token: base64(username\x00role\x00ts)|hmac"""
     import base64, time as _t
     ts      = str(int(_t.time()))
-    payload = base64.urlsafe_b64encode(f"{username}{_SESSION_SEP}{role}{_SESSION_SEP}{ts}".encode()).decode()
+    # Use \x00 as internal separator — it encodes into base64, no collisions
+    payload = base64.urlsafe_b64encode(f"{username}\x00{role}\x00{ts}".encode()).decode()
     sig     = _hmac.new(secret.encode(), payload.encode(), _hashlib.sha256).hexdigest()
-    return f"{payload}{_SESSION_SEP}{sig}"
+    return f"{payload}{_SESSION_SEP}{sig}"  # | separator never in base64
 
 
 def _verify_session_token(token: str, secret: str, max_age: int = 2592000):
     """Returns (username, role) or raises ValueError."""
     import base64, time as _t
-    if not token or token.count(_SESSION_SEP) < 3:
+    if not token or _SESSION_SEP not in token:
         raise ValueError("malformed")
-    # last segment is sig, everything before is payload
-    last_dot = token.rfind(_SESSION_SEP)
-    payload  = token[:last_dot]
-    sig      = token[last_dot+1:]
+    payload, sig = token.split(_SESSION_SEP, 1)  # split on first | only
     expected = _hmac.new(secret.encode(), payload.encode(), _hashlib.sha256).hexdigest()
     if not _hmac.compare_digest(sig, expected):
         raise ValueError("bad signature")
-    decoded  = base64.urlsafe_b64decode(payload.encode()).decode()
-    parts    = decoded.split(_SESSION_SEP)
+    decoded = base64.urlsafe_b64decode(payload.encode()).decode()
+    parts   = decoded.split("\x00")  # internal separator
     if len(parts) != 3:
         raise ValueError("malformed payload")
     username, role, ts = parts
