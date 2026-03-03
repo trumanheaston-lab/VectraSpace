@@ -1489,9 +1489,9 @@ _login_attempts: dict = {}
 
 def _check_login_rate_limit(ip: str) -> bool:
     now = time.time()
-    attempts = [t for t in _login_attempts.get(ip, []) if now - t < 60]
+    attempts = [t for t in _login_attempts.get(ip, []) if now - t < 300]
     _login_attempts[ip] = attempts
-    if len(attempts) >= 5:
+    if len(attempts) >= 20:  # 20 attempts per 5 min per real IP
         return False
     _login_attempts[ip].append(now)
     return True
@@ -3473,11 +3473,26 @@ async function openSatInfo(satName) {
       return;
     }
 
+    // Mission type badge colour
+    const missionColors = {
+      'Communications': '#00d4ff', 'Earth Observation': '#00ff88',
+      'Navigation': '#ffaa44', 'Scientific': '#aa88ff',
+      'Military': '#ff4444', 'Weather': '#44aaff',
+      'Technology Demo': '#ffdd44', 'Human Spaceflight': '#ff88aa',
+      'Space Station': '#ff88aa', 'Debris': '#888888', 'Unknown': '#4a6a85',
+    };
+    const mType = info.missionType || 'Unknown';
+    const mColor = missionColors[mType] || '#4a6a85';
+    const missionBadge = `<span style="background:${mColor}22;color:${mColor};
+      border:1px solid ${mColor}55;border-radius:3px;padding:2px 8px;
+      font-size:9px;letter-spacing:1px;text-transform:uppercase;">${mType}</span>`;
+
     const fields = [
       ['Full Name',       info.fullName],
       ['NORAD ID',        info.noradId],
-      ['Country / Owner', info.country || info.owner],
-      ['Object Type',     info.objectType],
+      ['Country',         info.country || info.owner],
+      ['Mission Type',    missionBadge],
+      ['Object Class',    info.objectType],
       ['Launch Date',     info.launchDate],
       ['Launch Site',     info.launchSite],
       ['Orbit Type',      info.orbitType],
@@ -3489,7 +3504,7 @@ async function openSatInfo(satName) {
       ['Status',          info.operationalStatus],
     ];
 
-    body.innerHTML = fields.filter(([,v]) => v && v !== 'Unknown').map(([k, v]) =>
+    body.innerHTML = fields.filter(([,v]) => v && v !== 'Unknown' && v !== null).map(([k, v]) =>
       `<div class="sat-field"><span class="sf-key">${k}</span><span class="sf-val">${v}</span></div>`
     ).join('') + `
       <div style="margin-top:16px;text-align:center;">
@@ -5300,6 +5315,7 @@ def build_api(cfg: Config):
                 "operationalStatus": "Unknown",
                 "owner": "Unknown",
                 "objectType": "UNKNOWN",
+                "missionType": "Unknown",
                 "note": "Set ANTHROPIC_API_KEY for detailed satellite information.",
                 "celestrak_url": f"https://celestrak.org/satcat/records.php?NAME={sat_name}",
             })
@@ -5324,7 +5340,10 @@ def build_api(cfg: Config):
                         "return ONLY a JSON object (no markdown, no explanation) with these fields "
                         "extracted or inferred: fullName, noradId, country, launchDate, launchSite, "
                         "orbitType, periodMin, inclinationDeg, apogeeKm, perigeeKm, rcsSize, "
-                        "operationalStatus, owner, objectType. Use null for missing fields."
+                        "operationalStatus, owner, objectType, missionType. "
+                        "missionType must be one of: Communications, Earth Observation, Navigation, "
+                        "Scientific, Military, Weather, Technology Demo, Human Spaceflight, "
+                        "Space Station, Debris, or Unknown. Use null for missing fields."
                     ),
                     "messages": [{"role": "user",
                                   "content": f"Satellite name: {name}. Return the JSON object."}]
@@ -5373,7 +5392,10 @@ def build_api(cfg: Config):
                           .replace("{SIGNUP_LINK}", signup_link)
             )
 
-        client_ip = request.client.host or "0.0.0.0"
+        # On Render (and most PaaS), all traffic comes through a proxy.
+        # Use X-Forwarded-For to get the real client IP; fall back to host.
+        xff = request.headers.get("X-Forwarded-For", "")
+        client_ip = xff.split(",")[0].strip() if xff else (request.client.host or "0.0.0.0")
         if not _check_login_rate_limit(client_ip):
             return _login_page_with_err("Too many login attempts. Try again in 60s.")
         form = await request.form()
