@@ -6082,6 +6082,43 @@ def _run_pipeline(cfg: Config, covariance_cache: Optional[dict] = None,
 # ║  MAIN                                                        ║
 # ╚══════════════════════════════════════════════════════════════╝
 
+# ── Module-level app init (for uvicorn vectraspace:app on Render/cloud) ──────
+def _init_app():
+    """Build the FastAPI app and run startup tasks. Called at import time."""
+    import os as _os
+    from pathlib import Path as _Path
+
+    # Auto-create admin user from env vars on every startup
+    _admin_user = _os.environ.get("ADMIN_USER", "").strip().lower()
+    _admin_pass = _os.environ.get("ADMIN_PASS", "").strip()
+    if _admin_user and _admin_pass:
+        try:
+            existing = _load_users(CFG)
+            if _admin_user not in existing:
+                create_user(_admin_user, _admin_pass, "admin", cfg=CFG)
+                log.info(f"[startup] Created admin user '{_admin_user}'")
+            else:
+                if existing[_admin_user].get("role") != "admin":
+                    existing[_admin_user]["role"] = "admin"
+                    _save_users(existing, CFG)
+                    log.info(f"[startup] Fixed role for '{_admin_user}' -> admin")
+                else:
+                    log.info(f"[startup] Admin user '{_admin_user}' OK")
+        except Exception as e:
+            log.warning(f"[startup] Could not init admin user: {e}")
+
+    # Build and return the FastAPI app
+    try:
+        init_db(CFG)
+    except Exception as e:
+        log.warning(f"[startup] DB init warning: {e}")
+
+    return build_api(CFG)
+
+
+app = _init_app()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="VectraSpace v11 — Orbital Safety Platform",
