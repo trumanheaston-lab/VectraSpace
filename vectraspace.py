@@ -5449,7 +5449,7 @@ def build_api(cfg: Config):
             return _login_page_with_err("Account pending approval. Contact trumanheaston@gmail.com.")
         token = _make_session_cookie(username, user.get("role", "operator"), cfg.session_secret)
         resp = RedirectResponse(url="/dashboard", status_code=303)
-        resp.set_cookie("vs_session", token, httponly=True, samesite="lax", max_age=2592000)
+        resp.set_cookie("vs_session", token, httponly=True, samesite="lax", path="/", max_age=2592000)
         return resp
 
     @app.get("/logout")
@@ -5512,7 +5512,7 @@ def build_api(cfg: Config):
         # Auto-login after successful registration
         token = _make_session_cookie(username, "operator", cfg.session_secret)
         resp = RedirectResponse(url="/dashboard", status_code=303)
-        resp.set_cookie("vs_session", token, httponly=True, samesite="lax", max_age=2592000)
+        resp.set_cookie("vs_session", token, httponly=True, samesite="lax", path="/", max_age=2592000)
         log.info(f"New self-signup: '{username}' <{email}>")
         return resp
 
@@ -5647,7 +5647,7 @@ def build_api(cfg: Config):
         # Auto-login after successful reset
         token_cookie = _make_session_cookie(username, "operator", cfg.session_secret)
         resp = RedirectResponse(url="/", status_code=303)
-        resp.set_cookie("vs_session", token_cookie, httponly=True, samesite="lax", max_age=2592000)
+        resp.set_cookie("vs_session", token_cookie, httponly=True, samesite="lax", path="/", max_age=2592000)
         return resp
 
     # ── Authenticated change-password (for logged-in users in prefs) ──
@@ -5724,15 +5724,14 @@ def build_api(cfg: Config):
                 # Allow demo-mode paths without auth
                 if path in ("/", "/dashboard", "/admin", "/admin/data") or path.startswith("/sat-info/") or path.startswith("/cdm"):
                     return await call_next(request)
-                # Protected paths: /run, /preferences, /me
-                if path in {"/run", "/preferences", "/me"}:
+                # Protected paths — only redirect HTML pages, not JSON endpoints
+                if path == "/preferences":
                     token = request.cookies.get("vs_session", "")
                     try:
                         _verify_session_cookie(token, cfg.session_secret)
                     except Exception:
-                        if path == "/preferences":
-                            return RedirectResponse(url="/login")
-                        # /run and /me return JSON 401 (handled in route)
+                        return RedirectResponse(url="/login")
+                # /me and /run handle their own auth and return JSON 401
                 return await call_next(request)
 
         app.add_middleware(AuthMiddleware)
@@ -5885,8 +5884,8 @@ def build_api(cfg: Config):
     @app.get("/admin", response_class=HTMLResponse)
     def admin_page(request: Request):
         """Admin console — accessible via admin role session OR valid passcode cookie."""
-        # Check 1: logged-in admin role
-        user = request.session.get("user")
+        # Check 1: logged-in admin role via vs_session cookie
+        user = get_current_user_from_request(request, cfg)
         is_admin_user = user and user.get("role") == "admin"
         # Check 2: passcode cookie
         admin_token = request.cookies.get("vs_admin_token", "")
@@ -5914,7 +5913,7 @@ def build_api(cfg: Config):
     @app.get("/admin/data")
     def admin_data(request: Request):
         """JSON endpoint — returns all admin stats."""
-        user = request.session.get("user")
+        user = get_current_user_from_request(request, cfg)
         is_admin_user = user and user.get("role") == "admin"
         admin_token = request.cookies.get("vs_admin_token", "")
         passcode_ok = False
