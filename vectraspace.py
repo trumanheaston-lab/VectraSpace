@@ -1727,6 +1727,8 @@ LOGIN_HTML = """<!DOCTYPE html>
 <title>VectraSpace — Sign In</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
 <style>{AUTH_CSS}</style>
+
+<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>
 </head>
 <body>
 <div class="card">
@@ -1761,6 +1763,8 @@ SIGNUP_HTML = """<!DOCTYPE html>
 <title>VectraSpace — Create Account</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
 <style>{AUTH_CSS}</style>
+
+<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>
 </head>
 <body>
 <div class="card">
@@ -2526,6 +2530,8 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     #globe-header { display: none; }
   }
 </style>
+
+<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>
 </head>
 <body>
 <div id="app">
@@ -4033,6 +4039,8 @@ footer { padding: 32px 48px; border-top: 1px solid var(--border); display: flex;
 .admin-input-wrap .fa-input { letter-spacing: 6px; font-size: 18px; }
 @media (max-width: 700px) { .feedback-admin-row { grid-template-columns: 1fr; padding: 48px 20px; } }
 </style>
+
+<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>
 </head>
 <body>
 <canvas id="starfield"></canvas>
@@ -4424,31 +4432,6 @@ async function lpSubmitFeedback() {
 }
 
 // ── LANDING PAGE: Admin passcode check ───────────────────────────────────────
-async function lpCheckAdmin() {
-  const code   = document.getElementById('lp-admin-passcode').value.trim();
-  const status = document.getElementById('lp-admin-status');
-  if (!code) return;
-  try {
-    const res = await fetch('/admin/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passcode: code })
-    });
-    if (res.ok) {
-      status.style.cssText = 'display:block;background:rgba(0,255,136,0.08);color:#00ff88;border:1px solid rgba(0,255,136,0.3);padding:7px 10px;border-radius:3px;font-family:Share Tech Mono,monospace;font-size:10px;margin-top:10px;';
-      status.textContent = '\u2713 Correct \u2014 opening admin console...';
-      document.getElementById('lp-admin-passcode').value = '';
-      setTimeout(() => { window.location.href = '/admin'; }, 800);
-    } else {
-      status.style.cssText = 'display:block;background:rgba(255,68,68,0.1);color:#ff4444;border:1px solid rgba(255,68,68,0.3);padding:7px 10px;border-radius:3px;font-family:Share Tech Mono,monospace;font-size:10px;margin-top:10px;';
-      status.textContent = '\u2717 Incorrect passcode.';
-      document.getElementById('lp-admin-passcode').value = '';
-    }
-  } catch(e) {
-    status.style.cssText = 'display:block;color:#ff4444;font-size:10px;margin-top:8px;';
-    status.textContent = '\u2717 Network error.';
-  }
-}
 
 </script>
 </body>
@@ -4561,6 +4544,8 @@ tbody td { padding: 9px 14px; color: var(--text); white-space: nowrap; }
   .charts-grid, .stats-row { grid-template-columns: 1fr; }
 }
 </style>
+
+<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>
 </head>
 <body>
 
@@ -5037,6 +5022,8 @@ ADMIN_HTML = """<!DOCTYPE html>
     .admin-nav-logo { font-size: 11px; }
   }
 </style>
+
+<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>
 </head>
 <body>
 
@@ -5880,12 +5867,15 @@ def build_api(cfg: Config):
 
     # ── Auth routes ───────────────────────────────────────────
     @app.get("/login", response_class=HTMLResponse)
-    def login_page(error: str = ""):
+    def login_page(request: Request, error: str = ""):
         err_html    = f'<div class="err">⚠ {error}</div>' if error else ""
         signup_link = '<a href="/signup">Create account</a>' if SIGNUP_OPEN else '<a href="mailto:trumanheaston@gmail.com">Request access</a>'
+        next_url    = str(request.query_params.get("next", "")).strip()
+        action      = f"/login?next={next_url}" if next_url else "/login"
         return HTMLResponse(
             LOGIN_HTML.replace("{ERROR}", err_html)
                       .replace("{SIGNUP_LINK}", signup_link)
+                      .replace('action="/login"', f'action="{action}"')
         )
 
     @app.post("/login", response_class=HTMLResponse)
@@ -5914,8 +5904,11 @@ def build_api(cfg: Config):
             return _login_page_with_err("Invalid username or password.")
         if not user.get("approved", True):
             return _login_page_with_err("Account pending approval. Contact trumanheaston@gmail.com.")
+        next_url = str(request.query_params.get("next", "") or "/dashboard").strip()
+        if not next_url.startswith("/"):
+            next_url = "/dashboard"
         token = _make_session_cookie(username, user.get("role", "operator"), cfg.session_secret)
-        resp = RedirectResponse(url="/dashboard", status_code=303)
+        resp = RedirectResponse(url=next_url, status_code=303)
         resp.set_cookie("vs_session", token, httponly=True, samesite="lax", path="/", max_age=2592000)
         return resp
 
