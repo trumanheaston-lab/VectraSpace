@@ -699,6 +699,47 @@ def init_db(cfg: Config):
         )
     """)
 
+    # PERSIST-01: users table — survives Render restarts unlike users.json
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            username      TEXT PRIMARY KEY,
+            password_hash TEXT NOT NULL,
+            role          TEXT NOT NULL DEFAULT 'operator',
+            email         TEXT DEFAULT '',
+            approved      INTEGER DEFAULT 1,
+            created_at    TEXT
+        )
+    """)
+
+    # PERSIST-01: Migrate existing users.json into DB (one-time)
+    import json as _mj
+    from pathlib import Path as _mp
+    uj = _mp(cfg.users_file)
+    if uj.exists():
+        try:
+            raw = _mj.loads(uj.read_text())
+            users_list = raw if isinstance(raw, list) else list(raw.values())
+            migrated = 0
+            for u in users_list:
+                un = u.get("username", "").strip().lower()
+                ph = u.get("password_hash", "")
+                if not un or not ph:
+                    continue
+                existing = con.execute("SELECT 1 FROM users WHERE username=?", (un,)).fetchone()
+                if not existing:
+                    con.execute(
+                        "INSERT INTO users (username, password_hash, role, email, approved, created_at) VALUES (?,?,?,?,?,?)",
+                        (un, ph, u.get("role","operator"), u.get("email",""),
+                         1 if u.get("approved", True) else 0,
+                         u.get("created_at",""))
+                    )
+                    migrated += 1
+            if migrated:
+                log.info(f"PERSIST-01: Migrated {migrated} users from users.json → SQLite")
+                uj.rename(str(uj) + ".migrated")
+        except Exception as _e:
+            log.warning(f"PERSIST-01: users.json migration error: {_e}")
+
     con.commit()
     return con
 
@@ -1499,7 +1540,17 @@ def _check_login_rate_limit(ip: str) -> bool:
 
 
 def _load_users(cfg) -> dict:
-    """Load users.json → {username: user_dict}. Handles list or dict format."""
+    """Load users from SQLite DB. Falls back to users.json if DB not ready."""
+    try:
+        con = sqlite3.connect(cfg.db_path)
+        rows = con.execute("SELECT username, password_hash, role, email, approved, created_at FROM users").fetchall()
+        con.close()
+        if rows:
+            return {r[0]: {"username":r[0],"password_hash":r[1],"role":r[2],
+                           "email":r[3],"approved":bool(r[4]),"created_at":r[5]} for r in rows}
+    except Exception:
+        pass
+    # Fallback to users.json
     p = Path(cfg.users_file)
     if not p.exists():
         return {}
@@ -1510,13 +1561,35 @@ def _load_users(cfg) -> dict:
         if isinstance(raw, dict):
             return raw
     except Exception as e:
-        log.warning(f"Failed to load users.json: {e}")
+        log.warning(f"Failed to load users: {e}")
     return {}
 
 
 def _save_users(users: dict, cfg) -> None:
-    """Save users dict as a JSON list."""
-    Path(cfg.users_file).write_text(json.dumps(list(users.values()), indent=2))
+    """Save users to SQLite DB (primary) and users.json (backup)."""
+    try:
+        con = sqlite3.connect(cfg.db_path)
+        for u in users.values():
+            con.execute("""
+                INSERT INTO users (username, password_hash, role, email, approved, created_at)
+                VALUES (?,?,?,?,?,?)
+                ON CONFLICT(username) DO UPDATE SET
+                    password_hash=excluded.password_hash,
+                    role=excluded.role,
+                    email=excluded.email,
+                    approved=excluded.approved
+            """, (u["username"], u["password_hash"], u.get("role","operator"),
+                  u.get("email",""), 1 if u.get("approved",True) else 0,
+                  u.get("created_at","")))
+        con.commit()
+        con.close()
+    except Exception as e:
+        log.warning(f"Failed to save users to DB: {e}")
+        # Fallback: write JSON
+        try:
+            Path(cfg.users_file).write_text(json.dumps(list(users.values()), indent=2))
+        except Exception:
+            pass
 
 
 def create_user(username: str, password: str, role: str = "operator", cfg=None):
@@ -2058,8 +2131,33 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     flex-direction: column;
     overflow: hidden;
     z-index: 10;
+    transition: width 0.25s ease, min-width 0.25s ease;
   }
-  #globe-container { flex: 1; position: relative; }
+  #sidebar.collapsed {
+    width: 42px;
+    min-width: 42px;
+  }
+  #sidebar.collapsed .sidebar-collapsible { display: none; }
+  #sidebar.collapsed #sidebar-toggle-btn {
+    margin: 0 auto;
+    border-left: none;
+  }
+  #sidebar-toggle-btn {
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    padding: 10px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: color 0.2s, background 0.2s;
+    flex-shrink: 0;
+  }
+  #sidebar-toggle-btn:hover { color: var(--accent); background: rgba(0,212,255,0.05); }
+  #globe-container { flex: 1; position: relative; transition: flex 0.25s ease; }
   #cesiumContainer { width: 100%; height: 100%; }
 
   #header {
@@ -2544,6 +2642,8 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
   <!-- ── SIDEBAR ── -->
   <div id="sidebar">
+    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle sidebar">◀</button>
+    <div class="sidebar-collapsible" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
     <div id="header">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
         <div class="logo">VectraSpace // Mission Control</div>
@@ -2685,6 +2785,20 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       <!-- Run -->
       <div class="section">
         <button id="run-btn" onclick="runDetection()" style="display:none;">▶ EXECUTE SCAN</button>
+        <div id="first-run-tip" style="display:none;margin-top:8px;padding:8px 10px;
+             background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);
+             border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:8px;
+             letter-spacing:1px;color:var(--accent);line-height:1.6;">
+          👆 Click to run your first scan<br>
+          <span style="color:var(--muted);">Fetches live TLEs · detects conjunctions · populates globe</span>
+          <button onclick="document.getElementById('first-run-tip').style.display='none';
+                           try{localStorage.setItem('vs_seen_tip','1')}catch(e){}"
+                  style="display:block;margin-top:6px;background:transparent;border:none;
+                         color:var(--muted);font-family:'Share Tech Mono',monospace;
+                         font-size:8px;cursor:pointer;letter-spacing:1px;">
+            ✕ dismiss
+          </button>
+        </div>
         <div id="run-locked-msg" style="display:none;">
           <a href="/login" style="color:var(--accent);text-decoration:none;">Sign in</a> to run your own scans
         </div>
@@ -2737,10 +2851,18 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     </div><!-- /scroll -->
 
+    <!-- TLE Freshness indicator -->
+    <div id="tle-freshness-bar" style="padding:6px 12px;border-top:1px solid var(--border);
+         background:rgba(0,0,0,0.2);font-family:'Share Tech Mono',monospace;font-size:8px;
+         letter-spacing:1px;display:flex;align-items:center;gap:6px;color:var(--muted);">
+      <span id="tle-dot" style="width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;"></span>
+      <span id="tle-text">Checking TLE status...</span>
+    </div>
     <div id="status-bar">
       <div id="status-dot"></div>
       <div id="status-text">Initializing...</div>
     </div>
+    </div><!-- end sidebar-collapsible -->
   </div><!-- /sidebar -->
 
   <!-- ── GLOBE ── -->
@@ -3067,6 +3189,48 @@ async function initCesium() {
 initCesium();
 
 // ── CHECK CURRENT USER ────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const btn = document.getElementById('sidebar-toggle-btn');
+  const collapsed = sidebar.classList.toggle('collapsed');
+  btn.textContent = collapsed ? '▶' : '◀';
+  btn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  try { localStorage.setItem('vs_sidebar_collapsed', collapsed ? '1' : '0'); } catch(e) {}
+}
+
+function initSidebarState() {
+  try {
+    if (localStorage.getItem('vs_sidebar_collapsed') === '1') {
+      const sidebar = document.getElementById('sidebar');
+      const btn = document.getElementById('sidebar-toggle-btn');
+      sidebar.classList.add('collapsed');
+      btn.textContent = '▶';
+    }
+  } catch(e) {}
+}
+
+async function updateTLEStatus() {
+  try {
+    const res = await fetch('/tle-status');
+    if (!res.ok) return;
+    const d = await res.json();
+    const dot  = document.getElementById('tle-dot');
+    const text = document.getElementById('tle-text');
+    if (!dot || !text) return;
+    dot.style.background  = d.fresh ? '#00ff88' : '#ffaa44';
+    text.style.color      = d.fresh ? '#4a8a65' : '#aa6600';
+    text.textContent      = d.message || 'TLE unknown';
+  } catch(e) {}
+}
+
+function maybeShowFirstRunTip() {
+  try {
+    if (localStorage.getItem('vs_seen_tip') === '1') return;
+    const tip = document.getElementById('first-run-tip');
+    if (tip) tip.style.display = 'block';
+  } catch(e) {}
+}
+
 async function initUserState() {
   try {
     const res = await fetch('/me');
@@ -3091,6 +3255,7 @@ async function initUserState() {
     const adminLnk = currentUser.role === 'admin' ? ' &nbsp; <a href="/admin" style="color:#ff6b6b;">⬡ Admin</a>' : '';
     userActions.innerHTML = '<a href="/preferences">⚙ Prefs</a>' + adminLnk + ' &nbsp; <a href="/logout">Sign out</a>';
     runBtn.style.display = 'block';
+    maybeShowFirstRunTip();
     runLocked.style.display = 'none';
     alertSettings.style.display = 'block';
     demoBanner.style.display = 'none';
@@ -3135,7 +3300,10 @@ async function loadDemoResults() {
   }
 }
 
+initSidebarState();
 initUserState();
+updateTLEStatus();
+setInterval(updateTLEStatus, 5 * 60 * 1000);
 
 // ── PLOT SATELLITES ──────────────────────────────────────────
 function plotSatellites(tracks) {
@@ -4320,6 +4488,25 @@ footer { padding: 32px 48px; border-top: 1px solid var(--border); display: flex;
     </div>
   </div>
 
+  <!-- Research Portal card -->
+  <div class="fa-card reveal reveal-delay-2" style="border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.02);">
+    <div class="fa-eyebrow" style="color:#00ff88;">// Open Research</div>
+    <div class="fa-title">Research Data Portal</div>
+    <div class="fa-sub">Public conjunction datasets, TLE exports, Pc distributions, and orbital analytics — built for researchers and academics. No login required.</div>
+    <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+      <a href="/research" class="fa-btn" style="flex:1;text-align:center;text-decoration:none;
+         background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.4);color:#00ff88;">
+        Open Research Portal ↗
+      </a>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:20px;flex-wrap:wrap;">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#3a5a75;letter-spacing:1px;">✓ CSV / JSON Export</span>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#3a5a75;letter-spacing:1px;">✓ TLE Catalog Download</span>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#3a5a75;letter-spacing:1px;">✓ Pc Analytics</span>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#3a5a75;letter-spacing:1px;">✓ UTD CSS Collaboration</span>
+    </div>
+  </div>
+
 </div>
 
 <div class="section-divider"></div>
@@ -5291,11 +5478,42 @@ def build_api(cfg: Config):
                                    StreamingResponse, PlainTextResponse,
                                    RedirectResponse)
 
+    # ── Background auto-scan ─────────────────────────────────────────────────
+    _scan_state: dict = {"time": 0, "running": False, "count": 0}
+    AUTO_SCAN_INTERVAL_H = 6
+
+    async def _auto_scan_loop():
+        import asyncio as _aio, functools as _fc
+        await _aio.sleep(90)  # 90s grace after startup
+        while True:
+            if not _scan_state["running"]:
+                try:
+                    _scan_state["running"] = True
+                    log.info("[auto-scan] Running scheduled scan...")
+                    loop = _aio.get_event_loop()
+                    result = await loop.run_in_executor(
+                        None, _fc.partial(_run_pipeline, cfg,
+                                          run_mode="scheduled", user_id="__auto__"))
+                    _scan_state["count"] = len(result.get("conjunctions", []))
+                    _scan_state["time"]  = time.time()
+                    log.info(f"[auto-scan] Done — {_scan_state['count']} conjunctions")
+                except Exception as _e:
+                    log.warning(f"[auto-scan] Error: {_e}")
+                finally:
+                    _scan_state["running"] = False
+            await _aio.sleep(AUTO_SCAN_INTERVAL_H * 3600)
+
     app = FastAPI(
         title="VectraSpace API",
         description="VectraSpace v11 — Orbital Safety Platform",
         version="11.0",
     )
+
+    @app.on_event("startup")
+    async def _on_startup():
+        import asyncio as _aio
+        _aio.create_task(_auto_scan_loop())
+        log.info("[startup] Auto-scan task started (every 6h)")
 
     # ── CORS ─────────────────────────────────────────────────────
     app.add_middleware(
@@ -5405,6 +5623,44 @@ def build_api(cfg: Config):
         if not user:
             return JSONResponse({"authenticated": False}, status_code=401)
         return JSONResponse({"authenticated": True, "username": user["username"], "role": user["role"]})
+
+    @app.get("/tle-status")
+    def tle_status():
+        """Return TLE catalog freshness info."""
+        import os as _os
+        catalog_path = Path("catalog.json")
+        if not catalog_path.exists():
+            return JSONResponse({"fresh": False, "age_hours": None, "count": 0,
+                                 "message": "No TLE data — run a scan"})
+        try:
+            age_s = time.time() - catalog_path.stat().st_mtime
+            age_h = age_s / 3600
+            data = json.loads(catalog_path.read_text())
+            count = len(data) if isinstance(data, list) else 0
+            fresh = age_h < 24
+            return JSONResponse({
+                "fresh": fresh,
+                "age_hours": round(age_h, 1),
+                "count": count,
+                "message": f"{count} sats · updated {round(age_h,1)}h ago" if fresh
+                           else f"Stale ({round(age_h,1)}h old) — rescan recommended"
+            })
+        except Exception as e:
+            return JSONResponse({"fresh": False, "age_hours": None, "count": 0,
+                                 "message": "TLE status unavailable"})
+
+    @app.get("/scan-status")
+    def scan_status():
+        """Return last auto-scan time."""
+        last    = _scan_state.get("time", 0)
+        running = _scan_state.get("running", False)
+        count   = _scan_state.get("count", 0)
+        return JSONResponse({
+            "last_scan":   last,
+            "running":     running,
+            "count":       count,
+            "age_minutes": round((time.time() - last) / 60, 1) if last else None
+        })
 
     # ── /preferences GET/POST ─────────────────────────────────
     @app.get("/preferences", response_class=HTMLResponse)
