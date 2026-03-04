@@ -4300,17 +4300,16 @@ footer { padding: 32px 48px; border-top: 1px solid var(--border); display: flex;
   <div class="fa-card admin-card reveal reveal-delay-1">
     <div class="fa-eyebrow" style="color:#ff4444;">// Admin Access</div>
     <div class="fa-title">Admin Console</div>
-    <div class="fa-sub">Enter the admin passcode to access the management dashboard — user accounts, scan analytics, and feedback inbox.</div>
-
-    <label class="fa-label">Passcode</label>
-    <div class="admin-input-wrap">
-      <input type="password" id="lp-admin-passcode" class="fa-input"
-             placeholder="••••••"
-             onkeydown="if(event.key==='Enter') lpCheckAdmin()">
+    <div class="fa-sub">Access user accounts, scan analytics, system health, and feedback. Requires admin login.</div>
+    <a href="/login?next=/admin" class="fa-btn admin-btn" style="display:block;text-align:center;text-decoration:none;margin-top:20px;">
+      Sign In to Admin Console
+    </a>
+    <div style="margin-top:12px;text-align:center;">
+      <a href="/research" style="font-family:'Share Tech Mono',monospace;font-size:9px;
+         letter-spacing:1px;color:var(--muted);text-decoration:none;">
+        ↗ Research Data Portal (public)
+      </a>
     </div>
-
-    <button class="fa-btn admin-btn" onclick="lpCheckAdmin()">Open Admin Console</button>
-    <div id="lp-admin-status" class="fa-status"></div>
   </div>
 
 </div>
@@ -4459,6 +4458,438 @@ async function lpCheckAdmin() {
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 7 — REST API + SSE RUN ENDPOINT                      ║
 # ╚══════════════════════════════════════════════════════════════╝
+
+RESEARCH_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VectraSpace — Research Data Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:     #030508;
+  --panel:  #070f18;
+  --border: #0d2137;
+  --accent: #00d4ff;
+  --green:  #00ff88;
+  --red:    #ff4444;
+  --muted:  #3a5a75;
+  --text:   #c8dff0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Exo 2', sans-serif; min-height: 100vh; }
+a { color: var(--accent); }
+
+/* ── HEADER ── */
+#header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 4px; color: var(--accent); }
+.header-links { display: flex; gap: 20px; font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 1px; }
+.header-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.header-links a:hover { color: var(--accent); }
+
+/* ── HERO ── */
+#hero { padding: 48px 40px 32px; max-width: 1100px; margin: 0 auto; }
+#hero h1 { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+#hero p { color: var(--muted); font-size: 13px; line-height: 1.7; max-width: 680px; }
+.badge { display: inline-block; background: rgba(0,212,255,0.08); color: var(--accent);
+         border: 1px solid rgba(0,212,255,0.3); border-radius: 3px;
+         font-family: 'Share Tech Mono', monospace; font-size: 9px;
+         letter-spacing: 2px; padding: 3px 8px; margin-right: 8px; }
+
+/* ── MAIN GRID ── */
+#main { max-width: 1100px; margin: 0 auto; padding: 0 40px 60px; }
+.section { margin-bottom: 40px; }
+.section-title {
+  font-family: 'Share Tech Mono', monospace; font-size: 10px;
+  letter-spacing: 3px; color: var(--accent); text-transform: uppercase;
+  margin-bottom: 16px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; padding: 24px;
+}
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.chart-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
+.chart-title { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; }
+
+/* ── STATS ROW ── */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+.stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px; }
+.stat-val { font-family: 'Orbitron', sans-serif; font-size: 26px; color: var(--accent); margin-bottom: 4px; }
+.stat-lbl { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+
+/* ── TABLE ── */
+.tbl-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-family: 'Share Tech Mono', monospace; font-size: 10px; }
+thead th { background: #060d16; color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
+           padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody tr { border-bottom: 1px solid rgba(13,33,55,0.6); transition: background 0.15s; }
+tbody tr:hover { background: rgba(0,212,255,0.04); }
+tbody td { padding: 9px 14px; color: var(--text); white-space: nowrap; }
+.pc-high { color: var(--red); } .pc-med { color: #ffaa44; } .pc-low { color: var(--green); }
+.empty-row td { text-align: center; color: var(--muted); padding: 32px; letter-spacing: 2px; }
+
+/* ── EXPORT BUTTONS ── */
+.export-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.export-btn {
+  font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; padding: 8px 16px;
+  border: 1px solid var(--accent); border-radius: 3px;
+  color: var(--accent); background: transparent; cursor: pointer;
+  text-decoration: none; display: inline-block; transition: all 0.2s;
+}
+.export-btn:hover { background: rgba(0,212,255,0.1); }
+.export-btn.green { border-color: var(--green); color: var(--green); }
+.export-btn.green:hover { background: rgba(0,255,136,0.08); }
+
+/* ── LOADING ── */
+.loading { color: var(--muted); font-family: 'Share Tech Mono', monospace; font-size: 10px;
+           letter-spacing: 2px; padding: 32px; text-align: center; }
+
+@media (max-width: 700px) {
+  #header { padding: 16px 20px; }
+  #hero, #main { padding-left: 20px; padding-right: 20px; }
+  .charts-grid, .stats-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <div class="logo">VectraSpace // Research Portal</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;font-family:'Share Tech Mono',monospace;">
+      Public Data Access — No Authentication Required
+    </div>
+  </div>
+  <div class="header-links">
+    <a href="/">← Landing</a>
+    <a href="/dashboard">Mission Control</a>
+  </div>
+</div>
+
+<div id="hero">
+  <div style="margin-bottom:12px;">
+    <span class="badge">OPEN DATA</span>
+    <span class="badge" style="color:var(--green);border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.05);">UTD CSS COLLABORATION</span>
+  </div>
+  <h1>Orbital Conjunction Research Portal</h1>
+  <p>Real-time and historical conjunction data from VectraSpace's SGP4 propagation engine. All data is derived from public TLE catalogs via CelesTrak. Probability of collision estimates use the Alfriend-Akella covariance model. For research inquiries contact <a href="mailto:trumanheaston@gmail.com">trumanheaston@gmail.com</a>.</p>
+</div>
+
+<div id="main">
+
+  <!-- Stats -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-val" id="stat-total-conj">—</div><div class="stat-lbl">Total Conjunctions</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-high-risk">—</div><div class="stat-lbl">High Risk (Pc &gt; 1e-4)</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-sats">—</div><div class="stat-lbl">Satellites Tracked</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-last-scan">—</div><div class="stat-lbl">Last Scan</div></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="section">
+    <div class="section-title">Orbital Analysis</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">PROBABILITY OF COLLISION DISTRIBUTION</div>
+        <canvas id="chart-pc" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">MISS DISTANCE DISTRIBUTION (KM)</div>
+        <canvas id="chart-dist" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">CONJUNCTIONS OVER TIME</div>
+        <canvas id="chart-time" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">RELATIVE VELOCITY AT TCA (KM/S)</div>
+        <canvas id="chart-vel" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conjunction Table -->
+  <div class="section">
+    <div class="section-title">
+      <span>Conjunction Events</span>
+      <div class="export-row" style="margin-top:0;">
+        <a class="export-btn" onclick="exportCSV()">↓ Export CSV</a>
+        <a class="export-btn green" onclick="exportJSON()">↓ Export JSON</a>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Object 1</th>
+            <th>Object 2</th>
+            <th>TCA (UTC)</th>
+            <th>Miss Distance (km)</th>
+            <th>Pc Estimate</th>
+            <th>Rel. Velocity (km/s)</th>
+            <th>CDM</th>
+          </tr>
+        </thead>
+        <tbody id="conj-tbody">
+          <tr class="empty-row"><td colspan="8"><div class="loading">LOADING CONJUNCTION DATA...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);">
+      Data refreshes on each scan execution. All times UTC. Pc values are estimates — not certified for operational use.
+    </div>
+  </div>
+
+  <!-- TLE Export -->
+  <div class="section">
+    <div class="section-title">TLE Data Export</div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
+        Export the current TLE catalog used in the last scan. Data sourced from CelesTrak active satellite catalog.
+        Format conforms to NORAD two-line element set standard (BSTAR drag term, epoch, mean motion, eccentricity).
+      </div>
+      <div class="export-row">
+        <a class="export-btn" href="/research/tle.json" download>↓ TLE Export (JSON)</a>
+        <a class="export-btn green" href="/research/tle.csv" download>↓ TLE Export (CSV)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Methodology -->
+  <div class="section">
+    <div class="section-title">Methodology</div>
+    <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">PROPAGATION</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+          SGP4/SDP4 orbital propagation via the <strong style="color:var(--text);">Skyfield</strong> library.
+          Positions computed at 1-minute intervals over a 24-hour window.
+          Vectorized chunk-based screening using NumPy for O(n²) pair comparisons.
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">COLLISION PROBABILITY</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+          Pc estimates use the <strong style="color:var(--text);">Alfriend-Akella</strong> method with 
+          combined error covariance ellipsoids (1σ along-track: 100m, cross-track: 20m, radial: 20m).
+          Refined via golden-section search for TCA.
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">DATA SOURCES</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+          TLE data from <strong style="color:var(--text);">CelesTrak</strong> active satellite catalog.
+          Optional Space-Track.org integration for additional orbital elements.
+          Conjunction data messages (CDM) generated per CCSDS 508.0-B-1 standard.
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">LIMITATIONS</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+          TLE accuracy degrades over time. Covariance values are assumed, not measured.
+          Pc values should be treated as <strong style="color:var(--text);">screening indicators</strong> only.
+          Not validated for operational conjunction assessment.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let conjData = [];
+
+const CHART_DEFAULTS = {
+  color: '#00d4ff',
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { color: '#3a5a75', font: { family: 'Share Tech Mono', size: 9 } }, grid: { color: '#0d2137' } },
+    y: { ticks: { color: '#3a5a75', font: { family: 'Share Tech Mono', size: 9 } }, grid: { color: '#0d2137' } }
+  }
+};
+
+async function loadData() {
+  try {
+    const res = await fetch('/conjunctions');
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    conjData = data.conjunctions || data || [];
+    renderStats(conjData);
+    renderTable(conjData);
+    renderCharts(conjData);
+  } catch(e) {
+    document.getElementById('conj-tbody').innerHTML =
+      '<tr class="empty-row"><td colspan="8">No conjunction data available — run a scan first.</td></tr>';
+  }
+}
+
+function renderStats(data) {
+  document.getElementById('stat-total-conj').textContent = data.length;
+  const highRisk = data.filter(c => (c.pc_estimate || c.pc || 0) > 1e-4).length;
+  document.getElementById('stat-high-risk').textContent = highRisk;
+  const sats = new Set();
+  data.forEach(c => { sats.add(c.sat1||c.name1||c.object1); sats.add(c.sat2||c.name2||c.object2); });
+  document.getElementById('stat-sats').textContent = sats.size;
+  if (data.length > 0) {
+    const times = data.map(c => c.tca_utc || c.time || c.epoch).filter(Boolean);
+    if (times.length) document.getElementById('stat-last-scan').textContent = times[0].slice(0,10);
+  }
+}
+
+function pcClass(pc) {
+  if (!pc || pc < 1e-6) return 'pc-low';
+  if (pc < 1e-4) return 'pc-med';
+  return 'pc-high';
+}
+
+function fmtPc(pc) {
+  if (!pc || pc === 0) return '<1e-8';
+  return pc.toExponential(2);
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('conj-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No conjunctions recorded yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.slice(0,200).map((c,i) => {
+    const pc = c.pc_estimate ?? c.pc ?? 0;
+    const dist = (c.min_dist_km ?? c.miss_distance ?? 0).toFixed(3);
+    const vel = (c.v_rel ?? c.relative_velocity ?? 0).toFixed(2);
+    const tca = c.tca_utc ?? c.time ?? '—';
+    const s1 = c.sat1 ?? c.name1 ?? c.object1 ?? '—';
+    const s2 = c.sat2 ?? c.name2 ?? c.object2 ?? '—';
+    const cdmLink = c.cdm_index !== undefined
+      ? `<a href="/cdm/${c.cdm_index}" style="color:var(--accent);font-size:9px;">↓ CDM</a>`
+      : '—';
+    return `<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td>${s1}</td><td>${s2}</td>
+      <td style="color:var(--muted)">${tca}</td>
+      <td>${dist}</td>
+      <td class="${pcClass(pc)}">${fmtPc(pc)}</td>
+      <td>${vel}</td>
+      <td>${cdmLink}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCharts(data) {
+  if (!data.length) return;
+
+  // Pc distribution
+  const pcBins = [0,0,0,0,0]; // <1e-8, 1e-8..1e-6, 1e-6..1e-4, 1e-4..1e-2, >1e-2
+  const pcLabels = ['<1e-8','1e-8 to\n1e-6','1e-6 to\n1e-4','1e-4 to\n1e-2','>1e-2'];
+  data.forEach(c => {
+    const pc = c.pc_estimate ?? c.pc ?? 0;
+    if (pc < 1e-8) pcBins[0]++;
+    else if (pc < 1e-6) pcBins[1]++;
+    else if (pc < 1e-4) pcBins[2]++;
+    else if (pc < 1e-2) pcBins[3]++;
+    else pcBins[4]++;
+  });
+  new Chart(document.getElementById('chart-pc'), {
+    type: 'bar',
+    data: { labels: pcLabels, datasets: [{ data: pcBins,
+      backgroundColor: ['#00ff8844','#44aaff44','#ffaa4444','#ff666644','#ff444444'],
+      borderColor:      ['#00ff88',  '#44aaff',  '#ffaa44',  '#ff6666',  '#ff4444'],
+      borderWidth: 1 }]},
+    options: { ...CHART_DEFAULTS, responsive: true }
+  });
+
+  // Miss distance histogram
+  const distBins = new Array(10).fill(0);
+  const maxDist = Math.max(...data.map(c => c.min_dist_km ?? 0), 10);
+  data.forEach(c => {
+    const d = c.min_dist_km ?? 0;
+    const bin = Math.min(Math.floor(d / maxDist * 10), 9);
+    distBins[bin]++;
+  });
+  const distLabels = distBins.map((_,i) => `${(i*maxDist/10).toFixed(0)}-${((i+1)*maxDist/10).toFixed(0)}`);
+  new Chart(document.getElementById('chart-dist'), {
+    type: 'bar',
+    data: { labels: distLabels, datasets: [{ data: distBins,
+      backgroundColor: '#00d4ff22', borderColor: '#00d4ff', borderWidth: 1 }]},
+    options: { ...CHART_DEFAULTS, responsive: true }
+  });
+
+  // Conjunctions over time
+  const timeCounts = {};
+  data.forEach(c => {
+    const t = (c.tca_utc ?? c.time ?? '').slice(0,10);
+    if (t) timeCounts[t] = (timeCounts[t]||0)+1;
+  });
+  const timeKeys = Object.keys(timeCounts).sort();
+  new Chart(document.getElementById('chart-time'), {
+    type: 'line',
+    data: { labels: timeKeys, datasets: [{ data: timeKeys.map(k=>timeCounts[k]),
+      borderColor: '#00ff88', backgroundColor: '#00ff8811', fill: true,
+      tension: 0.3, pointRadius: 3 }]},
+    options: { ...CHART_DEFAULTS, responsive: true }
+  });
+
+  // Relative velocity histogram
+  const velBins = new Array(10).fill(0);
+  const maxVel = Math.max(...data.map(c => c.v_rel ?? 0), 15);
+  data.forEach(c => {
+    const v = c.v_rel ?? 0;
+    const bin = Math.min(Math.floor(v / maxVel * 10), 9);
+    velBins[bin]++;
+  });
+  const velLabels = velBins.map((_,i) => `${(i*maxVel/10).toFixed(1)}-${((i+1)*maxVel/10).toFixed(1)}`);
+  new Chart(document.getElementById('chart-vel'), {
+    type: 'bar',
+    data: { labels: velLabels, datasets: [{ data: velBins,
+      backgroundColor: '#aa88ff22', borderColor: '#aa88ff', borderWidth: 1 }]},
+    options: { ...CHART_DEFAULTS, responsive: true }
+  });
+}
+
+function exportCSV() {
+  if (!conjData.length) return;
+  const hdr = 'index,object1,object2,tca_utc,miss_dist_km,pc_estimate,rel_velocity_kms\n';
+  const rows = conjData.map((c,i) => [
+    i+1,
+    c.sat1 ?? c.name1 ?? '', c.sat2 ?? c.name2 ?? '',
+    c.tca_utc ?? c.time ?? '',
+    (c.min_dist_km ?? 0).toFixed(4),
+    (c.pc_estimate ?? c.pc ?? 0).toExponential(4),
+    (c.v_rel ?? 0).toFixed(4)
+  ].join(',')).join('\n');
+  const blob = new Blob([hdr+rows], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `vectraspace_conjunctions_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function exportJSON() {
+  if (!conjData.length) return;
+  const blob = new Blob([JSON.stringify(conjData, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `vectraspace_conjunctions_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+loadData();
+</script>
+</body>
+</html>"""
+
 
 ADMIN_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -4936,6 +5367,44 @@ def build_api(cfg: Config):
     def landing_welcome():
         """Always shows landing page — used by dashboard Home button."""
         return HTMLResponse(content=LANDING_HTML)
+
+    @app.get("/research", response_class=HTMLResponse)
+    def research_page():
+        """Public research data portal — no auth required."""
+        return HTMLResponse(content=RESEARCH_HTML)
+
+    @app.get("/research/tle.json")
+    def research_tle_json():
+        """Export current TLE catalog as JSON."""
+        import json as _j
+        tle_path = Path("catalog.json")
+        if tle_path.exists():
+            try:
+                return JSONResponse(_j.loads(tle_path.read_text()))
+            except Exception:
+                pass
+        return JSONResponse({"error": "No TLE data available — run a scan first."}, status_code=404)
+
+    @app.get("/research/tle.csv")
+    def research_tle_csv():
+        """Export current TLE catalog as CSV."""
+        from fastapi.responses import PlainTextResponse
+        import json as _j
+        tle_path = Path("catalog.json")
+        if tle_path.exists():
+            try:
+                data = _j.loads(tle_path.read_text())
+                lines = ["name,line1,line2"]
+                for entry in (data if isinstance(data, list) else []):
+                    name  = str(entry.get("name","")).replace(",","")
+                    line1 = str(entry.get("line1","")).replace(",","")
+                    line2 = str(entry.get("line2","")).replace(",","")
+                    lines.append(f"{name},{line1},{line2}")
+                return PlainTextResponse("\n".join(lines), media_type="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=vectraspace_tle.csv"})
+            except Exception as e:
+                pass
+        return PlainTextResponse("No TLE data available", status_code=404)
 
     # ── Dashboard UI ──────────────────────────────────────────
     @app.get("/dashboard", response_class=HTMLResponse)
@@ -5708,7 +6177,7 @@ def build_api(cfg: Config):
     # ── Auth middleware (if users.json exists) ────────────────
     if Path(cfg.users_file).exists():
         PUBLIC_PATHS = {"/login", "/health", "/demo-results", "/signup",
-                        "/forgot-password", "/reset-password", "/", "/welcome", "/admin", "/admin/data",
+                        "/forgot-password", "/reset-password", "/", "/welcome", "/research", "/research/tle.json", "/research/tle.csv", "/admin", "/admin/data",
                         "/feedback", "/admin/verify"}
         # Routes accessible without auth (demo mode)
         DEMO_ALLOWED = {"/", "/history", "/conjunctions", "/sat-info", "/admin", "/admin/data"}
@@ -5733,9 +6202,17 @@ def build_api(cfg: Config):
                 return await call_next(request)
 
         app.add_middleware(AuthMiddleware)
-        log.info("Auth middleware enabled (users.json found)")
+        log.info("Auth middleware enabled")
     else:
-        log.info("Auth disabled (no users.json) — create users with: python vectraspace.py --create-user NAME PASS ROLE")
+        # Create empty users.json so auth is always enabled
+        try:
+            import json as _j
+            Path(cfg.users_file).write_text(_j.dumps([]))
+            log.warning("users.json was missing — created empty file. Admin will be created at next startup check.")
+        except Exception as _e:
+            log.warning(f"Could not create users.json: {_e}")
+        app.add_middleware(AuthMiddleware)
+        log.info("Auth middleware enabled (fresh users.json created)")
 
     # ── Debris simulation endpoint ────────────────────────────
     @app.get("/debris/simulate")
@@ -5851,29 +6328,7 @@ def build_api(cfg: Config):
         log.info(f"Feedback received: [{fb_type}] from {user}")
         return JSONResponse({"ok": True, "id": entry["id"]})
 
-    @app.post("/admin/verify")
-    async def admin_verify(request: Request):
-        """Check admin passcode; on success set a short-lived admin-access cookie."""
-        try:
-            body = await request.json()
-        except Exception:
-            return JSONResponse({"error": "invalid"}, status_code=400)
-        passcode = str(body.get("passcode", "")).strip()
-        expected = os.environ.get("ADMIN_PASSCODE", "").strip()
-        if not expected:
-            return JSONResponse({"error": "not configured"}, status_code=500)
-        if passcode == expected:
-            resp = JSONResponse({"ok": True})
-            # Sign token using ADMIN_PASSCODE as key so it survives restarts
-            import hmac, hashlib, time
-            ts = str(int(time.time()))
-            key = expected.encode()  # use the passcode itself as key
-            sig = hmac.new(key, (ts + ":admin").encode(), hashlib.sha256).hexdigest()
-            signed = ts + ":" + sig
-            resp.set_cookie("vs_admin_token", signed, httponly=True,
-                           samesite="lax", max_age=86400)  # 24-hour access
-            return resp
-        return JSONResponse({"error": "wrong passcode"}, status_code=403)
+    # /admin/verify removed — admin access via login only
 
     # ═══════════════════════════════════════════════════════════════
     # ADMIN ROUTES
@@ -5881,29 +6336,11 @@ def build_api(cfg: Config):
 
     @app.get("/admin", response_class=HTMLResponse)
     def admin_page(request: Request):
-        """Admin console — accessible via admin role session OR valid passcode cookie."""
-        # Check 1: logged-in admin role via vs_session cookie
+        """Admin console — requires admin role login."""
         user = get_current_user_from_request(request, cfg)
-        is_admin_user = user and user.get("role") == "admin"
-        # Check 2: passcode cookie
-        admin_token = request.cookies.get("vs_admin_token", "")
-        passcode_ok = False
-        if admin_token:
-            try:
-                import hmac, hashlib, time
-                parts = admin_token.split(":")
-                if len(parts) == 2:
-                    ts, sig = parts
-                    key = os.environ.get("ADMIN_PASSCODE", "").strip().encode()
-                    if key:
-                        expected_sig = hmac.new(key, (ts + ":admin").encode(), hashlib.sha256).hexdigest()
-                        age = int(time.time()) - int(ts)
-                        passcode_ok = hmac.compare_digest(sig, expected_sig) and age < 86400
-            except Exception:
-                passcode_ok = False
-        if not is_admin_user and not passcode_ok:
+        if not user or user.get("role") != "admin":
             from fastapi.responses import RedirectResponse
-            return RedirectResponse(url="/?admin_denied=1", status_code=303)
+            return RedirectResponse(url="/login?next=/admin", status_code=303)
         token = os.environ.get("CESIUM_ION_TOKEN", "")
         html = ADMIN_HTML.replace("__CESIUM_TOKEN__", token)
         return HTMLResponse(html)
@@ -5912,23 +6349,7 @@ def build_api(cfg: Config):
     def admin_data(request: Request):
         """JSON endpoint — returns all admin stats."""
         user = get_current_user_from_request(request, cfg)
-        is_admin_user = user and user.get("role") == "admin"
-        admin_token = request.cookies.get("vs_admin_token", "")
-        passcode_ok = False
-        if admin_token:
-            try:
-                import hmac, hashlib, time
-                parts = admin_token.split(":")
-                if len(parts) == 2:
-                    ts, sig = parts
-                    key = os.environ.get("ADMIN_PASSCODE", "").strip().encode()
-                    if key:
-                        expected_sig = hmac.new(key, (ts + ":admin").encode(), hashlib.sha256).hexdigest()
-                        age = int(time.time()) - int(ts)
-                        passcode_ok = hmac.compare_digest(sig, expected_sig) and age < 86400
-            except Exception:
-                passcode_ok = False
-        if not is_admin_user and not passcode_ok:
+        if not user or user.get("role") != "admin":
             return JSONResponse({"error": "forbidden"}, status_code=403)
 
         import datetime as _dt
@@ -6088,24 +6509,30 @@ def _init_app():
     import os as _os
     from pathlib import Path as _Path
 
-    # Auto-create admin user from env vars on every startup
-    _admin_user = _os.environ.get("ADMIN_USER", "").strip().lower()
-    _admin_pass = _os.environ.get("ADMIN_PASS", "").strip()
-    if _admin_user and _admin_pass:
-        try:
-            existing = _load_users(CFG)
-            if _admin_user not in existing:
-                create_user(_admin_user, _admin_pass, "admin", cfg=CFG)
-                log.info(f"[startup] Created admin user '{_admin_user}'")
+    # Auto-create admin user from env vars on every startup.
+    # ADMIN_PASS is required. Falls back to ADMIN_PASSCODE if ADMIN_PASS not set.
+    _admin_user = _os.environ.get("ADMIN_USER", "admin").strip().lower()
+    _admin_pass = (
+        _os.environ.get("ADMIN_PASS", "").strip() or
+        _os.environ.get("ADMIN_PASSCODE", "").strip()
+    )
+    if not _admin_pass:
+        _admin_pass = "VectraSpace2526"  # last-resort default
+        log.warning("[startup] No ADMIN_PASS set — using default. Set ADMIN_PASS in env!")
+    try:
+        existing = _load_users(CFG)
+        if _admin_user not in existing:
+            create_user(_admin_user, _admin_pass, "admin", cfg=CFG)
+            log.info(f"[startup] Created admin user '{_admin_user}'")
+        else:
+            if existing[_admin_user].get("role") != "admin":
+                existing[_admin_user]["role"] = "admin"
+                _save_users(existing, CFG)
+                log.info(f"[startup] Fixed role for '{_admin_user}' -> admin")
             else:
-                if existing[_admin_user].get("role") != "admin":
-                    existing[_admin_user]["role"] = "admin"
-                    _save_users(existing, CFG)
-                    log.info(f"[startup] Fixed role for '{_admin_user}' -> admin")
-                else:
-                    log.info(f"[startup] Admin user '{_admin_user}' OK")
-        except Exception as e:
-            log.warning(f"[startup] Could not init admin user: {e}")
+                log.info(f"[startup] Admin user '{_admin_user}' OK")
+    except Exception as e:
+        log.warning(f"[startup] Could not init admin user: {e}")
 
     # Build and return the FastAPI app
     try:
