@@ -1,121 +1,4 @@
-"""VectraSpace — Orbital Safety Platform
-======================================
-Author:  VectraSpace Team
-Contact: trumanheaston@gmail.com
-Version: v11 — Public Release
-
-Version History:
-----------------
-v1  — Original single-file script. Step-by-step propagation, matplotlib PNG,
-      within-regime collision checking only, no database or alerting.
-
-v2  — Full refactor. Vectorized propagation (50-100x faster), modular architecture
-      (ingest, propagate, detect, alert, visualize, API), cross-regime collision
-      checking, close-approach refinement via scipy, Plotly interactive HTML output,
-      SQLite database logging, email/webhook alerting hooks, REST API stub.
-
-v3  — REST API activated. FastAPI server starts automatically after detection
-      pipeline completes. Endpoints: /conjunctions, /health, /docs.
-      Visualization auto-opens in browser on run.
-
-v4  — Space-Track.org integration. Authenticated TLE fetching from the authoritative
-      US Space Force database alongside CelesTrak. Credentials loaded securely from
-      .env file. Graceful fallback to CelesTrak if Space-Track login fails.
-
-v5  — Email and webhook alerting fully wired up and tested. SMTP email sends
-      conjunction alerts with miss distance, Pc estimate, and time to closest
-      approach. Webhook support for Slack, Teams, or any HTTP endpoint.
-      Alert filtering by both distance threshold and Pc threshold.
-      Replaced dotenv with manual .env parser to fix OneDrive path issues.
-
-v6  — Full web UI with mission-control dashboard. CesiumJS photorealistic
-      Earth replaces Plotly — real satellite imagery, atmosphere, day/night
-      lighting, live orbit rendering. Settings panel lets user configure all
-      parameters without editing code. Run button triggers pipeline and streams
-      live log output to browser via SSE. Conjunction markers clickable with
-      full details. All served directly from the FastAPI server.
-
-v9  — Covariance-based Pc (Foster/Alfano ellipsoid overlap pre-filter for speed).
-      CDM export per conjunction + bulk zip download. Historical trends dashboard
-      collapsible in sidebar (Chart.js line + pie charts from SQLite). CelesTrak
-      satellite info modal popup with clean formatted display. Pc input replaced
-      with risk-level slider (LOW/MODERATE/HIGH/CRITICAL). Per-regime satellite
-      count inputs (LEO/MEO/GEO separately).
-
-v10 — F-01: Scheduled autonomous runs via Windows Task Scheduler + --headless flag.
-      F-02: Covariance ingestion from Space-Track CDM feed; covariance_source field.
-      F-03: Multi-user session auth (bcrypt + itsdangerous); /login, /logout routes.
-      F-04: Pushover mobile push notifications alongside existing SMS/email.
-      F-05: CW-based maneuver planning; ManeuverSuggestion on every conjunction.
-      F-06: Chunked vectorized pair-screening replaces Python for-loop (~5-10x speedup).
-      F-07: Debris cloud simulation (NASA SBM lognormal, synthetic TLEs, globe display).
-      F-08: UI fixes -- blank inputs on load, remove hint text, fixed tooltip pointer events.
-
-v11 — PUBLIC RELEASE (VectraSpace rebranding):
-      SEC-01: Anthropic sat-info moved 100% server-side via GET /sat-info/{sat_name}.
-      SEC-02: Cesium Ion token loaded from CESIUM_ION_TOKEN env var (injected server-side).
-      SEC-03: All secrets/credentials removed from source; loaded exclusively from os.environ.
-      SEC-04: SQLite auto-migration adds user_id column + user_preferences table.
-      MULTI-01: get_current_user() dependency; demo mode for unauthenticated users.
-      MULTI-02: Protected routes /run, /preferences, /history require login.
-      MULTI-03: Per-user scan history and personal alert preferences.
-      MULTI-04: Per-user rate limiting on /run (1 scan per 5 min).
-      MULTI-05: /me endpoint returns current user info.
-      MULTI-06: /preferences GET/POST for personal alert settings.
-      GLOBE-01: Cesium terrain/imagery fallback to EllipsoidTerrainProvider + OSM
-                when CESIUM_ION_TOKEN is absent, so globe always renders.
-
-v11.1 — Production hardening:
-      EMAIL-01: Multi-provider SMTP engine — trumanheaston@gmail.com (Gmail App Password)
-                as primary; SendGrid, AWS SES, Postmark selectable via EMAIL_PROVIDER env.
-                Provider auto-detected; clear setup instructions in startup log.
-      AUTH-01:  Self-service signup page (/signup) with optional admin-approval gate
-                (SIGNUP_OPEN=true opens registration; false requires admin invite token).
-      AUTH-02:  Token-based password reset flow — /forgot-password generates a
-                time-limited (1h) signed token, emails a reset link; /reset-password
-                validates token and sets new bcrypt hash. No admin CLI needed.
-      PERF-01:  /sat-info Anthropic call moved to run_in_executor so it never blocks
-                the async event loop under concurrent load.
-"""
-
-# ─────────────────────────────────────────────
-# DEPENDENCIES — install everything with:
-#
-#   pip install skyfield numpy scipy fastapi uvicorn requests bcrypt itsdangerous python-multipart
-#
-# Optional (recommended for production):
-#   pip install "uvicorn[standard]"   # httptools + uvloop for better throughput
-#
-# Notes:
-#   python-multipart  → required for FastAPI form parsing (/login, /signup, /preferences POST)
-#   bcrypt            → password hashing for user auth
-#   itsdangerous      → signed session cookies + password reset tokens
-#   skyfield          → TLE propagation (SGP4)
-#   anthropic SDK not needed — /sat-info calls the REST API directly via requests
-#
-# Email provider env vars (set ONE of these groups in .env):
-#   Gmail App Password (default — uses trumanheaston@gmail.com):
-#     EMAIL_PROVIDER=gmail
-#     ALERT_EMAIL_FROM=trumanheaston@gmail.com
-#     ALERT_SMTP_PASS=<16-char Google App Password>
-#
-#   SendGrid:
-#     EMAIL_PROVIDER=sendgrid
-#     SENDGRID_API_KEY=SG.xxxxx
-#     ALERT_EMAIL_FROM=alerts@yourdomain.com
-#
-#   AWS SES (SMTP):
-#     EMAIL_PROVIDER=ses
-#     AWS_SES_HOST=email-smtp.us-east-1.amazonaws.com
-#     AWS_SES_USER=AKIA...
-#     AWS_SES_PASS=<SES SMTP password>
-#     ALERT_EMAIL_FROM=alerts@yourdomain.com
-#
-#   Postmark:
-#     EMAIL_PROVIDER=postmark
-#     POSTMARK_SERVER_TOKEN=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-#     ALERT_EMAIL_FROM=alerts@yourdomain.com
-# ─────────────────────────────────────────────
+"""VectraSpace v11 — Orbital Safety Platform"""
 
 import os
 import sys
@@ -136,7 +19,6 @@ from typing import Optional, List
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
-
 
 # ── Manual .env loader — bypasses dotenv OneDrive issues ──────
 def _load_env():
@@ -175,14 +57,12 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("VectraSpace")
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  CONFIG                                                      ║
 # ╚══════════════════════════════════════════════════════════════╝
 
 @dataclass
 class Config:
-    # Per-regime satellite counts
     num_leo: int = 100
     num_meo: int = 50
     num_geo: int = 20
@@ -223,8 +103,6 @@ class Config:
     session_secret: str = ""
     users_file: str = "users.json"
 
-
-# SEC-03: All credentials loaded exclusively from environment
 CFG = Config(
     alert_email_from=os.environ.get("ALERT_EMAIL_FROM", "trumanheaston@gmail.com"),
     alert_email_to=os.environ.get("ALERT_EMAIL_TO", ""),
@@ -235,7 +113,6 @@ CFG = Config(
     session_secret=os.environ.get("SESSION_SECRET", secrets.token_hex(32)),
     collision_alert_km=float(os.environ.get("COLLISION_ALERT_KM", "10000.0")),
 )
-
 
 # ── In-memory per-user rate limiter for /run ──────────────────
 # { username -> [timestamp, ...] }
@@ -251,14 +128,12 @@ def _check_run_rate_limit(username: str, window_seconds: int = 300) -> bool:
     _run_rate_limits[username].append(now)
     return True
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 1 — DATA INGESTION                                   ║
 # ╚══════════════════════════════════════════════════════════════╝
 
 SPACETRACK_LOGIN_URL = "https://www.space-track.org/ajaxauth/login"
 SPACETRACK_TLE_URL  = "https://www.space-track.org/basicspacedata/query/class/gp/decay_date/null-val/epoch/%3Enow-30/orderby/norad_cat_id/format/tle"
-
 
 def fetch_spacetrack_tles() -> Optional[str]:
     user = os.environ.get("SPACETRACK_USER")
@@ -287,7 +162,6 @@ def fetch_spacetrack_tles() -> Optional[str]:
     except Exception as e:
         log.warning(f"  ✗ Space-Track fetch failed: {e}")
         return None
-
 
 def fetch_tles(cfg: Config) -> list:
     cache_fresh = False
@@ -327,7 +201,6 @@ def fetch_tles(cfg: Config) -> list:
     log.info(f"Loaded {len(satellites)} satellites total")
     return satellites, ts
 
-
 def filter_by_regime(satellites, ts) -> dict:
     regimes = {
         "LEO": (160,   2_000),
@@ -351,7 +224,6 @@ def filter_by_regime(satellites, ts) -> dict:
         log.info(f"  {name}: {len(sats)} satellites found")
     return buckets
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 2 — PROPAGATION (vectorized)                         ║
 # ╚══════════════════════════════════════════════════════════════╝
@@ -362,7 +234,6 @@ class SatTrack:
     regime: str
     times_min: np.ndarray
     positions: np.ndarray
-
 
 def propagate_satellites(sat_list: list, regime: str, cfg: Config, ts) -> list:
     now = ts.now()
@@ -388,7 +259,6 @@ def propagate_satellites(sat_list: list, regime: str, cfg: Config, ts) -> list:
     log.info(f"  Propagated {len(tracks)}/{len(sat_list)} {regime} satellites")
     return tracks, times
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 3 — COLLISION DETECTION                              ║
 # ╚══════════════════════════════════════════════════════════════╝
@@ -404,7 +274,6 @@ class ManeuverSuggestion:
     advisory_note: str = "Advisory only. Verify with high-fidelity propagator before execution."
     feasible: bool = True
 
-
 @dataclass
 class Conjunction:
     sat1: str
@@ -417,7 +286,6 @@ class Conjunction:
     covariance_source: str = "assumed"
     debris: bool = False
     maneuver: Optional[object] = None
-
 
 def estimate_pc_foster(miss_km: float, v_rel_km_s: float,
                         sigma_along: float, sigma_cross: float,
@@ -445,13 +313,11 @@ def estimate_pc_foster(miss_km: float, v_rel_km_s: float,
     pc = float(1.0 - chi2.cdf(max(x, 0), df=3))
     return min(pc, 1.0), source
 
-
 def _ellipsoid_overlap_possible(miss_km: float, sigma_along: float,
                                  sigma_cross: float, sigma_radial: float,
                                  n_sigma: float = 5.0) -> bool:
     max_sigma = np.sqrt(2) * max(sigma_along, sigma_cross, sigma_radial)
     return miss_km <= (n_sigma * max_sigma)
-
 
 def _chunked_min_distances(all_tracks: list, chunk_size: int) -> np.ndarray:
     n = len(all_tracks)
@@ -486,7 +352,6 @@ def _chunked_min_distances(all_tracks: list, chunk_size: int) -> np.ndarray:
                             min_dists[gj, gi] = block_mins[ri, rj]
     return min_dists
 
-
 def _refine_pair(t1, t2, coarse_min_idx: int, cfg: Config) -> tuple:
     t_lo = max(0, coarse_min_idx - 1)
     t_hi = min(len(t1.times_min) - 1, coarse_min_idx + 1)
@@ -504,7 +369,6 @@ def _refine_pair(t1, t2, coarse_min_idx: int, cfg: Config) -> tuple:
 
     result = minimize_scalar(dist_at, bounds=(t_min_lo, t_min_hi), method='bounded')
     return result.fun, result.x
-
 
 def _compute_maneuver(t1, t2, time_min_tca: float, cfg: Config) -> ManeuverSuggestion:
     if time_min_tca < 1.0:
@@ -554,7 +418,6 @@ def _compute_maneuver(t1, t2, time_min_tca: float, cfg: Config) -> ManeuverSugge
         advisory_note=note,
     )
 
-
 def check_conjunctions(all_tracks: list, cfg: Config, ts,
                        covariance_cache: Optional[dict] = None) -> list:
     conjunctions = []
@@ -569,7 +432,6 @@ def check_conjunctions(all_tracks: list, cfg: Config, ts,
         min_dist_matrix = None
 
     skipped = 0
-
 
     # ── ISS/CSS module filter ─────────────────────────────────────────────
     # Objects that are docked/attached modules of the same station will
@@ -656,7 +518,6 @@ def check_conjunctions(all_tracks: list, cfg: Config, ts,
     log.info(f"Found {len(conjunctions)} conjunctions — {skipped} pairs skipped by pre-filter")
     return conjunctions
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 4 — DATABASE LOGGING                                 ║
 # ╚══════════════════════════════════════════════════════════════╝
@@ -680,13 +541,11 @@ def init_db(cfg: Config):
         )
     """)
 
-    # SEC-04: Auto-migration — add user_id column if missing
     existing_cols = [row[1] for row in con.execute("PRAGMA table_info(conjunctions)").fetchall()]
     if "user_id" not in existing_cols:
         con.execute("ALTER TABLE conjunctions ADD COLUMN user_id TEXT")
         log.info("DB migration: added user_id column to conjunctions")
 
-    # SEC-04: user_preferences table
     con.execute("""
         CREATE TABLE IF NOT EXISTS user_preferences (
             user_id              TEXT PRIMARY KEY,
@@ -699,7 +558,6 @@ def init_db(cfg: Config):
         )
     """)
 
-    # PERSIST-01: users table — survives Render restarts unlike users.json
     con.execute("""
         CREATE TABLE IF NOT EXISTS users (
             username      TEXT PRIMARY KEY,
@@ -711,7 +569,6 @@ def init_db(cfg: Config):
         )
     """)
 
-    # PERSIST-01: Migrate existing users.json into DB (one-time)
     import json as _mj
     from pathlib import Path as _mp
     uj = _mp(cfg.users_file)
@@ -743,7 +600,6 @@ def init_db(cfg: Config):
     con.commit()
     return con
 
-
 def log_conjunctions_to_db(conjunctions: list, con, run_time: str, user_id: Optional[str] = None):
     rows = [(run_time, c.sat1, c.sat2, c.regime1, c.regime2,
              c.min_dist_km, c.time_min, c.pc_estimate, user_id)
@@ -754,7 +610,6 @@ def log_conjunctions_to_db(conjunctions: list, con, run_time: str, user_id: Opti
     )
     con.commit()
     log.info(f"Logged {len(rows)} conjunctions to database (user_id={user_id})")
-
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 4b — CDM EXPORT                                      ║
@@ -816,7 +671,6 @@ COMMENT Time to CA: +{int(c.time_min // 60)}h {int(c.time_min % 60):02d}m
 """
     return cdm
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 4c — COVARIANCE INGESTION                            ║
 # ╚══════════════════════════════════════════════════════════════╝
@@ -825,7 +679,6 @@ SPACETRACK_CDM_URL = (
     "https://www.space-track.org/basicspacedata/query/class/cdm_public"
     "/orderby/TCA desc/limit/100/format/json"
 )
-
 
 def fetch_covariance_cache(cfg: Config) -> dict:
     user = os.environ.get("SPACETRACK_USER")
@@ -877,7 +730,6 @@ def fetch_covariance_cache(cfg: Config) -> dict:
         log.warning(f"Covariance ingestion failed ({e}) — using assumed sigmas")
         return {}
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 4d — DEBRIS CLOUD SIMULATION                         ║
 # ╚══════════════════════════════════════════════════════════════╝
@@ -923,7 +775,6 @@ def generate_debris_cloud(parent_track, event_type: str, n_debris: int, ts) -> l
 
     log.info(f"Generated {len(debris_tracks)} debris objects from {parent_track.name} ({event_type})")
     return debris_tracks
-
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 5 — ALERTING                                         ║
@@ -993,10 +844,8 @@ _EMAIL_CSS = """
                        text-transform:uppercase; margin-top:4px; }
 """
 
-
 def _regime_tag(regime: str) -> str:
     return f'<span class="regime-tag regime-{regime}">{regime}</span>'
-
 
 def _build_html_conjunction_email(alerts: list, run_utc: str, total_sats: int = 0) -> str:
     count = len(alerts)
@@ -1060,7 +909,6 @@ def _build_html_conjunction_email(alerts: list, run_utc: str, total_sats: int = 
     <p style="margin-top:4px;">Open dashboard → http://localhost:8000/dashboard</p>
   </div>
 </div></body></html>"""
-
 
 def _build_html_complete_email(total_sats: int, conjunctions: list,
                                 duration_s: float, run_utc: str) -> str:
@@ -1137,7 +985,6 @@ def _build_html_complete_email(total_sats: int, conjunctions: list,
   </div>
 </div></body></html>"""
 
-
 # ── EMAIL-01: Multi-provider email engine ────────────────────
 # Provider is selected by EMAIL_PROVIDER env var.
 # Defaults to 'gmail' which uses trumanheaston@gmail.com + App Password.
@@ -1156,7 +1003,6 @@ def _build_mime_message(subject: str, from_addr: str, to_addr: str,
     if html_body:
         msg.attach(MIMEText(html_body, "html"))
     return msg
-
 
 def _send_via_gmail(subject: str, html_body: str, to_addr: str,
                     from_addr: str, plain_body: str = "") -> bool:
@@ -1183,7 +1029,6 @@ def _send_via_gmail(subject: str, html_body: str, to_addr: str,
     except Exception as e:
         log.warning(f"  ✗ Gmail send failed: {type(e).__name__}: {e}")
         return False
-
 
 def _send_via_sendgrid(subject: str, html_body: str, to_addr: str,
                         from_addr: str, plain_body: str = "") -> bool:
@@ -1221,7 +1066,6 @@ def _send_via_sendgrid(subject: str, html_body: str, to_addr: str,
         log.warning(f"  ✗ SendGrid send failed: {e}")
         return False
 
-
 def _send_via_ses(subject: str, html_body: str, to_addr: str,
                    from_addr: str, plain_body: str = "") -> bool:
     """
@@ -1246,7 +1090,6 @@ def _send_via_ses(subject: str, html_body: str, to_addr: str,
     except Exception as e:
         log.warning(f"  ✗ SES send failed: {type(e).__name__}: {e}")
         return False
-
 
 def _send_via_postmark(subject: str, html_body: str, to_addr: str,
                         from_addr: str, plain_body: str = "") -> bool:
@@ -1285,7 +1128,6 @@ def _send_via_postmark(subject: str, html_body: str, to_addr: str,
         log.warning(f"  ✗ Postmark send failed: {e}")
         return False
 
-
 # ── Provider dispatch ─────────────────────────────────────────
 _EMAIL_PROVIDERS = {
     "gmail":    _send_via_gmail,
@@ -1314,13 +1156,11 @@ def _send_email(subject: str, html_body: str, to_addr: str, cfg: Config,
 
     return provider_fn(subject, html_body, to_addr, cfg.alert_email_from, plain_body)
 
-
 # ── Backwards-compat shim (used internally) ───────────────────
 def _smtp_send(subject: str, html_body: str, to_addr: str, cfg: Config,
                plain_body: str = "") -> bool:
     """Legacy shim — delegates to _send_email."""
     return _send_email(subject, html_body, to_addr, cfg, plain_body)
-
 
 def send_email_alert(html: str, cfg: Config, subject: str = "[VectraSpace] ⚠ Conjunction Alert",
                      to_addr: Optional[str] = None):
@@ -1333,7 +1173,6 @@ def send_email_alert(html: str, cfg: Config, subject: str = "[VectraSpace] ⚠ C
     if ok:
         log.info(f"  ✓ Alert email sent to {addr}")
 
-
 def send_webhook_alert(body: str, cfg: Config):
     if not cfg.alert_webhook_url:
         return
@@ -1344,7 +1183,6 @@ def send_webhook_alert(body: str, cfg: Config):
         log.info("  ✓ Webhook alert sent")
     except Exception as e:
         log.warning(f"  ✗ Webhook failed: {e}")
-
 
 PUSHOVER_URL = "https://api.pushover.net/1/messages.json"
 
@@ -1371,7 +1209,6 @@ def send_pushover(title: str, message: str, priority: int, cfg: Config,
     except Exception as e:
         log.warning(f"  ✗ Pushover failed: {e}")
 
-
 def send_alerts(conjunctions: list, cfg: Config, total_sats: int = 0,
                 user_prefs: Optional[dict] = None):
     """Fire conjunction alerts. user_prefs overrides cfg settings for per-user routing."""
@@ -1395,7 +1232,6 @@ def send_alerts(conjunctions: list, cfg: Config, total_sats: int = 0,
     send_email_alert(html, cfg, to_addr=email_to)
     send_webhook_alert(f"VectraSpace CONJUNCTION ALERT\n{len(alerts)} event(s) at {run_utc}", cfg)
 
-
     top = alerts[:3]
     pv_body = ", ".join(f"{c.sat1[:10]}↔{c.sat2[:10]} ({c.min_dist_km:.1f}km)" for c in top)
     if len(alerts) > 3:
@@ -1407,7 +1243,6 @@ def send_alerts(conjunctions: list, cfg: Config, total_sats: int = 0,
         cfg=cfg,
         pushover_user_key=pv_key,
     )
-
 
 def send_propagation_complete(total_sats: int, conjunctions: list,
                                duration_s: float, cfg: Config,
@@ -1430,7 +1265,6 @@ def send_propagation_complete(total_sats: int, conjunctions: list,
         subj = f"[VectraSpace] ✓ Scan Complete — {count} conjunction(s) found"
         send_email_alert(html, cfg, subject=subj, to_addr=email_to)
 
-
     send_pushover(
         title="VectraSpace ✓ Scan Complete",
         message=f"{total_sats} sats tracked. {count} conjunction(s). Duration: {mins}m{secs}s.",
@@ -1438,7 +1272,6 @@ def send_propagation_complete(total_sats: int, conjunctions: list,
         cfg=cfg,
         pushover_user_key=pv_key,
     )
-
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 5b — AUTHENTICATION                                  ║
@@ -1453,13 +1286,11 @@ _PBKDF2_ITERS  = 260_000   # OWASP 2023 recommendation for PBKDF2-SHA256
 _SESSION_SEP   = "|"       # outer separator — never appears in base64
 _login_attempts: dict = {}  # ip -> [timestamp, ...]
 
-
 def _hash_password(plain: str) -> str:
     """Return 'pbkdf2:sha256:iters:salt:hash' string."""
     salt = _secrets.token_hex(16)
     dk   = _hashlib.pbkdf2_hmac("sha256", plain.encode(), salt.encode(), _PBKDF2_ITERS)
     return f"pbkdf2:sha256:{_PBKDF2_ITERS}:{salt}:{dk.hex()}"
-
 
 def _verify_password(plain: str, stored: str) -> bool:
     """Verify against either new pbkdf2 format or legacy bcrypt format."""
@@ -1479,7 +1310,6 @@ def _verify_password(plain: str, stored: str) -> bool:
     except Exception:
         return False
 
-
 def _make_session_token(username: str, role: str, secret: str) -> str:
     """Create a signed session token: base64(username\x00role\x00ts)|hmac"""
     import base64, time as _t
@@ -1488,7 +1318,6 @@ def _make_session_token(username: str, role: str, secret: str) -> str:
     payload = base64.urlsafe_b64encode(f"{username}\x00{role}\x00{ts}".encode()).decode()
     sig     = _hmac.new(secret.encode(), payload.encode(), _hashlib.sha256).hexdigest()
     return f"{payload}{_SESSION_SEP}{sig}"  # | separator never in base64
-
 
 def _verify_session_token(token: str, secret: str, max_age: int = 2592000):
     """Returns (username, role) or raises ValueError."""
@@ -1508,14 +1337,12 @@ def _verify_session_token(token: str, secret: str, max_age: int = 2592000):
         raise ValueError("expired")
     return username, role
 
-
 # Keep old name as alias so existing call-sites work
 def _make_session_cookie(username: str, role: str, secret: str) -> str:
     return _make_session_token(username, role, secret)
 
 def _verify_session_cookie(token: str, secret: str, max_age: int = 2592000):
     return _verify_session_token(token, secret, max_age)
-
 
 def get_current_user_from_request(request, cfg) -> "Optional[dict]":
     token = request.cookies.get("vs_session", "")
@@ -1527,7 +1354,6 @@ def get_current_user_from_request(request, cfg) -> "Optional[dict]":
     except Exception:
         return None
 
-
 def _check_login_rate_limit(ip: str) -> bool:
     import time as _t
     now = _t.time()
@@ -1537,7 +1363,6 @@ def _check_login_rate_limit(ip: str) -> bool:
         return False
     _login_attempts[ip].append(now)
     return True
-
 
 def _load_users(cfg) -> dict:
     """Load users from SQLite DB. Falls back to users.json if DB not ready."""
@@ -1572,7 +1397,6 @@ def _load_users(cfg) -> dict:
         log.warning(f"Failed to load users: {e}")
     return {}
 
-
 def _save_users(users: dict, cfg) -> None:
     """Save users to SQLite DB (primary) and users.json (backup)."""
     try:
@@ -1599,7 +1423,6 @@ def _save_users(users: dict, cfg) -> None:
         except Exception:
             pass
 
-
 def create_user(username: str, password: str, role: str = "operator", cfg=None):
     """Create or overwrite a user account. Safe to call at startup."""
     if cfg is None:
@@ -1617,7 +1440,6 @@ def create_user(username: str, password: str, role: str = "operator", cfg=None):
     }
     _save_users(users, cfg)
     log.info(f"User '{username}' saved with role '{role}'")
-
 
 def _register_user(username: str, email: str, password: str, cfg, approved: bool = True):
     """Register new user. Returns (ok, error_msg)."""
@@ -1649,9 +1471,6 @@ def _register_user(username: str, email: str, password: str, cfg, approved: bool
     log.info(f"Registered user '{username}' <{email}>")
     return True, ""
 
-
-
-
 def _get_user_prefs(username: str, cfg: Config) -> dict:
     """Load per-user preferences from user_preferences table."""
     try:
@@ -1669,7 +1488,6 @@ def _get_user_prefs(username: str, cfg: Config) -> dict:
     except Exception:
         pass
     return {}
-
 
 def _save_user_prefs(username: str, prefs: dict, cfg: Config):
     """Upsert per-user preferences."""
@@ -1695,7 +1513,6 @@ def _save_user_prefs(username: str, prefs: dict, cfg: Config):
     ))
     con.commit()
 
-
 # ── AUTH-02: Password reset token helpers ─────────────────────
 
 def _make_reset_token(username: str, secret: str) -> str:
@@ -1705,7 +1522,6 @@ def _make_reset_token(username: str, secret: str) -> str:
     payload = base64.urlsafe_b64encode(f"{username}:{ts}".encode()).decode()
     sig     = _hmac.new(secret.encode(), payload.encode(), _hashlib.sha256).hexdigest()
     return f"{payload}.{sig}"
-
 
 def _verify_reset_token(token: str, secret: str, max_age: int = 3600) -> "Optional[str]":
     """Returns username or None if invalid/expired."""
@@ -1723,7 +1539,6 @@ def _verify_reset_token(token: str, secret: str, max_age: int = 3600) -> "Option
     except Exception:
         return None
 
-
 def _update_password(username: str, new_password: str, cfg) -> bool:
     """Hash and persist a new password."""
     users = _load_users(cfg)
@@ -1734,7 +1549,6 @@ def _update_password(username: str, new_password: str, cfg) -> bool:
     log.info(f"Password updated for '{username}'")
     return True
 
-
 def _get_user_email(username: str, cfg: Config) -> Optional[str]:
     """Look up a user's email from users.json or user_preferences."""
     users = _load_users(cfg)
@@ -1744,7 +1558,6 @@ def _get_user_email(username: str, cfg: Config) -> Optional[str]:
     # Fall back to preferences table
     prefs = _get_user_prefs(username, cfg)
     return prefs.get("email")
-
 
 # ── Auth page HTML templates ──────────────────────────────────
 # Shared CSS injected into all auth pages
@@ -1835,7 +1648,6 @@ LOGIN_HTML = """<!DOCTYPE html>
 </body>
 </html>""".replace("{AUTH_CSS}", _AUTH_CSS)
 
-
 SIGNUP_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1925,7 +1737,6 @@ RESET_PASSWORD_HTML = """<!DOCTYPE html>
 </body>
 </html>""".replace("{AUTH_CSS}", _AUTH_CSS)
 
-
 PREFERENCES_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1997,7 +1808,6 @@ PREFERENCES_HTML = """<!DOCTYPE html>
 </body>
 </html>"""
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 5c — SCHEDULED AUTONOMOUS RUNS                       ║
 # ╚══════════════════════════════════════════════════════════════╝
@@ -2013,13 +1823,11 @@ def _acquire_lock() -> bool:
     except Exception:
         return False
 
-
 def _release_lock():
     try:
         LOCKFILE.unlink(missing_ok=True)
     except Exception:
         pass
-
 
 def generate_task_xml(python_exe: str, script_path: str,
                       interval_hours: int = 6,
@@ -2066,7 +1874,6 @@ def generate_task_xml(python_exe: str, script_path: str,
     log.info(f"Task Scheduler XML written to {output_path}")
     return xml
 
-
 def run_headless(cfg: Config):
     """Execute the full pipeline without starting the web server."""
     fh = logging.handlers.RotatingFileHandler(
@@ -2093,16 +1900,13 @@ def run_headless(cfg: Config):
     finally:
         _release_lock()
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 6 — WEB UI + CESIUMJS VISUALIZATION                  ║
 # ╚══════════════════════════════════════════════════════════════╝
 
-# SEC-02: Cesium token loaded from environment — never hard-coded
 def _get_cesium_token() -> str:
     # Use env var if set, otherwise fall back to hardcoded default
     return os.environ.get("CESIUM_ION_TOKEN", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMzRmMGI5Ni1hMTM0LTQxMjgtODgzMy04ZGYxN2UzNzYyN2MiLCJpZCI6MzkyNzg4LCJpYXQiOjE3NzE2OTU4OTF9.lulZ9jWB9A_XCxfui1FpcGmC7A7B49znZpcwn7yg530")
-
 
 DASHBOARD_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -3964,11 +3768,9 @@ async function runDetection() {
 </html>
 """
 
-
 def get_dashboard_html() -> str:
     """SEC-02: Inject Cesium token server-side from environment."""
     return DASHBOARD_HTML.replace("__CESIUM_TOKEN__", _get_cesium_token())
-
 
 LANDING_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -4632,7 +4434,6 @@ async function lpSubmitFeedback() {
 </body>
 </html>"""
 
-
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 7 — REST API + SSE RUN ENDPOINT                      ║
 # ╚══════════════════════════════════════════════════════════════╝
@@ -5069,7 +4870,6 @@ loadData();
 </script>
 </body>
 </html>"""
-
 
 ADMIN_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -5760,12 +5560,10 @@ def build_api(cfg: Config):
             def send(text, type_="log"):
                 return f"data: {_json.dumps({'type': type_, 'text': text})}\n\n"
 
-            # MULTI-02: Require login for /run
             if not user:
                 yield f"data: {_json.dumps({'type': 'auth_error', 'text': 'Authentication required'})}\n\n"
                 return
 
-            # MULTI-04: Per-user rate limit (1 scan per 5 min)
             if not _check_run_rate_limit(user["username"]):
                 yield f"data: {_json.dumps({'type': 'rate_limit', 'text': 'Max 1 scan per 5 minutes. Please wait.'})}\n\n"
                 return
@@ -5816,7 +5614,6 @@ def build_api(cfg: Config):
                 _logging.getLogger("VectraSpace").addHandler(sse_handler)
 
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    # MULTI-03: Tag conjunctions with user_id
                     future = loop.run_in_executor(
                         pool,
                         lambda: _run_pipeline(run_cfg, covariance_cache=cov_cache_result,
@@ -5929,7 +5726,6 @@ def build_api(cfg: Config):
         user = _get_user(request)
         con = sqlite3.connect(cfg.db_path)
         if user:
-            # MULTI-03: Authenticated users see their own history
             rows = con.execute(
                 "SELECT * FROM conjunctions WHERE user_id=? ORDER BY run_time DESC LIMIT 200",
                 (user["username"],)
@@ -6436,45 +6232,28 @@ def build_api(cfg: Config):
         _update_password(user["username"], pw, cfg)
         return RedirectResponse(url="/preferences?saved=password", status_code=303)
 
-    # ── Auth middleware (if users.json exists) ────────────────
-    if Path(cfg.users_file).exists():
-        PUBLIC_PATHS = {"/login", "/health", "/demo-results", "/signup",
-                        "/forgot-password", "/reset-password", "/", "/welcome", "/research", "/research/tle.json", "/research/tle.csv", "/admin", "/admin/data",
-                        "/feedback", "/admin/verify"}
-        # Routes accessible without auth (demo mode)
-        DEMO_ALLOWED = {"/", "/history", "/conjunctions", "/sat-info", "/admin", "/admin/data"}
+    PUBLIC_PATHS = {"/login", "/health", "/demo-results", "/signup",
+                    "/forgot-password", "/reset-password", "/", "/welcome",
+                    "/research", "/research/tle.json", "/research/tle.csv",
+                    "/admin", "/admin/data", "/feedback", "/tle-status", "/scan-status"}
 
-        class AuthMiddleware(BaseHTTPMiddleware):
-            async def dispatch(self, request, call_next):
-                path = request.url.path
-                # Always allow public paths
-                if path in PUBLIC_PATHS or path.startswith("/static"):
-                    return await call_next(request)
-                # Allow demo-mode paths without auth
-                if path in ("/", "/dashboard", "/admin", "/admin/data") or path.startswith("/sat-info/") or path.startswith("/cdm"):
-                    return await call_next(request)
-                # Protected paths — only redirect HTML pages, not JSON endpoints
-                if path == "/preferences":
-                    token = request.cookies.get("vs_session", "")
-                    try:
-                        _verify_session_cookie(token, cfg.session_secret)
-                    except Exception:
-                        return RedirectResponse(url="/login")
-                # /me and /run handle their own auth and return JSON 401
+    class AuthMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):
+            path = request.url.path
+            if path in PUBLIC_PATHS or path.startswith("/static"):
                 return await call_next(request)
+            if path in ("/", "/dashboard", "/admin", "/admin/data") or path.startswith("/sat-info/") or path.startswith("/cdm"):
+                return await call_next(request)
+            if path == "/preferences":
+                token = request.cookies.get("vs_session", "")
+                try:
+                    _verify_session_cookie(token, cfg.session_secret)
+                except Exception:
+                    return RedirectResponse(url="/login")
+            return await call_next(request)
 
-        app.add_middleware(AuthMiddleware)
-        log.info("Auth middleware enabled")
-    else:
-        # Create empty users.json so auth is always enabled
-        try:
-            import json as _j
-            Path(cfg.users_file).write_text(_j.dumps([]))
-            log.warning("users.json was missing — created empty file. Admin will be created at next startup check.")
-        except Exception as _e:
-            log.warning(f"Could not create users.json: {_e}")
-        app.add_middleware(AuthMiddleware)
-        log.info("Auth middleware enabled (fresh users.json created)")
+    app.add_middleware(AuthMiddleware)
+    log.info("Auth middleware enabled")
 
     # ── Debris simulation endpoint ────────────────────────────
     @app.get("/debris/simulate")
@@ -6525,10 +6304,7 @@ def build_api(cfg: Config):
 
         return JSONResponse({"debris_tracks": tracks_json, "conjunctions": conj_json})
 
-
-    # ═══════════════════════════════════════════════════════════════
     # FEEDBACK + ADMIN VERIFY ROUTES
-    # ═══════════════════════════════════════════════════════════════
 
     @app.post("/feedback")
     async def submit_feedback(request: Request):
@@ -6592,9 +6368,7 @@ def build_api(cfg: Config):
 
     # /admin/verify removed — admin access via login only
 
-    # ═══════════════════════════════════════════════════════════════
     # ADMIN ROUTES
-    # ═══════════════════════════════════════════════════════════════
 
     @app.get("/admin", response_class=HTMLResponse)
     def admin_page(request: Request):
@@ -6718,7 +6492,6 @@ def build_api(cfg: Config):
 
     return app
 
-
 def _run_pipeline(cfg: Config, covariance_cache: Optional[dict] = None,
                   run_mode: str = "interactive",
                   user_id: Optional[str] = None,
@@ -6748,7 +6521,6 @@ def _run_pipeline(cfg: Config, covariance_cache: Optional[dict] = None,
 
     con = init_db(cfg)
     run_time = datetime.datetime.utcnow().isoformat()
-    # MULTI-03: Tag with user_id (None = public/headless)
     log_conjunctions_to_db(conjunctions, con, run_time, user_id=user_id)
 
     duration = time.time() - t_start
@@ -6759,7 +6531,6 @@ def _run_pipeline(cfg: Config, covariance_cache: Optional[dict] = None,
 
     return {"tracks": all_tracks, "conjunctions": conjunctions,
             "run_time": run_time, "ts": ts}
-
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MAIN                                                        ║
@@ -6800,9 +6571,7 @@ def _init_app():
     # Build and return the FastAPI app (init_db already called above)
     return build_api(CFG)
 
-
 app = _init_app()
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
