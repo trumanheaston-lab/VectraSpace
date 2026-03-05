@@ -1543,13 +1543,21 @@ def _load_users(cfg) -> dict:
     """Load users from SQLite DB. Falls back to users.json if DB not ready."""
     try:
         con = sqlite3.connect(cfg.db_path)
-        rows = con.execute("SELECT username, password_hash, role, email, approved, created_at FROM users").fetchall()
+        # Table may not exist yet if init_db hasn't run — check first
+        tbl = con.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+        ).fetchone()
+        if tbl:
+            rows = con.execute(
+                "SELECT username, password_hash, role, email, approved, created_at FROM users"
+            ).fetchall()
+            con.close()
+            if rows:
+                return {r[0]: {"username":r[0],"password_hash":r[1],"role":r[2],
+                               "email":r[3],"approved":bool(r[4]),"created_at":r[5]} for r in rows}
         con.close()
-        if rows:
-            return {r[0]: {"username":r[0],"password_hash":r[1],"role":r[2],
-                           "email":r[3],"approved":bool(r[4]),"created_at":r[5]} for r in rows}
-    except Exception:
-        pass
+    except Exception as _e:
+        log.warning(f"_load_users DB error: {_e}")
     # Fallback to users.json
     p = Path(cfg.users_file)
     if not p.exists():
@@ -5503,17 +5511,22 @@ def build_api(cfg: Config):
                     _scan_state["running"] = False
             await _aio.sleep(AUTO_SCAN_INTERVAL_H * 3600)
 
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def _lifespan(app):
+        import asyncio as _aio
+        task = _aio.create_task(_auto_scan_loop())
+        log.info("[startup] Auto-scan task started (every 6h)")
+        yield
+        task.cancel()
+
     app = FastAPI(
         title="VectraSpace API",
         description="VectraSpace v11 — Orbital Safety Platform",
         version="11.0",
+        lifespan=_lifespan,
     )
-
-    @app.on_event("startup")
-    async def _on_startup():
-        import asyncio as _aio
-        _aio.create_task(_auto_scan_loop())
-        log.info("[startup] Auto-scan task started (every 6h)")
 
     # ── CORS ─────────────────────────────────────────────────────
     app.add_middleware(
@@ -6769,6 +6782,7 @@ def _init_app():
         _admin_pass = "VectraSpace2526"  # last-resort default
         log.warning("[startup] No ADMIN_PASS set — using default. Set ADMIN_PASS in env!")
     try:
+        init_db(CFG)  # ensure tables exist before loading users
         existing = _load_users(CFG)
         if _admin_user not in existing:
             create_user(_admin_user, _admin_pass, "admin", cfg=CFG)
@@ -6783,12 +6797,7 @@ def _init_app():
     except Exception as e:
         log.warning(f"[startup] Could not init admin user: {e}")
 
-    # Build and return the FastAPI app
-    try:
-        init_db(CFG)
-    except Exception as e:
-        log.warning(f"[startup] DB init warning: {e}")
-
+    # Build and return the FastAPI app (init_db already called above)
     return build_api(CFG)
 
 
