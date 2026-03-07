@@ -7004,6 +7004,9 @@ footer {
   .mission-visual { height: 280px; }
   footer { flex-direction: column; gap: 20px; text-align: center; }
   .kessler-data { position: static; }
+  /* Contact section tablet */
+  #contact .container { padding: 0 24px !important; }
+  #contact .reveal > div { padding: 48px 40px !important; }
 }
 @media (max-width: 600px) {
   .sim-grid { grid-template-columns: 1fr; }
@@ -7011,6 +7014,35 @@ footer {
   .cta-box { padding: 48px 24px; }
   #hero { padding: 100px 16px 60px; }
   .hero-title { letter-spacing: -1px; }
+  /* Contact section mobile */
+  #contact { padding: 60px 0 !important; }
+  #contact .container { padding: 0 16px !important; }
+  #contact .reveal > div { padding: 36px 24px !important; }
+  .contact-bio-row {
+    flex-direction: column !important;
+    gap: 24px !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  #contact .reveal [style*="font-size:26px"] { font-size: 20px !important; }
+  #contact .reveal [style*="font-size:clamp(22px"] { font-size: 20px !important; }
+  #contact .reveal [style*="max-width:520px"] { max-width: 100% !important; }
+  #contact a[href^="mailto"] {
+    width: 100%;
+    justify-content: center !important;
+    font-size: 10px !important;
+    padding: 14px 16px !important;
+    box-sizing: border-box;
+  }
+  /* Footer mobile */
+  footer { padding: 32px 20px; gap: 16px; }
+  .footer-links { flex-wrap: wrap; justify-content: center; gap: 8px 16px; }
+  .footer-copy { font-size: 10px; text-align: center; }
+  /* Hero orbit system — hide on very small screens */
+  .hero-orbit-system { display: none; }
+  /* Chapter cards mobile padding */
+  .chapter-card-body { padding: 24px; }
+  .chapter-footer { padding: 12px 24px; }
 }
 </style>
 </head>
@@ -7605,7 +7637,7 @@ footer {
         <div style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:20px;">About the Creator</div>
 
         <!-- avatar + bio row -->
-        <div style="display:flex; gap:40px; align-items:flex-start; margin-bottom:52px; flex-wrap:wrap;">
+        <div class="contact-bio-row" style="display:flex; gap:40px; align-items:flex-start; margin-bottom:52px; flex-wrap:wrap;">
           <!-- avatar placeholder -->
           <div style="flex-shrink:0; width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg, var(--accent) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:32px; color:#fff; letter-spacing:-1px; box-shadow:0 0 0 3px var(--border), 0 0 32px rgba(74,158,255,0.2);">T</div>
 
