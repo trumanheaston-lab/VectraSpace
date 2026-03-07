@@ -3772,6 +3772,2564 @@ def get_dashboard_html() -> str:
     """SEC-02: Inject Cesium token server-side from environment."""
     return DASHBOARD_HTML.replace("__CESIUM_TOKEN__", _get_cesium_token())
 
+_EDU_ORBITAL_HTML = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbital Mechanics — VectraSpace Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0a0e14;--ink2:#111720;--ink3:#1a2333;--panel:#131b27;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#d4dde8;--muted:#5a7088;--accent:#3b82f6;--accent-h:#60a5fa;
+  --amber:#f59e0b;--red:#ef4444;--green:#10b981;--teal:#14b8a6;--r:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:'Space Grotesk',sans-serif;line-height:1.6;overflow-x:hidden;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;}
+.nav-brand-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;}
+.nav-brand-name span{color:var(--accent);}
+.nav-back{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
+.nav-back:hover{color:var(--text);border-color:var(--border2);}
+.chapter-progress{flex:1;max-width:300px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:0 40px;overflow:hidden;}
+.chapter-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.1s;}
+
+/* HERO */
+.learn-hero{padding:100px 40px 60px;max-width:900px;margin:0 auto;}
+.learn-breadcrumb{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:16px;}
+.learn-breadcrumb a{color:var(--muted);text-decoration:none;}
+.learn-breadcrumb a:hover{color:var(--accent);}
+.learn-chapter{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.learn-title{font-family:'Syne',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-1.5px;color:#fff;line-height:1.05;margin-bottom:20px;}
+.learn-intro{font-size:17px;color:var(--muted);line-height:1.8;max-width:680px;margin-bottom:36px;}
+.learn-meta{display:flex;gap:24px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}
+.meta-item{display:flex;align-items:center;gap:6px;}
+
+/* LAYOUT */
+.learn-layout{display:grid;grid-template-columns:220px 1fr;gap:0;max-width:1100px;margin:0 auto;padding:0 40px 80px;}
+.toc{position:sticky;top:80px;height:fit-content;padding-right:40px;}
+.toc-title{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.toc-list{list-style:none;display:flex;flex-direction:column;gap:2px;}
+.toc-list a{display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.5px;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:4px;border-left:2px solid transparent;transition:all 0.2s;}
+.toc-list a:hover,.toc-list a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(59,130,246,0.06);}
+.content{min-width:0;}
+
+/* CONTENT */
+.section-block{margin-bottom:64px;}
+.section-block h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:16px;padding-top:16px;}
+.section-block h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:28px 0 10px;}
+.section-block p{font-size:15px;color:var(--muted);line-height:1.85;margin-bottom:16px;}
+.section-block p strong{color:var(--text);font-weight:600;}
+.section-block p em{color:var(--accent-h);font-style:normal;}
+
+/* EQUATION BLOCK */
+.eq-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r);padding:24px 28px;margin:24px 0;}
+.eq-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.eq-main{font-family:'Space Mono',monospace;font-size:16px;color:#fff;letter-spacing:1px;margin-bottom:10px;}
+.eq-vars{font-size:12px;color:var(--muted);line-height:1.9;}
+.eq-vars code{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
+
+/* CALLOUT */
+.callout{background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:var(--r);padding:20px 24px;margin:24px 0;}
+.callout-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+.callout p{font-size:13px;color:var(--muted);line-height:1.75;margin:0;}
+.callout.amber{background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.2);}
+.callout.amber .callout-title{color:var(--amber);}
+.callout.red{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2);}
+.callout.red .callout-title{color:var(--red);}
+
+/* TABLE */
+.data-table-wrap{overflow-x:auto;margin:24px 0;border-radius:var(--r);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead th{background:rgba(255,255,255,0.04);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);}
+tbody td{font-size:13px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);}
+tbody tr:last-child td{border-bottom:none;}
+tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
+
+/* DIAGRAM */
+.diagram-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin:24px 0;text-align:center;}
+.diagram-caption{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:12px;}
+
+/* NEXT/PREV */
+.chapter-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:80px;padding-top:40px;border-top:1px solid var(--border);}
+.chapter-nav-card{padding:20px 24px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);text-decoration:none;transition:all 0.2s;}
+.chapter-nav-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.cnc-dir{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.cnc-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}
+.chapter-nav-card.next{text-align:right;}
+
+@media(max-width:800px){
+  .learn-layout{grid-template-columns:1fr;padding:0 20px 60px;}
+  .toc{display:none;}
+  .learn-hero{padding:80px 20px 40px;}
+  nav{padding:0 20px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-brand">
+    <span class="nav-brand-name">Vectra<span>Space</span></span>
+  </a>
+  <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
+  <a href="/#deep-dives" class="nav-back">← All Chapters</a>
+</nav>
+
+<div class="learn-hero">
+  <div class="learn-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Orbital Mechanics</div>
+  <div class="learn-chapter">Chapter 01 · Foundations</div>
+  <h1 class="learn-title">Orbital Mechanics</h1>
+  <p class="learn-intro">From Kepler's laws to SGP4 propagation — the classical physics governing every object in Earth orbit. This is the mathematical foundation beneath VectraSpace's entire simulation engine.</p>
+  <div class="learn-meta">
+    <span class="meta-item">📖 ~15 min read</span>
+    <span class="meta-item">🧮 8 equations</span>
+    <span class="meta-item">🎯 Intermediate physics</span>
+  </div>
+</div>
+
+<div class="learn-layout">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li><a href="#two-body">Two-Body Problem</a></li>
+      <li><a href="#kepler">Kepler's Laws</a></li>
+      <li><a href="#vis-viva">Vis-Viva Equation</a></li>
+      <li><a href="#elements">Orbital Elements</a></li>
+      <li><a href="#tle">TLE Format</a></li>
+      <li><a href="#sgp4">SGP4 Propagation</a></li>
+      <li><a href="#frames">Reference Frames</a></li>
+      <li><a href="#velocity">Orbital Velocity</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+
+    <div class="section-block" id="two-body">
+      <h2>The Two-Body Problem</h2>
+      <p>The foundation of orbital mechanics is the idealized <strong>two-body problem</strong>: a small object (satellite) in the gravitational field of a much larger body (Earth). Under this assumption, the only force acting on the satellite is Earth's gravity, and the motion can be described analytically.</p>
+      <p>Newton's law of gravitation gives us the equation of motion:</p>
+      <div class="eq-block">
+        <div class="eq-label">Newton's Gravitational Equation of Motion</div>
+        <div class="eq-main">r̈ = −(μ / r³) · r</div>
+        <div class="eq-vars">
+          <code>r</code> = position vector from Earth's center to satellite<br>
+          <code>r̈</code> = second time derivative (acceleration)<br>
+          <code>μ = GM</code> = gravitational parameter = 398,600.4418 km³/s²<br>
+          <code>r = |r|</code> = scalar distance from Earth's center
+        </div>
+      </div>
+      <p>This differential equation has analytical solutions that trace out <strong>conic sections</strong> — circles, ellipses, parabolas, or hyperbolas — depending on the satellite's total energy. Satellites in stable orbit follow ellipses.</p>
+      <div class="callout">
+        <div class="callout-title">Why "Two-Body"?</div>
+        <p>In reality, many forces act on a satellite (atmospheric drag, solar radiation, Moon's gravity). The two-body problem ignores all of these. It gives us a clean analytical solution — a perfect baseline that perturbation theory then corrects. See Chapter 03 for perturbations.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="kepler">
+      <h2>Kepler's Three Laws</h2>
+      <p>Johannes Kepler (1609–1619) empirically derived three laws from Tycho Brahe's planetary observations. These laws emerge naturally from the two-body problem and remain central to modern astrodynamics.</p>
+
+      <h3>First Law — Elliptical Orbits</h3>
+      <p>The orbit of a satellite around Earth is an <strong>ellipse</strong> with Earth's center at one focus. This means the distance between the satellite and Earth varies continuously — minimum at <em>perigee</em>, maximum at <em>apogee</em>.</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Orbit Equation (Polar Form)</div>
+        <div class="eq-main">r = p / (1 + e·cos θ)</div>
+        <div class="eq-vars">
+          <code>r</code> = orbital radius at true anomaly θ<br>
+          <code>p = a(1 − e²)</code> = semi-latus rectum<br>
+          <code>a</code> = semi-major axis<br>
+          <code>e</code> = eccentricity (0 = circle, 0–1 = ellipse)<br>
+          <code>θ</code> = true anomaly (angle from perigee)
+        </div>
+      </div>
+
+      <h3>Second Law — Equal Areas</h3>
+      <p>A satellite sweeps out <strong>equal areas in equal times</strong>. This is conservation of angular momentum in disguise: a satellite moves faster near perigee (lower altitude) and slower near apogee (higher altitude).</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Conservation of Angular Momentum</div>
+        <div class="eq-main">h = r × ṙ = √(μ · p) = const</div>
+        <div class="eq-vars"><code>h</code> = specific angular momentum vector (constant throughout orbit)</div>
+      </div>
+
+      <h3>Third Law — Period Relation</h3>
+      <p>The square of the orbital period is proportional to the cube of the semi-major axis. This is why GPS satellites at ~20,200 km orbit once per ~12 hours, while the ISS at ~420 km orbits once per ~92 minutes.</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Kepler's Third Law</div>
+        <div class="eq-main">T = 2π · √(a³ / μ)</div>
+        <div class="eq-vars">
+          <code>T</code> = orbital period (seconds)<br>
+          <code>a</code> = semi-major axis (km)<br>
+          <code>μ</code> = 398,600.4418 km³/s²
+        </div>
+      </div>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>Object</th><th>Altitude (km)</th><th>Semi-major axis (km)</th><th>Period</th><th>Velocity (km/s)</th></tr></thead>
+          <tbody>
+            <tr><td>ISS</td><td>~420</td><td>6,791</td><td>92 min</td><td>7.66</td></tr>
+            <tr><td>Starlink</td><td>~550</td><td>6,921</td><td>95.5 min</td><td>7.60</td></tr>
+            <tr><td>GPS</td><td>~20,200</td><td>26,571</td><td>11h 58m</td><td>3.87</td></tr>
+            <tr><td>GEO (Clarke Belt)</td><td>35,786</td><td>42,164</td><td>23h 56m</td><td>3.07</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-block" id="vis-viva">
+      <h2>The Vis-Viva Equation</h2>
+      <p>The vis-viva equation is perhaps the single most useful result in orbital mechanics. It relates a satellite's speed at any point in its orbit to its distance from Earth and the orbit's semi-major axis — through conservation of energy.</p>
+      <div class="eq-block">
+        <div class="eq-label">Vis-Viva Equation</div>
+        <div class="eq-main">v² = μ · (2/r − 1/a)</div>
+        <div class="eq-vars">
+          <code>v</code> = orbital speed at radius r (km/s)<br>
+          <code>μ</code> = gravitational parameter (km³/s²)<br>
+          <code>r</code> = current distance from Earth's center (km)<br>
+          <code>a</code> = semi-major axis of the orbit (km)
+        </div>
+      </div>
+      <p>For a <strong>circular orbit</strong>, <code>r = a</code> everywhere, giving <code>v = √(μ/r)</code>. This is why lower satellites move faster — they're in a deeper gravitational well. A 1 m/s increase in speed at ISS altitude raises the opposite side of the orbit by ~1.75 km.</p>
+      <div class="callout amber">
+        <div class="callout-title">VectraSpace Application</div>
+        <p>The vis-viva equation underlies all delta-v calculations in the maneuver planning module. When a conjunction is detected, the Clohessy-Wiltshire model computes the minimum Δv needed — and vis-viva tells us how that translates to an altitude change.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="elements">
+      <h2>Classical Orbital Elements</h2>
+      <p>Six numbers fully describe any Keplerian orbit. These are the <strong>Classical Orbital Elements (COEs)</strong> — a compact parameterization used in TLE sets and almost every orbital database.</p>
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>Symbol</th><th>Element</th><th>Description</th><th>Range</th></tr></thead>
+          <tbody>
+            <tr><td>a</td><td>Semi-major axis</td><td>Half the long axis of the ellipse. Determines orbit size and period.</td><td>0 → ∞ km</td></tr>
+            <tr><td>e</td><td>Eccentricity</td><td>Shape of orbit. 0 = circle, 0–1 = ellipse, 1 = parabola (escape).</td><td>0 → &lt;1</td></tr>
+            <tr><td>i</td><td>Inclination</td><td>Tilt of orbit plane relative to Earth's equatorial plane.</td><td>0° – 180°</td></tr>
+            <tr><td>Ω</td><td>RAAN</td><td>Right Ascension of Ascending Node. Rotates orbit plane around polar axis.</td><td>0° – 360°</td></tr>
+            <tr><td>ω</td><td>Argument of perigee</td><td>Angle from ascending node to closest approach point.</td><td>0° – 360°</td></tr>
+            <tr><td>ν or M</td><td>True / Mean anomaly</td><td>Current position in orbit. True = actual angle; Mean = time-averaged.</td><td>0° – 360°</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Converting between mean anomaly M and true anomaly ν requires solving <em>Kepler's Equation</em> — a transcendental equation typically solved iteratively:</p>
+      <div class="eq-block">
+        <div class="eq-label">Kepler's Equation</div>
+        <div class="eq-main">M = E − e · sin(E)</div>
+        <div class="eq-vars">
+          <code>M</code> = mean anomaly (linear in time: M = n·t, n = mean motion)<br>
+          <code>E</code> = eccentric anomaly (solved iteratively via Newton-Raphson)<br>
+          <code>e</code> = eccentricity
+        </div>
+      </div>
+    </div>
+
+    <div class="section-block" id="tle">
+      <h2>Two-Line Element Sets (TLEs)</h2>
+      <p>A TLE is the standard format used by NORAD and CelesTrak to distribute orbital data for tracked space objects. Each TLE encodes the six orbital elements plus perturbation coefficients in exactly 69 characters per line.</p>
+      <div class="eq-block" style="font-size:11px;">
+        <div class="eq-label">Example TLE — ISS</div>
+        <div class="eq-main" style="font-size:12px;line-height:1.8">
+          ISS (ZARYA)<br>
+          1 25544U 98067A   24001.50000000  .00003456  00000-0  63041-4 0  9992<br>
+          2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.50377579431937
+        </div>
+        <div class="eq-vars">
+          Line 1: Satellite number · Classification · Launch year/number · Epoch · Drag term (B*) · Element set number<br>
+          Line 2: Inclination · RAAN · Eccentricity (assumed decimal) · Arg of Perigee · Mean Anomaly · Mean Motion (rev/day) · Rev number
+        </div>
+      </div>
+      <p>TLE accuracy degrades over time as unmodeled perturbations accumulate. A fresh LEO TLE is typically accurate to ~1 km; after 7 days it may be off by 10+ km. This is why <strong>VectraSpace refreshes TLEs every 6 hours</strong> from CelesTrak and Space-Track.</p>
+    </div>
+
+    <div class="section-block" id="sgp4">
+      <h2>SGP4 / SDP4 Propagation</h2>
+      <p>The <strong>Simplified General Perturbations 4 (SGP4)</strong> model is the standard algorithm for propagating TLE sets forward in time. It analytically approximates the most significant orbital perturbations — Earth's oblateness (J₂, J₃, J₄), atmospheric drag, and solar/lunar effects (SDP4 for deep-space orbits).</p>
+      <p>SGP4 takes a TLE and a time offset Δt, and returns an ECI position and velocity vector. The computation is fast — thousands of satellites can be propagated per second on modern hardware — making it ideal for VectraSpace's vectorized batch processing.</p>
+      <div class="callout">
+        <div class="callout-title">SGP4 in VectraSpace</div>
+        <p>VectraSpace uses the Skyfield Python library's SGP4 implementation, propagating position arrays over 12–72 hour windows at 1-minute resolution. NumPy batching allows all satellites in a regime to be processed simultaneously, achieving 50× speedup over sequential loops.</p>
+      </div>
+      <div class="callout red">
+        <div class="callout-title">Important Limitation</div>
+        <p>SGP4 is a <em>mean element</em> theory — it models average perturbations, not instantaneous forces. For high-precision conjunction analysis (Pc &lt; 10⁻⁶), higher-fidelity numerical propagators with real atmospheric density models are required. VectraSpace's results should be treated as <strong>screening-level estimates</strong>, not operationally certified predictions.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="frames">
+      <h2>Reference Frames</h2>
+      <p>Orbital calculations require a clear choice of coordinate system. VectraSpace uses two primary frames:</p>
+      <h3>ECI — Earth-Centered Inertial</h3>
+      <p>Origin at Earth's center. X-axis points to the vernal equinox; Z-axis to the celestial north pole. <strong>Does not rotate with Earth</strong>. Satellite positions and velocities are expressed in ECI for propagation calculations.</p>
+      <h3>RTN — Radial-Transverse-Normal (Hill Frame)</h3>
+      <p>A local coordinate frame co-moving with the reference satellite: <em>R</em> (radial, toward/away from Earth), <em>T</em> (transverse, along-track), <em>N</em> (normal, out-of-plane). Delta-v maneuver vectors are expressed in RTN.</p>
+      <div class="eq-block">
+        <div class="eq-label">RTN Unit Vectors</div>
+        <div class="eq-main">R̂ = r/|r|,  N̂ = (r×ṙ)/|r×ṙ|,  T̂ = N̂×R̂</div>
+      </div>
+    </div>
+
+    <div class="section-block" id="velocity">
+      <h2>Circular Orbital Velocity</h2>
+      <p>For a circular orbit, the satellite's speed is constant and determined entirely by altitude. This is the regime most LEO satellites operate in:</p>
+      <div class="eq-block">
+        <div class="eq-label">Circular Orbital Velocity</div>
+        <div class="eq-main">v_c = √(μ / r) = √(μ / (R_E + h))</div>
+        <div class="eq-vars">
+          <code>v_c</code> = circular velocity (km/s)<br>
+          <code>R_E</code> = Earth's mean radius = 6,371 km<br>
+          <code>h</code> = altitude above surface (km)
+        </div>
+      </div>
+      <p>At ISS altitude (420 km): v ≈ 7.66 km/s. At GEO (35,786 km): v ≈ 3.07 km/s. Two LEO satellites in crossing orbits can have a <strong>relative velocity of up to 15+ km/s</strong> — equivalent to a small car moving 54,000 km/h. A 1 cm aluminum sphere at this speed carries the kinetic energy of a hand grenade.</p>
+    </div>
+
+    <div class="chapter-nav">
+      <div></div>
+      <a href="/education/collision-prediction" class="chapter-nav-card next">
+        <div class="cnc-dir">Next Chapter →</div>
+        <div class="cnc-title">Collision Prediction</div>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Reading progress bar
+const fill = document.getElementById('progress-fill');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (window.scrollY / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+
+// TOC active highlight
+const sections = document.querySelectorAll('.section-block');
+const links = document.querySelectorAll('.toc-list a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc-list a[href="#${e.target.id}"]`);
+      if(active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
+
+"""
+
+_EDU_COLLISION_HTML = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collision Prediction — VectraSpace Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0a0e14;--ink2:#111720;--panel:#131b27;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#d4dde8;--muted:#5a7088;--accent:#f59e0b;--accent-h:#fbbf24;--blue:#3b82f6;--red:#ef4444;--green:#10b981;--r:8px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:'Space Grotesk',sans-serif;line-height:1.6;overflow-x:hidden;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;}
+.nav-brand-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;}
+.nav-brand-name span{color:var(--blue);}
+.nav-back{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
+.nav-back:hover{color:var(--text);border-color:var(--border2);}
+.chapter-progress{flex:1;max-width:300px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:0 40px;overflow:hidden;}
+.chapter-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.1s;}
+.learn-hero{padding:100px 40px 60px;max-width:900px;margin:0 auto;}
+.learn-breadcrumb{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:16px;}
+.learn-breadcrumb a{color:var(--muted);text-decoration:none;}
+.learn-breadcrumb a:hover{color:var(--blue);}
+.learn-chapter{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.learn-title{font-family:'Syne',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-1.5px;color:#fff;line-height:1.05;margin-bottom:20px;}
+.learn-intro{font-size:17px;color:var(--muted);line-height:1.8;max-width:680px;margin-bottom:36px;}
+.learn-meta{display:flex;gap:24px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}
+.learn-layout{display:grid;grid-template-columns:220px 1fr;gap:0;max-width:1100px;margin:0 auto;padding:0 40px 80px;}
+.toc{position:sticky;top:80px;height:fit-content;padding-right:40px;}
+.toc-title{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.toc-list{list-style:none;display:flex;flex-direction:column;gap:2px;}
+.toc-list a{display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.5px;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:4px;border-left:2px solid transparent;transition:all 0.2s;}
+.toc-list a:hover,.toc-list a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(245,158,11,0.06);}
+.content{min-width:0;}
+.section-block{margin-bottom:64px;}
+.section-block h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:16px;padding-top:16px;}
+.section-block h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:28px 0 10px;}
+.section-block p{font-size:15px;color:var(--muted);line-height:1.85;margin-bottom:16px;}
+.section-block p strong{color:var(--text);font-weight:600;}
+.section-block p em{color:var(--accent-h);font-style:normal;}
+.eq-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r);padding:24px 28px;margin:24px 0;}
+.eq-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.eq-main{font-family:'Space Mono',monospace;font-size:16px;color:#fff;letter-spacing:1px;margin-bottom:10px;}
+.eq-vars{font-size:12px;color:var(--muted);line-height:1.9;}
+.eq-vars code{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
+.callout{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:var(--r);padding:20px 24px;margin:24px 0;}
+.callout-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+.callout p{font-size:13px;color:var(--muted);line-height:1.75;margin:0;}
+.callout.blue{background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.2);}
+.callout.blue .callout-title{color:var(--blue);}
+.callout.red{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2);}
+.callout.red .callout-title{color:var(--red);}
+.callout.green{background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.2);}
+.callout.green .callout-title{color:var(--green);}
+.data-table-wrap{overflow-x:auto;margin:24px 0;border-radius:var(--r);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead th{background:rgba(255,255,255,0.04);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);}
+tbody td{font-size:13px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);}
+tbody tr:last-child td{border-bottom:none;}
+tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
+.risk-scale{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:16px 0;gap:2px;}
+.rs-seg{flex:1;border-radius:2px;}
+.pc-table{width:100%;}
+.chapter-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:80px;padding-top:40px;border-top:1px solid var(--border);}
+.chapter-nav-card{padding:20px 24px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);text-decoration:none;transition:all 0.2s;}
+.chapter-nav-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.cnc-dir{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.cnc-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}
+.chapter-nav-card.next{text-align:right;}
+@media(max-width:800px){.learn-layout{grid-template-columns:1fr;padding:0 20px 60px;}.toc{display:none;}.learn-hero{padding:80px 20px 40px;}nav{padding:0 20px;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<span>Space</span></span></a>
+  <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
+  <a href="/#deep-dives" class="nav-back">← All Chapters</a>
+</nav>
+
+<div class="learn-hero">
+  <div class="learn-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Collision Prediction</div>
+  <div class="learn-chapter">Chapter 02 · Risk Analysis</div>
+  <h1 class="learn-title">Collision Prediction</h1>
+  <p class="learn-intro">How do we calculate the probability that two objects will collide? This chapter covers the mathematics of conjunction analysis — from identifying close approaches to computing Pc and planning avoidance maneuvers.</p>
+  <div class="learn-meta">
+    <span>📖 ~18 min read</span>
+    <span>🧮 10 equations</span>
+    <span>🎯 Intermediate–Advanced</span>
+  </div>
+</div>
+
+<div class="learn-layout">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li><a href="#screening">Conjunction Screening</a></li>
+      <li><a href="#tca">Time of Closest Approach</a></li>
+      <li><a href="#covariance">Uncertainty & Covariance</a></li>
+      <li><a href="#pc-method">Pc Calculation</a></li>
+      <li><a href="#pc-levels">Risk Thresholds</a></li>
+      <li><a href="#cdm">CDM Standard</a></li>
+      <li><a href="#maneuver">Avoidance Maneuvers</a></li>
+      <li><a href="#cw">Clohessy-Wiltshire</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+
+    <div class="section-block" id="screening">
+      <h2>Conjunction Screening</h2>
+      <p>With 27,000+ tracked objects in orbit, checking every possible pair at every time step would be computationally prohibitive. Conjunction screening uses a <strong>filter cascade</strong> to rapidly eliminate low-risk pairs before expensive calculations.</p>
+      <h3>Step 1: Perigee-Apogee Filter</h3>
+      <p>Two objects can only collide if their orbits can geometrically intersect. Objects whose apogee-perigee altitude ranges don't overlap are immediately eliminated.</p>
+      <h3>Step 2: Ellipsoidal Pre-filter</h3>
+      <p>For remaining pairs, compute the minimum distance over the propagation window. Only pairs where this coarse minimum falls within <em>n·σ</em> of the combined position uncertainty are retained for refinement:</p>
+      <div class="eq-block">
+        <div class="eq-label">Ellipsoidal Overlap Condition</div>
+        <div class="eq-main">d_miss ≤ n · √2 · max(σ_a, σ_c, σ_r)</div>
+        <div class="eq-vars">
+          <code>d_miss</code> = coarse minimum miss distance<br>
+          <code>n</code> = sigma multiplier (typically 5σ)<br>
+          <code>σ_a, σ_c, σ_r</code> = position uncertainty: along-track, cross-track, radial
+        </div>
+      </div>
+      <p>VectraSpace uses <strong>NumPy-batched distance matrix computation</strong> — all satellite pairs computed simultaneously in chunks, achieving ~50× speedup over sequential iteration. Typically 85–95% of pairs are eliminated at this stage.</p>
+    </div>
+
+    <div class="section-block" id="tca">
+      <h2>Time of Closest Approach (TCA)</h2>
+      <p>After coarse screening, the exact <strong>Time of Closest Approach (TCA)</strong> is found by minimizing the inter-satellite distance as a function of time. VectraSpace uses a bounded golden-section search (Brent's method) within a ±1 minute window around the coarse minimum.</p>
+      <div class="eq-block">
+        <div class="eq-label">Miss Distance at TCA</div>
+        <div class="eq-main">d(t) = |r₁(t) − r₂(t)|<br>TCA = argmin_t d(t)</div>
+        <div class="eq-vars">
+          <code>r₁(t), r₂(t)</code> = propagated positions of objects 1 and 2 at time t<br>
+          Time interpolation uses Hermite polynomials for smooth derivatives
+        </div>
+      </div>
+      <p>Relative velocity at TCA determines collision energy. For LEO-crossing conjunctions, relative speeds of <strong>0–15 km/s</strong> are possible — even a 10 cm fragment at 10 km/s carries 500+ kJ of kinetic energy, catastrophic for any spacecraft.</p>
+    </div>
+
+    <div class="section-block" id="covariance">
+      <h2>Uncertainty & Covariance</h2>
+      <p>We never know a satellite's position exactly. Every TLE has errors — from unmodeled forces, tracking gaps, and atmospheric variability. This uncertainty is quantified by a <strong>covariance matrix</strong> in the RTN frame.</p>
+      <div class="eq-block">
+        <div class="eq-label">3×3 RTN Covariance Matrix</div>
+        <div class="eq-main">
+P = [CR_R   CT_R   CN_R]<br>
+    [CT_R   CT_T   CN_T]<br>
+    [CN_R   CN_T   CN_N]
+        </div>
+        <div class="eq-vars">
+          Diagonal elements: variance in radial (R), transverse (T), normal (N) directions<br>
+          Off-diagonal elements: cross-correlations (usually large CT_R for LEO drag errors)<br>
+          Position uncertainty ellipsoid: principal axes from eigendecomposition of P
+        </div>
+      </div>
+      <p>When real CDM covariance data is available from Space-Track, VectraSpace uses it. When not, it falls back to <strong>assumed sigma values</strong> — typically σ_along = 500m, σ_cross = 200m, σ_radial = 100m for LEO. The covariance source is flagged in every conjunction report.</p>
+      <div class="callout blue">
+        <div class="callout-title">Why Covariance Matters</div>
+        <p>Two conjunctions with the same 5 km miss distance can have wildly different Pc values — depending on the uncertainty. If position uncertainty is only 100 m (very certain), Pc is near zero. If uncertainty is 10 km (very uncertain), the 5 km miss could represent a high-risk event. Pc collapses miss distance and uncertainty into a single risk metric.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="pc-method">
+      <h2>Probability of Collision — Foster-Alfano Method</h2>
+      <p>VectraSpace uses the <strong>Foster (1992) / Alfano (1995)</strong> conjunction probability method, which projects the 3D problem onto the 2D collision plane (the plane perpendicular to relative velocity at TCA).</p>
+      <p>The combined position PDF (assuming Gaussian) is integrated over a disk of radius <em>R_c</em> — the "hard-body radius," or sum of the two object radii:</p>
+      <div class="eq-block">
+        <div class="eq-label">2D Collision Probability (Foster-Alfano)</div>
+        <div class="eq-main">Pc = (1/2π·σ_x·σ_y) · ∬_D exp[−½·(x²/σ_x² + y²/σ_y²)] dx dy</div>
+        <div class="eq-vars">
+          Integration domain D: disk of radius R_c centered on predicted miss vector<br>
+          <code>σ_x, σ_y</code> = combined 1σ position uncertainty in collision plane<br>
+          <code>R_c = r₁ + r₂</code> = combined hard-body radius (typically 5–15 m for intact satellites)<br>
+          Numerically evaluated using chi-squared CDF: Pc ≈ 1 − χ²_CDF(x², df=2)
+        </div>
+      </div>
+      <p>This integral has no closed form for arbitrary offset — it is computed numerically in VectraSpace using SciPy's chi-squared CDF as an approximation valid for the typical range of operational Pc values.</p>
+      <div class="eq-block">
+        <div class="eq-label">VectraSpace Implementation (Simplified)</div>
+        <div class="eq-main">σ_c = √[(σ_a² + σ_c² + σ_r²)/3] · √2<br>x = ((d_miss − R_c) / σ_c)²<br>Pc = 1 − χ²_CDF(x, df=3)</div>
+      </div>
+    </div>
+
+    <div class="section-block" id="pc-levels">
+      <h2>Risk Thresholds & Decision Framework</h2>
+      <p>Pc alone does not tell an operator what to do. Different organizations apply different thresholds based on risk tolerance, available propellant, and operational context.</p>
+      <div class="risk-scale">
+        <div class="rs-seg" style="background:#10b981;flex:3"></div>
+        <div class="rs-seg" style="background:#f59e0b;flex:2"></div>
+        <div class="rs-seg" style="background:#ef4444;flex:1.5"></div>
+        <div class="rs-seg" style="background:#7f1d1d;flex:0.5"></div>
+      </div>
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>Pc Range</th><th>Risk Level</th><th>Typical Response</th><th>VectraSpace Alert</th></tr></thead>
+          <tbody>
+            <tr><td>&lt; 1×10⁻⁶</td><td style="color:#10b981">Negligible</td><td>No action required</td><td>No alert</td></tr>
+            <tr><td>1×10⁻⁶ – 1×10⁻⁴</td><td style="color:#fbbf24">Low / Watch</td><td>Monitor; gather more data</td><td>Optional</td></tr>
+            <tr><td>1×10⁻⁴ – 1×10⁻³</td><td style="color:#f59e0b">Elevated</td><td>Maneuver analysis; prepare burn</td><td>Default threshold</td></tr>
+            <tr><td>1×10⁻³ – 1×10⁻²</td><td style="color:#ef4444">High</td><td>Maneuver strongly recommended</td><td>High priority alert</td></tr>
+            <tr><td>&gt; 1×10⁻²</td><td style="color:#7f1d1d">Critical</td><td>Emergency maneuver required</td><td>Critical alert</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The default VectraSpace alert threshold is <strong>Pc ≥ 1×10⁻⁴</strong> (1 in 10,000) — consistent with NASA and ESA operational screening. Users can adjust this in their preferences down to 1×10⁻⁶ for higher sensitivity or up to 1×10⁻² for reduced noise.</p>
+      <div class="callout red">
+        <div class="callout-title">The False Alarm Problem</div>
+        <p>Most conjunction alerts do not lead to actual collisions. The false positive rate at 1×10⁻⁴ is very high — operators must balance the cost of unnecessary maneuvers (fuel, operational complexity) against the risk of inaction. This is fundamentally a decision theory problem, not just a physics problem.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="cdm">
+      <h2>Conjunction Data Messages (CDM)</h2>
+      <p>The <strong>CCSDS Conjunction Data Message (CDM)</strong> standard (CCSDS 508.0-B-1) is the international format for communicating conjunction events between agencies, operators, and databases. VectraSpace generates a CDM for every detected conjunction.</p>
+      <p>A CDM contains: time of closest approach, miss distance, Pc estimate, Pc method identifier, and full covariance matrices for both objects. It is the interoperability standard for space traffic management worldwide.</p>
+      <div class="callout green">
+        <div class="callout-title">Download CDMs from VectraSpace</div>
+        <p>Every conjunction detected in a VectraSpace scan generates a downloadable CDM file. Individual events can be downloaded from the results panel; the full run can be exported as a ZIP archive. These files follow the CCSDS format and can be imported into other SSA tools.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="maneuver">
+      <h2>Avoidance Maneuver Planning</h2>
+      <p>When Pc exceeds the action threshold, the satellite operator must decide whether and how to maneuver. The goal is to <strong>increase miss distance</strong> sufficiently to bring Pc below threshold, using the minimum propellant (Δv).</p>
+      <p>Maneuver planning is complicated by uncertainty in both orbits — a maneuver may be necessary even with low initial Pc if subsequent TLE updates reveal the true trajectory is closer. Conversely, updates may show a previously alarming event was benign.</p>
+      <h3>Maneuver Geometry</h3>
+      <p>The most efficient avoidance burns are typically in the <strong>transverse (along-track) direction</strong>. An along-track burn changes the orbital period, causing the satellite to arrive at the conjunction point earlier or later — spatially shifting the pass without a large altitude change.</p>
+    </div>
+
+    <div class="section-block" id="cw">
+      <h2>Clohessy-Wiltshire (Hill's) Equations</h2>
+      <p>For satellites in nearby orbits, the <strong>Clohessy-Wiltshire (CW) equations</strong> (also called Hill's equations) describe relative motion in the co-rotating RTN frame. They linearize orbital mechanics around a reference circular orbit, making analytical maneuver solutions tractable.</p>
+      <div class="eq-block">
+        <div class="eq-label">Clohessy-Wiltshire Equations (Linearized Relative Motion)</div>
+        <div class="eq-main">
+ẍ − 2n·ẏ − 3n²·x = f_x<br>
+ÿ + 2n·ẋ = f_y<br>
+z̈ + n²·z = f_z
+        </div>
+        <div class="eq-vars">
+          <code>x, y, z</code> = relative position in radial (x), transverse (y), normal (z)<br>
+          <code>n = √(μ/a³)</code> = mean motion of reference orbit<br>
+          <code>f_x, f_y, f_z</code> = applied accelerations (thrust)<br>
+          Coriolis terms (−2n·ẏ, +2n·ẋ) couple radial and transverse motion
+        </div>
+      </div>
+      <p>VectraSpace uses a simplified CW solution to estimate minimum Δv for each conjunction. The advisory assumes an impulsive burn and linear dynamics — appropriate for initial screening. <strong>All maneuver recommendations require verification with a high-fidelity propagator before execution.</strong></p>
+      <div class="eq-block">
+        <div class="eq-label">VectraSpace Minimum Δv Estimate</div>
+        <div class="eq-main">Δv_T ≈ (d_safe − d_current) / (2 · t_TCA)<br>Δv_R ≈ −(v_rel · r̂) · 0.1</div>
+        <div class="eq-vars">
+          <code>d_safe</code> = target safe separation distance (default: 50 km)<br>
+          <code>d_current</code> = current predicted miss distance<br>
+          <code>t_TCA</code> = time until closest approach (seconds)<br>
+          Output: [Δv_R, Δv_T, Δv_N] vector in m/s (RTN frame)
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter-nav">
+      <a href="/education/orbital-mechanics" class="chapter-nav-card">
+        <div class="cnc-dir">← Previous Chapter</div>
+        <div class="cnc-title">Orbital Mechanics</div>
+      </a>
+      <a href="/education/perturbations" class="chapter-nav-card next">
+        <div class="cnc-dir">Next Chapter →</div>
+        <div class="cnc-title">Orbital Perturbations</div>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const fill = document.getElementById('progress-fill');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  fill.style.width = ((window.scrollY / (h.scrollHeight - h.clientHeight)) * 100) + '%';
+});
+const sections = document.querySelectorAll('.section-block');
+const links = document.querySelectorAll('.toc-list a');
+const obs = new IntersectionObserver(e => {
+  e.forEach(en => {
+    if(en.isIntersecting){
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.toc-list a[href="#${en.target.id}"]`);
+      if(a) a.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
+
+"""
+
+_EDU_PERTURBATIONS_HTML = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbital Perturbations — VectraSpace Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #070c14;
+  --ink-2:      #0d1520;
+  --ink-3:      #111d2b;
+  --border:     #1a2e42;
+  --border-2:   #243d54;
+  --accent:     #3b82f6;
+  --accent-glow:rgba(59,130,246,0.18);
+  --amber:      #f59e0b;
+  --amber-dim:  rgba(245,158,11,0.12);
+  --green:      #10b981;
+  --green-dim:  rgba(16,185,129,0.10);
+  --red:        #ef4444;
+  --red-dim:    rgba(239,68,68,0.10);
+  --text:       #c9ddef;
+  --text-2:     #7a9bb5;
+  --text-3:     #4a6a85;
+  --mono:       'Space Mono', monospace;
+  --sans:       'Space Grotesk', sans-serif;
+  --display:    'Syne', sans-serif;
+  --toc-w:      230px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── PROGRESS BAR ── */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--amber));
+  z-index: 200; transition: width 0.1s linear;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px; padding: 0 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(7,12,20,0.92);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+.nav-brand {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 3px;
+  color: var(--accent); text-transform: uppercase; text-decoration: none;
+}
+.nav-back {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+  color: var(--text-3); text-decoration: none; text-transform: uppercase;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: var(--accent); }
+
+/* ── HERO ── */
+.hero {
+  padding: 120px 48px 64px;
+  max-width: 900px; margin: 0 auto;
+  position: relative;
+}
+.hero-breadcrumb {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 16px;
+}
+.hero-breadcrumb a { color: var(--text-3); text-decoration: none; }
+.hero-breadcrumb a:hover { color: var(--accent); }
+.chapter-label {
+  display: inline-block; font-family: var(--mono); font-size: 9px;
+  letter-spacing: 3px; color: var(--amber); text-transform: uppercase;
+  background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.25);
+  padding: 4px 10px; border-radius: 2px; margin-bottom: 20px;
+}
+.hero h1 {
+  font-family: var(--display); font-size: clamp(36px,5vw,58px);
+  font-weight: 800; line-height: 1.1; color: #fff; margin-bottom: 16px;
+}
+.hero-accent { color: var(--accent); }
+.hero-intro {
+  font-size: 17px; font-weight: 300; color: var(--text-2); line-height: 1.8;
+  max-width: 680px; margin-bottom: 32px;
+}
+.hero-meta {
+  display: flex; gap: 24px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  color: var(--text-3); text-transform: uppercase;
+}
+.hero-meta span { display: flex; align-items: center; gap: 6px; }
+.hero-meta-dot { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+
+/* ── LAYOUT ── */
+.page-wrap {
+  max-width: 1140px; margin: 0 auto;
+  padding: 48px 48px 120px;
+  display: grid;
+  grid-template-columns: var(--toc-w) 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+/* ── TOC ── */
+.toc {
+  position: sticky; top: 72px;
+  background: var(--ink-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  max-height: calc(100vh - 88px);
+  overflow-y: auto;
+}
+.toc::-webkit-scrollbar { width: 3px; }
+.toc::-webkit-scrollbar-thumb { background: var(--border); }
+.toc-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 3px;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 14px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.toc-list a {
+  display: block; font-size: 12px; color: var(--text-3);
+  text-decoration: none; padding: 5px 8px; border-radius: 4px;
+  transition: all 0.2s; border-left: 2px solid transparent;
+}
+.toc-list a:hover { color: var(--text); background: var(--ink-3); }
+.toc-list a.active {
+  color: var(--accent); background: var(--accent-glow);
+  border-left-color: var(--accent);
+}
+
+/* ── CONTENT ── */
+.content { min-width: 0; }
+.content-section { margin-bottom: 72px; scroll-margin-top: 80px; }
+.section-number {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 12px;
+}
+.content h2 {
+  font-family: var(--display); font-size: clamp(22px,3vw,30px);
+  font-weight: 700; color: #fff; margin-bottom: 20px; line-height: 1.2;
+}
+.content h3 {
+  font-family: var(--sans); font-size: 16px; font-weight: 600;
+  color: var(--text); margin: 28px 0 12px;
+}
+.content p { margin-bottom: 16px; color: var(--text-2); font-size: 15px; }
+.content strong { color: var(--text); font-weight: 600; }
+
+/* ── EQUATION BLOCKS ── */
+.eq-block {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 20px 24px; margin: 24px 0;
+  font-family: var(--mono); font-size: 13px; color: var(--text);
+  overflow-x: auto;
+}
+.eq-block .eq-label {
+  font-size: 8px; letter-spacing: 3px; color: var(--text-3);
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.eq-block .eq-main { font-size: 15px; color: #fff; margin-bottom: 8px; }
+.eq-block .eq-vars { font-size: 11px; color: var(--text-3); line-height: 1.9; }
+.eq-block .eq-var-name { color: var(--amber); }
+
+/* ── CALLOUT BOXES ── */
+.callout {
+  border-radius: 6px; padding: 16px 20px; margin: 24px 0;
+  border-left: 3px solid; font-size: 14px;
+}
+.callout.info {
+  background: rgba(59,130,246,0.07); border-color: var(--accent); color: var(--text);
+}
+.callout.warning {
+  background: var(--amber-dim); border-color: var(--amber); color: var(--text);
+}
+.callout.danger {
+  background: var(--red-dim); border-color: var(--red); color: var(--text);
+}
+.callout.success {
+  background: var(--green-dim); border-color: var(--green); color: var(--text);
+}
+.callout-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 3px;
+  text-transform: uppercase; margin-bottom: 6px;
+  display: block;
+}
+.callout.info .callout-label { color: var(--accent); }
+.callout.warning .callout-label { color: var(--amber); }
+.callout.danger .callout-label { color: var(--red); }
+.callout.success .callout-label { color: var(--green); }
+
+/* ── DATA TABLE ── */
+.data-table-wrap { overflow-x: auto; margin: 24px 0; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; font-family: var(--mono);
+}
+thead th {
+  background: var(--ink-3); color: var(--text-3); font-size: 9px;
+  letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px;
+  text-align: left; border-bottom: 1px solid var(--border);
+}
+tbody td { padding: 10px 14px; border-bottom: 1px solid rgba(26,46,66,0.5); color: var(--text-2); }
+tbody tr:hover td { background: var(--ink-2); }
+.td-accent { color: var(--accent); }
+.td-amber  { color: var(--amber); }
+.td-green  { color: var(--green); }
+.td-red    { color: var(--red); }
+.td-white  { color: #fff; font-weight: 600; }
+
+/* ── PERTURBATION DIAGRAM ── */
+.pert-diagram {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 32px; margin: 24px 0; overflow: hidden;
+}
+.pert-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+}
+.pert-card {
+  background: var(--ink-3); border: 1px solid var(--border);
+  border-radius: 6px; padding: 18px; transition: border-color 0.2s;
+}
+.pert-card:hover { border-color: var(--accent); }
+.pert-card-icon { font-size: 24px; margin-bottom: 10px; }
+.pert-card-title {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 6px;
+}
+.pert-card-desc { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.pert-card-mag {
+  margin-top: 10px; padding: 6px 8px;
+  background: var(--ink); border-radius: 4px;
+  font-family: var(--mono); font-size: 11px; color: var(--amber);
+}
+
+/* ── J2 VISUALIZER ── */
+.j2-vis {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 24px; margin: 24px 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;
+}
+.j2-canvas-wrap { position: relative; height: 200px; }
+.j2-canvas-wrap canvas { width: 100%; height: 100%; }
+.j2-data { display: flex; flex-direction: column; gap: 12px; }
+.j2-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; background: var(--ink-3); border-radius: 4px;
+  border-left: 2px solid var(--border);
+  font-family: var(--mono); font-size: 11px;
+}
+.j2-row.active { border-left-color: var(--accent); }
+.j2-key { color: var(--text-3); }
+.j2-val { color: var(--accent); }
+
+/* ── DRAG CHART ── */
+.drag-chart-wrap {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 24px; margin: 24px 0;
+}
+.drag-chart-title {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 16px;
+}
+.drag-bars { display: flex; flex-direction: column; gap: 10px; }
+.drag-bar-row { display: flex; align-items: center; gap: 12px; }
+.drag-bar-label { font-family: var(--mono); font-size: 10px; color: var(--text-2); width: 100px; flex-shrink: 0; }
+.drag-bar-track { flex: 1; background: var(--ink-3); border-radius: 2px; height: 8px; position: relative; }
+.drag-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.8s ease; }
+.drag-bar-val { font-family: var(--mono); font-size: 10px; color: var(--amber); width: 80px; text-align: right; flex-shrink: 0; }
+
+/* ── TLE ACCURACY CHART ── */
+.accuracy-chart {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 24px; margin: 24px 0;
+}
+.accuracy-chart canvas { width: 100%; height: 180px; }
+
+/* ── CHAPTER NAV ── */
+.chapter-nav {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  margin-top: 80px; padding-top: 40px;
+  border-top: 1px solid var(--border);
+}
+.chapter-nav-card {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px 24px; text-decoration: none;
+  transition: all 0.2s; display: block;
+}
+.chapter-nav-card:hover { border-color: var(--accent); background: var(--ink-3); }
+.cnc-dir {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 3px;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 6px;
+}
+.cnc-title { font-family: var(--display); font-size: 16px; font-weight: 700; color: #fff; }
+.cnc-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+.chapter-nav-card.next { text-align: right; }
+
+/* ── SCROLL REVEAL ── */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+
+@media (max-width: 900px) {
+  .page-wrap { grid-template-columns: 1fr; }
+  .toc { display: none; }
+  .hero { padding: 100px 24px 48px; }
+  .page-wrap { padding: 32px 24px 80px; }
+  .pert-grid, .j2-vis { grid-template-columns: 1fr; }
+  .chapter-nav { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <a href="/" class="nav-brand">VectraSpace // Education</a>
+  <a href="/" class="nav-back">← Back to Learning Hub</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-breadcrumb">
+    <a href="/">VectraSpace</a> / <a href="/#chapters">Deep Dives</a> / Chapter 03
+  </div>
+  <span class="chapter-label">Chapter 03</span>
+  <h1>Orbital <span class="hero-accent">Perturbations</span></h1>
+  <p class="hero-intro">
+    Real orbits are never perfect ellipses. Atmospheric drag, Earth's oblate shape, solar radiation pressure,
+    and gravitational pulls from the Moon and Sun continuously nudge every satellite off its Keplerian path —
+    with consequences ranging from millisecond timing errors to catastrophic reentry.
+  </p>
+  <div class="hero-meta">
+    <span><span class="hero-meta-dot"></span>30 min read</span>
+    <span><span class="hero-meta-dot"></span>Intermediate · Advanced</span>
+    <span><span class="hero-meta-dot"></span>Physics · Astrodynamics</span>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <!-- TOC -->
+  <aside>
+    <nav class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li><a href="#why-matter">Why Perturbations Matter</a></li>
+        <li><a href="#j2-oblateness">J₂ Oblateness</a></li>
+        <li><a href="#nodal-regression">Nodal Regression</a></li>
+        <li><a href="#apsidal-precession">Apsidal Precession</a></li>
+        <li><a href="#atmospheric-drag">Atmospheric Drag</a></li>
+        <li><a href="#ballistic-coeff">Ballistic Coefficient</a></li>
+        <li><a href="#solar-radiation">Solar Radiation Pressure</a></li>
+        <li><a href="#luni-solar">Luni-Solar Gravity</a></li>
+        <li><a href="#tle-accuracy">TLE Accuracy & Decay</a></li>
+        <li><a href="#sgp4-model">SGP4 Perturbation Model</a></li>
+        <li><a href="#ops-consequences">Operational Consequences</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <article class="content">
+
+    <!-- WHY PERTURBATIONS MATTER -->
+    <section id="why-matter" class="content-section reveal">
+      <div class="section-number">// 01</div>
+      <h2>Why Perturbations Matter for SSA</h2>
+      <p>
+        In introductory orbital mechanics, we solve the <strong>two-body problem</strong>: a point mass orbiting another
+        under pure Newtonian gravity. The solution — a perfect conic section — holds forever. Real satellites
+        inhabit a messier universe.
+      </p>
+      <p>
+        Earth is not a perfect sphere. It has mass concentrations, an atmosphere that extends hundreds of kilometers,
+        and sits in a solar system full of other gravitating bodies. Each effect introduces small accelerations
+        that, over hours and days, accumulate into position errors measured in kilometers.
+      </p>
+
+      <div class="pert-diagram">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:20px;">Four Major Perturbation Sources</div>
+        <div class="pert-grid">
+          <div class="pert-card">
+            <div class="pert-card-icon">🌍</div>
+            <div class="pert-card-title">J₂ Oblateness</div>
+            <div class="pert-card-desc">Earth's equatorial bulge exerts a stronger gravitational pull on low-inclination orbits, causing the orbital plane to precess.</div>
+            <div class="pert-card-mag">LEO: ~7°/day RAAN drift</div>
+          </div>
+          <div class="pert-card">
+            <div class="pert-card-icon">🌬️</div>
+            <div class="pert-card-title">Atmospheric Drag</div>
+            <div class="pert-card-desc">Residual air molecules below ~1000 km exert a retarding force, bleeding orbital energy and lowering the orbit over time.</div>
+            <div class="pert-card-mag">ISS: ~2 km/day altitude loss</div>
+          </div>
+          <div class="pert-card">
+            <div class="pert-card-icon">☀️</div>
+            <div class="pert-card-title">Solar Radiation Pressure</div>
+            <div class="pert-card-desc">Photons carry momentum. Large, lightweight satellites (solar panels, balloon payloads) feel significant radiation pressure perturbations.</div>
+            <div class="pert-card-mag">4.56 μN/m² at 1 AU</div>
+          </div>
+          <div class="pert-card">
+            <div class="pert-card-icon">🌙</div>
+            <div class="pert-card-title">Luni-Solar Gravity</div>
+            <div class="pert-card-desc">Moon and Sun third-body perturbations dominate at GEO and HEO where Earth's gravity weakens relative to their influence.</div>
+            <div class="pert-card-mag">GEO: ~0.75°/yr inclination growth</div>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        For Space Situational Awareness, perturbations drive two critical concerns. First, they mean that
+        a TLE propagated forward in time becomes less accurate every hour — the longer the prediction horizon,
+        the larger the position uncertainty. Second, some perturbations accumulate secularly, permanently
+        changing orbital elements rather than oscillating around a mean value.
+      </p>
+    </section>
+
+    <!-- J2 OBLATENESS -->
+    <section id="j2-oblateness" class="content-section reveal">
+      <div class="section-number">// 02</div>
+      <h2>J₂: Earth's Equatorial Bulge</h2>
+      <p>
+        The dominant non-spherical gravitational term is the <strong>J₂ coefficient</strong>, which captures
+        Earth's oblateness: the equatorial radius (6,378 km) exceeds the polar radius (6,357 km) by about 21 km.
+        This equatorial bulge creates a gravitational potential that varies with latitude.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Gravitational Potential with J₂</div>
+        <div class="eq-main">U = −(μ/r)·[1 − J₂·(R⊕/r)²·(3sin²φ − 1)/2]</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">J₂</span> = 1.08263 × 10⁻³ (dimensionless oblateness coefficient)<br>
+          <span class="eq-var-name">R⊕</span> = 6,378.137 km (Earth equatorial radius)<br>
+          <span class="eq-var-name">φ</span> = geocentric latitude<br>
+          <span class="eq-var-name">r</span> = radial distance from Earth center
+        </div>
+      </div>
+
+      <p>
+        The J₂ term produces three distinct effects on Keplerian orbital elements. Two are <strong>secular</strong>
+        (they grow linearly with time, never reversing). One is <strong>periodic</strong> (it oscillates with the
+        orbital period and averages to zero over many revolutions).
+      </p>
+
+      <div class="j2-vis">
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);margin-bottom:14px;">J₂ SECULAR EFFECTS</div>
+          <div class="j2-data">
+            <div class="j2-row active">
+              <span class="j2-key">RAAN Regression (Ω̇)</span>
+              <span class="j2-val">Secular ↓</span>
+            </div>
+            <div class="j2-row active">
+              <span class="j2-key">Apsidal Precession (ω̇)</span>
+              <span class="j2-val">Secular ↑/↓</span>
+            </div>
+            <div class="j2-row">
+              <span class="j2-key">Semi-major axis (ȧ)</span>
+              <span class="j2-val">Periodic only</span>
+            </div>
+            <div class="j2-row">
+              <span class="j2-key">Eccentricity (ė)</span>
+              <span class="j2-val">Periodic only</span>
+            </div>
+            <div class="j2-row">
+              <span class="j2-key">Inclination (i̇)</span>
+              <span class="j2-val">Periodic only</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);margin-bottom:14px;">RAAN DRIFT RATE (°/day)</div>
+          <canvas id="j2-canvas" height="200"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- NODAL REGRESSION -->
+    <section id="nodal-regression" class="content-section reveal">
+      <div class="section-number">// 03</div>
+      <h2>Nodal Regression: The Drifting Orbital Plane</h2>
+      <p>
+        The most practically significant J₂ effect is <strong>right ascension of the ascending node (RAAN)
+        regression</strong>. The orbital plane slowly rotates around Earth's polar axis like a spinning top:
+        prograde for low-inclination orbits, retrograde for high-inclination orbits.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">RAAN Secular Drift Rate</div>
+        <div class="eq-main">dΩ/dt = −(3/2)·n·J₂·(R⊕/p)²·cos(i)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">n</span> = mean motion (rad/s)<br>
+          <span class="eq-var-name">p</span> = semi-latus rectum = a(1 − e²)<br>
+          <span class="eq-var-name">i</span> = orbital inclination<br>
+          <span class="eq-var-name">cos(i) = 0</span> → zero drift at i = 90° (polar orbit)<br>
+          <span class="eq-var-name">cos(i) &lt; 0</span> → prograde drift at i &gt; 90° (retrograde orbits)
+        </div>
+      </div>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Satellite / Orbit</th>
+              <th>Altitude</th>
+              <th>Inclination</th>
+              <th>RAAN Drift</th>
+              <th>Application</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">ISS</td><td>~420 km</td><td>51.6°</td><td class="td-amber">−6.0°/day</td><td class="td-accent">Human spaceflight</td></tr>
+            <tr><td class="td-white">Starlink LEO</td><td>~550 km</td><td>53°</td><td class="td-amber">−6.4°/day</td><td class="td-accent">Broadband internet</td></tr>
+            <tr><td class="td-white">Sun-Sync (SSO)</td><td>~600 km</td><td>97.8°</td><td class="td-green">+0.9856°/day</td><td class="td-accent">Earth observation</td></tr>
+            <tr><td class="td-white">GPS (MEO)</td><td>~20,200 km</td><td>55°</td><td class="td-amber">−0.04°/day</td><td class="td-accent">Navigation</td></tr>
+            <tr><td class="td-white">GEO</td><td>35,786 km</td><td>0.1°</td><td class="td-red">−0.013°/day</td><td class="td-accent">Communications</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout success">
+        <span class="callout-label">Sun-Synchronous Orbits</span>
+        At inclination ≈ 97–98°, the J₂-driven RAAN drift rate of +0.9856°/day exactly matches
+        Earth's orbital rate around the Sun. This keeps the orbital plane fixed relative to the Sun,
+        ensuring consistent lighting for Earth observation — a critical engineering feature exploited
+        by Landsat, Sentinel, and hundreds of optical imaging satellites.
+      </div>
+    </section>
+
+    <!-- APSIDAL PRECESSION -->
+    <section id="apsidal-precession" class="content-section reveal">
+      <div class="section-number">// 04</div>
+      <h2>Apsidal Precession: The Rotating Ellipse</h2>
+      <p>
+        J₂ also causes the argument of perigee ω to drift — the ellipse slowly rotates within its
+        orbital plane. The rate depends strongly on inclination, and at two <strong>critical inclinations</strong>
+        the drift stops entirely.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Apsidal Precession Rate</div>
+        <div class="eq-main">dω/dt = (3/4)·n·J₂·(R⊕/p)²·(5cos²i − 1)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">5cos²i − 1 = 0</span> when cos(i) = 1/√5<br>
+          <span class="eq-var-name">i = 63.43°</span> or <span class="eq-var-name">i = 116.57°</span> → zero apsidal drift<br>
+          These are the <strong>Molniya critical inclinations</strong>
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-label">Molniya & Tundra Orbits</span>
+        Russian engineers discovered that highly elliptical orbits (HEO) at exactly 63.43° inclination
+        keep their apogee fixed over the northern hemisphere indefinitely — J₂ apsidal precession is
+        exactly zero. Molniya communication satellites exploit this to provide 6–8 hours of high-elevation
+        coverage over Russia per orbit, where geostationary geometry is poor.
+      </div>
+    </section>
+
+    <!-- ATMOSPHERIC DRAG -->
+    <section id="atmospheric-drag" class="content-section reveal">
+      <div class="section-number">// 05</div>
+      <h2>Atmospheric Drag: The Orbit Killer</h2>
+      <p>
+        Below approximately 1,000 km, residual atmospheric molecules collide with satellites, removing
+        kinetic energy. Counterintuitively, this energy loss causes the satellite to <strong>speed up</strong>:
+        losing energy causes it to drop to a lower orbit with higher velocity per vis-viva. The orbit
+        spirals inward, shrinking both apogee and perigee.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Drag Acceleration</div>
+        <div class="eq-main">a_drag = −(1/2)·(C_D · A / m)·ρ·v²</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">C_D</span> = drag coefficient (~2.2 for satellites in free molecular flow)<br>
+          <span class="eq-var-name">A/m</span> = area-to-mass ratio (m²/kg) — critical parameter<br>
+          <span class="eq-var-name">ρ(h)</span> = atmospheric density at altitude h (kg/m³)<br>
+          <span class="eq-var-name">v</span> = orbital velocity relative to atmosphere (~7.7 km/s at 400 km)
+        </div>
+      </div>
+
+      <div class="drag-chart-wrap">
+        <div class="drag-chart-title">Atmospheric Density by Altitude (Exponential Scale)</div>
+        <div class="drag-bars">
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">200 km</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:100%;background:#ef4444;"></div></div>
+            <div class="drag-bar-val">2.5 × 10⁻¹⁰</div>
+          </div>
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">400 km (ISS)</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:58%;background:#f59e0b;"></div></div>
+            <div class="drag-bar-val">3.7 × 10⁻¹²</div>
+          </div>
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">550 km (SL)</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:35%;background:#3b82f6;"></div></div>
+            <div class="drag-bar-val">7.9 × 10⁻¹³</div>
+          </div>
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">800 km</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:18%;background:#3b82f6;"></div></div>
+            <div class="drag-bar-val">4.5 × 10⁻¹⁴</div>
+          </div>
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">1,000 km</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:8%;background:#10b981;"></div></div>
+            <div class="drag-bar-val">3.6 × 10⁻¹⁵</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-family:var(--mono);font-size:9px;color:var(--text-3);">
+          * kg/m³ — density varies by factor ~2–4× with solar activity (F10.7 solar flux index)
+        </div>
+      </div>
+
+      <h3>Solar Cycle Effects</h3>
+      <p>
+        Atmospheric density is not constant. During solar maximum, extreme ultraviolet radiation heats
+        and expands the upper atmosphere, increasing density at a given altitude by up to <strong>4×</strong>
+        compared to solar minimum. This variability is parameterized by the <strong>F10.7 solar flux index</strong>
+        (measured in solar flux units, SFU) and the geomagnetic Kp index.
+      </p>
+
+      <div class="callout danger">
+        <span class="callout-label">Solar Activity Impact on Starlink</span>
+        In February 2022, a geomagnetic storm following a solar event increased atmospheric density
+        at 210 km by 20–50%. Forty-nine of the 49 newly-launched Starlink satellites, still in their
+        low parking orbit, experienced drag levels 50% higher than predicted and re-entered
+        within days. This event highlighted how space weather directly determines satellite lifetimes.
+      </div>
+    </section>
+
+    <!-- BALLISTIC COEFFICIENT -->
+    <section id="ballistic-coeff" class="content-section reveal">
+      <div class="section-number">// 06</div>
+      <h2>Ballistic Coefficient &amp; the BSTAR Term</h2>
+      <p>
+        The <strong>ballistic coefficient</strong> β = m/(C_D · A) (kg/m²) summarizes how strongly a satellite
+        resists atmospheric drag. A high ballistic coefficient — dense, compact objects — experiences
+        less drag per unit mass than large, lightweight ones.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Orbital Decay Rate (Circular Orbit Approximation)</div>
+        <div class="eq-main">da/dt ≈ −(C_D · A / m)·ρ·v·a = −ρ·v·a/β</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">β = m/(C_D·A)</span> = ballistic coefficient (kg/m²)<br>
+          Higher β → slower orbital decay<br>
+          <span class="eq-var-name">ISS β</span> ≈ 120 kg/m² | <span class="eq-var-name">CubeSat β</span> ≈ 10–30 kg/m²
+        </div>
+      </div>
+
+      <p>
+        In the TLE format, atmospheric drag is encoded in the <strong>BSTAR drag term</strong> (units of 1/Earth radii).
+        SGP4 uses this value to propagate the secular decay of mean motion over time. When BSTAR is unavailable
+        or unreliable, VectraSpace falls back to a standard assumed value based on orbital regime and estimated
+        satellite type.
+      </p>
+
+      <div class="callout info">
+        <span class="callout-label">VectraSpace Implementation</span>
+        VectraSpace uses the BSTAR value from each satellite's TLE when computing 12-hour propagation
+        windows. For debris objects — which often have poorly-determined BSTAR values — position
+        uncertainty grows fastest in the along-track direction. The covariance matrix assigned to debris
+        objects uses σ_along = 500 m vs. σ_along = 100 m for well-tracked active satellites.
+      </div>
+    </section>
+
+    <!-- SOLAR RADIATION PRESSURE -->
+    <section id="solar-radiation" class="content-section reveal">
+      <div class="section-number">// 07</div>
+      <h2>Solar Radiation Pressure</h2>
+      <p>
+        Photons carry momentum: p = E/c. When sunlight strikes a satellite surface, radiation pressure
+        imparts a small but continuous force. At Earth's distance of 1 AU, the solar radiation flux is
+        approximately 1,361 W/m², producing a radiation pressure of <strong>4.56 μN/m²</strong>.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Solar Radiation Acceleration</div>
+        <div class="eq-main">a_SRP = −ν · (P_⊙ / c) · (A/m) · C_r · (r_⊙/|r_⊙|)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">ν</span> = shadow function (0 in eclipse, 1 in sunlight)<br>
+          <span class="eq-var-name">P_⊙</span> = solar radiation flux ≈ 1361 W/m² at 1 AU<br>
+          <span class="eq-var-name">C_r</span> = radiation pressure coefficient (1 for absorption, 2 for perfect reflection)<br>
+          <span class="eq-var-name">A/m</span> = area-to-mass ratio (m²/kg) — same parameter as drag!
+        </div>
+      </div>
+
+      <p>
+        SRP is negligible for dense LEO satellites (few mm/s² per year) but becomes significant for
+        objects with high area-to-mass ratios: <strong>solar sail technology demonstrators</strong>,
+        balloon payloads, and large solar-panel-dominated GEO satellites. At GEO where drag is absent,
+        SRP is the dominant non-gravitational perturbation, responsible for the characteristic
+        "resonant eccentricity pumping" that slowly increases GEO eccentricity.
+      </p>
+
+      <div class="callout warning">
+        <span class="callout-label">Debris SRP Complication</span>
+        Tumbling debris objects present a varying cross-section to the Sun with unknown orientation.
+        The effective A/m ratio changes as the object rotates. This makes long-term SRP modeling
+        highly uncertain for defunct satellites and rocket bodies, contributing to the rapid
+        growth of position uncertainty in their TLE propagations.
+      </div>
+    </section>
+
+    <!-- LUNI-SOLAR -->
+    <section id="luni-solar" class="content-section reveal">
+      <div class="section-number">// 08</div>
+      <h2>Luni-Solar Third-Body Perturbations</h2>
+      <p>
+        The Moon and Sun exert gravitational forces on every Earth-orbiting satellite. The <strong>differential
+        force</strong> across the satellite's orbit — the deviation from perfect parallel attraction — is
+        the perturbation. For a satellite at radius r orbiting Earth, the third-body acceleration varies
+        as (m_3 / r_3³) · r, where r_3 is the distance to the perturbing body.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Third-Body Perturbation (Simplified)</div>
+        <div class="eq-main">a_3b = μ₃ · [(r_3 − r)/|r_3 − r|³ − r_3/|r_3|³]</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">μ_Moon</span> = 4,902.8 km³/s² (Moon's gravitational parameter)<br>
+          <span class="eq-var-name">μ_Sun</span> = 1.327 × 10¹¹ km³/s² (Sun's gravitational parameter)<br>
+          For GEO (~42,000 km radius): luni-solar effects produce ~0.75°/year inclination oscillation
+        </div>
+      </div>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Orbit Regime</th>
+              <th>Dominant Perturbation</th>
+              <th>Effect on TLE Age</th>
+              <th>Typical Position Error at 24h</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">LEO &lt; 500 km</td><td class="td-red">Atmospheric Drag</td><td class="td-amber">Hours–days</td><td class="td-red">&gt;10 km</td></tr>
+            <tr><td class="td-white">LEO 500–800 km</td><td class="td-amber">J₂ + Drag</td><td class="td-amber">1–3 days</td><td class="td-amber">1–5 km</td></tr>
+            <tr><td class="td-white">MEO (GPS ~20k km)</td><td class="td-accent">J₂ + Luni-Solar</td><td>Days–weeks</td><td class="td-green">&lt;1 km</td></tr>
+            <tr><td class="td-white">GEO (36k km)</td><td class="td-accent">Luni-Solar + SRP</td><td>Weeks</td><td class="td-green">100–500 m</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The luni-solar perturbations at GEO are strong enough to require active station-keeping to maintain
+        geostationary position. Without north-south station-keeping burns, GEO satellites develop inclinations
+        of up to 15° over a 26-year period. "Graveyard" GEO orbits for retired satellites slowly develop
+        inclined, eccentric paths that create conjunction risk with operational satellites.
+      </p>
+    </section>
+
+    <!-- TLE ACCURACY -->
+    <section id="tle-accuracy" class="content-section reveal">
+      <div class="section-number">// 09</div>
+      <h2>TLE Accuracy &amp; Prediction Horizon</h2>
+      <p>
+        A Two-Line Element set is a snapshot of mean orbital elements at a specific epoch. As time passes,
+        perturbations accumulate and the TLE prediction diverges from the true position. The rate of
+        divergence defines the <strong>effective TLE age</strong> beyond which the element set is unreliable
+        for conjunction screening.
+      </p>
+
+      <div class="accuracy-chart">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);margin-bottom:16px;">TLE POSITION ERROR GROWTH (REPRESENTATIVE)</div>
+        <canvas id="accuracy-canvas"></canvas>
+        <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-3);">
+          * LEO object at 400 km · Standard deviation grows roughly as σ ≈ σ₀ + k·t (along-track dominates)
+        </div>
+      </div>
+
+      <p>
+        Error growth is fastest in the <strong>along-track direction</strong> because perturbations that
+        change orbital period — drag, J₂ — create systematic timing errors that accumulate indefinitely.
+        Cross-track and radial errors grow more slowly and are dominated by J₂ periodic effects.
+        This asymmetry is reflected in the elongated covariance ellipsoids used in Pc calculation.
+      </p>
+
+      <div class="callout info">
+        <span class="callout-label">VectraSpace TLE Management</span>
+        VectraSpace caches TLEs for up to 6 hours (configurable). Beyond this, a fresh fetch
+        is triggered before each scan. For conjunction prediction requiring high accuracy,
+        operator-uploaded custom element sets can override the cached TLEs for specific objects
+        of interest. Fresh element sets reduce screening false-alarm rates significantly.
+      </div>
+    </section>
+
+    <!-- SGP4 MODEL -->
+    <section id="sgp4-model" class="content-section reveal">
+      <div class="section-number">// 10</div>
+      <h2>SGP4: The Perturbation Propagator</h2>
+      <p>
+        The <strong>Simplified General Perturbations 4 (SGP4)</strong> model, developed at NORAD in the 1970s
+        and refined since, is the standard analytic propagator for TLE-based orbit determination.
+        It captures the dominant perturbation effects through closed-form algebraic equations rather
+        than numerical integration, enabling fast propagation of thousands of objects.
+      </p>
+
+      <h3>Physical Effects in SGP4</h3>
+      <p>SGP4 models the following perturbations analytically:</p>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Effect</th>
+              <th>Modeling Approach</th>
+              <th>Accuracy</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">J₂, J₃, J₄ geopotential</td><td>Secular + short-period terms</td><td class="td-green">Good</td></tr>
+            <tr><td class="td-white">Atmospheric drag (BSTAR)</td><td>Power-law density model, secular ṅ</td><td class="td-amber">Moderate (solar-cycle dependent)</td></tr>
+            <tr><td class="td-white">SRP</td><td>Not modeled in basic SGP4</td><td class="td-red">Absent (use SDP4 for deep space)</td></tr>
+            <tr><td class="td-white">Luni-solar (SDP4)</td><td>Simplified lunisolar terms for T > 225 min</td><td class="td-amber">Approximate</td></tr>
+            <tr><td class="td-white">Higher harmonics (J₅+)</td><td>Not modeled</td><td class="td-red">Absent</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        SGP4 achieves position accuracies of roughly <strong>1–3 km at epoch</strong>, degrading to
+        tens of kilometers over days for LEO objects. For precise applications — rendezvous, precise
+        reentry prediction, high-accuracy conjunction assessment — numerical integrators (like
+        <strong>RK4/RK89</strong> with a full force model including up to J₇₀ harmonics and atmospheric
+        density tables) are required.
+      </p>
+
+      <div class="callout info">
+        <span class="callout-label">VectraSpace uses Skyfield's SGP4</span>
+        VectraSpace propagates all satellites using the Skyfield Python library's SGP4/SDP4
+        implementation, which conforms to the 2006 Vallado/Crawford/Hujsak revision of the
+        model. The SDP4 extension is automatically applied for satellites with orbital periods
+        greater than 225 minutes (semi-synchronous and higher orbits). All propagation results
+        are expressed in the ECI (Earth-Centered Inertial) J2000 frame.
+      </div>
+    </section>
+
+    <!-- OPERATIONAL CONSEQUENCES -->
+    <section id="ops-consequences" class="content-section reveal">
+      <div class="section-number">// 11</div>
+      <h2>Operational Consequences for SSA</h2>
+      <p>
+        Understanding perturbations is not merely academic for Space Situational Awareness — it directly
+        determines how far ahead conjunction screens are meaningful, how wide safety margins must be,
+        and which objects pose the highest long-term risk.
+      </p>
+
+      <h3>The 5σ Screening Challenge</h3>
+      <p>
+        Conjunction screening typically evaluates pairs whose miss distance falls within 5σ of the combined
+        position uncertainty ellipsoid. As TLE age increases, σ grows, meaning the 5σ envelope balloons
+        until nearly every object pair triggers a candidate event — swamping operators with false alarms.
+        This drives the requirement for frequent TLE updates (daily or better) for active conjunction
+        assessment.
+      </p>
+
+      <h3>Debris Population Growth</h3>
+      <p>
+        Perturbations also shape long-term debris population dynamics. Atmospheric drag naturally removes
+        debris below ~600 km within years to decades — a self-cleaning mechanism. Above 800 km, the
+        clearing timescale exceeds centuries. J₂ RAAN regression spreads debris clouds around orbital
+        shells, while luni-solar perturbations slowly perturb debris orbits at higher altitudes, sometimes
+        pumping eccentricity enough to force objects through crowded lower shells.
+      </p>
+
+      <div class="callout danger">
+        <span class="callout-label">The Reentry Timing Problem</span>
+        Predicting exactly when and where a decaying satellite will reenter is extremely difficult.
+        The primary uncertainty is atmospheric density, which varies with solar activity on timescales
+        from minutes to years. Even 24 hours before reentry, the predicted landing ellipse spans
+        thousands of kilometers along-track. Only within the final orbit can reentry location be
+        predicted to within ~500 km — and most objects survive only minutes of atmospheric passage.
+      </div>
+
+      <!-- Chapter nav -->
+      <div class="chapter-nav">
+        <a href="/education/collision-prediction" class="chapter-nav-card">
+          <div class="cnc-dir">← Previous</div>
+          <div class="cnc-title">Chapter 02</div>
+          <div class="cnc-sub">Collision Prediction &amp; Pc Methods</div>
+        </a>
+        <a href="/education/debris-modeling" class="chapter-nav-card next">
+          <div class="cnc-dir">Next →</div>
+          <div class="cnc-title">Chapter 04</div>
+          <div class="cnc-sub">Debris Modeling &amp; Kessler Cascade</div>
+        </a>
+      </div>
+    </section>
+
+  </article>
+</div>
+
+<script>
+// Progress bar
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  bar.style.width = pct + '%';
+});
+
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// TOC active highlight
+const sections = document.querySelectorAll('.content-section');
+const tocLinks = document.querySelectorAll('.toc-list a');
+const tocObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      tocLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => tocObserver.observe(s));
+
+// J2 canvas — RAAN drift by inclination
+const j2Canvas = document.getElementById('j2-canvas');
+if (j2Canvas) {
+  const ctx = j2Canvas.getContext('2d');
+  const W = j2Canvas.parentElement.offsetWidth || 300;
+  const H = 200;
+  j2Canvas.width = W; j2Canvas.height = H;
+  const pad = { top: 16, right: 16, bottom: 32, left: 48 };
+  const incs = [];
+  const rates = [];
+  for (let i = 0; i <= 180; i += 2) {
+    incs.push(i);
+    const n = 0.001078; // ~LEO mean motion rad/s
+    const J2 = 1.08263e-3;
+    const Re = 6378.137;
+    const p = 6928 * (1 - 0.001**2); // ~500km LEO
+    const rate = -(3/2) * n * J2 * (Re/p)**2 * Math.cos(i * Math.PI/180);
+    rates.push(rate * (180/Math.PI) * 86400); // deg/day
+  }
+  const minR = Math.min(...rates); const maxR = Math.max(...rates);
+  const scaleX = (inc) => pad.left + (inc / 180) * (W - pad.left - pad.right);
+  const scaleY = (r) => pad.top + ((maxR - r) / (maxR - minR)) * (H - pad.top - pad.bottom);
+
+  ctx.strokeStyle = '#1a2e42'; ctx.lineWidth = 1;
+  for (let g = -7; g <= 7; g += 3.5) {
+    ctx.beginPath();
+    ctx.moveTo(pad.left, scaleY(g)); ctx.lineTo(W - pad.right, scaleY(g));
+    ctx.stroke();
+    ctx.fillStyle = '#4a6a85'; ctx.font = '9px Space Mono';
+    ctx.fillText(g.toFixed(1), 2, scaleY(g) + 3);
+  }
+  // Zero line
+  ctx.strokeStyle = '#243d54'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.left, scaleY(0)); ctx.lineTo(W-pad.right, scaleY(0)); ctx.stroke();
+
+  // 90° vertical
+  ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(scaleX(90), pad.top); ctx.lineTo(scaleX(90), H-pad.bottom); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#10b981'; ctx.font = '8px Space Mono';
+  ctx.fillText('90°', scaleX(90)+3, pad.top+10);
+
+  // Curve
+  ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  incs.forEach((inc, i) => {
+    i === 0 ? ctx.moveTo(scaleX(inc), scaleY(rates[i])) : ctx.lineTo(scaleX(inc), scaleY(rates[i]));
+  });
+  ctx.stroke();
+
+  // X axis labels
+  ctx.fillStyle = '#4a6a85'; ctx.font = '8px Space Mono';
+  [0,30,60,90,120,150,180].forEach(inc => {
+    ctx.fillText(inc+'°', scaleX(inc)-6, H-6);
+  });
+}
+
+// TLE Accuracy canvas
+const accCanvas = document.getElementById('accuracy-canvas');
+if (accCanvas) {
+  const ctx = accCanvas.getContext('2d');
+  const W = accCanvas.parentElement.offsetWidth || 600;
+  const H = 180;
+  accCanvas.width = W; accCanvas.height = H;
+  const pad = { top: 12, right: 16, bottom: 32, left: 56 };
+
+  const days = Array.from({length: 21}, (_, i) => i);
+  const along = days.map(d => 0.5 + 1.2 * d);      // km
+  const cross  = days.map(d => 0.1 + 0.08 * d);
+  const radial = days.map(d => 0.05 + 0.04 * d);
+  const maxV = Math.max(...along);
+  const scaleX = d => pad.left + (d / 20) * (W - pad.left - pad.right);
+  const scaleY = v => pad.top + ((maxV - v) / maxV) * (H - pad.top - pad.bottom);
+
+  ctx.strokeStyle = '#1a2e42'; ctx.lineWidth = 1;
+  [0, 6, 12, 18, 24].forEach(km => {
+    if (km > maxV) return;
+    ctx.beginPath(); ctx.moveTo(pad.left, scaleY(km)); ctx.lineTo(W-pad.right, scaleY(km)); ctx.stroke();
+    ctx.fillStyle = '#4a6a85'; ctx.font = '9px Space Mono';
+    ctx.fillText(km+'km', 2, scaleY(km)+3);
+  });
+
+  const drawLine = (data, color, label) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath();
+    days.forEach((d, i) => {
+      i === 0 ? ctx.moveTo(scaleX(d), scaleY(data[i])) : ctx.lineTo(scaleX(d), scaleY(data[i]));
+    });
+    ctx.stroke();
+  };
+
+  drawLine(along, '#ef4444', 'Along-track');
+  drawLine(cross, '#3b82f6', 'Cross-track');
+  drawLine(radial, '#10b981', 'Radial');
+
+  // Legend
+  [[along,'#ef4444','Along-track'],[cross,'#3b82f6','Cross-track'],[radial,'#10b981','Radial']].forEach(([,c,l],i) => {
+    ctx.fillStyle = c; ctx.fillRect(pad.left + i*120, H-10, 14, 3);
+    ctx.fillStyle = '#7a9bb5'; ctx.font = '9px Space Mono';
+    ctx.fillText(l, pad.left + i*120 + 18, H-6);
+  });
+
+  // X axis
+  ctx.fillStyle = '#4a6a85'; ctx.font = '9px Space Mono';
+  [0,5,10,15,20].forEach(d => ctx.fillText(d+'d', scaleX(d)-8, H-4));
+}
+</script>
+</body>
+</html>
+
+"""
+
+_EDU_DEBRIS_HTML = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debris Modeling &amp; Kessler Cascade — VectraSpace Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #070c14;
+  --ink-2:      #0d1520;
+  --ink-3:      #111d2b;
+  --border:     #1a2e42;
+  --border-2:   #243d54;
+  --accent:     #3b82f6;
+  --accent-glow:rgba(59,130,246,0.18);
+  --amber:      #f59e0b;
+  --amber-dim:  rgba(245,158,11,0.12);
+  --green:      #10b981;
+  --green-dim:  rgba(16,185,129,0.10);
+  --red:        #ef4444;
+  --red-dim:    rgba(239,68,68,0.10);
+  --text:       #c9ddef;
+  --text-2:     #7a9bb5;
+  --text-3:     #4a6a85;
+  --mono:       'Space Mono', monospace;
+  --sans:       'Space Grotesk', sans-serif;
+  --display:    'Syne', sans-serif;
+  --toc-w:      230px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--ink); color: var(--text); font-family: var(--sans); line-height: 1.7; overflow-x: hidden; }
+#progress-bar { position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,var(--red),var(--amber));z-index:200;transition:width 0.1s linear; }
+nav { position:fixed;top:0;left:0;right:0;z-index:100;height:56px;padding:0 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(7,12,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(12px); }
+.nav-brand { font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;text-decoration:none; }
+.nav-back { font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--text-3);text-decoration:none;text-transform:uppercase;transition:color 0.2s; }
+.nav-back:hover { color:var(--accent); }
+.hero { padding:120px 48px 64px;max-width:900px;margin:0 auto; }
+.hero-breadcrumb { font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:16px; }
+.hero-breadcrumb a { color:var(--text-3);text-decoration:none; }
+.hero-breadcrumb a:hover { color:var(--accent); }
+.chapter-label { display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--red);text-transform:uppercase;background:var(--red-dim);border:1px solid rgba(239,68,68,0.25);padding:4px 10px;border-radius:2px;margin-bottom:20px; }
+.hero h1 { font-family:var(--display);font-size:clamp(36px,5vw,58px);font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px; }
+.hero-accent { color:var(--red); }
+.hero-intro { font-size:17px;font-weight:300;color:var(--text-2);line-height:1.8;max-width:680px;margin-bottom:32px; }
+.hero-meta { display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);text-transform:uppercase; }
+.hero-meta span { display:flex;align-items:center;gap:6px; }
+.hero-meta-dot { width:4px;height:4px;background:var(--red);border-radius:50%; }
+.page-wrap { max-width:1140px;margin:0 auto;padding:48px 48px 120px;display:grid;grid-template-columns:var(--toc-w) 1fr;gap:64px;align-items:start; }
+.toc { position:sticky;top:72px;background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:20px;max-height:calc(100vh - 88px);overflow-y:auto; }
+.toc::-webkit-scrollbar { width:3px; }
+.toc::-webkit-scrollbar-thumb { background:var(--border); }
+.toc-label { font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border); }
+.toc-list { list-style:none;display:flex;flex-direction:column;gap:2px; }
+.toc-list a { display:block;font-size:12px;color:var(--text-3);text-decoration:none;padding:5px 8px;border-radius:4px;transition:all 0.2s;border-left:2px solid transparent; }
+.toc-list a:hover { color:var(--text);background:var(--ink-3); }
+.toc-list a.active { color:var(--accent);background:var(--accent-glow);border-left-color:var(--accent); }
+.content { min-width:0; }
+.content-section { margin-bottom:72px;scroll-margin-top:80px; }
+.section-number { font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:12px; }
+.content h2 { font-family:var(--display);font-size:clamp(22px,3vw,30px);font-weight:700;color:#fff;margin-bottom:20px;line-height:1.2; }
+.content h3 { font-family:var(--sans);font-size:16px;font-weight:600;color:var(--text);margin:28px 0 12px; }
+.content p { margin-bottom:16px;color:var(--text-2);font-size:15px; }
+.content strong { color:var(--text);font-weight:600; }
+.eq-block { background:var(--ink-2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:20px 24px;margin:24px 0;font-family:var(--mono);font-size:13px;color:var(--text);overflow-x:auto; }
+.eq-block .eq-label { font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:10px; }
+.eq-block .eq-main { font-size:15px;color:#fff;margin-bottom:8px; }
+.eq-block .eq-vars { font-size:11px;color:var(--text-3);line-height:1.9; }
+.eq-block .eq-var-name { color:var(--amber); }
+.callout { border-radius:6px;padding:16px 20px;margin:24px 0;border-left:3px solid;font-size:14px; }
+.callout.info { background:rgba(59,130,246,0.07);border-color:var(--accent);color:var(--text); }
+.callout.warning { background:var(--amber-dim);border-color:var(--amber);color:var(--text); }
+.callout.danger { background:var(--red-dim);border-color:var(--red);color:var(--text); }
+.callout.success { background:var(--green-dim);border-color:var(--green);color:var(--text); }
+.callout-label { font-family:var(--mono);font-size:8px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;display:block; }
+.callout.info .callout-label { color:var(--accent); }
+.callout.warning .callout-label { color:var(--amber); }
+.callout.danger .callout-label { color:var(--red); }
+.callout.success .callout-label { color:var(--green); }
+.data-table-wrap { overflow-x:auto;margin:24px 0; }
+table { width:100%;border-collapse:collapse;font-size:13px;font-family:var(--mono); }
+thead th { background:var(--ink-3);color:var(--text-3);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border); }
+tbody td { padding:10px 14px;border-bottom:1px solid rgba(26,46,66,0.5);color:var(--text-2); }
+tbody tr:hover td { background:var(--ink-2); }
+.td-accent{color:var(--accent);} .td-amber{color:var(--amber);} .td-green{color:var(--green);} .td-red{color:var(--red);} .td-white{color:#fff;font-weight:600;}
+
+/* CASCADE DIAGRAM */
+.cascade-diagram { margin:24px 0; }
+.cascade-steps { display:flex;flex-direction:column;gap:0; }
+.cascade-step { display:grid;grid-template-columns:60px 1fr;gap:0;position:relative; }
+.cascade-step::before { content:'';position:absolute;left:29px;top:60px;bottom:-4px;width:2px;background:linear-gradient(180deg,var(--red),var(--amber));z-index:0; }
+.cascade-step:last-child::before { display:none; }
+.cascade-num { display:flex;align-items:flex-start;padding-top:16px;justify-content:center;position:relative;z-index:1; }
+.cascade-num-inner { width:40px;height:40px;border-radius:50%;background:var(--red-dim);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--red); }
+.cascade-body { padding:14px 16px 32px; }
+.cascade-title { font-family:var(--sans);font-size:15px;font-weight:600;color:#fff;margin-bottom:6px; }
+.cascade-text { font-size:13px;color:var(--text-2);line-height:1.7; }
+.cascade-stat { display:inline-block;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--amber);background:var(--amber-dim);padding:3px 8px;border-radius:2px; }
+
+/* POPULATION CHART */
+.pop-chart-wrap { background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0; }
+.pop-chart-title { font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:16px; }
+.pop-chart-wrap canvas { width:100%; }
+
+/* FRAGMENT SIZE DIST */
+.frag-chart-wrap { background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0; }
+
+/* HISTORICAL EVENTS TIMELINE */
+.timeline { margin:24px 0;display:flex;flex-direction:column;gap:0; }
+.timeline-item { display:grid;grid-template-columns:100px 1fr;gap:20px;padding:20px 0;border-bottom:1px solid var(--border); }
+.timeline-item:last-child { border-bottom:none; }
+.timeline-year { font-family:var(--mono);font-size:22px;font-weight:700;color:var(--red);line-height:1; padding-top:2px; }
+.timeline-content-title { font-family:var(--sans);font-size:14px;font-weight:600;color:#fff;margin-bottom:4px; }
+.timeline-content-body { font-size:13px;color:var(--text-2);line-height:1.6; }
+.timeline-content-badge { display:inline-block;margin-top:6px;font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 8px;border-radius:2px; }
+.badge-red { background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.25); }
+.badge-amber { background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.25); }
+.badge-accent { background:rgba(59,130,246,0.1);color:var(--accent);border:1px solid rgba(59,130,246,0.25); }
+
+/* ADR CARDS */
+.adr-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:24px 0; }
+.adr-card { background:var(--ink-2);border:1px solid var(--border);border-radius:6px;padding:20px;transition:border-color 0.2s; }
+.adr-card:hover { border-color:var(--green); }
+.adr-icon { font-size:22px;margin-bottom:10px; }
+.adr-title { font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--green);text-transform:uppercase;margin-bottom:6px; }
+.adr-desc { font-size:13px;color:var(--text-2);line-height:1.6; }
+.adr-status { margin-top:10px;font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:2px;display:inline-block; }
+
+/* CHAPTER NAV */
+.chapter-nav { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:80px;padding-top:40px;border-top:1px solid var(--border); }
+.chapter-nav-card { background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:20px 24px;text-decoration:none;transition:all 0.2s;display:block; }
+.chapter-nav-card:hover { border-color:var(--accent);background:var(--ink-3); }
+.cnc-dir { font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px; }
+.cnc-title { font-family:var(--display);font-size:16px;font-weight:700;color:#fff; }
+.cnc-sub { font-size:12px;color:var(--text-3);margin-top:4px; }
+.chapter-nav-card.next { text-align:right; }
+.reveal { opacity:0;transform:translateY(16px);transition:opacity 0.6s ease,transform 0.6s ease; }
+.reveal.visible { opacity:1;transform:none; }
+@media (max-width:900px) {
+  .page-wrap { grid-template-columns:1fr; }
+  .toc { display:none; }
+  .hero { padding:100px 24px 48px; }
+  .page-wrap { padding:32px 24px 80px; }
+  .adr-grid { grid-template-columns:1fr; }
+  .chapter-nav { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <a href="/" class="nav-brand">VectraSpace // Education</a>
+  <a href="/" class="nav-back">← Back to Learning Hub</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-breadcrumb">
+    <a href="/">VectraSpace</a> / <a href="/#chapters">Deep Dives</a> / Chapter 04
+  </div>
+  <span class="chapter-label">Chapter 04</span>
+  <h1>Debris Modeling &amp; <span class="hero-accent">Kessler Cascade</span></h1>
+  <p class="hero-intro">
+    Every collision in orbit creates thousands of new fragments, each capable of causing further collisions.
+    The runaway chain reaction known as Kessler Syndrome could render entire orbital shells
+    permanently inaccessible. Understanding its physics — and how to model, predict, and prevent it — is
+    the defining challenge of 21st century spaceflight.
+  </p>
+  <div class="hero-meta">
+    <span><span class="hero-meta-dot"></span>35 min read</span>
+    <span><span class="hero-meta-dot"></span>Intermediate · Policy</span>
+    <span><span class="hero-meta-dot"></span>Orbital Mechanics · Risk</span>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <aside>
+    <nav class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li><a href="#kessler-defined">Kessler Syndrome Defined</a></li>
+        <li><a href="#cascade-physics">Cascade Physics</a></li>
+        <li><a href="#population-history">Population History</a></li>
+        <li><a href="#critical-density">Critical Density</a></li>
+        <li><a href="#sbm-model">NASA Breakup Model (SBM)</a></li>
+        <li><a href="#fragment-distribution">Fragment Distributions</a></li>
+        <li><a href="#historical-events">Historical Events</a></li>
+        <li><a href="#collision-probability">Collision Rate Models</a></li>
+        <li><a href="#adr-remediation">Active Debris Removal</a></li>
+        <li><a href="#mitigation-guidelines">Mitigation Guidelines</a></li>
+        <li><a href="#vectraspace-sim">VectraSpace Simulation</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <article class="content">
+
+    <!-- KESSLER DEFINED -->
+    <section id="kessler-defined" class="content-section reveal">
+      <div class="section-number">// 01</div>
+      <h2>Kessler Syndrome: The Runaway Cascade</h2>
+      <p>
+        In 1978, NASA scientist Donald Kessler and Burton Cour-Palais published a paper describing a
+        concerning possibility: if the density of objects in low Earth orbit exceeded a critical threshold,
+        collisions would generate debris faster than atmospheric drag could remove it. Each collision
+        creates new objects that cause more collisions — a <strong>self-sustaining cascade</strong>
+        with no natural end state.
+      </p>
+      <p>
+        The Kessler paper did not predict imminent danger. It projected that this critical density
+        might be reached in the early 21st century if debris generation continued unchecked.
+        With over 27,000 tracked objects and an estimated 130 million fragments larger than 1 mm,
+        many researchers believe we may already be in the early stages of a Kessler cascade
+        in certain orbital bands.
+      </p>
+
+      <div class="cascade-diagram">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:20px;">The Cascade Mechanism</div>
+        <div class="cascade-steps">
+          <div class="cascade-step">
+            <div class="cascade-num"><div class="cascade-num-inner">01</div></div>
+            <div class="cascade-body">
+              <div class="cascade-title">Initial Collision or Fragmentation Event</div>
+              <div class="cascade-text">Two objects in the same orbital shell collide at hypervelocity (typically 10–15 km/s relative velocity). Even a 10 cm fragment carries kinetic energy equivalent to a hand grenade — enough to destroy a satellite.</div>
+              <span class="cascade-stat">Impact energy: ~500 kJ for 10 cm fragment at 10 km/s</span>
+            </div>
+          </div>
+          <div class="cascade-step">
+            <div class="cascade-num"><div class="cascade-num-inner">02</div></div>
+            <div class="cascade-body">
+              <div class="cascade-title">Debris Cloud Generation</div>
+              <div class="cascade-text">The collision produces thousands to millions of fragments ranging from mm-scale dust to multi-meter panels. These fragments distribute themselves across a band of inclinations and altitudes centered on the collision point, based on their ejection velocity.</div>
+              <span class="cascade-stat">A 1-tonne collision: ~thousands of &gt;1 cm fragments</span>
+            </div>
+          </div>
+          <div class="cascade-step">
+            <div class="cascade-num"><div class="cascade-num-inner">03</div></div>
+            <div class="cascade-body">
+              <div class="cascade-title">Density Increase in the Shell</div>
+              <div class="cascade-text">The new fragments spread around their orbital altitude band through J₂ RAAN regression and apsidal precession. Within weeks to months, they are distributed uniformly through the orbital shell, increasing the local object density.</div>
+              <span class="cascade-stat">~weeks to full shell distribution via RAAN spreading</span>
+            </div>
+          </div>
+          <div class="cascade-step">
+            <div class="cascade-num"><div class="cascade-num-inner">04</div></div>
+            <div class="cascade-body">
+              <div class="cascade-title">Elevated Collision Rate</div>
+              <div class="cascade-text">Higher object density means higher probability of subsequent collisions. If the density exceeds the critical value, new collisions produce more fragments than atmospheric drag removes. The collision rate accelerates, not decelerates — a runaway cascade.</div>
+              <span class="cascade-stat">Critical: generation rate &gt; removal rate by drag</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CASCADE PHYSICS -->
+    <section id="cascade-physics" class="content-section reveal">
+      <div class="section-number">// 02</div>
+      <h2>Cascade Physics: Kinetic Theory in Orbit</h2>
+      <p>
+        The mathematical treatment of orbital debris population dynamics borrows from
+        <strong>kinetic gas theory</strong>. Objects in a given orbital shell can be modeled as
+        particles in a box, with their collision rate determined by their number density and
+        cross-section-weighted relative velocity — a quantity called the <strong>spatial density</strong>.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Collision Rate per Object</div>
+        <div class="eq-main">dN_c/dt = n_d · A_c · v_rel</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">n_d</span> = number density of debris (objects/km³)<br>
+          <span class="eq-var-name">A_c</span> = combined cross-sectional area (m²)<br>
+          <span class="eq-var-name">v_rel</span> = mean relative collision velocity (~10–15 km/s at 400–800 km)<br>
+          <span class="eq-var-name">n_d · A_c · v_rel</span> has units of collisions/year per object
+        </div>
+      </div>
+
+      <p>
+        The <strong>critical density</strong> is reached when the debris fragments produced by a
+        single collision (which then add to n_d) eventually cause more collisions than the original
+        collision itself replaced. This depends on both the number density and the mass
+        distribution of the debris population.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Population Evolution (Simplified Two-Species Model)</div>
+        <div class="eq-main">dN/dt = S + G(N,D) − L(N) − R(N)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">N</span> = number of lethal (≥10 cm) objects in shell<br>
+          <span class="eq-var-name">S</span> = launch rate (new satellites added)<br>
+          <span class="eq-var-name">G(N,D)</span> = collision-generated fragments from N objects and D debris<br>
+          <span class="eq-var-name">L(N)</span> = orbital decay (atmospheric drag removal rate)<br>
+          <span class="eq-var-name">R(N)</span> = active remediation removal rate
+        </div>
+      </div>
+    </section>
+
+    <!-- POPULATION HISTORY -->
+    <section id="population-history" class="content-section reveal">
+      <div class="section-number">// 03</div>
+      <h2>Population History: How We Got Here</h2>
+
+      <div class="pop-chart-wrap">
+        <div class="pop-chart-title">Tracked Object Count in Earth Orbit (1957–2024)</div>
+        <canvas id="pop-canvas" height="200"></canvas>
+        <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-3);">
+          * USSPACECOM catalog data — objects ≥10 cm in LEO, ≥1 m in GEO · Events marked: ↑ Chinese ASAT test 2007, ↑ Iridium-Cosmos 2009
+        </div>
+      </div>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Object Category</th>
+              <th>Tracked (&gt;10 cm)</th>
+              <th>Estimated Total (&gt;1 cm)</th>
+              <th>Estimated Total (&gt;1 mm)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">Active Satellites</td><td class="td-green">~9,000</td><td class="td-green">~9,000</td><td class="td-green">~9,000</td></tr>
+            <tr><td class="td-white">Inactive Satellites</td><td class="td-amber">~5,000</td><td class="td-amber">~5,000</td><td class="td-amber">~5,000</td></tr>
+            <tr><td class="td-white">Rocket Bodies</td><td class="td-amber">~2,000</td><td class="td-amber">~2,000</td><td class="td-amber">~2,000</td></tr>
+            <tr><td class="td-white">Fragmentation Debris</td><td class="td-red">~14,000</td><td class="td-red">~500,000</td><td class="td-red">~130,000,000</td></tr>
+            <tr><td class="td-white">Total</td><td class="td-accent">~30,000</td><td class="td-accent">~516,000</td><td class="td-accent">&gt;130,000,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The vast majority of the hazard comes from debris objects too small to track but large enough
+        to be lethal. A 1 cm aluminum sphere at 7.7 km/s carries the kinetic energy of a bowling ball
+        dropped from 7 km. A 1 mm particle can damage solar panels and optics. <strong>None of these
+        objects appear in the TLE catalog</strong> — their existence is inferred from statistical models
+        and in-situ measurements on returned hardware (Space Shuttle windows, Hubble solar panels).
+      </p>
+    </section>
+
+    <!-- CRITICAL DENSITY -->
+    <section id="critical-density" class="content-section reveal">
+      <div class="section-number">// 04</div>
+      <h2>Critical Density: The Tipping Point</h2>
+      <p>
+        The critical debris density is not a single number — it depends on altitude (through drag removal
+        timescales), the mass distribution of debris, and the assumed breakup model. The classic
+        Kessler–Cour-Palais formulation gives a critical spatial density where the collision rate
+        equals the drag removal rate.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Critical Spatial Density (Kessler 1978)</div>
+        <div class="eq-main">n_c = 1 / (A_c · v_rel · τ_d · φ_f)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">n_c</span> = critical number density (objects/km³)<br>
+          <span class="eq-var-name">τ_d</span> = atmospheric drag decay timescale (years)<br>
+          <span class="eq-var-name">φ_f</span> = average number of new lethal fragments per collision<br>
+          At 800 km: τ_d ≈ 100 years → <strong>n_c is already exceeded in some shells</strong>
+        </div>
+      </div>
+
+      <div class="callout danger">
+        <span class="callout-label">We May Already Be Past the Threshold</span>
+        Multiple independent modeling studies (Liou &amp; Johnson 2006, ESA DRAMA, NASA LEGEND) find that
+        even if all launches stopped today, the debris population in the 750–900 km shell would continue
+        to grow due to collisions among existing objects. The shell is self-sustaining. This does not
+        mean access is immediately impossible — but it does mean active remediation is required to
+        prevent long-term collapse of this orbital band.
+      </div>
+    </section>
+
+    <!-- NASA SBM -->
+    <section id="sbm-model" class="content-section reveal">
+      <div class="section-number">// 05</div>
+      <h2>NASA Standard Breakup Model (SBM)</h2>
+      <p>
+        When a collision or explosion occurs in orbit, how many fragments does it create, and what are
+        their sizes and velocities? The answer comes from the <strong>NASA Standard Breakup Model</strong>
+        (SBM), developed from analysis of on-orbit fragmentations, ground hypervelocity impact tests,
+        and recovered debris.
+      </p>
+
+      <h3>Fragment Number Distribution</h3>
+      <p>
+        The SBM predicts that the number of fragments larger than characteristic length L_c follows
+        a power-law distribution — a hallmark of fracture mechanics:
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Fragment Count Distribution (SBM)</div>
+        <div class="eq-main">N(L_c) = 6 · d^(0.5) · L_c^(−1.6)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">N(L_c)</span> = number of fragments larger than L_c<br>
+          <span class="eq-var-name">d</span> = effective diameter of the larger body (m)<br>
+          <span class="eq-var-name">L_c</span> = characteristic length (m) — roughly max dimension<br>
+          A 1 m × 1 m collision: ~6,000 fragments &gt;10 cm, ~600,000 fragments &gt;1 cm
+        </div>
+      </div>
+
+      <h3>Fragment Velocity Distribution</h3>
+      <p>
+        Fragment velocities relative to the parent orbit follow a <strong>lognormal distribution</strong>
+        whose parameters depend on the area-to-mass ratio (a surrogate for fragment size and shape):
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Fragment Velocity Distribution (SBM)</div>
+        <div class="eq-main">log₁₀(v) ~ N(μ_v, σ_v)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">μ_v</span> = 0.2 · χ + 1.85 (for collision fragments)<br>
+          <span class="eq-var-name">σ_v</span> = 0.4 (approximately)<br>
+          <span class="eq-var-name">χ</span> = log₁₀(A/m) — log of area-to-mass ratio<br>
+          Small high-A/m fragments receive the highest ejection velocities (~hundreds m/s)
+        </div>
+      </div>
+    </section>
+
+    <!-- FRAGMENT DISTRIBUTIONS -->
+    <section id="fragment-distribution" class="content-section reveal">
+      <div class="section-number">// 06</div>
+      <h2>Fragment Size &amp; Velocity Distributions</h2>
+
+      <div class="frag-chart-wrap">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:16px;">Fragment Count vs. Size (SBM Power Law) — Hypothetical 1-Tonne Collision</div>
+        <canvas id="frag-canvas" height="200"></canvas>
+        <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-3);">
+          * Log-log scale · Dashed lines: tracking threshold (10 cm) and lethal threshold (1 cm)
+        </div>
+      </div>
+
+      <p>
+        The power-law distribution means that <strong>vastly more small fragments are created than large ones</strong>:
+        roughly 1,000× more 1 cm fragments than 10 cm fragments. This is the core of the problem —
+        surveillance systems can track objects down to about 10 cm in LEO, but the most numerous
+        hazardous fragments fall below the detection threshold.
+      </p>
+
+      <h3>Velocity Spreading and Shell Distribution</h3>
+      <p>
+        Fragments ejected with velocities of 10–100 m/s from a circular orbit will shift their
+        semi-major axis by Δa ≈ ±(2/n) · Δv, where n is mean motion. For LEO at 400 km,
+        a 100 m/s ejection velocity shifts altitude by approximately ±340 km, spreading the
+        debris cloud through a thick altitude band rather than concentrating it at the parent orbit.
+        High-velocity fragments (200+ m/s) may be ejected to orbits that cross multiple
+        occupied altitude bands.
+      </p>
+
+      <div class="callout warning">
+        <span class="callout-label">VectraSpace Debris Simulation</span>
+        The VectraSpace debris simulation module implements a simplified version of the SBM lognormal
+        fragment velocity distribution. When a fragmentation event is triggered, N_debris synthetic
+        fragment objects are generated with ejection velocities sampled from the lognormal model,
+        with characteristic length L_c randomly drawn between 1 cm and 50 cm. Their trajectories
+        are then propagated using the same SGP4 engine as primary catalog objects, and the resulting
+        debris cloud is screened for conjunctions with the existing catalog.
+      </div>
+    </section>
+
+    <!-- HISTORICAL EVENTS -->
+    <section id="historical-events" class="content-section reveal">
+      <div class="section-number">// 07</div>
+      <h2>Historical Fragmentation Events</h2>
+      <p>
+        The current debris environment has been shaped by a small number of high-mass fragmentation
+        events that together account for a disproportionate share of the hazard.
+      </p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-year">1965–</div>
+          <div>
+            <div class="timeline-content-title">Propellant Tank Explosions</div>
+            <div class="timeline-content-body">Residual propellant in rocket upper stages causes pressure-driven explosions years after launch. Over 200 fragmentation events attributed to this source. The US Delta and Soviet SL-12 families were particularly prolific. Modern mitigation: passivation — venting all remaining propellants and pressurized gases before abandonment.</div>
+            <span class="timeline-content-badge badge-amber">Ongoing</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2007</div>
+          <div>
+            <div class="timeline-content-title">Chinese ASAT Test — Fengyun-1C</div>
+            <div class="timeline-content-body">China destroyed its own 758 kg weather satellite Fengyun-1C using a direct-ascent kinetic kill vehicle, in a deliberate anti-satellite weapons test. The 865 km altitude generated the largest single debris-generating event in history, producing over 3,000 tracked fragments and an estimated 35,000+ objects ≥1 cm — nearly all above the ISS orbit with decay times of centuries to decades.</div>
+            <span class="timeline-content-badge badge-red">~3,500+ tracked fragments</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2009</div>
+          <div>
+            <div class="timeline-content-title">Iridium 33 / Cosmos 2251 Collision</div>
+            <div class="timeline-content-body">The first accidental collision between two intact cataloged satellites. The active 560 kg Iridium-33 communications satellite collided with the defunct 950 kg Cosmos-2251 at 789 km altitude, 11.7 km/s relative velocity. Both were completely destroyed, generating ~2,000 tracked fragments and an estimated 100,000+ hazardous objects. The event demonstrated that uncontrolled satellites in crowded orbits are a systemic risk.</div>
+            <span class="timeline-content-badge badge-red">First-ever intact satellite collision</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2021</div>
+          <div>
+            <div class="timeline-content-title">Russian ASAT Test — Kosmos 1408</div>
+            <div class="timeline-content-body">Russia destroyed its defunct 1,750 kg reconnaissance satellite Kosmos-1408 at 480 km altitude using a direct-ascent weapon, generating over 1,500 tracked fragments. The ISS crew sheltered in their return vehicles as the debris cloud passed through the station's orbital altitude. The event drew international condemnation and prompted US, Japan, and UK unilateral bans on destructive ASAT testing.</div>
+            <span class="timeline-content-badge badge-red">ISS crew emergency</span>
+            <span class="timeline-content-badge badge-amber" style="margin-left:6px;">International condemnation</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2022–</div>
+          <div>
+            <div class="timeline-content-title">Mega-Constellation Launch Wave</div>
+            <div class="timeline-content-body">SpaceX Starlink, OneWeb, and Amazon Kuiper are deploying tens of thousands of satellites into LEO. While each individual satellite poses lower risk (designed for deorbit), the cumulative conjunction rate with existing objects is unprecedented. Close approach frequency between Starlink and other operators has increased dramatically, raising concerns about both collision risk and operator coordination.</div>
+            <span class="timeline-content-badge badge-accent">Active monitoring required</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLLISION PROBABILITY -->
+    <section id="collision-probability" class="content-section reveal">
+      <div class="section-number">// 08</div>
+      <h2>Collision Rate Models: From Fragment to Fleet</h2>
+      <p>
+        Beyond individual Pc calculations for specific conjunctions, long-term debris environment
+        modeling requires predicting the <strong>fleet-wide collision rate</strong> — how many
+        collisions per year are expected in a given orbital shell?
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Flux-Based Collision Rate (Kessler Model)</div>
+        <div class="eq-main">F_c = (1/2) · n² · ⟨σ_c · v_rel⟩ · V_shell</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">n</span> = object spatial density (objects/km³)<br>
+          <span class="eq-var-name">⟨σ_c · v_rel⟩</span> = cross-section × velocity, averaged over distribution<br>
+          <span class="eq-var-name">V_shell</span> = volume of the orbital shell (km³)<br>
+          The n² dependence means doubling the population → quadrupling the collision rate
+        </div>
+      </div>
+
+      <p>
+        The <strong>n² scaling</strong> is the key driver of Kessler Syndrome: a doubling of the
+        debris population quadruples the collision rate and therefore quadruples the fragment generation
+        rate from those collisions. Below the critical density, the drag removal rate grows only
+        linearly with n, so the population remains stable. Above it, generation outpaces removal
+        and growth accelerates.
+      </p>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Altitude Band</th>
+              <th>Object Density (obj/km³)</th>
+              <th>Drag Decay Time</th>
+              <th>Cascade Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">350–500 km</td><td>~0.0008</td><td>1–5 years</td><td class="td-green">Self-clearing</td></tr>
+            <tr><td class="td-white">500–700 km</td><td>~0.003</td><td>10–50 years</td><td class="td-amber">Marginal</td></tr>
+            <tr><td class="td-white">750–900 km</td><td>~0.006</td><td>50–200 years</td><td class="td-red">Likely unstable</td></tr>
+            <tr><td class="td-white">900–1,200 km</td><td>~0.002</td><td>100–500 years</td><td class="td-amber">Borderline</td></tr>
+            <tr><td class="td-white">&gt;1,200 km</td><td>&lt;0.0005</td><td>&gt;500 years</td><td class="td-accent">Low density but permanent</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ADR -->
+    <section id="adr-remediation" class="content-section reveal">
+      <div class="section-number">// 09</div>
+      <h2>Active Debris Removal: The Engineering Challenge</h2>
+      <p>
+        Passive mitigation (deorbiting satellites within 25 years) slows the growth rate but cannot
+        reverse an ongoing cascade. Only <strong>Active Debris Removal (ADR)</strong> — physically
+        capturing and deorbiting existing dead objects — can reduce population density in critical
+        shells.
+      </p>
+
+      <p>
+        Studies by ESA, NASA, and JAXA consistently find that removing approximately <strong>5–10
+        large intact objects per year</strong> (>1 tonne rocket bodies in 750–900 km altitude) would
+        stabilize the debris population. Each large object removed prevents dozens to hundreds of
+        future fragmentation fragments.
+      </p>
+
+      <div class="adr-grid">
+        <div class="adr-card">
+          <div class="adr-icon">🦾</div>
+          <div class="adr-title">Robotic Grappling</div>
+          <div class="adr-desc">A chaser spacecraft matches the rotation rate of the tumbling target and mechanically grasps it, then fires to deorbit. The primary challenge: most targets are not designed to be captured.</div>
+          <div class="adr-status" style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);">ClearSpace-1 planned 2026</div>
+        </div>
+        <div class="adr-card">
+          <div class="adr-icon">🕸️</div>
+          <div class="adr-title">Harpoon &amp; Net Capture</div>
+          <div class="adr-desc">A harpoon or net is fired at the target to entangle it. Demonstrated on RemoveDEBRIS mission (2018). Lower precision required but harder to control the resulting motion.</div>
+          <div class="adr-status" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.25);">Demonstrated in LEO</div>
+        </div>
+        <div class="adr-card">
+          <div class="adr-icon">⚡</div>
+          <div class="adr-title">Electrodynamic Tether</div>
+          <div class="adr-desc">A conductive tether deployed from the debris object interacts with Earth's magnetic field to generate drag, deorbiting the object over months without a propulsive maneuver.</div>
+          <div class="adr-status" style="background:rgba(59,130,246,0.1);color:var(--accent);border:1px solid rgba(59,130,246,0.25);">Research phase</div>
+        </div>
+        <div class="adr-card">
+          <div class="adr-icon">🔆</div>
+          <div class="adr-title">Ground-Based Laser</div>
+          <div class="adr-desc">A high-power pulsed laser ablates material from the debris surface, imparting a small thrust impulse. Effective for small debris (1–10 cm) but raises dual-use weapons concerns internationally.</div>
+          <div class="adr-status" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.25);">Politically sensitive</div>
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-label">The ADR Economics Problem</span>
+        Each ADR mission to capture a single defunct rocket body costs an estimated $50–200 million.
+        To stabilize the 750–900 km shell, 5–10 removals per year over decades are required —
+        a $500 million–$2 billion annual commitment with no commercial return. This is why
+        international policy frameworks, liability attribution, and government funding mechanisms
+        are as important as the engineering solutions.
+      </div>
+    </section>
+
+    <!-- MITIGATION GUIDELINES -->
+    <section id="mitigation-guidelines" class="content-section reveal">
+      <div class="section-number">// 10</div>
+      <h2>Mitigation Guidelines: Current Norms</h2>
+      <p>
+        In 2002, the Inter-Agency Space Debris Coordination Committee (IADC) published debris mitigation
+        guidelines, which have since been adopted by the UN Committee on the Peaceful Uses of Outer Space
+        (COPUOS). The key provisions:
+      </p>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Guideline</th>
+              <th>Requirement</th>
+              <th>Compliance Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">LEO post-mission disposal</td><td>Deorbit within 25 years</td><td class="td-amber">~70–80% (improving)</td></tr>
+            <tr><td class="td-white">GEO graveyard orbit</td><td>Raise ≥300 km above GEO</td><td class="td-green">~75%</td></tr>
+            <tr><td class="td-white">Passivation</td><td>Vent propellants and batteries</td><td class="td-amber">Improving</td></tr>
+            <tr><td class="td-white">Protected regions</td><td>Minimize time in LEO/GEO</td><td class="td-accent">Varies by mission</td></tr>
+            <tr><td class="td-white">Intentional fragmentation</td><td>Prohibited in protected regions</td><td class="td-red">Violated by ASAT tests</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The 25-year rule is increasingly seen as insufficient. The FCC in 2022 mandated 5-year
+        deorbit timelines for new US-licensed LEO satellites. SpaceX Starlink satellites are
+        designed to deorbit within 1–3 years. Some researchers advocate for mandatory
+        deorbit within 1 orbital cycle — a position not yet reflected in any binding treaty.
+      </p>
+    </section>
+
+    <!-- VECTRASPACE SIM -->
+    <section id="vectraspace-sim" class="content-section reveal">
+      <div class="section-number">// 11</div>
+      <h2>VectraSpace Debris Simulation Engine</h2>
+      <p>
+        VectraSpace includes an interactive debris simulation module that lets users explore
+        fragmentation dynamics in real time. When a fragmentation event is triggered, the engine:
+      </p>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Method</th>
+              <th>Parameters</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">1. Select parent</td><td>Any tracked satellite from current scan</td><td>Position, velocity, regime</td></tr>
+            <tr><td class="td-white">2. Fragment count</td><td>User-specified (10–200)</td><td>Capped for performance</td></tr>
+            <tr><td class="td-white">3. Lc distribution</td><td>Uniform(1 cm, 50 cm)</td><td>Simplified SBM</td></tr>
+            <tr><td class="td-white">4. Δv sampling</td><td>Log-normal N(μ_v, σ_v = 0.4)</td><td>μ_v from SBM A/m relation</td></tr>
+            <tr><td class="td-white">5. Direction</td><td>Uniform on unit sphere</td><td>Isotropic ejection</td></tr>
+            <tr><td class="td-white">6. Propagation</td><td>Linear position offset (dt in seconds)</td><td>Simplified (not SGP4 for debris)</td></tr>
+            <tr><td class="td-white">7. Conjunction screen</td><td>Same chunked screener as primary scan</td><td>Debris-aware Pc flags</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-label">Educational Accuracy Note</span>
+        The VectraSpace debris simulation is designed for educational illustration, not operational
+        conjunction prediction. The linearized trajectory model diverges from true SGP4 propagation
+        within minutes for realistic ejection velocities. For operational debris cloud analysis,
+        agencies use full numerical integration with the complete SBM fragment distribution,
+        shape estimation, and individual BSTAR fitting for each fragment as tracking data becomes
+        available. The 2009 Iridium-Cosmos cloud took weeks to characterize adequately.
+      </div>
+
+      <div class="callout success">
+        <span class="callout-label">Try It Live</span>
+        The VectraSpace dashboard lets you run a real conjunction scan, select any tracked satellite
+        as a parent object, choose COLLISION or EXPLOSION event type, and generate up to 200 synthetic
+        debris fragments displayed in real time on the Cesium globe with instant conjunction screening.
+        <br><br>
+        <strong>→ Access the live platform at the VectraSpace dashboard to explore these models in action.</strong>
+      </div>
+
+      <!-- Chapter nav -->
+      <div class="chapter-nav">
+        <a href="/education/perturbations" class="chapter-nav-card">
+          <div class="cnc-dir">← Previous</div>
+          <div class="cnc-title">Chapter 03</div>
+          <div class="cnc-sub">Orbital Perturbations</div>
+        </a>
+        <a href="/" class="chapter-nav-card next">
+          <div class="cnc-dir">↑ Back to Top</div>
+          <div class="cnc-title">Learning Hub</div>
+          <div class="cnc-sub">VectraSpace Educational Home</div>
+        </a>
+      </div>
+    </section>
+
+  </article>
+</div>
+
+<script>
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  bar.style.width = pct + '%';
+});
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+const sections = document.querySelectorAll('.content-section');
+const tocLinks = document.querySelectorAll('.toc-list a');
+const tocObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#'+id));
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => tocObs.observe(s));
+
+// Population history chart
+const popCanvas = document.getElementById('pop-canvas');
+if (popCanvas) {
+  const ctx = popCanvas.getContext('2d');
+  const W = popCanvas.parentElement.offsetWidth || 600;
+  const H = 200;
+  popCanvas.width = W; popCanvas.height = H;
+  const pad = { top:12, right:16, bottom:32, left:56 };
+  // Approximate data points
+  const data = [
+    [1957,1],[1960,50],[1965,400],[1970,900],[1975,2000],[1980,4000],
+    [1985,6000],[1990,7500],[1995,8500],[2000,9500],[2005,10500],
+    [2007,13000],[2008,13500],[2009,16000],[2010,16200],[2015,17000],
+    [2019,19000],[2021,21000],[2022,23000],[2024,28000]
+  ];
+  const years = data.map(d=>d[0]); const counts = data.map(d=>d[1]);
+  const minY=1957, maxY=2024, maxC=30000;
+  const sX = y => pad.left + ((y-minY)/(maxY-minY)) * (W-pad.left-pad.right);
+  const sY = c => pad.top + ((maxC-c)/maxC) * (H-pad.top-pad.bottom);
+  // Grid
+  ctx.strokeStyle='#1a2e42'; ctx.lineWidth=1;
+  [0,10000,20000,30000].forEach(c => {
+    ctx.beginPath(); ctx.moveTo(pad.left,sY(c)); ctx.lineTo(W-pad.right,sY(c)); ctx.stroke();
+    ctx.fillStyle='#4a6a85'; ctx.font='9px Space Mono';
+    ctx.fillText(c === 0 ? '0' : (c/1000)+'k', 2, sY(c)+3);
+  });
+  // Event markers
+  [[2007,'Fengyun'],[2009,'Iridium']].forEach(([yr,lbl]) => {
+    ctx.strokeStyle='rgba(239,68,68,0.4)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(sX(yr),pad.top); ctx.lineTo(sX(yr),H-pad.bottom); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ef4444'; ctx.font='8px Space Mono';
+    ctx.fillText(lbl, sX(yr)+3, pad.top+12);
+  });
+  // Curve
+  const grad = ctx.createLinearGradient(pad.left, 0, W-pad.right, 0);
+  grad.addColorStop(0,'#3b82f6'); grad.addColorStop(0.7,'#f59e0b'); grad.addColorStop(1,'#ef4444');
+  ctx.strokeStyle=grad; ctx.lineWidth=2;
+  ctx.beginPath();
+  data.forEach(([y,c],i) => i===0 ? ctx.moveTo(sX(y),sY(c)) : ctx.lineTo(sX(y),sY(c)));
+  ctx.stroke();
+  // X labels
+  ctx.fillStyle='#4a6a85'; ctx.font='9px Space Mono';
+  [1960,1970,1980,1990,2000,2010,2020].forEach(y => ctx.fillText(y, sX(y)-12, H-5));
+}
+
+// Fragment count chart
+const fragCanvas = document.getElementById('frag-canvas');
+if (fragCanvas) {
+  const ctx = fragCanvas.getContext('2d');
+  const W = fragCanvas.parentElement.offsetWidth || 600;
+  const H = 200;
+  fragCanvas.width = W; fragCanvas.height = H;
+  const pad = { top:12, right:16, bottom:32, left:64 };
+  // Log-log: size from 0.1 cm to 100 cm, N from SBM
+  const sizes = []; const counts = [];
+  for (let lx = -1; lx <= 2; lx += 0.15) {
+    const Lc = Math.pow(10, lx) / 100; // meters
+    const N = 6 * Math.pow(1.0, 0.5) * Math.pow(Lc, -1.6);
+    sizes.push(lx);
+    counts.push(Math.log10(Math.max(1, N)));
+  }
+  const maxC = Math.max(...counts);
+  const sX = lx => pad.left + ((lx - (-1)) / 3) * (W-pad.left-pad.right);
+  const sY = c => pad.top + ((maxC-c)/maxC) * (H-pad.top-pad.bottom);
+  // Grid
+  ctx.strokeStyle='#1a2e42'; ctx.lineWidth=1;
+  [0,2,4,6,8].forEach(c => {
+    ctx.beginPath(); ctx.moveTo(pad.left,sY(c)); ctx.lineTo(W-pad.right,sY(c)); ctx.stroke();
+    ctx.fillStyle='#4a6a85'; ctx.font='9px Space Mono';
+    ctx.fillText('10^'+c, 2, sY(c)+3);
+  });
+  // Threshold lines
+  [[Math.log10(0.01),'#ef4444','1 cm'],[Math.log10(0.1),'#f59e0b','10 cm']].forEach(([lx,color,lbl]) => {
+    ctx.strokeStyle=color+'77'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(sX(lx),pad.top); ctx.lineTo(sX(lx),H-pad.bottom); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=color; ctx.font='8px Space Mono';
+    ctx.fillText(lbl, sX(lx)+3, pad.top+10);
+  });
+  // Curve
+  ctx.strokeStyle='#3b82f6'; ctx.lineWidth=2;
+  ctx.beginPath();
+  sizes.forEach((lx,i) => i===0 ? ctx.moveTo(sX(lx),sY(counts[i])) : ctx.lineTo(sX(lx),sY(counts[i])));
+  ctx.stroke();
+  // X labels
+  ctx.fillStyle='#4a6a85'; ctx.font='9px Space Mono';
+  [[Math.log10(0.1),'0.1 cm'],[0,'1 cm'],[1,'10 cm'],[2,'100 cm']].forEach(([lx,lbl]) => {
+    ctx.fillText(lbl, sX(lx)-14, H-5);
+  });
+}
+</script>
+</body>
+</html>
+
+"""
+
 LANDING_HTML = """\
 <!DOCTYPE html>
 <html lang="en">
@@ -6916,7 +9474,9 @@ def build_api(cfg: Config):
     PUBLIC_PATHS = {"/login", "/health", "/demo-results", "/signup",
                     "/forgot-password", "/reset-password", "/", "/welcome",
                     "/research", "/research/tle.json", "/research/tle.csv",
-                    "/admin", "/admin/data", "/feedback", "/tle-status", "/scan-status"}
+                    "/admin", "/admin/data", "/feedback", "/tle-status", "/scan-status",
+                    "/education/orbital-mechanics", "/education/collision-prediction",
+                    "/education/perturbations", "/education/debris-modeling"}
 
     class AuthMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request, call_next):
@@ -7170,6 +9730,23 @@ def build_api(cfg: Config):
             "version": "v11",
             "product": "VectraSpace — Orbital Safety Platform",
         }
+
+    # ── Education chapter pages ───────────────────────────────────
+    @app.get("/education/orbital-mechanics", response_class=HTMLResponse)
+    def edu_orbital():
+        return HTMLResponse(content=_EDU_ORBITAL_HTML)
+
+    @app.get("/education/collision-prediction", response_class=HTMLResponse)
+    def edu_collision():
+        return HTMLResponse(content=_EDU_COLLISION_HTML)
+
+    @app.get("/education/perturbations", response_class=HTMLResponse)
+    def edu_perturbations():
+        return HTMLResponse(content=_EDU_PERTURBATIONS_HTML)
+
+    @app.get("/education/debris-modeling", response_class=HTMLResponse)
+    def edu_debris():
+        return HTMLResponse(content=_EDU_DEBRIS_HTML)
 
     return app
 
