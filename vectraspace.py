@@ -3723,9 +3723,26 @@ async function runDetection() {
 
   try {
     const evtSource = new EventSource('/run?' + new URLSearchParams(params));
+    let scanDone = false;
+    let lastActivity = Date.now();
+
+    // Keepalive watchdog — large scans (10k sats) can take 3+ min.
+    // Only fire if we haven't received any message in 4 minutes AND scan isn't done.
+    const watchdog = setInterval(() => {
+      if (!scanDone && Date.now() - lastActivity > 240000) {
+        clearInterval(watchdog);
+        evtSource.close();
+        setProgress(0, 'Timeout');
+        addLog('Scan timed out after 4 minutes — try fewer satellites or a shorter window', 'warn');
+        setStatus('Scan timed out', 'error');
+        resetBtn();
+      }
+    }, 15000);
 
     evtSource.onmessage = (e) => {
+      lastActivity = Date.now();
       const msg = JSON.parse(e.data);
+      if (msg.type === 'ping') return; // server keepalive — ignore
       if (msg.type === 'log') {
         const level = msg.text.includes('✓') ? 'ok' : msg.text.includes('✗') || msg.text.includes('ERROR') ? 'error' : msg.text.includes('WARNING') ? 'warn' : 'info';
         addLog(msg.text, level);
@@ -3734,19 +3751,19 @@ async function runDetection() {
         setProgress(msg.pct, msg.text);
         setStatus(msg.text.slice(0, 60), 'running');
       } else if (msg.type === 'rate_limit') {
-        evtSource.close();
+        scanDone = true; clearInterval(watchdog); evtSource.close();
         setProgress(0, 'Rate limited');
         addLog('Rate limit: ' + msg.text, 'warn');
         setStatus('Rate limited — wait before next scan', 'error');
         resetBtn();
       } else if (msg.type === 'auth_error') {
-        evtSource.close();
+        scanDone = true; clearInterval(watchdog); evtSource.close();
         setProgress(0, 'Auth required');
         addLog('Authentication required', 'error');
         setStatus('Please sign in', 'error');
         resetBtn();
       } else if (msg.type === 'done') {
-        evtSource.close();
+        scanDone = true; clearInterval(watchdog); evtSource.close();
         setProgress(100, 'Complete!');
         const results = msg.data;
         addLog(`Scan complete — ${results.conjunctions.length} conjunction(s) found`, 'ok');
@@ -3761,19 +3778,22 @@ async function runDetection() {
         resetBtn();
         viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(0, 20, 25000000), duration: 2.0 });
       } else if (msg.type === 'error') {
-        evtSource.close();
+        scanDone = true; clearInterval(watchdog); evtSource.close();
         setProgress(0, 'Error');
         addLog('ERROR: ' + msg.text, 'error');
-        setStatus('Scan failed', 'error');
+        setStatus('Scan failed — ' + msg.text.slice(0, 80), 'error');
         resetBtn();
       }
     };
 
     evtSource.onerror = () => {
+      // Some browsers fire onerror on normal stream close — ignore if scan completed
+      if (scanDone) return;
+      clearInterval(watchdog);
       evtSource.close();
       setProgress(0, 'Connection lost');
-      addLog('Connection lost', 'error');
-      setStatus('Connection error', 'error');
+      addLog('Connection lost — the scan may still be running server-side. Refresh to check results.', 'warn');
+      setStatus('Connection dropped', 'error');
       resetBtn();
     };
 
@@ -4117,6 +4137,119 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
       <p>At ISS altitude (420 km): v ≈ 7.66 km/s. At GEO (35,786 km): v ≈ 3.07 km/s. Two LEO satellites in crossing orbits can have a <strong>relative velocity of up to 15+ km/s</strong> — equivalent to a small car moving 54,000 km/h. A 1 cm aluminum sphere at this speed carries the kinetic energy of a hand grenade.</p>
     </div>
 
+
+<!-- CHAPTER 1 QUIZ -->
+<div class="quiz-section" id="ch1-quiz-wrap">
+  <div class="quiz-eyebrow">⬡ Knowledge Check</div>
+  <div class="quiz-title">Chapter 01 — Orbital Mechanics</div>
+  <div class="quiz-subtitle">Test your understanding of the two-body problem, Kepler's laws, and SGP4 propagation.</div>
+  <div id="ch1-quiz"></div>
+</div>
+<script>
+
+function initQuiz(containerId, questions) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let answered = 0;
+  let score = 0;
+  const total = questions.length;
+  const letters = ['A','B','C','D','E'];
+
+  function render() {
+    answered = 0; score = 0;
+    container.innerHTML = questions.map((q, qi) => `
+      <div class="quiz-q" id="qq-${containerId}-${qi}">
+        <div class="quiz-q-text">${qi+1}. ${q.q}</div>
+        <div class="quiz-options">
+          ${q.opts.map((o, oi) => `
+            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${total})" id="qo-${containerId}-${qi}-${oi}">
+              <span class="quiz-opt-letter">${letters[oi]}</span>
+              ${o}
+            </button>
+          `).join('')}
+        </div>
+        <div class="quiz-explanation" id="qe-${containerId}-${qi}">${q.explain}</div>
+      </div>
+    `).join('') + `<div class="quiz-score-bar" id="qs-${containerId}"></div>`;
+  }
+
+  window['quizAnswer'] = window['quizAnswer'] || function(cid, qi, chosen, correct, total) {
+    const optEls = document.querySelectorAll(`[id^="qo-${cid}-${qi}-"]`);
+    optEls.forEach(b => b.disabled = true);
+    const qEl = document.getElementById(`qq-${cid}-${qi}`);
+    qEl.classList.add('answered');
+    optEls[correct].classList.add('correct');
+    if (chosen !== correct) optEls[chosen].classList.add('wrong');
+    const expEl = document.getElementById(`qe-${cid}-${qi}`);
+    if (expEl) expEl.classList.add('show');
+    // We track via data attributes
+    if (!qEl.dataset.counted) {
+      qEl.dataset.counted = '1';
+      if (chosen === correct) qEl.dataset.correct = '1';
+      // Check if all answered
+      const allQ = document.querySelectorAll(`[id^="qq-${cid}-"]`);
+      const answeredAll = [...allQ].every(q => q.dataset.counted);
+      if (answeredAll) {
+        const sc = [...allQ].filter(q => q.dataset.correct).length;
+        const tot = allQ.length;
+        const pct = Math.round(sc/tot*100);
+        const scoreEl = document.getElementById(`qs-${cid}`);
+        const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#f87171)';
+        const msg = pct === 100 ? "Perfect score! You've mastered this chapter's core equations." :
+                    pct >= 80  ? "Excellent work — solid grasp of the material." :
+                    pct >= 50  ? "Good effort. Review the explanations and try again." :
+                                 "Keep studying — re-read the section and retry.";
+        scoreEl.innerHTML = `
+          <div class="quiz-score-num" style="color:${color}">${sc}/${tot}</div>
+          <div class="quiz-score-label">Chapter Score · ${pct}%</div>
+          <div class="quiz-score-msg">${msg}</div>
+          <button class="quiz-retry-btn" onclick="document.getElementById('${cid}-wrap').dispatchEvent(new Event('retry'))">↩ Retry Quiz</button>
+        `;
+        scoreEl.classList.add('show');
+        scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      }
+    }
+  };
+
+  render();
+  const wrap = document.getElementById(`${containerId}-wrap`);
+  if (wrap) wrap.addEventListener('retry', render);
+}
+
+initQuiz('ch1-quiz', [
+  {
+    q: "A satellite orbits at 500 km altitude. Using the vis-viva equation with μ = 398,600 km³/s² and Earth radius 6,371 km, what is its approximate orbital velocity?",
+    opts: ["7.61 km/s", "9.8 km/s", "11.2 km/s", "3.07 km/s"],
+    ans: 0,
+    explain: "r = 6,371 + 500 = 6,871 km. v = √(μ/r) = √(398,600/6,871) ≈ √57.9 ≈ 7.61 km/s for a circular orbit."
+  },
+  {
+    q: "Kepler's Third Law states T² ∝ a³. If satellite A has a semi-major axis of 7,000 km and satellite B has a = 14,000 km, how does their orbital period compare?",
+    opts: ["B's period is 2× longer", "B's period is 2√2 × longer", "B's period is 4× longer", "B's period is 8× longer"],
+    ans: 1,
+    explain: "T ∝ a^(3/2). Ratio = (14000/7000)^(3/2) = 2^(3/2) = 2√2 ≈ 2.83. So B's period is about 2√2 times longer."
+  },
+  {
+    q: "What does the Two-Line Element (TLE) format encode?",
+    opts: ["3D position and velocity vectors at epoch", "Keplerian orbital elements and propagation coefficients at epoch", "GPS coordinates updated every minute", "Satellite mass and drag coefficient only"],
+    ans: 1,
+    explain: "TLEs encode mean Keplerian elements (inclination, RAAN, eccentricity, argument of perigee, mean anomaly, mean motion) plus drag terms at a reference epoch. SGP4 propagates these forward in time."
+  },
+  {
+    q: "In an elliptical orbit, where does a satellite move fastest?",
+    opts: ["At apogee (furthest point)", "At perigee (closest point)", "At the semi-major axis crossing", "Speed is constant throughout"],
+    ans: 1,
+    explain: "By conservation of angular momentum (h = r × v = const), velocity is highest where r is smallest — at perigee. This is also consistent with the vis-viva equation: v² = μ(2/r − 1/a), so v increases as r decreases."
+  },
+  {
+    q: "Why does SGP4 propagation accuracy degrade over time for LEO satellites?",
+    opts: ["The satellite's mass changes as it burns fuel", "Unmodeled perturbations (drag, J₂, solar pressure) accumulate, causing position error to grow", "GPS signals become less accurate at higher altitudes", "SGP4 only works for circular orbits"],
+    ans: 1,
+    explain: "SGP4 models average perturbation effects but cannot capture every atmospheric fluctuation or solar event. Position errors typically grow from ~1 km at epoch to 10+ km after 7 days for LEO satellites."
+  }
+]);
+</script>
+
     <div class="chapter-nav">
       <div></div>
       <a href="/education/collision-prediction" class="chapter-nav-card next">
@@ -4420,6 +4553,119 @@ z̈ + n²·z = f_z
         </div>
       </div>
     </div>
+
+
+<!-- CHAPTER 2 QUIZ -->
+<div class="quiz-section" id="ch2-quiz-wrap">
+  <div class="quiz-eyebrow">⬡ Knowledge Check</div>
+  <div class="quiz-title">Chapter 02 — Collision Prediction</div>
+  <div class="quiz-subtitle">Test your understanding of conjunction analysis, miss distance, and probability of collision.</div>
+  <div id="ch2-quiz"></div>
+</div>
+<script>
+
+function initQuiz(containerId, questions) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let answered = 0;
+  let score = 0;
+  const total = questions.length;
+  const letters = ['A','B','C','D','E'];
+
+  function render() {
+    answered = 0; score = 0;
+    container.innerHTML = questions.map((q, qi) => `
+      <div class="quiz-q" id="qq-${containerId}-${qi}">
+        <div class="quiz-q-text">${qi+1}. ${q.q}</div>
+        <div class="quiz-options">
+          ${q.opts.map((o, oi) => `
+            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${total})" id="qo-${containerId}-${qi}-${oi}">
+              <span class="quiz-opt-letter">${letters[oi]}</span>
+              ${o}
+            </button>
+          `).join('')}
+        </div>
+        <div class="quiz-explanation" id="qe-${containerId}-${qi}">${q.explain}</div>
+      </div>
+    `).join('') + `<div class="quiz-score-bar" id="qs-${containerId}"></div>`;
+  }
+
+  window['quizAnswer'] = window['quizAnswer'] || function(cid, qi, chosen, correct, total) {
+    const optEls = document.querySelectorAll(`[id^="qo-${cid}-${qi}-"]`);
+    optEls.forEach(b => b.disabled = true);
+    const qEl = document.getElementById(`qq-${cid}-${qi}`);
+    qEl.classList.add('answered');
+    optEls[correct].classList.add('correct');
+    if (chosen !== correct) optEls[chosen].classList.add('wrong');
+    const expEl = document.getElementById(`qe-${cid}-${qi}`);
+    if (expEl) expEl.classList.add('show');
+    // We track via data attributes
+    if (!qEl.dataset.counted) {
+      qEl.dataset.counted = '1';
+      if (chosen === correct) qEl.dataset.correct = '1';
+      // Check if all answered
+      const allQ = document.querySelectorAll(`[id^="qq-${cid}-"]`);
+      const answeredAll = [...allQ].every(q => q.dataset.counted);
+      if (answeredAll) {
+        const sc = [...allQ].filter(q => q.dataset.correct).length;
+        const tot = allQ.length;
+        const pct = Math.round(sc/tot*100);
+        const scoreEl = document.getElementById(`qs-${cid}`);
+        const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#f87171)';
+        const msg = pct === 100 ? "Perfect score! You've mastered this chapter's core equations." :
+                    pct >= 80  ? "Excellent work — solid grasp of the material." :
+                    pct >= 50  ? "Good effort. Review the explanations and try again." :
+                                 "Keep studying — re-read the section and retry.";
+        scoreEl.innerHTML = `
+          <div class="quiz-score-num" style="color:${color}">${sc}/${tot}</div>
+          <div class="quiz-score-label">Chapter Score · ${pct}%</div>
+          <div class="quiz-score-msg">${msg}</div>
+          <button class="quiz-retry-btn" onclick="document.getElementById('${cid}-wrap').dispatchEvent(new Event('retry'))">↩ Retry Quiz</button>
+        `;
+        scoreEl.classList.add('show');
+        scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      }
+    }
+  };
+
+  render();
+  const wrap = document.getElementById(`${containerId}-wrap`);
+  if (wrap) wrap.addEventListener('retry', render);
+}
+
+initQuiz('ch2-quiz', [
+  {
+    q: "Two satellites have a miss distance of 3 km at TCA. Satellite 1 has position uncertainty σ = 0.1 km. Satellite 2 has σ = 5 km. Which scenario results in a higher probability of collision (Pc)?",
+    opts: ["Both are equal — Pc depends only on miss distance", "Scenario A (σ = 0.1 km) — smaller uncertainty means higher confidence in the close pass", "Scenario B (σ = 5 km) — larger uncertainty spreads the covariance ellipsoid across the miss distance", "Pc is undefined without knowing satellite mass"],
+    ans: 2,
+    explain: "When uncertainty is large relative to miss distance, the probability mass of the combined covariance ellipsoid overlaps the collision hard-body radius more. Large σ with small miss distance → high Pc. Small σ with 3 km miss distance → Pc near zero (the position is well-known to be safe)."
+  },
+  {
+    q: "What is Time of Closest Approach (TCA)?",
+    opts: ["The moment two satellites collide", "The time instant when the distance between two objects reaches its minimum", "The time when two satellites are directly above each other on the ground track", "The average time between conjunction events"],
+    ans: 1,
+    explain: "TCA is defined as argmin_t |r₁(t) − r₂(t)| — the time at which the inter-satellite distance is minimized. It is the reference point for miss distance and conjunction geometry calculations."
+  },
+  {
+    q: "In the Foster-Alfano Pc method, what does the 2D collision probability integral compute?",
+    opts: ["The exact probability of physical contact between two rigid bodies", "The probability that the combined position uncertainty ellipsoid overlaps the combined hard-body radius disk in the conjunction plane", "The probability that either satellite will maneuver within 24 hours", "The kinetic energy released if the two objects collide"],
+    ans: 1,
+    explain: "Foster-Alfano projects relative position uncertainty onto the conjunction plane (perpendicular to relative velocity) and integrates the 2D Gaussian PDF over a disk of radius equal to the sum of hard-body radii. This gives the probability that the relative position falls within collision distance."
+  },
+  {
+    q: "Conjunction Data Messages (CDMs) use the RTN coordinate frame. What do R, T, and N stand for?",
+    opts: ["Right, Tangential, Normal", "Radial, Tangential, Normal (along-track)", "Radial, Transverse, Nodal", "Range, Time, Navigation"],
+    ans: 1,
+    explain: "RTN is the satellite-centered frame: R (Radial) points from Earth center through the satellite, T (Tangential/Along-track) is in the orbit plane perpendicular to R in the direction of motion, and N (Normal) is perpendicular to the orbit plane. Covariance matrices in CDMs are expressed in this frame."
+  },
+  {
+    q: "What Pc threshold does US Space Command generally use to trigger active conjunction screening and operator notification?",
+    opts: ["1 in 10 (10%)", "1 in 1,000 (1e-3)", "1 in 10,000 (1e-4)", "1 in 1,000,000 (1e-6)"],
+    ans: 2,
+    explain: "A Pc of 1 in 10,000 (1e-4) is a widely used industry threshold for elevated-risk conjunctions requiring operator attention and potential maneuver consideration. Above 1e-3 is considered high-risk."
+  }
+]);
+</script>
 
     <div class="chapter-nav">
       <a href="/education/orbital-mechanics" class="chapter-nav-card">
@@ -4781,7 +5027,84 @@ tbody tr:hover td { background: var(--ink-2); }
   .hero { padding: 100px 24px 48px; }
   .page-wrap { padding: 32px 24px 80px; }
   .pert-grid, .j2-vis { grid-template-columns: 1fr; }
-  .chapter-nav { grid-template-columns: 1fr; }
+  
+/* ── QUIZ WIDGET ── */
+.quiz-section {
+  margin: 60px 0 0; padding: 40px 0 0; border-top: 1px solid var(--border);
+}
+.quiz-eyebrow {
+  font-family: var(--mono, 'Space Mono', monospace); font-size: 9px;
+  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
+  color: var(--accent);
+}
+.quiz-title {
+  font-size: 22px; font-weight: 600; color: var(--text, #fff);
+  margin-bottom: 6px; font-family: var(--sans, inherit);
+}
+.quiz-subtitle {
+  font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.6;
+}
+.quiz-q {
+  background: var(--panel, rgba(255,255,255,0.04)); border: 1px solid var(--border);
+  border-radius: 8px; padding: 24px 28px; margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+.quiz-q.answered { border-color: var(--border2, rgba(255,255,255,0.15)); }
+.quiz-q-text {
+  font-size: 15px; color: var(--text, #fff); line-height: 1.6; margin-bottom: 16px;
+  font-weight: 500;
+}
+.quiz-options { display: flex; flex-direction: column; gap: 8px; }
+.quiz-opt {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s; font-size: 13px;
+  color: var(--muted); background: transparent;
+  text-align: left; width: 100%; font-family: inherit;
+}
+.quiz-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--text, #fff); background: rgba(74,158,255,0.05); }
+.quiz-opt .quiz-opt-letter {
+  width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono, monospace); font-size: 9px; letter-spacing: 1px;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.quiz-opt:hover:not(:disabled) .quiz-opt-letter { border-color: var(--accent); color: var(--accent); }
+.quiz-opt.correct { border-color: var(--green, #34d399) !important; color: var(--green, #34d399) !important; background: rgba(52,211,153,0.07) !important; }
+.quiz-opt.correct .quiz-opt-letter { background: var(--green, #34d399); border-color: var(--green, #34d399); color: #000 !important; }
+.quiz-opt.wrong { border-color: var(--red, #f87171) !important; color: var(--red, #f87171) !important; background: rgba(248,113,113,0.07) !important; }
+.quiz-opt.wrong .quiz-opt-letter { background: var(--red, #f87171); border-color: var(--red, #f87171); color: #000 !important; }
+.quiz-opt:disabled { cursor: default; }
+.quiz-explanation {
+  margin-top: 12px; padding: 12px 14px; border-radius: 6px;
+  background: rgba(255,255,255,0.04); font-size: 13px; color: var(--muted);
+  line-height: 1.65; border-left: 2px solid var(--accent); display: none;
+}
+.quiz-explanation.show { display: block; }
+.quiz-score-bar {
+  margin-top: 32px; padding: 24px 28px; border-radius: 8px;
+  background: var(--panel, rgba(255,255,255,0.04)); border: 1px solid var(--border);
+  display: none; text-align: center;
+}
+.quiz-score-bar.show { display: block; }
+.quiz-score-num {
+  font-family: var(--serif, Georgia, serif); font-size: 52px; line-height: 1;
+  margin-bottom: 6px;
+}
+.quiz-score-label {
+  font-family: var(--mono, monospace); font-size: 10px; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 16px;
+}
+.quiz-score-msg { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.quiz-retry-btn {
+  margin-top: 16px; padding: 10px 24px; border-radius: 6px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); font-family: var(--mono, monospace); font-size: 10px;
+  letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+  transition: all 0.2s;
+}
+.quiz-retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+.chapter-nav { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -5349,6 +5672,119 @@ tbody tr:hover td { background: var(--ink-2); }
         predicted to within ~500 km — and most objects survive only minutes of atmospheric passage.
       </div>
 
+
+<!-- CHAPTER 3 QUIZ -->
+<div class="quiz-section" id="ch3-quiz-wrap">
+  <div class="quiz-eyebrow">⬡ Knowledge Check</div>
+  <div class="quiz-title">Chapter 03 — Orbital Perturbations</div>
+  <div class="quiz-subtitle">Test your understanding of J₂, atmospheric drag, and solar radiation pressure.</div>
+  <div id="ch3-quiz"></div>
+</div>
+<script>
+
+function initQuiz(containerId, questions) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let answered = 0;
+  let score = 0;
+  const total = questions.length;
+  const letters = ['A','B','C','D','E'];
+
+  function render() {
+    answered = 0; score = 0;
+    container.innerHTML = questions.map((q, qi) => `
+      <div class="quiz-q" id="qq-${containerId}-${qi}">
+        <div class="quiz-q-text">${qi+1}. ${q.q}</div>
+        <div class="quiz-options">
+          ${q.opts.map((o, oi) => `
+            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${total})" id="qo-${containerId}-${qi}-${oi}">
+              <span class="quiz-opt-letter">${letters[oi]}</span>
+              ${o}
+            </button>
+          `).join('')}
+        </div>
+        <div class="quiz-explanation" id="qe-${containerId}-${qi}">${q.explain}</div>
+      </div>
+    `).join('') + `<div class="quiz-score-bar" id="qs-${containerId}"></div>`;
+  }
+
+  window['quizAnswer'] = window['quizAnswer'] || function(cid, qi, chosen, correct, total) {
+    const optEls = document.querySelectorAll(`[id^="qo-${cid}-${qi}-"]`);
+    optEls.forEach(b => b.disabled = true);
+    const qEl = document.getElementById(`qq-${cid}-${qi}`);
+    qEl.classList.add('answered');
+    optEls[correct].classList.add('correct');
+    if (chosen !== correct) optEls[chosen].classList.add('wrong');
+    const expEl = document.getElementById(`qe-${cid}-${qi}`);
+    if (expEl) expEl.classList.add('show');
+    // We track via data attributes
+    if (!qEl.dataset.counted) {
+      qEl.dataset.counted = '1';
+      if (chosen === correct) qEl.dataset.correct = '1';
+      // Check if all answered
+      const allQ = document.querySelectorAll(`[id^="qq-${cid}-"]`);
+      const answeredAll = [...allQ].every(q => q.dataset.counted);
+      if (answeredAll) {
+        const sc = [...allQ].filter(q => q.dataset.correct).length;
+        const tot = allQ.length;
+        const pct = Math.round(sc/tot*100);
+        const scoreEl = document.getElementById(`qs-${cid}`);
+        const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#f87171)';
+        const msg = pct === 100 ? "Perfect score! You've mastered this chapter's core equations." :
+                    pct >= 80  ? "Excellent work — solid grasp of the material." :
+                    pct >= 50  ? "Good effort. Review the explanations and try again." :
+                                 "Keep studying — re-read the section and retry.";
+        scoreEl.innerHTML = `
+          <div class="quiz-score-num" style="color:${color}">${sc}/${tot}</div>
+          <div class="quiz-score-label">Chapter Score · ${pct}%</div>
+          <div class="quiz-score-msg">${msg}</div>
+          <button class="quiz-retry-btn" onclick="document.getElementById('${cid}-wrap').dispatchEvent(new Event('retry'))">↩ Retry Quiz</button>
+        `;
+        scoreEl.classList.add('show');
+        scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      }
+    }
+  };
+
+  render();
+  const wrap = document.getElementById(`${containerId}-wrap`);
+  if (wrap) wrap.addEventListener('retry', render);
+}
+
+initQuiz('ch3-quiz', [
+  {
+    q: "The J₂ perturbation causes nodal regression — a drift of the Right Ascension of the Ascending Node (RAAN). For a prograde LEO orbit at ~500 km, which direction does RAAN drift?",
+    opts: ["Eastward (increasing RAAN)", "Westward (decreasing RAAN)", "It oscillates with no net drift", "RAAN does not change — only argument of perigee drifts"],
+    ans: 1,
+    explain: "For prograde orbits (inclination < 90°), J₂ causes the orbit plane to precess westward, so RAAN decreases over time at a rate of roughly −6 to −7 degrees per day at LEO altitudes. Sun-synchronous orbits at ~97° are designed to precess at exactly +0.9856°/day to match Earth's solar angle."
+  },
+  {
+    q: "Atmospheric drag causes a satellite's semi-major axis to decrease. What paradoxically happens to its orbital speed?",
+    opts: ["Speed decreases as the satellite loses energy", "Speed increases because orbital velocity scales as √(μ/r) — lower orbit = faster speed", "Speed stays constant — only altitude changes", "Speed oscillates as drag varies with solar activity"],
+    ans: 1,
+    explain: "This is the 'drag paradox': drag removes orbital energy, causing the satellite to fall to a lower orbit. But lower circular orbits have *higher* velocity (v = √(μ/r)). The satellite ends up moving faster, but at a lower altitude with shorter period."
+  },
+  {
+    q: "Solar Radiation Pressure (SRP) has the greatest effect on which type of satellite?",
+    opts: ["High-mass, low-area satellites (like spent rocket bodies)", "Low-mass, high-area satellites (like thin-film solar sails)", "Satellites in geosynchronous orbit regardless of mass", "Satellites with metallic surfaces that reflect sunlight"],
+    ans: 1,
+    explain: "SRP force = P · Cr · (A/m) where A/m is the area-to-mass ratio. Satellites with high A/m (thin, large area relative to mass — like solar sails or flat-panel satellites) experience the largest SRP acceleration."
+  },
+  {
+    q: "What is a Sun-synchronous orbit, and what perturbation makes it possible?",
+    opts: ["An orbit that keeps the satellite in permanent sunlight, enabled by high altitude", "An orbit whose RAAN precesses at the same rate as Earth orbits the Sun (~0.99°/day), enabled by J₂ oblateness", "An orbit that tracks the Sun by using onboard thrusters", "A geostationary orbit over the equator that appears fixed to the Sun"],
+    ans: 1,
+    explain: "At a specific inclination (~97–98° for LEO), the J₂ nodal regression rate exactly matches Earth's orbital rate around the Sun. This means the orbit plane maintains a fixed angle to the Sun — allowing consistent lighting conditions for every pass over a target area."
+  },
+  {
+    q: "The International Space Station requires regular 'reboosts' — what perturbation makes these necessary?",
+    opts: ["Solar radiation pressure pushes it outward", "Atmospheric drag at ~420 km altitude removes orbital energy, causing ~2 km/day altitude loss", "J₂ oblateness degrades the orbit over time", "Lunar gravity gradually lowers the orbit"],
+    ans: 1,
+    explain: "At 420 km altitude, atmospheric density is still non-negligible, especially during solar maximum when the upper atmosphere expands. The ISS loses roughly 1–2 km of altitude per day and must be reboosted periodically using visiting spacecraft or its own thrusters."
+  }
+]);
+</script>
+
       <!-- Chapter nav -->
       <div class="chapter-nav">
         <a href="/education/collision-prediction" class="chapter-nav-card">
@@ -5656,7 +6092,84 @@ tbody tr:hover td { background:var(--ink-2); }
   .hero { padding:100px 24px 48px; }
   .page-wrap { padding:32px 24px 80px; }
   .adr-grid { grid-template-columns:1fr; }
-  .chapter-nav { grid-template-columns:1fr; }
+  
+/* ── QUIZ WIDGET ── */
+.quiz-section {
+  margin: 60px 0 0; padding: 40px 0 0; border-top: 1px solid var(--border);
+}
+.quiz-eyebrow {
+  font-family: var(--mono, 'Space Mono', monospace); font-size: 9px;
+  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
+  color: var(--accent);
+}
+.quiz-title {
+  font-size: 22px; font-weight: 600; color: var(--text, #fff);
+  margin-bottom: 6px; font-family: var(--sans, inherit);
+}
+.quiz-subtitle {
+  font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.6;
+}
+.quiz-q {
+  background: var(--panel, rgba(255,255,255,0.04)); border: 1px solid var(--border);
+  border-radius: 8px; padding: 24px 28px; margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+.quiz-q.answered { border-color: var(--border2, rgba(255,255,255,0.15)); }
+.quiz-q-text {
+  font-size: 15px; color: var(--text, #fff); line-height: 1.6; margin-bottom: 16px;
+  font-weight: 500;
+}
+.quiz-options { display: flex; flex-direction: column; gap: 8px; }
+.quiz-opt {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s; font-size: 13px;
+  color: var(--muted); background: transparent;
+  text-align: left; width: 100%; font-family: inherit;
+}
+.quiz-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--text, #fff); background: rgba(74,158,255,0.05); }
+.quiz-opt .quiz-opt-letter {
+  width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono, monospace); font-size: 9px; letter-spacing: 1px;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.quiz-opt:hover:not(:disabled) .quiz-opt-letter { border-color: var(--accent); color: var(--accent); }
+.quiz-opt.correct { border-color: var(--green, #34d399) !important; color: var(--green, #34d399) !important; background: rgba(52,211,153,0.07) !important; }
+.quiz-opt.correct .quiz-opt-letter { background: var(--green, #34d399); border-color: var(--green, #34d399); color: #000 !important; }
+.quiz-opt.wrong { border-color: var(--red, #f87171) !important; color: var(--red, #f87171) !important; background: rgba(248,113,113,0.07) !important; }
+.quiz-opt.wrong .quiz-opt-letter { background: var(--red, #f87171); border-color: var(--red, #f87171); color: #000 !important; }
+.quiz-opt:disabled { cursor: default; }
+.quiz-explanation {
+  margin-top: 12px; padding: 12px 14px; border-radius: 6px;
+  background: rgba(255,255,255,0.04); font-size: 13px; color: var(--muted);
+  line-height: 1.65; border-left: 2px solid var(--accent); display: none;
+}
+.quiz-explanation.show { display: block; }
+.quiz-score-bar {
+  margin-top: 32px; padding: 24px 28px; border-radius: 8px;
+  background: var(--panel, rgba(255,255,255,0.04)); border: 1px solid var(--border);
+  display: none; text-align: center;
+}
+.quiz-score-bar.show { display: block; }
+.quiz-score-num {
+  font-family: var(--serif, Georgia, serif); font-size: 52px; line-height: 1;
+  margin-bottom: 6px;
+}
+.quiz-score-label {
+  font-family: var(--mono, monospace); font-size: 10px; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 16px;
+}
+.quiz-score-msg { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.quiz-retry-btn {
+  margin-top: 16px; padding: 10px 24px; border-radius: 6px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); font-family: var(--mono, monospace); font-size: 10px;
+  letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+  transition: all 0.2s;
+}
+.quiz-retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+.chapter-nav { grid-template-columns:1fr; }
 }
 </style>
 </head>
@@ -6215,6 +6728,119 @@ tbody tr:hover td { background:var(--ink-2); }
         <br><br>
         <strong>→ Access the live platform at the VectraSpace dashboard to explore these models in action.</strong>
       </div>
+
+
+<!-- CHAPTER 4 QUIZ -->
+<div class="quiz-section" id="ch4-quiz-wrap">
+  <div class="quiz-eyebrow">⬡ Knowledge Check</div>
+  <div class="quiz-title">Chapter 04 — Debris Modeling & Kessler Syndrome</div>
+  <div class="quiz-subtitle">Test your understanding of the space debris environment, breakup models, and mitigation strategies.</div>
+  <div id="ch4-quiz"></div>
+</div>
+<script>
+
+function initQuiz(containerId, questions) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let answered = 0;
+  let score = 0;
+  const total = questions.length;
+  const letters = ['A','B','C','D','E'];
+
+  function render() {
+    answered = 0; score = 0;
+    container.innerHTML = questions.map((q, qi) => `
+      <div class="quiz-q" id="qq-${containerId}-${qi}">
+        <div class="quiz-q-text">${qi+1}. ${q.q}</div>
+        <div class="quiz-options">
+          ${q.opts.map((o, oi) => `
+            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${total})" id="qo-${containerId}-${qi}-${oi}">
+              <span class="quiz-opt-letter">${letters[oi]}</span>
+              ${o}
+            </button>
+          `).join('')}
+        </div>
+        <div class="quiz-explanation" id="qe-${containerId}-${qi}">${q.explain}</div>
+      </div>
+    `).join('') + `<div class="quiz-score-bar" id="qs-${containerId}"></div>`;
+  }
+
+  window['quizAnswer'] = window['quizAnswer'] || function(cid, qi, chosen, correct, total) {
+    const optEls = document.querySelectorAll(`[id^="qo-${cid}-${qi}-"]`);
+    optEls.forEach(b => b.disabled = true);
+    const qEl = document.getElementById(`qq-${cid}-${qi}`);
+    qEl.classList.add('answered');
+    optEls[correct].classList.add('correct');
+    if (chosen !== correct) optEls[chosen].classList.add('wrong');
+    const expEl = document.getElementById(`qe-${cid}-${qi}`);
+    if (expEl) expEl.classList.add('show');
+    // We track via data attributes
+    if (!qEl.dataset.counted) {
+      qEl.dataset.counted = '1';
+      if (chosen === correct) qEl.dataset.correct = '1';
+      // Check if all answered
+      const allQ = document.querySelectorAll(`[id^="qq-${cid}-"]`);
+      const answeredAll = [...allQ].every(q => q.dataset.counted);
+      if (answeredAll) {
+        const sc = [...allQ].filter(q => q.dataset.correct).length;
+        const tot = allQ.length;
+        const pct = Math.round(sc/tot*100);
+        const scoreEl = document.getElementById(`qs-${cid}`);
+        const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#f87171)';
+        const msg = pct === 100 ? "Perfect score! You've mastered this chapter's core equations." :
+                    pct >= 80  ? "Excellent work — solid grasp of the material." :
+                    pct >= 50  ? "Good effort. Review the explanations and try again." :
+                                 "Keep studying — re-read the section and retry.";
+        scoreEl.innerHTML = `
+          <div class="quiz-score-num" style="color:${color}">${sc}/${tot}</div>
+          <div class="quiz-score-label">Chapter Score · ${pct}%</div>
+          <div class="quiz-score-msg">${msg}</div>
+          <button class="quiz-retry-btn" onclick="document.getElementById('${cid}-wrap').dispatchEvent(new Event('retry'))">↩ Retry Quiz</button>
+        `;
+        scoreEl.classList.add('show');
+        scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      }
+    }
+  };
+
+  render();
+  const wrap = document.getElementById(`${containerId}-wrap`);
+  if (wrap) wrap.addEventListener('retry', render);
+}
+
+initQuiz('ch4-quiz', [
+  {
+    q: "What is the Kessler Syndrome, and what makes it irreversible?",
+    opts: ["A chain reaction where debris collisions generate more debris faster than atmospheric drag can remove it, making the regime self-sustaining", "A phenomenon where solar activity causes mass satellite failures simultaneously", "A regulatory failure causing overcrowded orbital slots", "A gravity resonance effect that clusters debris in specific altitude bands"],
+    ans: 0,
+    explain: "Proposed by Donald Kessler in 1978: above a critical debris density, each collision creates a debris cloud that increases collision probability for other objects. When the cascade rate exceeds the removal rate (atmospheric drag), the cascade becomes self-sustaining. Above ~800–1000 km where drag is negligible, this is effectively permanent on human timescales."
+  },
+  {
+    q: "NASA's standard 25-year deorbit rule requires satellites to re-enter within 25 years of end-of-mission. Why 25 years specifically?",
+    opts: ["It matches the average satellite operational lifetime", "Modeling shows that compliance rates above ~90% keep LEO collision risk stable below Kessler thresholds at most altitudes", "International treaty signed in 1987 specified this number", "25 years is how long satellites can maintain attitude control"],
+    ans: 1,
+    explain: "The 25-year rule is an engineering/policy compromise: it's achievable with reasonable fuel reserves while being short enough (per NASA models) to keep the LEO environment stable if broadly followed. Recent proposals suggest tightening this to 5 years given mega-constellation growth."
+  },
+  {
+    q: "The NASA Standard Breakup Model (SBM) predicts the debris cloud from a collision. What are the two primary input parameters?",
+    opts: ["Satellite age and orbital altitude", "Impactor mass and relative impact velocity", "Satellite material composition and surface area", "Orbital period and inclination"],
+    ans: 1,
+    explain: "The SBM (and its derivative EVOLVE/LEGEND models) primarily uses impactor/target mass and relative collision velocity to estimate the number, size distribution, and Δv distribution of fragments generated. This drives debris hazard assessments for conjunction events."
+  },
+  {
+    q: "What characteristic makes debris from the 2007 Chinese ASAT test particularly dangerous and long-lived?",
+    opts: ["The debris is at GEO altitude where no atmospheric drag exists", "The test was conducted at ~850 km altitude, where atmospheric drag is minimal and debris will persist for centuries", "The debris was made of titanium which is radar-invisible", "The fragments are too small to track but large enough to be lethal"],
+    ans: 1,
+    explain: "The FY-1C satellite was destroyed at ~850 km altitude. At this altitude, atmospheric drag is extremely weak — individual fragments will remain in orbit for decades to centuries depending on their ballistic coefficient. The test created ~3,500+ trackable fragments and hundreds of thousands of smaller untrackable debris."
+  },
+  {
+    q: "Active Debris Removal (ADR) is technically challenging. Which physical property of uncontrolled debris objects makes capture especially difficult?",
+    opts: ["High electrical charge accumulated from solar radiation", "Tumbling rotation (up to several RPM) with no cooperative grapple points", "Extreme temperatures from thermal cycling", "Random orbit changes from outgassing"],
+    ans: 1,
+    explain: "Most uncontrolled debris objects (spent rocket bodies, defunct satellites) are tumbling at rates that can reach several RPM. They were not designed with capture interfaces. Matching rotation rates with a chaser spacecraft while grappling a tumbling, non-cooperative target is one of the hardest rendezvous problems in orbital mechanics."
+  }
+]);
+</script>
 
       <!-- Chapter nav -->
       <div class="chapter-nav">
@@ -6941,6 +7567,91 @@ section { position: relative; z-index: 1; }
   color: var(--muted); text-transform: uppercase;
 }
 
+/* ── SATELLITE OF THE DAY ── */
+#satod { padding: 80px 0; }
+.satod-card {
+  max-width: 900px; margin: 0 auto;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+  overflow: hidden; position: relative;
+}
+.satod-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--satod-color, var(--accent)) 0%, transparent 100%);
+}
+.satod-header {
+  padding: 28px 36px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;
+}
+.satod-eyebrow {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--green); text-transform: uppercase; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.satod-live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.satod-name {
+  font-family: var(--serif); font-size: 28px; color: #fff;
+  font-weight: 400; letter-spacing: -0.3px; line-height: 1.2;
+}
+.satod-type-badge {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  padding: 5px 12px; border-radius: 20px; border: 1px solid;
+  text-transform: uppercase; white-space: nowrap; align-self: flex-start;
+  color: var(--satod-color, var(--accent));
+  border-color: var(--satod-color, var(--accent));
+  background: rgba(74,158,255,0.07);
+}
+.satod-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--border);
+}
+.satod-stat {
+  padding: 24px 28px; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.satod-stat:last-child { border-right: none; }
+.satod-stat-val {
+  font-family: var(--serif); font-size: 32px; color: var(--satod-color, var(--accent));
+  line-height: 1; letter-spacing: -0.5px;
+}
+.satod-stat-unit {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.satod-stat-label {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase; margin-top: 2px;
+}
+.satod-footer {
+  padding: 20px 36px; border-top: 1px solid var(--border);
+  display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
+}
+.satod-fact-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.satod-fact {
+  font-size: 14px; color: var(--muted); line-height: 1.7; flex: 1;
+  font-style: italic;
+}
+.satod-operator {
+  font-family: var(--mono); font-size: 9px; color: var(--faint);
+  letter-spacing: 1px; text-transform: uppercase; padding: 20px 36px 0;
+}
+.satod-loading {
+  padding: 60px 36px; text-align: center;
+  font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 1px;
+}
+@media (max-width: 600px) {
+  .satod-stats { grid-template-columns: 1fr; }
+  .satod-stat { border-right: none; border-bottom: 1px solid var(--border); }
+  .satod-stat:last-child { border-bottom: none; }
+  .satod-header { padding: 24px 20px 16px; }
+  .satod-footer, .satod-operator { padding-left: 20px; padding-right: 20px; }
+}
+
 /* ── CTA ── */
 #cta { padding: 120px 0; }
 .cta-box {
@@ -7617,6 +8328,68 @@ footer {
     </div>
   </div>
 </section>
+
+<div class="section-divider"></div>
+
+<!-- SATELLITE OF THE DAY -->
+<section id="satod">
+  <div class="section-wrap">
+    <div class="section-label reveal">// Featured Object</div>
+    <div class="satod-card reveal" id="satod-card">
+      <div class="satod-loading">⌁ Loading today's featured satellite...</div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function loadSatOD() {
+  fetch('/satellite-of-the-day')
+    .then(r => r.json())
+    .then(sat => {
+      const card = document.getElementById('satod-card');
+      const color = sat.color || '#4a9eff';
+      card.style.setProperty('--satod-color', color);
+      const liveTag = sat.live
+        ? '<span class="satod-live-dot"></span> Live Data'
+        : 'Estimated Orbital Data';
+      card.innerHTML = `
+        <div class="satod-header">
+          <div>
+            <div class="satod-eyebrow">${liveTag} · Satellite of the Day</div>
+            <div class="satod-name">${sat.name}</div>
+            <div class="satod-operator">${sat.operator || ''}</div>
+          </div>
+          <div class="satod-type-badge">${sat.type}</div>
+        </div>
+        <div class="satod-stats">
+          <div class="satod-stat">
+            <div class="satod-stat-val">${(sat.alt_km||0).toLocaleString()}</div>
+            <div class="satod-stat-unit">km</div>
+            <div class="satod-stat-label">Current Altitude</div>
+          </div>
+          <div class="satod-stat">
+            <div class="satod-stat-val">${sat.velocity_kms}</div>
+            <div class="satod-stat-unit">km/s</div>
+            <div class="satod-stat-label">Orbital Velocity</div>
+          </div>
+          <div class="satod-stat">
+            <div class="satod-stat-val">${sat.period_min}</div>
+            <div class="satod-stat-unit">min</div>
+            <div class="satod-stat-label">Orbital Period</div>
+          </div>
+        </div>
+        <div class="satod-footer">
+          <div class="satod-fact-icon">💡</div>
+          <div class="satod-fact">${sat.fun_fact}</div>
+        </div>
+      `;
+    })
+    .catch(() => {
+      const card = document.getElementById('satod-card');
+      if (card) card.innerHTML = '<div class="satod-loading">Satellite data unavailable — run a scan to populate the TLE cache.</div>';
+    });
+})();
+</script>
 
 <div class="section-divider"></div>
 
@@ -8999,6 +9772,7 @@ def build_api(cfg: Config):
                                  "Estimating collision probabilities..."]
                     step_idx = 0
                     last_step_t = asyncio.get_event_loop().time()
+                    ping_t = asyncio.get_event_loop().time()
                     while not future.done():
                         while sse_logs:
                             yield send(sse_logs.pop(0))
@@ -9007,6 +9781,10 @@ def build_api(cfg: Config):
                             yield send_progress(pct_steps[step_idx], pct_msgs[step_idx])
                             step_idx += 1
                             last_step_t = now_t
+                        # Send keepalive ping every 20s to prevent proxy/browser timeouts
+                        if now_t - ping_t >= 20.0:
+                            yield f"data: {_json.dumps({'type': 'ping'})}\\n\\n"
+                            ping_t = now_t
                         await asyncio.sleep(0.3)
 
                     while sse_logs:
@@ -9300,6 +10078,95 @@ def build_api(cfg: Config):
         except Exception as e:
             log.warning(f"sat-info error for {sat_name}: {e}")
             return JSONResponse({"error": str(e)}, status_code=502)
+
+
+    @app.get("/satellite-of-the-day")
+    def satellite_of_the_day():
+        """Return one featured satellite, rotating daily from a curated list."""
+        import hashlib as _hash
+
+        FEATURED = [
+            {"name": "ISS (ZARYA)", "norad": 25544, "type": "Space Station",
+             "fun_fact": "The ISS has been continuously inhabited since November 2, 2000 — making it the longest continuous human presence in space.",
+             "color": "#4a9eff", "operator": "NASA / Roscosmos / ESA / JAXA / CSA"},
+            {"name": "HUBBLE SPACE TELESCOPE", "norad": 20580, "type": "Observatory",
+             "fun_fact": "Hubble has made over 1.5 million observations and its data has been used in more than 21,000 scientific papers.",
+             "color": "#a78bfa", "operator": "NASA / ESA"},
+            {"name": "TERRA", "norad": 25994, "type": "Earth Observation",
+             "fun_fact": "Terra carries five instruments that together monitor Earth's atmosphere, land, snow/ice, and ocean simultaneously.",
+             "color": "#34d399", "operator": "NASA"},
+            {"name": "GPS BIIR-2  (PRN 13)", "norad": 24876, "type": "Navigation",
+             "fun_fact": "Each GPS satellite broadcasts time signals accurate to 20–30 nanoseconds — without which your phone's location would drift by meters per second.",
+             "color": "#f59e0b", "operator": "US Space Force"},
+            {"name": "SENTINEL-2A", "norad": 40697, "type": "Earth Observation",
+             "fun_fact": "Sentinel-2A images the entire Earth's land surface every 10 days at 10 m resolution — providing free, open data for agriculture, forestry, and disaster response.",
+             "color": "#34d399", "operator": "ESA"},
+            {"name": "STARLINK-1007", "norad": 44713, "type": "Communications",
+             "fun_fact": "Starlink satellites use krypton ion thrusters to maneuver autonomously — performing thousands of collision avoidance maneuvers per year.",
+             "color": "#60a5fa", "operator": "SpaceX"},
+            {"name": "JASON-3", "norad": 41240, "type": "Ocean Monitoring",
+             "fun_fact": "Jason-3 measures sea surface height to within 2.5 cm — tracking sea level rise, ocean currents, and hurricane intensity.",
+             "color": "#06b6d4", "operator": "NOAA / EUMETSAT / NASA / CNES"},
+            {"name": "AQUA", "norad": 27424, "type": "Earth Observation",
+             "fun_fact": "Aqua collects data about Earth's water cycle — oceans, sea ice, clouds, precipitation, and atmospheric water vapor — every 99-minute orbit.",
+             "color": "#38bdf8", "operator": "NASA"},
+            {"name": "LANDSAT 9", "norad": 49260, "type": "Earth Observation",
+             "fun_fact": "Landsat 9 continues a 50-year archive of Earth imagery — the longest continuous record of Earth's surface from space.",
+             "color": "#86efac", "operator": "NASA / USGS"},
+            {"name": "CHEOPS", "norad": 44874, "type": "Scientific",
+             "fun_fact": "CHEOPS (CHaracterising ExOPlanet Satellite) measures the sizes of known exoplanets with unprecedented precision to understand whether they could be rocky, watery, or gaseous.",
+             "color": "#f472b6", "operator": "ESA"},
+        ]
+
+        # Pick based on day-of-year so it's consistent for all users on the same day
+        day_key = datetime.datetime.utcnow().strftime("%Y-%j")
+        idx = int(_hash.md5(day_key.encode()).hexdigest(), 16) % len(FEATURED)
+        sat = FEATURED[idx].copy()
+
+        # Try to compute live orbital parameters from TLE cache
+        try:
+            from skyfield.api import load as _sf_load
+            cache_file = cfg.tle_cache_file
+            if os.path.exists(cache_file):
+                _ts = _sf_load.timescale()
+                sats = _sf_load.tle_file(cache_file)
+                target = next((s for s in sats if str(sat["norad"]) in s.model.satnum.__str__() or
+                               sat["name"].split()[0] in s.name.upper()), None)
+                if target:
+                    t = _ts.now()
+                    geo = target.at(t)
+                    sub = geo.subpoint()
+                    alt_km = round(sub.elevation.km, 0)
+                    # Vis-viva for circular approx: v = sqrt(mu/r)
+                    mu = 398600.4418
+                    r_km = 6371 + alt_km
+                    v_kms = round((mu / r_km) ** 0.5, 2)
+                    # Period: T = 2*pi*sqrt(r^3/mu)
+                    import math as _math
+                    period_min = round(2 * _math.pi * (r_km**3 / mu)**0.5 / 60, 1)
+                    sat["alt_km"] = int(alt_km)
+                    sat["velocity_kms"] = v_kms
+                    sat["period_min"] = period_min
+                    sat["lat"] = round(float(sub.latitude.degrees), 1)
+                    sat["lon"] = round(float(sub.longitude.degrees), 1)
+                    sat["live"] = True
+        except Exception as _e:
+            log.debug(f"SATOD live compute failed: {_e}")
+            sat["live"] = False
+
+        if not sat.get("live"):
+            # Fallback static estimates
+            STATIC = {25544: (420, 7.66, 92.9), 20580: (547, 7.59, 95.4),
+                      25994: (705, 7.48, 99.0), 24876: (20200, 3.87, 718),
+                      40697: (786, 7.45, 100.4), 44713: (550, 7.61, 95.5),
+                      41240: (1336, 5.80, 112.4), 27424: (705, 7.48, 98.8),
+                      49260: (705, 7.48, 99.0), 44874: (700, 7.49, 98.7)}
+            s = STATIC.get(sat["norad"], (500, 7.62, 94.6))
+            sat["alt_km"] = s[0]; sat["velocity_kms"] = s[1]; sat["period_min"] = s[2]
+            sat["live"] = False
+
+        sat["updated_utc"] = datetime.datetime.utcnow().strftime("%H:%M UTC")
+        return JSONResponse(sat)
 
     # ── Auth routes ───────────────────────────────────────────
     @app.get("/login", response_class=HTMLResponse)
