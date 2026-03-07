@@ -1927,7 +1927,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     --accent2:   #ff4444;
     --accent3:   #00ff88;
     --text:      #c8dff0;
-    --muted:     #4a6a85;
+    --muted:     #6d92ad;
     --panel-w:   340px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -3785,7 +3785,7 @@ _EDU_ORBITAL_HTML = """\
 :root {
   --ink:#0a0e14;--ink2:#111720;--ink3:#1a2333;--panel:#131b27;
   --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-  --text:#d4dde8;--muted:#5a7088;--accent:#3b82f6;--accent-h:#60a5fa;
+  --text:#d4dde8;--muted:#8aaac5;--accent:#3b82f6;--accent-h:#60a5fa;
   --amber:#f59e0b;--red:#ef4444;--green:#10b981;--teal:#14b8a6;--r:8px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -3833,8 +3833,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
 /* EQUATION BLOCK */
 .eq-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r);padding:24px 28px;margin:24px 0;}
 .eq-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
-.eq-main{font-family:'Space Mono',monospace;font-size:16px;color:#fff;letter-spacing:1px;margin-bottom:10px;}
-.eq-vars{font-size:12px;color:var(--muted);line-height:1.9;}
+.eq-main{font-family:'STIX Two Math','Latin Modern Math',Georgia,serif;font-size:17px;color:#fff;letter-spacing:0;margin-bottom:10px;font-style:italic;}
+.eq-vars{font-size:13px;color:var(--muted);line-height:1.9;}
 .eq-vars code{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
 
 /* CALLOUT */
@@ -4145,7 +4145,7 @@ _EDU_COLLISION_HTML = """\
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#0a0e14;--ink2:#111720;--panel:#131b27;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#d4dde8;--muted:#5a7088;--accent:#f59e0b;--accent-h:#fbbf24;--blue:#3b82f6;--red:#ef4444;--green:#10b981;--r:8px;}
+:root{--ink:#0a0e14;--ink2:#111720;--panel:#131b27;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#d4dde8;--muted:#8aaac5;--accent:#f59e0b;--accent-h:#fbbf24;--blue:#3b82f6;--red:#ef4444;--green:#10b981;--r:8px;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
 body{background:var(--ink);color:var(--text);font-family:'Space Grotesk',sans-serif;line-height:1.6;overflow-x:hidden;}
@@ -4180,8 +4180,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
 .section-block p em{color:var(--accent-h);font-style:normal;}
 .eq-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r);padding:24px 28px;margin:24px 0;}
 .eq-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
-.eq-main{font-family:'Space Mono',monospace;font-size:16px;color:#fff;letter-spacing:1px;margin-bottom:10px;}
-.eq-vars{font-size:12px;color:var(--muted);line-height:1.9;}
+.eq-main{font-family:'STIX Two Math','Latin Modern Math',Georgia,serif;font-size:17px;color:#fff;letter-spacing:0;margin-bottom:10px;font-style:italic;}
+.eq-vars{font-size:13px;color:var(--muted);line-height:1.9;}
 .eq-vars code{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
 .callout{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:var(--r);padding:20px 24px;margin:24px 0;}
 .callout-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;}
@@ -4463,9 +4463,10 @@ _EDU_PERTURBATIONS_HTML = """\
   --red:        #ef4444;
   --red-dim:    rgba(239,68,68,0.10);
   --text:       #c9ddef;
-  --text-2:     #7a9bb5;
-  --text-3:     #4a6a85;
+  --text-2:     #9dbbd4;
+  --text-3:     #6d92ad;
   --mono:       'Space Mono', monospace;
+  --math:       'STIX Two Math','Latin Modern Math',Georgia,serif;
   --sans:       'Space Grotesk', sans-serif;
   --display:    'Syne', sans-serif;
   --toc-w:      230px;
@@ -4612,8 +4613,8 @@ nav {
   font-size: 8px; letter-spacing: 3px; color: var(--text-3);
   text-transform: uppercase; margin-bottom: 10px;
 }
-.eq-block .eq-main { font-size: 15px; color: #fff; margin-bottom: 8px; }
-.eq-block .eq-vars { font-size: 11px; color: var(--text-3); line-height: 1.9; }
+.eq-block .eq-main { font-family:var(--math,'STIX Two Math',Georgia,serif); font-size: 17px; color: #fff; margin-bottom: 8px; font-style:italic; }
+.eq-block .eq-vars { font-size: 12px; color: var(--text-2); line-height: 1.9; }
 .eq-block .eq-var-name { color: var(--amber); }
 
 /* ── CALLOUT BOXES ── */
@@ -5511,9 +5512,10 @@ _EDU_DEBRIS_HTML = """\
   --red:        #ef4444;
   --red-dim:    rgba(239,68,68,0.10);
   --text:       #c9ddef;
-  --text-2:     #7a9bb5;
-  --text-3:     #4a6a85;
+  --text-2:     #9dbbd4;
+  --text-3:     #6d92ad;
   --mono:       'Space Mono', monospace;
+  --math:       'STIX Two Math','Latin Modern Math',Georgia,serif;
   --sans:       'Space Grotesk', sans-serif;
   --display:    'Syne', sans-serif;
   --toc-w:      230px;
@@ -5553,10 +5555,10 @@ nav { position:fixed;top:0;left:0;right:0;z-index:100;height:56px;padding:0 32px
 .content h3 { font-family:var(--sans);font-size:16px;font-weight:600;color:var(--text);margin:28px 0 12px; }
 .content p { margin-bottom:16px;color:var(--text-2);font-size:15px; }
 .content strong { color:var(--text);font-weight:600; }
-.eq-block { background:var(--ink-2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:20px 24px;margin:24px 0;font-family:var(--mono);font-size:13px;color:var(--text);overflow-x:auto; }
+.eq-block { background:var(--ink-2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:20px 24px;margin:24px 0;font-size:13px;color:var(--text);overflow-x:auto; }
 .eq-block .eq-label { font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:10px; }
-.eq-block .eq-main { font-size:15px;color:#fff;margin-bottom:8px; }
-.eq-block .eq-vars { font-size:11px;color:var(--text-3);line-height:1.9; }
+.eq-block .eq-main { font-family:var(--math,'STIX Two Math',Georgia,serif);font-size:17px;color:#fff;margin-bottom:8px;font-style:italic; }
+.eq-block .eq-vars { font-size:12px;color:var(--text-2);line-height:1.9; }
 .eq-block .eq-var-name { color:var(--amber); }
 .callout { border-radius:6px;padding:16px 20px;margin:24px 0;border-left:3px solid;font-size:14px; }
 .callout.info { background:rgba(59,130,246,0.07);border-color:var(--accent);color:var(--text); }
@@ -6349,7 +6351,7 @@ LANDING_HTML = """\
   --border:  rgba(255,255,255,0.07);
   --border2: rgba(255,255,255,0.13);
   --text:    #ccd6e0;
-  --muted:   #4e6478;
+  --muted:   #8aaac5;
   --faint:   #2a3d50;
   --accent:  #4a9eff;
   --accent2: #7bc4ff;
