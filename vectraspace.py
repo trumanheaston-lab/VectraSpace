@@ -7031,6 +7031,7 @@ footer {
     <li><a href="#kessler">Kessler Syndrome</a></li>
     <li><a href="#learn">Deep Dives</a></li>
     <li><a href="#simulation">Simulation</a></li>
+    <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="/dashboard" class="nav-cta">Open Dashboard</a>
 </nav>
@@ -7593,6 +7594,58 @@ footer {
   </div>
 </section>
 
+<!-- ABOUT & CONTACT -->
+<section id="contact" style="padding:100px 0; position:relative; z-index:1;">
+  <div class="container" style="max-width:860px; margin:0 auto; padding:0 48px;">
+    <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
+      <!-- top accent line -->
+      <div style="height:2px; background:linear-gradient(90deg, var(--accent) 0%, var(--green) 50%, transparent 100%);"></div>
+      <div style="padding:64px 72px;">
+        <!-- eyebrow -->
+        <div style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:20px;">About the Creator</div>
+
+        <!-- avatar + bio row -->
+        <div style="display:flex; gap:40px; align-items:flex-start; margin-bottom:52px; flex-wrap:wrap;">
+          <!-- avatar placeholder -->
+          <div style="flex-shrink:0; width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg, var(--accent) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:32px; color:#fff; letter-spacing:-1px; box-shadow:0 0 0 3px var(--border), 0 0 32px rgba(74,158,255,0.2);">T</div>
+
+          <div style="flex:1; min-width:220px;">
+            <div style="font-family:var(--serif); font-size:26px; color:#fff; font-weight:400; margin-bottom:6px; letter-spacing:-0.3px;">Truman Heaston</div>
+            <div style="font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:16px;">Builder · Student · 17 years old</div>
+            <p style="font-size:15px; color:var(--muted); line-height:1.8; margin:0;">
+              I'm a 17-year-old passionate about space, orbital mechanics, and the belief that great education can change the world. VectraSpace started as a personal obsession — I wanted to understand the real math behind satellite conjunction events, so I built the platform I wished existed. My goal is to make high-stakes technical knowledge genuinely engaging, not just accessible.
+            </p>
+          </div>
+        </div>
+
+        <!-- divider -->
+        <div style="height:1px; background:var(--border); margin-bottom:52px;"></div>
+
+        <!-- contact heading -->
+        <div style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:20px;">Get in Touch</div>
+        <div style="font-family:var(--serif); font-size:clamp(22px,3vw,34px); color:#fff; font-weight:400; line-height:1.25; margin-bottom:16px; letter-spacing:-0.3px;">Have feedback, questions,<br>or want to collaborate?</div>
+        <p style="font-size:15px; color:var(--muted); line-height:1.8; max-width:520px; margin-bottom:36px;">Whether you're a researcher, operator, educator, or fellow student — I'd genuinely love to hear from you. Technical critique, curriculum suggestions, partnership ideas — all of it is welcome.</p>
+
+        <!-- email button -->
+        <a href="mailto:trumanheaston@gmail.com"
+           style="display:inline-flex; align-items:center; gap:10px; padding:14px 28px;
+                  background:var(--accent); color:#fff; border-radius:6px;
+                  font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase;
+                  text-decoration:none; transition:all 0.2s; font-weight:500;
+                  box-shadow:0 4px 24px rgba(74,158,255,0.25);"
+           onmouseover="this.style.background='#6ab4ff'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 32px rgba(74,158,255,0.4)';"
+           onmouseout="this.style.background='var(--accent)'; this.style.transform=''; this.style.boxShadow='0 4px 24px rgba(74,158,255,0.25)';">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          trumanheaston@gmail.com
+        </a>
+
+        <!-- background glow -->
+        <div style="position:absolute; bottom:-80px; right:-80px; width:360px; height:360px; background:radial-gradient(ellipse, rgba(74,158,255,0.05) 0%, transparent 70%); pointer-events:none;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <footer>
   <div class="footer-brand">Vectra<em>Space</em></div>
@@ -7602,8 +7655,9 @@ footer {
     <li><a href="/education/perturbations">Perturbations</a></li>
     <li><a href="/education/debris-modeling">Debris Modeling</a></li>
     <li><a href="/dashboard">Dashboard</a></li>
+    <li><a href="#contact">Contact</a></li>
   </ul>
-  <div class="footer-copy">© 2026 VectraSpace · Educational Orbital Platform</div>
+  <div class="footer-copy">© 2026 VectraSpace · Built by Truman Heaston · <a href="mailto:trumanheaston@gmail.com" style="color:var(--accent); text-decoration:none;">trumanheaston@gmail.com</a></div>
 </footer>
 
 <script>
