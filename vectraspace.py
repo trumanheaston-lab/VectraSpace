@@ -1960,15 +1960,25 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     border-top: 1px solid var(--border);
     color: var(--muted);
     font-family: 'Share Tech Mono', monospace;
-    font-size: 14px;
-    padding: 10px;
+    font-size: 16px;
+    padding: 12px;
     cursor: pointer;
     width: 100%;
     text-align: center;
     transition: color 0.2s, background 0.2s;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
   }
-  #sidebar-toggle-btn:hover { color: var(--accent); background: rgba(0,212,255,0.05); }
+  #sidebar-toggle-btn .toggle-label {
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    transition: opacity 0.2s;
+  }
+  #sidebar.collapsed #sidebar-toggle-btn .toggle-label { display: none; }
+  #sidebar-toggle-btn:hover { color: var(--accent); background: rgba(0,212,255,0.08); }
   #globe-container { flex: 1; position: relative; transition: flex 0.25s ease; }
   #cesiumContainer { width: 100%; height: 100%; }
 
@@ -2454,7 +2464,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
   <!-- ── SIDEBAR ── -->
   <div id="sidebar">
-    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle sidebar">◀</button>
+    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Collapse sidebar">◀ <span class="toggle-label">Collapse</span></button>
     <div class="sidebar-collapsible" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
     <div id="header">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -3004,19 +3014,30 @@ initCesium();
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const btn = document.getElementById('sidebar-toggle-btn');
+  const label = btn.querySelector('.toggle-label');
+  // On mobile, use open/close drawer pattern instead of collapse
+  if (window.innerWidth <= 768) {
+    const isOpen = sidebar.classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('active', isOpen);
+    return;
+  }
   const collapsed = sidebar.classList.toggle('collapsed');
-  btn.textContent = collapsed ? '▶' : '◀';
+  btn.querySelector
+  if (label) label.textContent = collapsed ? 'Expand' : 'Collapse';
+  btn.innerHTML = collapsed
+    ? '▶ <span class="toggle-label">Expand</span>'
+    : '◀ <span class="toggle-label">Collapse</span>';
   btn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
   try { localStorage.setItem('vs_sidebar_collapsed', collapsed ? '1' : '0'); } catch(e) {}
 }
 
 function initSidebarState() {
   try {
-    if (localStorage.getItem('vs_sidebar_collapsed') === '1') {
+    if (window.innerWidth > 768 && localStorage.getItem('vs_sidebar_collapsed') === '1') {
       const sidebar = document.getElementById('sidebar');
       const btn = document.getElementById('sidebar-toggle-btn');
       sidebar.classList.add('collapsed');
-      btn.textContent = '▶';
+      btn.innerHTML = '▶ <span class="toggle-label">Expand</span>';
     }
   } catch(e) {}
 }
@@ -6403,13 +6424,8 @@ nav.scrolled {
   display: flex; align-items: center; gap: 12px; text-decoration: none;
 }
 .nav-logo-mark {
-  width: 32px; height: 32px;
-  background: conic-gradient(from 0deg, #4a9eff 0deg, #7bc4ff 90deg, transparent 90deg, transparent 180deg, #4a9eff 180deg, #4a9eff 270deg, transparent 270deg);
-  border-radius: 50%; position: relative; animation: spin-slow 20s linear infinite;
-}
-.nav-logo-mark::after {
-  content: ''; position: absolute; inset: 6px;
-  background: var(--ink); border-radius: 50%;
+  width: 30px; height: 30px; flex-shrink: 0;
+  position: relative; animation: spin-slow 30s linear infinite;
 }
 @keyframes spin-slow { to { transform: rotate(360deg); } }
 .nav-brand-name {
@@ -6599,7 +6615,7 @@ section { position: relative; z-index: 1; }
 }
 .mission-visual {
   position: relative; display: flex; align-items: center; justify-content: center;
-  height: 400px;
+  height: 400px; overflow: visible;
 }
 .mission-globe {
   width: 260px; height: 260px; border-radius: 50%;
@@ -6627,13 +6643,13 @@ section { position: relative; z-index: 1; }
 .orbit-path {
   position: absolute; border-radius: 50%; border: 1px solid;
   width: var(--w); height: var(--w);
-  top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(var(--r));
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
 }
-.orbit-path-1 { --w:310px; border-color: rgba(74,158,255,0.3); animation: orb 8s linear infinite; }
-.orbit-path-2 { --w:380px; border-color: rgba(52,211,153,0.2); animation: orb2 12s linear infinite; transform: translate(-50%,-50%) rotate(45deg); }
-.orbit-path-3 { --w:450px; border-color: rgba(245,158,11,0.15); animation: orb3 18s linear infinite; transform: translate(-50%,-50%) rotate(-30deg); }
-@keyframes orb  { to { transform: translate(-50%,-50%) rotate(360deg); } }
-@keyframes orb2 { from { transform: translate(-50%,-50%) rotate(45deg); } to { transform: translate(-50%,-50%) rotate(405deg); } }
+.orbit-path-1 { --w:296px; border-color: rgba(74,158,255,0.35); animation: orb 8s linear infinite; }
+.orbit-path-2 { --w:366px; border-color: rgba(52,211,153,0.22); animation: orb2 12s linear infinite; }
+.orbit-path-3 { --w:436px; border-color: rgba(245,158,11,0.18); animation: orb3 18s linear infinite; }
+@keyframes orb  { from { transform: translate(-50%,-50%) rotate(0deg); }   to { transform: translate(-50%,-50%) rotate(360deg); } }
+@keyframes orb2 { from { transform: translate(-50%,-50%) rotate(45deg); }  to { transform: translate(-50%,-50%) rotate(405deg); } }
 @keyframes orb3 { from { transform: translate(-50%,-50%) rotate(-30deg); } to { transform: translate(-50%,-50%) rotate(330deg); } }
 .orb-sat {
   position: absolute; width: 8px; height: 8px; border-radius: 50%;
@@ -6967,13 +6983,16 @@ section { position: relative; z-index: 1; }
 footer {
   position: relative; z-index: 1;
   border-top: 1px solid var(--border);
-  padding: 40px 48px;
-  display: flex; justify-content: space-between; align-items: center;
+  padding: 36px 48px 28px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
 }
-.footer-brand { font-family: var(--sans); font-size: 14px; font-weight: 600; color: var(--muted); }
+.footer-top {
+  width: 100%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+}
+.footer-brand { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--text); }
 .footer-brand em { color: var(--accent); font-style: normal; }
 .footer-links {
-  display: flex; gap: 28px; list-style: none;
+  display: flex; gap: 24px; list-style: none; flex-wrap: wrap; justify-content: center;
 }
 .footer-links a {
   font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
@@ -6981,9 +7000,15 @@ footer {
   text-transform: uppercase; transition: color 0.2s;
 }
 .footer-links a:hover { color: var(--text); }
+.footer-contact {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;
+  color: var(--muted);
+}
+.footer-contact a { color: var(--accent); text-decoration: none; }
 .footer-copy {
   font-family: var(--mono); font-size: 9px; color: var(--faint);
-  letter-spacing: 1px;
+  letter-spacing: 1px; border-top: 1px solid var(--border);
+  width: 100%; padding-top: 16px; text-align: center;
 }
 
 /* ── DIVIDER ── */
@@ -7038,7 +7063,9 @@ footer {
   }
   /* Footer mobile */
   footer { padding: 32px 20px; gap: 16px; }
+  .footer-top { flex-direction: column; align-items: center; text-align: center; }
   .footer-links { flex-wrap: wrap; justify-content: center; gap: 8px 16px; }
+  .footer-contact { text-align: center; }
   .footer-copy { font-size: 10px; text-align: center; }
   /* Hero orbit system — hide on very small screens */
   .hero-orbit-system { display: none; }
@@ -7056,7 +7083,21 @@ footer {
 <!-- NAV -->
 <nav id="nav">
   <a href="#" class="nav-brand">
-    <div class="nav-logo-mark"></div>
+    <svg class="nav-logo-mark" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ocean -->
+      <circle cx="15" cy="15" r="13" fill="#1a4a7a"/>
+      <!-- Atmosphere glow -->
+      <circle cx="15" cy="15" r="13" fill="none" stroke="#4a9eff" stroke-width="0.8" opacity="0.5"/>
+      <!-- Land masses -->
+      <ellipse cx="11" cy="11" rx="4" ry="5" fill="#2a7a3a" opacity="0.9"/>
+      <ellipse cx="19" cy="13" rx="3" ry="4" fill="#2a7a3a" opacity="0.9"/>
+      <ellipse cx="15" cy="20" rx="3.5" ry="2.5" fill="#2a7a3a" opacity="0.8"/>
+      <ellipse cx="8" cy="18" rx="2" ry="2" fill="#2a7a3a" opacity="0.7"/>
+      <!-- Highlight -->
+      <ellipse cx="11" cy="10" rx="4" ry="3" fill="rgba(255,255,255,0.07)"/>
+      <!-- Orbit ring -->
+      <ellipse cx="15" cy="15" rx="13" ry="5" fill="none" stroke="#4a9eff" stroke-width="0.6" opacity="0.4" stroke-dasharray="3 2"/>
+    </svg>
     <span class="nav-brand-name">Vectra<em>Space</em></span>
   </a>
   <ul class="nav-links">
@@ -7682,16 +7723,19 @@ footer {
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-brand">Vectra<em>Space</em></div>
-  <ul class="footer-links">
-    <li><a href="/education/orbital-mechanics">Orbital Mechanics</a></li>
-    <li><a href="/education/collision-prediction">Collision Prediction</a></li>
-    <li><a href="/education/perturbations">Perturbations</a></li>
-    <li><a href="/education/debris-modeling">Debris Modeling</a></li>
-    <li><a href="/dashboard">Dashboard</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
-  <div class="footer-copy">© 2026 VectraSpace · Built by Truman Heaston · <a href="mailto:trumanheaston@gmail.com" style="color:var(--accent); text-decoration:none;">trumanheaston@gmail.com</a></div>
+  <div class="footer-top">
+    <div class="footer-brand">Vectra<em>Space</em></div>
+    <ul class="footer-links">
+      <li><a href="/education/orbital-mechanics">Orbital Mechanics</a></li>
+      <li><a href="/education/collision-prediction">Collision Prediction</a></li>
+      <li><a href="/education/perturbations">Perturbations</a></li>
+      <li><a href="/education/debris-modeling">Debris Modeling</a></li>
+      <li><a href="/dashboard">Dashboard</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="footer-contact">Built by Truman Heaston · <a href="mailto:trumanheaston@gmail.com">trumanheaston@gmail.com</a></div>
+  </div>
+  <div class="footer-copy">© 2026 VectraSpace · Educational Orbital Platform</div>
 </footer>
 
 <script>
