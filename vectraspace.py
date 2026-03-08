@@ -1920,18 +1920,25 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #050a0f;
-    --panel:     #090f17;
-    --border:    #0d2137;
-    --accent:    #00d4ff;
-    --accent2:   #ff4444;
-    --accent3:   #00ff88;
-    --text:      #c8dff0;
-    --muted:     #6d92ad;
-    --panel-w:   340px;
+    --bg:        #080c12;
+    --bg2:       #0d1320;
+    --bg3:       #111d2e;
+    --panel:     #0a1019;
+    --border:    rgba(255,255,255,0.07);
+    --border2:   rgba(255,255,255,0.13);
+    --accent:    #4a9eff;
+    --accent2:   #f87171;
+    --accent3:   #34d399;
+    --text:      #ccd6e0;
+    --muted:     #8aaac5;
+    --faint:     #2a3d50;
+    --serif:     'Instrument Serif', Georgia, serif;
+    --mono:      'DM Mono', monospace;
+    --sans:      'Outfit', sans-serif;
+    --panel-w:   320px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Exo 2', sans-serif; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); }
 
   #app { display: flex; height: 100vh; }
   #sidebar {
@@ -1958,10 +1965,10 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     background: transparent;
     border: none;
     border-top: 1px solid var(--border);
-    color: var(--muted);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 16px;
-    padding: 12px;
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 11px;
     cursor: pointer;
     width: 100%;
     text-align: center;
@@ -1971,192 +1978,225 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 44px;
+    min-height: 42px;
   }
   #sidebar-toggle-btn .toggle-label {
-    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-    transition: opacity 0.2s;
+    font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase;
+    transition: opacity 0.2s; color: var(--muted);
   }
   #sidebar.collapsed #sidebar-toggle-btn .toggle-label { display: none; }
-  #sidebar-toggle-btn:hover { color: var(--accent); background: rgba(0,212,255,0.08); }
+  #sidebar-toggle-btn:hover { color: var(--accent); background: rgba(74,158,255,0.06); }
   #globe-container { flex: 1; position: relative; transition: flex 0.25s ease; }
   #cesiumContainer { width: 100%; height: 100%; }
 
   #header {
-    padding: 20px 18px 14px;
+    padding: 18px 20px 14px;
     border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, #0a1929 0%, var(--panel) 100%);
+    background: var(--bg2);
+    flex-shrink: 0;
   }
   #header .logo {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
+    font-family: var(--mono);
+    font-size: 8px;
     color: var(--accent);
     letter-spacing: 3px;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     text-transform: uppercase;
+    opacity: 0.7;
   }
-  #header h1 { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+  #header .brand {
+    display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;
+  }
+  #header .brand-name {
+    font-family: var(--serif); font-size: 20px; font-style: italic;
+    color: #fff; letter-spacing: -0.2px;
+  }
+  #header .brand-name em { color: var(--accent); font-style: normal; }
+  #header .brand-tag {
+    font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+    color: var(--faint); text-transform: uppercase;
+  }
   #header .sub {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--muted);
-    font-family: 'Share Tech Mono', monospace;
-    margin-top: 3px;
+    font-family: var(--sans);
+    margin-top: 2px;
+    line-height: 1.4;
   }
   #user-bar {
-    padding: 6px 18px;
-    background: #040a10;
+    padding: 6px 20px;
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--mono);
     font-size: 9px;
     color: var(--muted);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    letter-spacing: 0.5px;
   }
   #user-bar .user-name { color: var(--accent); }
-  #user-bar a { color: var(--muted); text-decoration: none; font-size: 9px; letter-spacing: 1px; }
+  #user-bar a { color: var(--muted); text-decoration: none; font-size: 9px; }
   #user-bar a:hover { color: var(--accent); }
 
-  #scroll { flex: 1; overflow-y: auto; padding: 16px; }
-  #scroll::-webkit-scrollbar { width: 4px; }
+  #scroll { flex: 1; overflow-y: auto; padding: 18px 16px; }
+  #scroll::-webkit-scrollbar { width: 3px; }
   #scroll::-webkit-scrollbar-track { background: transparent; }
-  #scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  #scroll::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 2px; }
 
-  .section { margin-bottom: 20px; }
+  .section { margin-bottom: 22px; }
   .section-title {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 9px;
+    font-family: var(--mono);
+    font-size: 8px;
     letter-spacing: 3px;
-    color: var(--accent);
+    color: var(--muted);
     text-transform: uppercase;
-    margin-bottom: 10px;
-    padding-bottom: 6px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    width: 16px; height: 1px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
   }
 
-  .field { margin-bottom: 12px; }
+  .field { margin-bottom: 14px; }
   .field label {
     display: block;
-    font-size: 10px;
+    font-family: var(--mono);
+    font-size: 9px;
     color: var(--muted);
     letter-spacing: 1px;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
   }
   .field input {
     width: 100%;
-    background: #0a1520;
+    background: var(--bg3);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text);
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--mono);
     font-size: 13px;
-    padding: 7px 10px;
+    padding: 8px 12px;
     outline: none;
     transition: border-color 0.2s;
   }
   .field input:focus { border-color: var(--accent); }
   .field .hint {
     font-size: 9px;
-    color: var(--muted);
-    margin-top: 3px;
-    font-family: 'Share Tech Mono', monospace;
+    color: var(--faint);
+    margin-top: 4px;
+    font-family: var(--mono);
+    letter-spacing: 0.5px;
   }
 
   #run-btn {
     width: 100%;
     padding: 12px;
-    background: transparent;
-    border: 1px solid var(--accent);
-    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(74,158,255,0.12), rgba(74,158,255,0.04));
+    border: 1px solid rgba(74,158,255,0.4);
+    border-radius: 7px;
     color: var(--accent);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    letter-spacing: 3px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.2s;
     position: relative;
     overflow: hidden;
   }
-  #run-btn:hover { background: rgba(0,212,255,0.08); box-shadow: 0 0 20px rgba(0,212,255,0.15); }
+  #run-btn:hover {
+    background: linear-gradient(135deg, rgba(74,158,255,0.22), rgba(74,158,255,0.08));
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(74,158,255,0.12);
+  }
   #run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   #run-btn.running {
     border-color: var(--accent3);
     color: var(--accent3);
+    background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(52,211,153,0.02));
     animation: pulse-border 1.5s infinite;
   }
   @keyframes pulse-border {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.3); }
-    50% { box-shadow: 0 0 0 6px rgba(0,255,136,0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.2); }
+    50% { box-shadow: 0 0 0 6px rgba(52,211,153,0); }
   }
 
   #run-locked-msg {
     width: 100%;
     padding: 12px;
-    background: rgba(74,106,133,0.1);
+    background: rgba(74,106,133,0.06);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 7px;
     color: var(--muted);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
+    font-family: var(--mono);
+    font-size: 10px;
     letter-spacing: 1px;
     text-align: center;
   }
 
   #status-bar {
-    padding: 8px 16px;
+    padding: 9px 20px;
     border-top: 1px solid var(--border);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 10px;
+    font-family: var(--mono);
+    font-size: 9px;
     display: flex;
     align-items: center;
     gap: 8px;
+    background: var(--bg);
+    flex-shrink: 0;
   }
-  #status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
-  #status-dot.ready { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+  #status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex-shrink: 0; }
+  #status-dot.ready { background: var(--accent3); box-shadow: 0 0 6px rgba(52,211,153,0.5); }
   #status-dot.running { background: var(--accent); animation: blink 1s infinite; }
   #status-dot.error { background: var(--accent2); }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  #status-text { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #status-text { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.5px; }
 
   #log-panel {
-    background: #040a10;
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 6px;
     height: 140px;
     overflow-y: auto;
-    padding: 8px;
-    font-family: 'Share Tech Mono', monospace;
+    padding: 10px 12px;
+    font-family: var(--mono);
     font-size: 10px;
-    line-height: 1.6;
+    line-height: 1.7;
   }
   #log-panel::-webkit-scrollbar { width: 3px; }
-  #log-panel::-webkit-scrollbar-thumb { background: var(--border); }
-  .log-line { color: var(--muted); }
+  #log-panel::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 2px; }
+  .log-line { color: var(--faint); }
   .log-line.info { color: #5ba3c9; }
   .log-line.ok { color: var(--accent3); }
-  .log-line.warn { color: #ffaa44; }
+  .log-line.warn { color: #f59e0b; }
   .log-line.error { color: var(--accent2); }
 
   #results-list { display: flex; flex-direction: column; gap: 6px; }
   .conj-card {
-    background: #0a1520;
+    background: var(--bg2);
     border: 1px solid var(--border);
     border-left: 2px solid var(--accent2);
-    border-radius: 4px;
-    padding: 8px 10px;
+    border-radius: 6px;
+    padding: 10px 12px;
     cursor: pointer;
     transition: all 0.15s;
-    font-size: 11px;
   }
-  .conj-card:hover { border-color: var(--accent); background: #0d1f30; }
-  .conj-card .sats { font-weight: 600; color: #fff; font-size: 11px; margin-bottom: 3px; }
-  .conj-card .meta { color: var(--muted); font-family: 'Share Tech Mono', monospace; font-size: 9px; display: flex; gap: 10px; }
-  .conj-card .dist { color: var(--accent2); font-weight: 700; }
-  .conj-card .pc   { color: #ffaa44; }
+  .conj-card:hover { border-color: rgba(74,158,255,0.4); background: var(--bg3); }
+  .conj-card .sats { font-weight: 600; color: var(--text); font-size: 11px; margin-bottom: 4px; font-family: var(--sans); }
+  .conj-card .meta { color: var(--muted); font-family: var(--mono); font-size: 9px; display: flex; gap: 10px; letter-spacing: 0.5px; }
+  .conj-card .dist { color: var(--accent2); font-weight: 600; }
+  .conj-card .pc   { color: #f59e0b; }
   .conj-card .time { color: var(--muted); }
-  #no-results { color: var(--muted); font-family: 'Share Tech Mono', monospace; font-size: 10px; text-align: center; padding: 20px 0; }
+  #no-results { color: var(--faint); font-family: var(--mono); font-size: 9px; text-align: center; padding: 20px 0; letter-spacing: 1px; }
 
   #globe-header {
     position: absolute;
@@ -2467,19 +2507,22 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     <button id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Collapse sidebar">◀ <span class="toggle-label">Collapse</span></button>
     <div class="sidebar-collapsible" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
     <div id="header">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <div class="logo">VectraSpace // Mission Control</div>
-        <a href="/welcome" style="font-family:'Share Tech Mono',monospace;font-size:8px;
-                           letter-spacing:2px;color:var(--muted);text-decoration:none;
-                           padding:3px 8px;border:1px solid var(--border);border-radius:3px;
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="logo">// Mission Control</div>
+        <a href="/welcome" style="font-family:var(--mono);font-size:8px;
+                           letter-spacing:1.5px;color:var(--muted);text-decoration:none;
+                           padding:4px 10px;border:1px solid var(--border);border-radius:4px;
                            text-transform:uppercase;transition:all 0.2s;"
-           onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'"
+           onmouseover="this.style.color='var(--accent)';this.style.borderColor='rgba(74,158,255,0.4)'"
            onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">
-          ← Home
+          ← Hub
         </a>
       </div>
-      <h1>Orbital Safety Platform</h1>
-      <div class="sub">VectraSpace v11 — Public Release</div>
+      <div class="brand">
+        <div class="brand-name">Vectra<em>Space</em></div>
+        <div class="brand-tag">Platform</div>
+      </div>
+      <div class="sub">Orbital Safety Dashboard</div>
     </div>
     <!-- User bar: populated by /me endpoint -->
     <div id="user-bar">
@@ -2804,8 +2847,8 @@ async function initCesium() {
   let terrainProvider;
   try {
     terrainProvider = await Cesium.createWorldTerrainAsync({
-      requestWaterMask: false,
-      requestVertexNormals: false,  // skip extra requests for faster load
+      requestWaterMask: true,           // shows ocean water surface
+      requestVertexNormals: true,       // enables normal-mapped terrain lighting
     });
   } catch(e) {
     console.warn('World terrain unavailable — using ellipsoid fallback');
@@ -2834,40 +2877,67 @@ async function initCesium() {
         negativeZ: 'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg',
       }
     }),
-    contextOptions: { requestWebgl2: true },
+    contextOptions: { requestWebgl2: true, allowTextureFilterAnisotropic: true },
     shadows: false,
     orderIndependentTranslucency: false,
   });
 
-  // ── Imagery: Bing-style aerial from Ion (photorealistic, fast) ────────────
+  // ── Imagery: high-resolution aerial with enhanced contrast ──────────────
   viewer.imageryLayers.removeAll();
   try {
     const aerial = await Cesium.createWorldImageryAsync({
       style: Cesium.IonWorldImageryStyle.AERIAL
     });
-    viewer.imageryLayers.add(new Cesium.ImageryLayer(aerial));
+    const layer = viewer.imageryLayers.add(new Cesium.ImageryLayer(aerial, {
+      brightness: 1.05,
+      contrast: 1.1,
+      saturation: 1.15,
+      gamma: 0.9,
+    }));
   } catch(e) {
     console.warn('World imagery unavailable — using OSM fallback');
     viewer.imageryLayers.add(new Cesium.ImageryLayer(
-      new Cesium.OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/', maximumLevel: 18 })
+      new Cesium.OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/', maximumLevel: 18 }),
+      { brightness: 1.0, contrast: 1.1 }
     ));
   }
 
-  // ── Scene settings: photorealistic but load-optimised ────────────────────
+  // ── Scene settings: maximum visual quality ──────────────────────────────
+  // Globe appearance
   viewer.scene.globe.enableLighting = true;
-  viewer.scene.globe.atmosphereLightIntensity = 12.0;
+  viewer.scene.globe.atmosphereLightIntensity = 15.0;
+  viewer.scene.globe.atmosphereRayleighCoefficient = new Cesium.Cartesian3(5.5e-6, 13.0e-6, 28.4e-6);
+  viewer.scene.globe.atmosphereMieCoefficient = new Cesium.Cartesian3(21e-6, 21e-6, 21e-6);
   viewer.scene.globe.showGroundAtmosphere = true;
   viewer.scene.globe.depthTestAgainstTerrain = false;
-  viewer.scene.globe.maximumScreenSpaceError = 4;        // fewer tiles = faster
-  viewer.scene.globe.tileCacheSize = 100;
-  viewer.scene.atmosphere.brightnessShift = 0.1;
-  viewer.scene.fog.enabled = true;
-  viewer.scene.fog.density = 0.0002;
+  viewer.scene.globe.maximumScreenSpaceError = 1.5;     // more tiles = sharper
+  viewer.scene.globe.tileCacheSize = 200;               // cache more tiles
+  viewer.scene.globe.preloadAncestors = true;
+  viewer.scene.globe.preloadSiblings = true;
+  viewer.scene.globe.translucency.enabled = false;
+
+  // Atmosphere: rich blue scattering
+  viewer.scene.atmosphere.brightnessShift = 0.15;
+  viewer.scene.atmosphere.hueShift = 0.0;
+  viewer.scene.atmosphere.saturationShift = 0.1;
   viewer.scene.skyAtmosphere.show = true;
+  viewer.scene.skyAtmosphere.atmosphereLightIntensity = 20.0;
+  viewer.scene.skyAtmosphere.atmosphereRayleighCoefficient = new Cesium.Cartesian3(5.5e-6, 13.0e-6, 28.4e-6);
+
+  // Fog: subtle depth
+  viewer.scene.fog.enabled = true;
+  viewer.scene.fog.density = 0.0001;
+  viewer.scene.fog.minimumBrightness = 0.03;
+
+  // Celestial bodies & HDR
   viewer.scene.sun = new Cesium.Sun();
   viewer.scene.moon = new Cesium.Moon();
-  viewer.scene.highDynamicRange = false;                 // skip HDR pass
-  viewer.scene.globe.translucency.enabled = false;
+  viewer.scene.highDynamicRange = true;                 // enable HDR for better contrast
+  viewer.scene.postProcessStages.fxaa.enabled = true;  // anti-aliasing
+
+  // Lighting: sun-based directional
+  viewer.scene.light = new Cesium.SunLight();
+
   viewer.clock.currentTime = Cesium.JulianDate.now();
   viewer.clock.shouldAnimate = false;
 
@@ -7239,29 +7309,24 @@ nav.scrolled {
   backdrop-filter: blur(20px);
 }
 .nav-brand {
-  display: flex; align-items: center; gap: 12px; text-decoration: none;
+  display: flex; align-items: center; text-decoration: none;
 }
-.nav-logo-mark {
-  width: 30px; height: 30px; flex-shrink: 0;
-  position: relative; animation: spin-slow 30s linear infinite;
-}
-@keyframes spin-slow { to { transform: rotate(360deg); } }
 .nav-brand-name {
-  font-family: var(--sans); font-size: 17px; font-weight: 700;
-  color: #fff; letter-spacing: -0.3px;
+  font-family: var(--serif); font-size: 18px; font-weight: 400;
+  color: #fff; letter-spacing: -0.2px; font-style: italic;
 }
 .nav-brand-name em { color: var(--accent); font-style: normal; }
 .nav-links {
-  display: flex; gap: 32px; list-style: none; align-items: center;
+  display: flex; gap: 28px; list-style: none; align-items: center;
 }
 .nav-links a {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;
   color: var(--muted); text-decoration: none; transition: color 0.2s;
 }
 .nav-links a:hover { color: var(--text); }
 .nav-cta {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
-  text-transform: uppercase; padding: 9px 20px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; padding: 8px 18px;
   border: 1px solid var(--accent); border-radius: 4px;
   color: var(--accent); text-decoration: none;
   transition: all 0.2s; white-space: nowrap;
@@ -8087,35 +8152,17 @@ footer {
 <!-- NAV -->
 <nav id="nav">
   <a href="#" class="nav-brand">
-    <svg class="nav-logo-mark" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
-      <!-- Ocean -->
-      <circle cx="15" cy="15" r="13" fill="#1a4a7a"/>
-      <!-- Atmosphere glow -->
-      <circle cx="15" cy="15" r="13" fill="none" stroke="#4a9eff" stroke-width="0.8" opacity="0.5"/>
-      <!-- Land masses -->
-      <ellipse cx="11" cy="11" rx="4" ry="5" fill="#2a7a3a" opacity="0.9"/>
-      <ellipse cx="19" cy="13" rx="3" ry="4" fill="#2a7a3a" opacity="0.9"/>
-      <ellipse cx="15" cy="20" rx="3.5" ry="2.5" fill="#2a7a3a" opacity="0.8"/>
-      <ellipse cx="8" cy="18" rx="2" ry="2" fill="#2a7a3a" opacity="0.7"/>
-      <!-- Highlight -->
-      <ellipse cx="11" cy="10" rx="4" ry="3" fill="rgba(255,255,255,0.07)"/>
-      <!-- Orbit ring -->
-      <ellipse cx="15" cy="15" rx="13" ry="5" fill="none" stroke="#4a9eff" stroke-width="0.6" opacity="0.4" stroke-dasharray="3 2"/>
-    </svg>
     <span class="nav-brand-name">Vectra<em>Space</em></span>
   </a>
   <ul class="nav-links">
     <li><a href="#mission">Mission</a></li>
-    <li><a href="#ssa">What is SSA?</a></li>
-    <li><a href="#kessler">Kessler Syndrome</a></li>
-    <li><a href="#learn">Deep Dives</a></li>
+    <li><a href="#learn">Chapters</a></li>
     <li><a href="#simulation">Simulation</a></li>
-    <li><a href="/glossary">Glossary</a></li>
     <li><a href="/glossary">Glossary</a></li>
     <li><a href="/calculator">Calculator</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
-  <a href="/dashboard" class="nav-cta">Open Dashboard</a>
+  <a href="/dashboard" class="nav-cta">Dashboard →</a>
 </nav>
 
 <!-- HERO -->
