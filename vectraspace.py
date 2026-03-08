@@ -265,7 +265,7 @@ def propagate_satellites(sat_list: list, regime: str, cfg: Config, ts) -> list:
 
 @dataclass
 class ManeuverSuggestion:
-    """Clohessy-Wiltshire minimum-delta-v avoidance maneuver."""
+    """Clohessy-Wiltshire minimum-<dfn data-term="delta-v">delta-v</dfn> avoidance maneuver."""
     delta_v_rtn: list
     delta_v_magnitude: float
     burn_epoch_offset_min: float
@@ -3922,14 +3922,14 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
     <span class="nav-brand-name">Vectra<span>Space</span></span>
   </a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
-  <a href="/#deep-dives" class="nav-back">← All Chapters</a>
+  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="learn-hero">
   <div class="learn-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Orbital Mechanics</div>
   <div class="learn-chapter">Chapter 01 · Foundations</div>
   <h1 class="learn-title">Orbital Mechanics</h1>
-  <p class="learn-intro">From Kepler's laws to SGP4 propagation — the classical physics governing every object in Earth orbit. This is the mathematical foundation beneath VectraSpace's entire simulation engine.</p>
+  <p class="learn-intro">From Kepler's laws to <dfn data-term="SGP4">SGP4</dfn> propagation — the classical physics governing every object in Earth orbit. This is the mathematical foundation beneath VectraSpace's entire simulation engine.</p>
   <div class="learn-meta">
     <span class="meta-item">📖 ~15 min read</span>
     <span class="meta-item">🧮 8 equations</span>
@@ -3943,7 +3943,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
     <ul class="toc-list">
       <li><a href="#two-body">Two-Body Problem</a></li>
       <li><a href="#kepler">Kepler's Laws</a></li>
-      <li><a href="#vis-viva">Vis-Viva Equation</a></li>
+      <li><a href="#vis-viva"><dfn data-term="vis-viva">Vis-Viva Equation</dfn></a></li>
       <li><a href="#elements">Orbital Elements</a></li>
       <li><a href="#tle">TLE Format</a></li>
       <li><a href="#sgp4">SGP4 Propagation</a></li>
@@ -4031,7 +4031,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 
     <div class="section-block" id="vis-viva">
       <h2>The Vis-Viva Equation</h2>
-      <p>The vis-viva equation is perhaps the single most useful result in orbital mechanics. It relates a satellite's speed at any point in its orbit to its distance from Earth and the orbit's semi-major axis — through conservation of energy.</p>
+      <p>The <dfn data-term="vis-viva">vis-viva equation</dfn> is perhaps the single most useful result in orbital mechanics. It relates a satellite's speed at any point in its orbit to its distance from Earth and the orbit's semi-major axis — through conservation of energy.</p>
       <div class="eq-block">
         <div class="eq-label">Vis-Viva Equation</div>
         <div class="eq-main">v² = μ · (2/r − 1/a)</div>
@@ -4139,7 +4139,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 
 
 <!-- CHAPTER 1 QUIZ -->
-<div class="quiz-section" id="ch1-quiz-wrap">
+<div class="quiz-section" id="ch1-quiz-wrap" data-storage-key='vs_ch1_done'>
   <div class="quiz-eyebrow">⬡ Knowledge Check</div>
   <div class="quiz-heading">Chapter 01 Quiz</div>
   <div class="quiz-subtitle">Test your understanding of the two-body problem, Kepler's laws, and SGP4 propagation.</div>
@@ -4252,6 +4252,49 @@ initQuiz('ch1-quiz', [
     explain: "SGP4 models average perturbation effects but cannot capture every atmospheric fluctuation or solar event. Position errors typically grow from ~1 km at epoch to 10+ km after 7 days for LEO satellites."
   }
 ]);
+
+// ── GLOSSARY TOOLTIPS ─────────────────────────────────────────
+(function() {
+  const DEFS = {
+    'SGP4':'Simplified General Perturbations model 4 — the standard analytical propagator for Earth satellites using TLE data. Models drag (B*), J₂ oblateness, and secular/periodic terms.',
+    'TLE':'Two-Line Element Set — standardised format encoding six Keplerian elements at a given epoch. Accuracy decays ~1 km/day for LEO objects.',
+    'vis-viva':'v² = μ(2/r − 1/a). Relates orbital speed to current radius, semi-major axis, and gravitational parameter. Underlies all delta-v calculations.',
+    'RAAN':'Right Ascension of Ascending Node — angle from the vernal equinox to the ascending node. Drifts westward for prograde LEO orbits due to J₂ oblateness at ~6–7°/day.',
+    'J₂':'Dominant Earth oblateness coefficient: J₂ = 1.08263×10⁻³. Causes nodal regression (RAAN drift) and apsidal precession for all satellites.',
+    'Kessler':'A self-sustaining cascade of collisions above a critical debris density, proposed by Donald Kessler (NASA, 1978). Potentially irreversible above 800 km.',
+    'Pc':'Probability of Collision — the probability two objects physically contact. Computed by integrating the combined position uncertainty PDF over the collision cross-section. Action threshold: 1×10⁻⁴.',
+    'TCA':'Time of Closest Approach — the moment of minimum separation between two conjunction objects. Reference epoch for all CDM calculations.',
+    'CDM':'Conjunction Data Message — CCSDS standard format for sharing conjunction screening results between space surveillance providers and operators.',
+    'RTN':'Radial-Transverse-Normal coordinate frame. R points from Earth through satellite, T is along-track, N is orbit-plane normal. Standard frame for CDM covariance matrices.',
+    'covariance':'A 3×3 or 6×6 symmetric matrix encoding position uncertainty and correlations in RTN. Diagonal elements are position variances (σ_R², σ_T², σ_N²).',
+    'NASA SBM':'NASA Standard Breakup Model — predicts fragment count N(Lc) = 6·M^0.75·Lc^−1.6 from satellite collisions or explosions. Used in EVOLVE and LEGEND environment models.',
+    'B*':'Ballistic coefficient in TLE format — encodes aerodynamic drag sensitivity. Higher B* means more susceptibility to atmospheric drag.',
+    'delta-v':'Change in velocity (km/s) required for an orbital maneuver — the fundamental currency of spaceflight. Limited by onboard propellant.',
+  };
+  const tip = document.createElement('div');
+  tip.className = 'gtooltip';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Full glossary →</a>';
+  document.body.appendChild(tip);
+  let hideTimer;
+  document.querySelectorAll('dfn[data-term]').forEach(el => {
+    const key = el.dataset.term;
+    const def = DEFS[key] || '';
+    if (!def) return;
+    el.addEventListener('mouseenter', e => {
+      clearTimeout(hideTimer);
+      tip.querySelector('.gtooltip-term').textContent = key;
+      tip.querySelector('.gtooltip-def').textContent = def;
+      const rect = el.getBoundingClientRect();
+      let top = rect.bottom + 8, left = rect.left;
+      if (left + 300 > window.innerWidth - 16) left = window.innerWidth - 316;
+      if (top + 120 > window.innerHeight - 16) top = rect.top - 130;
+      tip.style.top = top + 'px'; tip.style.left = left + 'px';
+      tip.classList.add('show');
+    });
+    el.addEventListener('mouseleave', () => { hideTimer = setTimeout(() => tip.classList.remove('show'), 200); });
+  });
+})();
+
 </script>
 
     <div class="chapter-nav">
@@ -4373,7 +4416,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 <nav>
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<span>Space</span></span></a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
-  <a href="/#deep-dives" class="nav-back">← All Chapters</a>
+  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="learn-hero">
@@ -4393,7 +4436,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
     <div class="toc-title">On This Page</div>
     <ul class="toc-list">
       <li><a href="#screening">Conjunction Screening</a></li>
-      <li><a href="#tca">Time of Closest Approach</a></li>
+      <li><a href="#tca"><dfn data-term="TCA">Time of Closest Approach</dfn></a></li>
       <li><a href="#covariance">Uncertainty & Covariance</a></li>
       <li><a href="#pc-method">Pc Calculation</a></li>
       <li><a href="#pc-levels">Risk Thresholds</a></li>
@@ -4440,7 +4483,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 
     <div class="section-block" id="covariance">
       <h2>Uncertainty & Covariance</h2>
-      <p>We never know a satellite's position exactly. Every TLE has errors — from unmodeled forces, tracking gaps, and atmospheric variability. This uncertainty is quantified by a <strong>covariance matrix</strong> in the RTN frame.</p>
+      <p>We never know a satellite's position exactly. Every TLE has errors — from unmodeled forces, tracking gaps, and atmospheric variability. This uncertainty is quantified by a <strong><dfn data-term="covariance">covariance matrix</dfn></strong> in the RTN frame.</p>
       <div class="eq-block">
         <div class="eq-label">3×3 RTN Covariance Matrix</div>
         <div class="eq-main">
@@ -4462,7 +4505,7 @@ P = [CR_R   CT_R   CN_R]<br>
     </div>
 
     <div class="section-block" id="pc-method">
-      <h2>Probability of Collision — Foster-Alfano Method</h2>
+      <h2><dfn data-term="Pc">Probability of Collision</dfn> — Foster-Alfano Method</h2>
       <p>VectraSpace uses the <strong>Foster (1992) / Alfano (1995)</strong> conjunction probability method, which projects the 3D problem onto the 2D collision plane (the plane perpendicular to relative velocity at TCA).</p>
       <p>The combined position PDF (assuming Gaussian) is integrated over a disk of radius <em>R_c</em> — the "hard-body radius," or sum of the two object radii:</p>
       <div class="eq-block">
@@ -4511,7 +4554,7 @@ P = [CR_R   CT_R   CN_R]<br>
     </div>
 
     <div class="section-block" id="cdm">
-      <h2>Conjunction Data Messages (CDM)</h2>
+      <h2><dfn data-term="CDM">Conjunction Data Message</dfn>s (CDM)</h2>
       <p>The <strong>CCSDS Conjunction Data Message (CDM)</strong> standard (CCSDS 508.0-B-1) is the international format for communicating conjunction events between agencies, operators, and databases. VectraSpace generates a CDM for every detected conjunction.</p>
       <p>A CDM contains: time of closest approach, miss distance, Pc estimate, Pc method identifier, and full covariance matrices for both objects. It is the interoperability standard for space traffic management worldwide.</p>
       <div class="callout green">
@@ -4560,7 +4603,7 @@ z̈ + n²·z = f_z
 
 
 <!-- CHAPTER 2 QUIZ -->
-<div class="quiz-section" id="ch2-quiz-wrap">
+<div class="quiz-section" id="ch2-quiz-wrap" data-storage-key='vs_ch2_done'>
   <div class="quiz-eyebrow">⬡ Knowledge Check</div>
   <div class="quiz-heading">Chapter 02 Quiz</div>
   <div class="quiz-subtitle">Test your understanding of conjunction analysis, miss distance, and probability of collision.</div>
@@ -4673,6 +4716,49 @@ initQuiz('ch2-quiz', [
     explain: "A Pc of 1 in 10,000 (1e-4) is a widely used industry threshold for elevated-risk conjunctions requiring operator attention and potential maneuver consideration. Above 1e-3 is considered high-risk."
   }
 ]);
+
+// ── GLOSSARY TOOLTIPS ─────────────────────────────────────────
+(function() {
+  const DEFS = {
+    'SGP4':'Simplified General Perturbations model 4 — the standard analytical propagator for Earth satellites using TLE data. Models drag (B*), J₂ oblateness, and secular/periodic terms.',
+    'TLE':'Two-Line Element Set — standardised format encoding six Keplerian elements at a given epoch. Accuracy decays ~1 km/day for LEO objects.',
+    'vis-viva':'v² = μ(2/r − 1/a). Relates orbital speed to current radius, semi-major axis, and gravitational parameter. Underlies all delta-v calculations.',
+    'RAAN':'Right Ascension of Ascending Node — angle from the vernal equinox to the ascending node. Drifts westward for prograde LEO orbits due to J₂ oblateness at ~6–7°/day.',
+    'J₂':'Dominant Earth oblateness coefficient: J₂ = 1.08263×10⁻³. Causes nodal regression (RAAN drift) and apsidal precession for all satellites.',
+    'Kessler':'A self-sustaining cascade of collisions above a critical debris density, proposed by Donald Kessler (NASA, 1978). Potentially irreversible above 800 km.',
+    'Pc':'Probability of Collision — the probability two objects physically contact. Computed by integrating the combined position uncertainty PDF over the collision cross-section. Action threshold: 1×10⁻⁴.',
+    'TCA':'Time of Closest Approach — the moment of minimum separation between two conjunction objects. Reference epoch for all CDM calculations.',
+    'CDM':'Conjunction Data Message — CCSDS standard format for sharing conjunction screening results between space surveillance providers and operators.',
+    'RTN':'Radial-Transverse-Normal coordinate frame. R points from Earth through satellite, T is along-track, N is orbit-plane normal. Standard frame for CDM covariance matrices.',
+    'covariance':'A 3×3 or 6×6 symmetric matrix encoding position uncertainty and correlations in RTN. Diagonal elements are position variances (σ_R², σ_T², σ_N²).',
+    'NASA SBM':'NASA Standard Breakup Model — predicts fragment count N(Lc) = 6·M^0.75·Lc^−1.6 from satellite collisions or explosions. Used in EVOLVE and LEGEND environment models.',
+    'B*':'Ballistic coefficient in TLE format — encodes aerodynamic drag sensitivity. Higher B* means more susceptibility to atmospheric drag.',
+    'delta-v':'Change in velocity (km/s) required for an orbital maneuver — the fundamental currency of spaceflight. Limited by onboard propellant.',
+  };
+  const tip = document.createElement('div');
+  tip.className = 'gtooltip';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Full glossary →</a>';
+  document.body.appendChild(tip);
+  let hideTimer;
+  document.querySelectorAll('dfn[data-term]').forEach(el => {
+    const key = el.dataset.term;
+    const def = DEFS[key] || '';
+    if (!def) return;
+    el.addEventListener('mouseenter', e => {
+      clearTimeout(hideTimer);
+      tip.querySelector('.gtooltip-term').textContent = key;
+      tip.querySelector('.gtooltip-def').textContent = def;
+      const rect = el.getBoundingClientRect();
+      let top = rect.bottom + 8, left = rect.left;
+      if (left + 300 > window.innerWidth - 16) left = window.innerWidth - 316;
+      if (top + 120 > window.innerHeight - 16) top = rect.top - 130;
+      tip.style.top = top + 'px'; tip.style.left = left + 'px';
+      tip.classList.add('show');
+    });
+    el.addEventListener('mouseleave', () => { hideTimer = setTimeout(() => tip.classList.remove('show'), 200); });
+  });
+})();
+
 </script>
 
     <div class="chapter-nav">
@@ -5093,6 +5179,52 @@ tbody tr:hover td { background: var(--ink-2); }
 .quiz-score-bottom { padding: 16px 36px; background: var(--ink3,var(--ink2)); display: flex; justify-content: flex-end; }
 .quiz-retry-btn { padding: 9px 22px; border-radius: 6px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
 .quiz-retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── GLOSSARY TOOLTIPS ── */
+dfn {
+  font-style: normal;
+  border-bottom: 1px dashed rgba(74,158,255,0.4);
+  cursor: help;
+  color: inherit;
+  transition: color 0.15s, border-color 0.15s;
+}
+dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
+.gtooltip {
+  position: fixed; z-index: 9999;
+  max-width: 300px; pointer-events: none;
+  background: #0d1320; border: 1px solid rgba(74,158,255,0.3);
+  border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  padding: 14px 16px; opacity: 0; transform: translateY(4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.gtooltip.show { opacity: 1; transform: translateY(0); }
+.gtooltip-term { font-family: 'DM Mono','Space Mono',monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #4a9eff; margin-bottom: 6px; }
+.gtooltip-def  { font-size: 12px; color: #8aaac5; line-height: 1.6; }
+.gtooltip-link { display: block; margin-top: 8px; font-family: 'DM Mono','Space Mono',monospace; font-size: 9px; color: #4a9eff; letter-spacing: 1px; opacity: 0.7; }
+
+
+/* ── GLOSSARY TOOLTIPS ── */
+dfn {
+  font-style: normal;
+  border-bottom: 1px dashed rgba(74,158,255,0.4);
+  cursor: help;
+  color: inherit;
+  transition: color 0.15s, border-color 0.15s;
+}
+dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
+.gtooltip {
+  position: fixed; z-index: 9999;
+  max-width: 300px; pointer-events: none;
+  background: #0d1320; border: 1px solid rgba(74,158,255,0.3);
+  border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  padding: 14px 16px; opacity: 0; transform: translateY(4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.gtooltip.show { opacity: 1; transform: translateY(0); }
+.gtooltip-term { font-family: 'DM Mono','Space Mono',monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #4a9eff; margin-bottom: 6px; }
+.gtooltip-def  { font-size: 12px; color: #8aaac5; line-height: 1.6; }
+.gtooltip-link { display: block; margin-top: 8px; font-family: 'DM Mono','Space Mono',monospace; font-size: 9px; color: #4a9eff; letter-spacing: 1px; opacity: 0.7; }
+
 .chapter-nav { grid-template-columns: 1fr; }
 }
 </style>
@@ -5103,7 +5235,7 @@ tbody tr:hover td { background: var(--ink-2); }
 
 <nav>
   <a href="/" class="nav-brand">VectraSpace // Education</a>
-  <a href="/" class="nav-back">← Back to Learning Hub</a>
+  <div style="display:flex;gap:8px;"><a href="/" class="nav-back">← Back to Learning Hub</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
@@ -5663,7 +5795,7 @@ tbody tr:hover td { background: var(--ink-2); }
 
 
 <!-- CHAPTER 3 QUIZ -->
-<div class="quiz-section" id="ch3-quiz-wrap">
+<div class="quiz-section" id="ch3-quiz-wrap" data-storage-key='vs_ch3_done'>
   <div class="quiz-eyebrow">⬡ Knowledge Check</div>
   <div class="quiz-heading">Chapter 03 Quiz</div>
   <div class="quiz-subtitle">Test your understanding of J₂, atmospheric drag, and solar radiation pressure.</div>
@@ -5765,7 +5897,7 @@ initQuiz('ch3-quiz', [
   },
   {
     q: "What is a Sun-synchronous orbit, and what perturbation makes it possible?",
-    opts: ["An orbit that keeps the satellite in permanent sunlight, enabled by high altitude", "An orbit whose RAAN precesses at the same rate as Earth orbits the Sun (~0.99°/day), enabled by J₂ oblateness", "An orbit that tracks the Sun by using onboard thrusters", "A geostationary orbit over the equator that appears fixed to the Sun"],
+    opts: ["An orbit that keeps the satellite in permanent sunlight, enabled by high altitude", "An orbit whose RAAN precesses at the same rate as Earth orbits the Sun (~0.99°/day), enabled by <dfn data-term="J₂">J₂ oblateness</dfn>", "An orbit that tracks the Sun by using onboard thrusters", "A geostationary orbit over the equator that appears fixed to the Sun"],
     ans: 1,
     explain: "At a specific inclination (~97–98° for LEO), the J₂ nodal regression rate exactly matches Earth's orbital rate around the Sun. This means the orbit plane maintains a fixed angle to the Sun — allowing consistent lighting conditions for every pass over a target area."
   },
@@ -5776,6 +5908,47 @@ initQuiz('ch3-quiz', [
     explain: "At 420 km altitude, atmospheric density is still non-negligible, especially during solar maximum when the upper atmosphere expands. The ISS loses roughly 1–2 km of altitude per day and must be reboosted periodically using visiting spacecraft or its own thrusters."
   }
 ]);
+
+// ── GLOSSARY TOOLTIPS ─────────────────────────────────────────
+(function() {
+  const DEFS = {
+    'SGP4':'Simplified General Perturbations model 4 — the standard analytical propagator for Earth satellites using TLE data. Models drag (B*), J₂ oblateness, and secular/periodic terms.',
+    'TLE':'Two-Line Element Set — standardised format encoding six Keplerian elements at a given epoch. Accuracy decays ~1 km/day for LEO objects.',
+    'vis-viva':'v² = μ(2/r − 1/a). Relates orbital speed to current radius, semi-major axis, and gravitational parameter. Underlies all delta-v calculations.',
+    'RAAN':'Right Ascension of Ascending Node — angle from vernal equinox to ascending node. Drifts westward in prograde LEO orbits due to J₂ at ~6–7°/day.',
+    'J₂':'Dominant Earth oblateness coefficient: J₂ = 1.08263×10⁻³. Causes nodal regression (RAAN drift) and apsidal precession for all satellites.',
+    'Kessler':'A self-sustaining cascade of collisions above a critical debris density, proposed by Donald Kessler (NASA, 1978). Potentially irreversible above 800 km.',
+    'Pc':'Probability of Collision — the probability two objects physically contact. Computed by integrating the combined uncertainty PDF over the collision cross-section. Action threshold: 1×10⁻⁴.',
+    'TCA':'Time of Closest Approach — the moment of minimum separation between two conjunction objects. Reference epoch for all CDM calculations.',
+    'CDM':'Conjunction Data Message — CCSDS standard format for sharing conjunction results between space surveillance providers and operators.',
+    'NASA SBM':'NASA Standard Breakup Model — predicts fragment count N(Lc) = 6·M^0.75·Lc^−1.6 from satellite collisions or explosions.',
+    'covariance':'A 3×3 or 6×6 symmetric matrix encoding position uncertainty and correlations in RTN. Diagonal elements are variances (σ_R², σ_T², σ_N²).',
+    'delta-v':'Change in velocity (km/s) required for an orbital maneuver — the fundamental currency of spaceflight, limited by onboard propellant.',
+  };
+  const tip = document.createElement('div');
+  tip.className = 'gtooltip';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Full glossary →</a>';
+  document.body.appendChild(tip);
+  let hideTimer;
+  document.querySelectorAll('dfn[data-term]').forEach(el => {
+    const key = el.dataset.term;
+    const def = DEFS[key] || '';
+    if (!def) return;
+    el.addEventListener('mouseenter', () => {
+      clearTimeout(hideTimer);
+      tip.querySelector('.gtooltip-term').textContent = key;
+      tip.querySelector('.gtooltip-def').textContent = def;
+      const rect = el.getBoundingClientRect();
+      let top = rect.bottom + 8, left = rect.left;
+      if (left + 300 > window.innerWidth - 16) left = window.innerWidth - 316;
+      if (top + 140 > window.innerHeight - 16) top = rect.top - 150;
+      tip.style.top = top + 'px'; tip.style.left = left + 'px';
+      tip.classList.add('show');
+    });
+    el.addEventListener('mouseleave', () => { hideTimer = setTimeout(() => tip.classList.remove('show'), 200); });
+  });
+})();
+
 </script>
 
       <!-- Chapter nav -->
@@ -6153,7 +6326,7 @@ tbody tr:hover td { background:var(--ink-2); }
 
 <nav>
   <a href="/" class="nav-brand">VectraSpace // Education</a>
-  <a href="/" class="nav-back">← Back to Learning Hub</a>
+  <div style="display:flex;gap:8px;"><a href="/" class="nav-back">← Back to Learning Hub</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
@@ -6164,7 +6337,7 @@ tbody tr:hover td { background:var(--ink-2); }
   <h1>Debris Modeling &amp; <span class="hero-accent">Kessler Cascade</span></h1>
   <p class="hero-intro">
     Every collision in orbit creates thousands of new fragments, each capable of causing further collisions.
-    The runaway chain reaction known as Kessler Syndrome could render entire orbital shells
+    The runaway chain reaction known as <dfn data-term="Kessler">Kessler Syndrome</dfn> could render entire orbital shells
     permanently inaccessible. Understanding its physics — and how to model, predict, and prevent it — is
     the defining challenge of 21st century spaceflight.
   </p>
@@ -6374,7 +6547,7 @@ tbody tr:hover td { background:var(--ink-2); }
     <!-- NASA SBM -->
     <section id="sbm-model" class="content-section reveal">
       <div class="section-number">// 05</div>
-      <h2>NASA Standard Breakup Model (SBM)</h2>
+      <h2><dfn data-term="NASA SBM">NASA Standard Breakup Model</dfn> (SBM)</h2>
       <p>
         When a collision or explosion occurs in orbit, how many fragments does it create, and what are
         their sizes and velocities? The answer comes from the <strong>NASA Standard Breakup Model</strong>
@@ -6705,7 +6878,7 @@ tbody tr:hover td { background:var(--ink-2); }
 
 
 <!-- CHAPTER 4 QUIZ -->
-<div class="quiz-section" id="ch4-quiz-wrap">
+<div class="quiz-section" id="ch4-quiz-wrap" data-storage-key='vs_ch4_done'>
   <div class="quiz-eyebrow">⬡ Knowledge Check</div>
   <div class="quiz-title">Chapter 04 — Debris Modeling & Kessler Syndrome</div>
   <div class="quiz-subtitle">Test your understanding of the space debris environment, breakup models, and mitigation strategies.</div>
@@ -6818,6 +6991,47 @@ initQuiz('ch4-quiz', [
     explain: "Most uncontrolled debris objects (spent rocket bodies, defunct satellites) are tumbling at rates that can reach several RPM. They were not designed with capture interfaces. Matching rotation rates with a chaser spacecraft while grappling a tumbling, non-cooperative target is one of the hardest rendezvous problems in orbital mechanics."
   }
 ]);
+
+// ── GLOSSARY TOOLTIPS ─────────────────────────────────────────
+(function() {
+  const DEFS = {
+    'SGP4':'Simplified General Perturbations model 4 — the standard analytical propagator for Earth satellites using TLE data. Models drag (B*), J₂ oblateness, and secular/periodic terms.',
+    'TLE':'Two-Line Element Set — standardised format encoding six Keplerian elements at a given epoch. Accuracy decays ~1 km/day for LEO objects.',
+    'vis-viva':'v² = μ(2/r − 1/a). Relates orbital speed to current radius, semi-major axis, and gravitational parameter. Underlies all delta-v calculations.',
+    'RAAN':'Right Ascension of Ascending Node — angle from vernal equinox to ascending node. Drifts westward in prograde LEO orbits due to J₂ at ~6–7°/day.',
+    'J₂':'Dominant Earth oblateness coefficient: J₂ = 1.08263×10⁻³. Causes nodal regression (RAAN drift) and apsidal precession for all satellites.',
+    'Kessler':'A self-sustaining cascade of collisions above a critical debris density, proposed by Donald Kessler (NASA, 1978). Potentially irreversible above 800 km.',
+    'Pc':'Probability of Collision — the probability two objects physically contact. Computed by integrating the combined uncertainty PDF over the collision cross-section. Action threshold: 1×10⁻⁴.',
+    'TCA':'Time of Closest Approach — the moment of minimum separation between two conjunction objects. Reference epoch for all CDM calculations.',
+    'CDM':'Conjunction Data Message — CCSDS standard format for sharing conjunction results between space surveillance providers and operators.',
+    'NASA SBM':'NASA Standard Breakup Model — predicts fragment count N(Lc) = 6·M^0.75·Lc^−1.6 from satellite collisions or explosions.',
+    'covariance':'A 3×3 or 6×6 symmetric matrix encoding position uncertainty and correlations in RTN. Diagonal elements are variances (σ_R², σ_T², σ_N²).',
+    'delta-v':'Change in velocity (km/s) required for an orbital maneuver — the fundamental currency of spaceflight, limited by onboard propellant.',
+  };
+  const tip = document.createElement('div');
+  tip.className = 'gtooltip';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Full glossary →</a>';
+  document.body.appendChild(tip);
+  let hideTimer;
+  document.querySelectorAll('dfn[data-term]').forEach(el => {
+    const key = el.dataset.term;
+    const def = DEFS[key] || '';
+    if (!def) return;
+    el.addEventListener('mouseenter', () => {
+      clearTimeout(hideTimer);
+      tip.querySelector('.gtooltip-term').textContent = key;
+      tip.querySelector('.gtooltip-def').textContent = def;
+      const rect = el.getBoundingClientRect();
+      let top = rect.bottom + 8, left = rect.left;
+      if (left + 300 > window.innerWidth - 16) left = window.innerWidth - 316;
+      if (top + 140 > window.innerHeight - 16) top = rect.top - 150;
+      tip.style.top = top + 'px'; tip.style.left = left + 'px';
+      tip.classList.add('show');
+    });
+    el.addEventListener('mouseleave', () => { hideTimer = setTimeout(() => tip.classList.remove('show'), 200); });
+  });
+})();
+
 </script>
 
       <!-- Chapter nav -->
@@ -7516,6 +7730,107 @@ section { position: relative; z-index: 1; }
 }
 .chapter-card:hover .chapter-read-link::after { transform: translateX(4px); }
 
+
+/* ── CHAPTER PROGRESS TRACKING ── */
+.chapter-card { position: relative; }
+.chapter-progress-badge {
+  position: absolute; top: 14px; right: 14px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--green, #34d399); display: none;
+  align-items: center; justify-content: center;
+  font-size: 12px; z-index: 2;
+  box-shadow: 0 0 12px rgba(52,211,153,0.4);
+}
+.chapter-card.completed .chapter-progress-badge { display: flex; }
+.chapter-card.completed .chapter-card-accent { transform: scaleX(1); background: var(--green, #34d399); }
+.chapter-card.completed { border-color: rgba(52,211,153,0.2); }
+
+/* Learning progress bar strip */
+.learn-progress-strip {
+  max-width: 480px; margin: 0 auto 56px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px 24px;
+  display: none;
+}
+.learn-progress-strip.show { display: block; }
+.lps-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  display: flex; justify-content: space-between;
+}
+.lps-bar-track {
+  height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+}
+.lps-bar-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--green) 100%);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+
+/* ── SUBSCRIBE SECTION ── */
+.subscribe-card {
+  background: var(--ink2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 48px; overflow: hidden;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center;
+  position: relative;
+}
+.subscribe-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 50%, rgba(74,158,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.sub-eyebrow {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 12px;
+}
+.sub-title {
+  font-family: var(--serif); font-size: 34px; font-weight: 400;
+  color: #fff; line-height: 1.1; letter-spacing: -0.3px; margin-bottom: 14px;
+}
+.sub-title em { font-style: italic; color: var(--accent2); }
+.sub-body { font-size: 14px; color: var(--muted); line-height: 1.75; margin-bottom: 24px; }
+.sub-features { display: flex; flex-direction: column; gap: 8px; }
+.sub-feat { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.sub-feat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sub-form-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+}
+.sub-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.sub-input {
+  flex: 1; padding: 12px 16px; background: var(--ink3);
+  border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-family: var(--mono); font-size: 13px;
+  outline: none; transition: border-color 0.2s;
+}
+.sub-input:focus { border-color: var(--accent); }
+.sub-input::placeholder { color: var(--faint); }
+.sub-btn {
+  padding: 12px 22px; background: var(--accent); color: #fff;
+  border: none; border-radius: 6px; font-family: var(--mono);
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.sub-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+.sub-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+.sub-disclaimer {
+  font-family: var(--mono); font-size: 9px; color: var(--faint); letter-spacing: 0.5px;
+}
+.sub-msg { margin-top: 8px; font-family: var(--mono); font-size: 10px; min-height: 16px; }
+.sub-success { text-align: center; padding: 20px; }
+.sub-success-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: var(--green); margin: 0 auto 14px;
+}
+.sub-success-title { font-family: var(--serif); font-size: 22px; color: #fff; margin-bottom: 6px; }
+.sub-success-body { font-size: 13px; color: var(--muted); line-height: 1.6; }
+@media(max-width:760px) {
+  .subscribe-card { grid-template-columns: 1fr; gap: 32px; padding: 32px; }
+}
+
 /* ── DATA SECTION ── */
 #data { padding: 100px 0; }
 .data-metrics {
@@ -7795,6 +8110,9 @@ footer {
     <li><a href="#kessler">Kessler Syndrome</a></li>
     <li><a href="#learn">Deep Dives</a></li>
     <li><a href="#simulation">Simulation</a></li>
+    <li><a href="/glossary">Glossary</a></li>
+    <li><a href="/glossary">Glossary</a></li>
+    <li><a href="/calculator">Calculator</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="/dashboard" class="nav-cta">Open Dashboard</a>
@@ -8114,10 +8432,15 @@ footer {
       </div>
     </div>
 
+    <div class="learn-progress-strip" id="learn-progress-strip">
+      <div class="lps-label"><span>Your Progress</span><span id="lps-text">0 / 4 Chapters</span></div>
+      <div class="lps-bar-track"><div class="lps-bar-fill" id="lps-fill" style="width:0%"></div></div>
+    </div>
     <div class="chapters-grid">
       <!-- Chapter 01 -->
-      <a href="/education/orbital-mechanics" class="chapter-card reveal" style="--ch-color:#4a9eff;">
+      <a href="/education/orbital-mechanics" class="chapter-card reveal" id="chcard-1" style="--ch-color:#4a9eff;">
         <div class="chapter-card-accent"></div>
+        <div class="chapter-progress-badge">✓</div>
         <div class="chapter-card-body">
           <div class="chapter-number">Chapter 01 — Foundations</div>
           <h3 class="chapter-title">Orbital Mechanics &amp; the Two-Body Problem</h3>
@@ -8141,8 +8464,9 @@ footer {
       </a>
 
       <!-- Chapter 02 -->
-      <a href="/education/collision-prediction" class="chapter-card reveal reveal-delay-1" style="--ch-color:#34d399;">
+      <a href="/education/collision-prediction" class="chapter-card reveal reveal-delay-1" id="chcard-2" style="--ch-color:#34d399;">
         <div class="chapter-card-accent"></div>
+        <div class="chapter-progress-badge">✓</div>
         <div class="chapter-card-body">
           <div class="chapter-number">Chapter 02 — Collision Analysis</div>
           <h3 class="chapter-title">Conjunction Prediction &amp; Probability of Collision</h3>
@@ -8166,8 +8490,9 @@ footer {
       </a>
 
       <!-- Chapter 03 -->
-      <a href="/education/perturbations" class="chapter-card reveal reveal-delay-2" style="--ch-color:#f59e0b;">
+      <a href="/education/perturbations" class="chapter-card reveal reveal-delay-2" id="chcard-3" style="--ch-color:#f59e0b;">
         <div class="chapter-card-accent"></div>
+        <div class="chapter-progress-badge">✓</div>
         <div class="chapter-card-body">
           <div class="chapter-number">Chapter 03 — Perturbation Theory</div>
           <h3 class="chapter-title">Why Real Orbits Deviate from Kepler</h3>
@@ -8191,8 +8516,9 @@ footer {
       </a>
 
       <!-- Chapter 04 -->
-      <a href="/education/debris-modeling" class="chapter-card reveal reveal-delay-3" style="--ch-color:#f87171;">
+      <a href="/education/debris-modeling" class="chapter-card reveal reveal-delay-3" id="chcard-4" style="--ch-color:#f87171;">
         <div class="chapter-card-accent"></div>
+        <div class="chapter-progress-badge">✓</div>
         <div class="chapter-card-body">
           <div class="chapter-number">Chapter 04 — Debris Physics</div>
           <h3 class="chapter-title">Debris Modeling &amp; the Kessler Cascade</h3>
@@ -8421,6 +8747,46 @@ footer {
 </section>
 
 <!-- ABOUT & CONTACT -->
+
+<div class="section-divider"></div>
+
+<!-- SUBSCRIBE -->
+<section id="subscribe" style="padding:80px 0;">
+  <div class="section-wrap">
+    <div class="subscribe-card reveal">
+      <div class="sub-left">
+        <div class="sub-eyebrow">// Stay Informed</div>
+        <h2 class="sub-title">Weekly Conjunction<br><em>Alert Digest</em></h2>
+        <p class="sub-body">
+          Get a weekly summary of the highest-risk conjunctions detected by VectraSpace —
+          top Pc events, new debris cloud alerts, and orbital safety news. No spam, unsubscribe anytime.
+        </p>
+        <div class="sub-features">
+          <div class="sub-feat"><span class="sub-feat-dot" style="background:var(--accent)"></span>Top 5 conjunctions of the week</div>
+          <div class="sub-feat"><span class="sub-feat-dot" style="background:var(--green)"></span>New debris event notifications</div>
+          <div class="sub-feat"><span class="sub-feat-dot" style="background:var(--amber)"></span>Satellite of the week deep dive</div>
+        </div>
+      </div>
+      <div class="sub-right">
+        <div class="sub-form-wrap" id="sub-form-wrap">
+          <div class="sub-form-label">Enter your email address</div>
+          <div class="sub-input-row">
+            <input type="email" class="sub-input" id="sub-email" placeholder="you@example.com" autocomplete="email">
+            <button class="sub-btn" id="sub-btn" onclick="submitSubscribe()">Subscribe</button>
+          </div>
+          <div class="sub-disclaimer">No spam · Sent every Monday · Unsubscribe any time</div>
+          <div class="sub-msg" id="sub-msg"></div>
+        </div>
+        <div class="sub-success" id="sub-success" style="display:none;">
+          <div class="sub-success-icon">✓</div>
+          <div class="sub-success-title">You're subscribed!</div>
+          <div class="sub-success-body">Look out for your first digest next Monday.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="contact" style="padding:100px 0; position:relative; z-index:1;">
   <div class="container" style="max-width:860px; margin:0 auto; padding:0 48px;">
     <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
@@ -8550,6 +8916,61 @@ const counterObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.4 });
 const metricsEl = document.querySelector('.data-metrics');
 if (metricsEl) counterObserver.observe(metricsEl);
+
+
+// ── EMAIL SUBSCRIBE ───────────────────────────────────────────
+async function submitSubscribe() {
+  const emailEl = document.getElementById('sub-email');
+  const btn     = document.getElementById('sub-btn');
+  const msgEl   = document.getElementById('sub-msg');
+  const email   = emailEl.value.trim();
+  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+    msgEl.style.color = 'var(--red)'; msgEl.textContent = 'Please enter a valid email address.'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Subscribing…'; msgEl.textContent = '';
+  try {
+    const r = await fetch('/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
+    const data = await r.json();
+    if (r.ok) {
+      document.getElementById('sub-form-wrap').style.display = 'none';
+      document.getElementById('sub-success').style.display = 'block';
+    } else {
+      msgEl.style.color = 'var(--red)'; msgEl.textContent = data.detail || 'Something went wrong.';
+      btn.disabled = false; btn.textContent = 'Subscribe';
+    }
+  } catch(e) {
+    msgEl.style.color = 'var(--red)'; msgEl.textContent = 'Network error — please try again.';
+    btn.disabled = false; btn.textContent = 'Subscribe';
+  }
+}
+
+// ── CHAPTER PROGRESS ──────────────────────────────────────────
+(function() {
+  const CHAPTERS = [
+    { id: 'chcard-1', key: 'vs_ch1_done' },
+    { id: 'chcard-2', key: 'vs_ch2_done' },
+    { id: 'chcard-3', key: 'vs_ch3_done' },
+    { id: 'chcard-4', key: 'vs_ch4_done' },
+  ];
+  let completed = 0;
+  CHAPTERS.forEach(({ id, key }) => {
+    try {
+      if (localStorage.getItem(key) === '1') {
+        const card = document.getElementById(id);
+        if (card) { card.classList.add('completed'); completed++; }
+      }
+    } catch(e) {}
+  });
+  if (completed > 0) {
+    const strip = document.getElementById('learn-progress-strip');
+    const fill  = document.getElementById('lps-fill');
+    const text  = document.getElementById('lps-text');
+    if (strip) strip.classList.add('show');
+    if (fill)  setTimeout(() => fill.style.width = (completed/4*100) + '%', 100);
+    if (text)  text.textContent = completed + ' / 4 Chapters';
+  }
+})();
+
 </script>
 </body>
 </html>
@@ -8559,6 +8980,863 @@ if (metricsEl) counterObserver.observe(metricsEl);
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 7 — REST API + SSE RUN ENDPOINT                      ║
 # ╚══════════════════════════════════════════════════════════════╝
+
+CALC_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Impact Calculator — VectraSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#080c12;--ink2:#0d1320;--ink3:#131d2e;--panel:#0f1925;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;
+  --accent:#4a9eff;--accent2:#7bc4ff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;
+  --serif:'Instrument Serif',Georgia,serif;--mono:'DM Mono',monospace;--sans:'Outfit',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden;min-height:100vh;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.94);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-family:var(--sans);font-size:16px;font-weight:600;}
+.nav-brand em{color:var(--accent);font-style:normal;}
+.nav-links{display:flex;gap:4px;align-items:center;}
+.nav-link{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:4px;transition:all 0.2s;border:1px solid transparent;}
+.nav-link:hover{color:var(--text);border-color:var(--border);}
+.nav-link.active{color:var(--accent);border-color:rgba(74,158,255,0.3);background:rgba(74,158,255,0.05);}
+
+/* PAGE LAYOUT */
+.page{padding:96px 48px 80px;max-width:1100px;margin:0 auto;}
+.page-hero{margin-bottom:56px;}
+.page-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.page-eyebrow::before{content:'';width:24px;height:1px;background:var(--amber);display:inline-block;}
+.page-title{font-family:var(--serif);font-size:clamp(38px,4.5vw,60px);font-weight:400;color:#fff;line-height:1.1;letter-spacing:-0.5px;margin-bottom:16px;}
+.page-title em{font-style:italic;color:var(--accent2);}
+.page-subtitle{font-size:15px;color:var(--muted);line-height:1.8;max-width:620px;}
+
+/* GRID */
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+
+/* PANEL */
+.calc-panel{background:var(--ink2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.calc-panel-header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.calc-panel-icon{font-size:16px;}
+.calc-panel-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.calc-panel-body{padding:28px;}
+
+/* INPUTS */
+.field{margin-bottom:24px;}
+.field:last-child{margin-bottom:0;}
+.field-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.field-hint{font-family:var(--mono);font-size:9px;color:var(--faint);letter-spacing:0;text-transform:none;}
+.field-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}
+.field-input{
+  width:100%;padding:11px 16px;background:var(--ink3);
+  border:1px solid var(--border);border-radius:6px;
+  color:var(--text);font-family:var(--mono);font-size:14px;
+  outline:none;transition:border-color 0.2s;
+}
+.field-input:focus{border-color:var(--accent);}
+.field-input::placeholder{color:var(--faint);}
+.field-unit{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;white-space:nowrap;padding:0 4px;}
+
+/* SLIDER */
+.slider-wrap{margin-top:6px;}
+.range-slider{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border2);outline:none;cursor:pointer;}
+.range-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px rgba(74,158,255,0.5);}
+.range-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none;}
+.slider-labels{display:flex;justify-content:space-between;margin-top:4px;font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:1px;}
+
+/* PRESETS */
+.preset-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.preset-btn{
+  font-family:var(--mono);font-size:8px;letter-spacing:0.5px;
+  padding:4px 10px;border-radius:4px;border:1px solid var(--border);
+  color:var(--muted);background:transparent;cursor:pointer;transition:all 0.15s;
+}
+.preset-btn:hover,.preset-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.06);}
+
+/* RESULTS */
+.results-empty{padding:48px 28px;text-align:center;}
+.results-empty-icon{font-size:32px;margin-bottom:12px;opacity:0.3;}
+.results-empty-text{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:1.5px;text-transform:uppercase;line-height:1.8;}
+
+.result-hero{padding:28px;border-bottom:1px solid var(--border);text-align:center;}
+.result-hero-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.result-hero-val{font-family:var(--serif);font-size:52px;font-style:italic;color:var(--accent);line-height:1;}
+.result-hero-unit{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;}
+
+.result-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}
+.result-cell{padding:20px 24px;border-right:1px solid var(--border);}
+.result-cell:nth-child(even){border-right:none;}
+.result-cell-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.result-cell-val{font-family:var(--serif);font-size:24px;font-style:italic;color:var(--text);}
+.result-cell-sub{font-family:var(--mono);font-size:9px;color:var(--faint);margin-top:2px;}
+
+/* SEVERITY METER */
+.severity-wrap{padding:24px 28px;border-bottom:1px solid var(--border);}
+.severity-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;}
+.severity-bar-track{height:6px;background:var(--border2);border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.severity-bar-fill{height:100%;border-radius:3px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1),background 0.4s;}
+.severity-ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:0.5px;}
+
+/* ANALOG */
+.analogy-wrap{padding:20px 28px;border-bottom:1px solid var(--border);}
+.analogy-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.analogy-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.analogy-card{background:var(--ink3);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;}
+.analogy-icon{font-size:20px;margin-bottom:6px;}
+.analogy-name{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+.analogy-val{font-family:var(--serif);font-size:15px;color:var(--text);}
+.analogy-active{border-color:var(--accent2);background:rgba(74,158,255,0.06);}
+.analogy-active .analogy-val{color:var(--accent2);}
+
+/* FRAGMENT */
+.fragment-wrap{padding:20px 28px;}
+.fragment-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.fragment-bars{display:flex;flex-direction:column;gap:8px;}
+.fbar-row{display:grid;grid-template-columns:70px 1fr 80px;gap:10px;align-items:center;}
+.fbar-cat{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.5px;}
+.fbar-track{height:6px;background:var(--ink3);border-radius:3px;overflow:hidden;}
+.fbar-fill{height:100%;border-radius:3px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1);}
+.fbar-count{font-family:var(--mono);font-size:10px;color:var(--text);text-align:right;}
+
+/* KESSLER RISK */
+.kessler-wrap{padding:20px 28px;border-top:1px solid var(--border);}
+.kessler-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;border:1px solid;font-family:var(--mono);font-size:11px;letter-spacing:0.5px;}
+.kessler-dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.kessler-msg{font-size:13px;color:var(--muted);line-height:1.6;margin-top:10px;}
+
+/* SHARE */
+.share-wrap{padding:20px 28px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.share-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.share-btn{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 18px;border-radius:5px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.2s;}
+.share-btn:hover{border-color:var(--accent);color:var(--accent);}
+.share-btn.copied{border-color:var(--green);color:var(--green);}
+
+/* CALC BUTTON */
+.calc-btn{
+  width:100%;margin-top:20px;padding:14px;border-radius:7px;
+  background:linear-gradient(135deg,rgba(74,158,255,0.15),rgba(74,158,255,0.05));
+  border:1px solid rgba(74,158,255,0.4);color:var(--accent2);
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;
+}
+.calc-btn:hover{background:linear-gradient(135deg,rgba(74,158,255,0.25),rgba(74,158,255,0.1));border-color:var(--accent);}
+
+/* SCENARIO CARDS (below) */
+.scenarios{margin-top:40px;}
+.scenarios-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+.scenario-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.scenario-card{
+  background:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:16px;
+  cursor:pointer;transition:all 0.2s;
+}
+.scenario-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.sc-icon{font-size:22px;margin-bottom:8px;}
+.sc-name{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.sc-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* EDUCATIONAL CALLOUT */
+.edu-callout{margin-top:40px;background:var(--ink2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:24px 28px;}
+.edu-callout-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;}
+.edu-callout-title{font-family:var(--serif);font-size:18px;color:#fff;margin-bottom:8px;}
+.edu-callout-body{font-size:13px;color:var(--muted);line-height:1.7;}
+.edu-link{color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:1px;display:inline-flex;align-items:center;gap:5px;margin-top:12px;transition:color 0.2s;}
+.edu-link:hover{color:var(--accent2);}
+
+@media(max-width:900px){
+  .calc-grid{grid-template-columns:1fr;}
+  .scenario-cards{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:600px){
+  nav{padding:0 16px;}
+  .page{padding:88px 20px 60px;}
+  .analogy-cards{grid-template-columns:1fr 1fr;}
+  .result-grid{grid-template-columns:1fr;}
+  .result-cell{border-right:none;border-bottom:1px solid var(--border);}
+  .scenario-cards{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-brand">Vectra<em>Space</em></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Hub</a>
+    <a href="/glossary" class="nav-link">Glossary</a>
+    <a href="/calculator" class="nav-link active">Calculator</a>
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-hero">
+    <div class="page-eyebrow">// Interactive Tool</div>
+    <h1 class="page-title">Orbital Collision <em>Impact Calculator</em></h1>
+    <p class="page-subtitle">Model the kinetic energy, fragment count, and cascade risk of any space collision using the NASA Standard Breakup Model and real orbital physics.</p>
+  </div>
+
+  <div class="calc-grid">
+    <!-- LEFT: INPUTS -->
+    <div>
+      <div class="calc-panel">
+        <div class="calc-panel-header">
+          <span class="calc-panel-icon">⚙</span>
+          <span class="calc-panel-title">Collision Parameters</span>
+        </div>
+        <div class="calc-panel-body">
+
+          <!-- Object A -->
+          <div class="field">
+            <div class="field-label">Object A — Mass<span class="field-hint">Primary satellite</span></div>
+            <div class="field-row">
+              <input type="number" class="field-input" id="massA" value="800" min="0.01" max="500000" step="1" placeholder="800">
+              <span class="field-unit">kg</span>
+            </div>
+            <div class="slider-wrap">
+              <input type="range" class="range-slider" id="slMassA" min="1" max="20000" value="800" step="1">
+              <div class="slider-labels"><span>1 kg</span><span>1,000</span><span>5,000</span><span>10,000</span><span>20,000</span></div>
+            </div>
+          </div>
+
+          <!-- Object B -->
+          <div class="field">
+            <div class="field-label">Object B — Mass<span class="field-hint">Impactor / debris</span></div>
+            <div class="field-row">
+              <input type="number" class="field-input" id="massB" value="900" min="0.01" max="500000" step="1" placeholder="900">
+              <span class="field-unit">kg</span>
+            </div>
+            <div class="slider-wrap">
+              <input type="range" class="range-slider" id="slMassB" min="1" max="20000" value="900" step="1">
+              <div class="slider-labels"><span>1 kg</span><span>1,000</span><span>5,000</span><span>10,000</span><span>20,000</span></div>
+            </div>
+          </div>
+
+          <!-- Relative velocity -->
+          <div class="field">
+            <div class="field-label">Relative Velocity<span class="field-hint">At impact (0–15 km/s for LEO)</span></div>
+            <div class="field-row">
+              <input type="number" class="field-input" id="velRel" value="11.7" min="0.1" max="15" step="0.1" placeholder="11.7">
+              <span class="field-unit">km/s</span>
+            </div>
+            <div class="slider-wrap">
+              <input type="range" class="range-slider" id="slVel" min="0.1" max="15" value="11.7" step="0.1">
+              <div class="slider-labels"><span>0</span><span>3.75</span><span>7.5</span><span>11.25</span><span>15 km/s</span></div>
+            </div>
+          </div>
+
+          <!-- Altitude -->
+          <div class="field">
+            <div class="field-label">Altitude<span class="field-hint">Affects cascade risk assessment</span></div>
+            <div class="field-row">
+              <input type="number" class="field-input" id="altitude" value="789" min="160" max="36000" step="1" placeholder="789">
+              <span class="field-unit">km</span>
+            </div>
+            <div class="preset-row">
+              <button class="preset-btn" onclick="setAlt(400)">ISS (400 km)</button>
+              <button class="preset-btn active" onclick="setAlt(789)">Iridium/Cosmos (789)</button>
+              <button class="preset-btn" onclick="setAlt(863)">FY-1C (863)</button>
+              <button class="preset-btn" onclick="setAlt(1200)">High LEO (1,200)</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label">Common Scenarios</div>
+            <div class="preset-row">
+              <button class="preset-btn" onclick="loadPreset('frag')">1 cm fragment</button>
+              <button class="preset-btn" onclick="loadPreset('smallsat')">SmallSat vs debris</button>
+              <button class="preset-btn" onclick="loadPreset('iridium')">Iridium-Cosmos</button>
+              <button class="preset-btn" onclick="loadPreset('fy1c')">FY-1C ASAT</button>
+            </div>
+          </div>
+
+          <button class="calc-btn" onclick="calculate()">▶ Calculate Collision Physics</button>
+        </div>
+      </div>
+
+      <div class="edu-callout" style="margin-top:20px;">
+        <div class="edu-callout-eyebrow">// How the math works</div>
+        <div class="edu-callout-title">NASA Standard Breakup Model</div>
+        <div class="edu-callout-body">Fragment count follows N(L<sub>c</sub>) = 6·M<sup>0.75</sup>·L<sub>c</sub><sup>−1.6</sup> where M is the mass of the smaller object (kg) and L<sub>c</sub> is the minimum fragment characteristic length (m). Kinetic energy KE = ½μv² uses the reduced mass μ = m₁m₂/(m₁+m₂). The specific energy E* = KE/M_total determines whether a collision is catastrophic (E* > 40 kJ/kg) or cratering.</div>
+        <a href="/education/debris-modeling" class="edu-link">Read Chapter 04: Debris Modeling →</a>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="calc-panel" id="results-panel">
+      <div class="calc-panel-header">
+        <span class="calc-panel-icon">📊</span>
+        <span class="calc-panel-title">Results</span>
+      </div>
+      <div class="results-empty" id="results-empty">
+        <div class="results-empty-icon">⚡</div>
+        <div class="results-empty-text">Set parameters<br>and calculate</div>
+      </div>
+      <div id="results-body" style="display:none;">
+        <!-- injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENARIO CARDS -->
+  <div class="scenarios">
+    <div class="scenarios-label">// Historical & Reference Events</div>
+    <div class="scenario-cards">
+      <div class="scenario-card" onclick="loadPreset('iridium')">
+        <div class="sc-icon">🛰</div>
+        <div class="sc-name">Iridium-Cosmos 2009</div>
+        <div class="sc-desc">First accidental collision — 789 km, 11.7 km/s, ~2,300 trackable fragments</div>
+      </div>
+      <div class="scenario-card" onclick="loadPreset('fy1c')">
+        <div class="sc-icon">💥</div>
+        <div class="sc-name">FY-1C ASAT 2007</div>
+        <div class="sc-desc">Deliberate kinetic impact — 863 km, 9.0 km/s, worst single debris event</div>
+      </div>
+      <div class="scenario-card" onclick="loadPreset('smallsat')">
+        <div class="sc-icon">📦</div>
+        <div class="sc-name">CubeSat Impact</div>
+        <div class="sc-desc">3U CubeSat vs 10 cm fragment at typical LEO crossing velocity</div>
+      </div>
+      <div class="scenario-card" onclick="loadPreset('frag')">
+        <div class="sc-icon">🔩</div>
+        <div class="sc-name">Paint Fleck / Bolt</div>
+        <div class="sc-desc">1 cm fragment vs 500 kg satellite — surprisingly lethal at orbital speeds</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SYNC SLIDERS TO INPUTS ────────────────────────────────────
+function syncSlider(inputId, sliderId) {
+  const input  = document.getElementById(inputId);
+  const slider = document.getElementById(sliderId);
+  input.addEventListener('input', () => { slider.value = input.value; });
+  slider.addEventListener('input', () => { input.value = slider.value; });
+}
+syncSlider('massA','slMassA');
+syncSlider('massB','slMassB');
+syncSlider('velRel','slVel');
+
+function setAlt(v) {
+  document.getElementById('altitude').value = v;
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes('(' + v));
+  });
+}
+
+// ── PRESETS ───────────────────────────────────────────────────
+const PRESETS = {
+  frag:     { massA: 500,   massB: 0.01,  vel: 7.7,  alt: 500,  label: '1 cm fragment vs 500 kg satellite' },
+  smallsat: { massA: 4,     massB: 1,     vel: 10.3, alt: 550,  label: '3U CubeSat vs 1 kg fragment' },
+  iridium:  { massA: 560,   massB: 900,   vel: 11.7, alt: 789,  label: 'Iridium 33 vs Cosmos 2251 (2009)' },
+  fy1c:     { massA: 750,   massB: 300,   vel: 9.0,  alt: 863,  label: 'FY-1C ASAT Impact (2007)' },
+};
+function loadPreset(key) {
+  const p = PRESETS[key];
+  document.getElementById('massA').value  = p.massA;
+  document.getElementById('massB').value  = p.massB;
+  document.getElementById('velRel').value = p.vel;
+  document.getElementById('altitude').value = p.alt;
+  document.getElementById('slMassA').value = p.massA;
+  document.getElementById('slMassB').value = p.massB;
+  document.getElementById('slVel').value   = p.vel;
+  calculate();
+}
+
+// ── PHYSICS ───────────────────────────────────────────────────
+function formatNum(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(2) + ' GJ';
+  if (n >= 1e6) return (n/1e6).toFixed(2) + ' MJ';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + ' kJ';
+  return n.toFixed(0) + ' J';
+}
+function formatCount(n) {
+  if (n >= 1e6) return '>' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '~' + Math.round(n/100)*100;
+  return '~' + Math.round(n);
+}
+
+function calculate() {
+  const mA  = parseFloat(document.getElementById('massA').value)  || 0;
+  const mB  = parseFloat(document.getElementById('massB').value)  || 0;
+  const vel = parseFloat(document.getElementById('velRel').value) || 0;
+  const alt = parseFloat(document.getElementById('altitude').value) || 0;
+
+  if (!mA || !mB || !vel) return;
+
+  // Reduced mass & kinetic energy
+  const mu    = (mA * mB) / (mA + mB);          // reduced mass, kg
+  const vMs   = vel * 1000;                       // m/s
+  const keJ   = 0.5 * mu * vMs * vMs;            // Joules
+  const kekJ  = keJ / 1000;
+
+  // Full system KE (as reference)
+  const fullKe = 0.5 * (mA + mB) * vMs * vMs;
+
+  // Specific energy (determines catastrophic vs cratering)
+  const eStar = keJ / ((mA + mB) * 1000);   // J/kg → kJ/kg after /1000
+  const eStarkJ = eStar / 1000;
+  const catastrophic = eStarkJ >= 40;
+
+  // NASA SBM fragment counts (using smaller mass as target for catastrophic)
+  // N(Lc) = 6 * M^0.75 * Lc^-1.6
+  const mSBM = catastrophic ? Math.min(mA, mB) : Math.min(mA, mB);
+  const sbmCoeff = 6 * Math.pow(mSBM, 0.75);
+  const nTrackable  = Math.round(sbmCoeff * Math.pow(0.10, -1.6));  // ≥10 cm
+  const nLethal     = Math.round(sbmCoeff * Math.pow(0.01, -1.6));  // ≥1 cm
+  const nTiny       = Math.round(sbmCoeff * Math.pow(0.001,-1.6)); // ≥1 mm
+
+  // Analogy table (kJ)
+  const analogies = [
+    { icon:'🔫', name:'Rifle bullet', kJ: 3 },
+    { icon:'💣', name:'Hand grenade', kJ: 400 },
+    { icon:'🚗', name:'Car at 100 mph', kJ: 540 },
+    { icon:'🎯', name:'AT missile', kJ: 5000 },
+    { icon:'✈', name:'747 at cruise', kJ: 3.7e8 },
+    { icon:'🌋', name:'Hiroshima', kJ: 6.3e10 },
+  ];
+  let closestIdx = 0;
+  let closestDiff = Infinity;
+  analogies.forEach((a,i) => {
+    const diff = Math.abs(Math.log10(kekJ+1) - Math.log10(a.kJ+1));
+    if (diff < closestDiff) { closestDiff = diff; closestIdx = i; }
+  });
+  const showAnalogies = analogies.slice(Math.max(0,closestIdx-1), closestIdx+2);
+
+  // Severity (0–100 log scale)
+  const sevPct = Math.min(100, Math.log10(kekJ + 1) / Math.log10(1e12) * 100);
+  const sevColor = sevPct < 30 ? 'var(--green)' : sevPct < 60 ? 'var(--amber)' : 'var(--red)';
+
+  // Kessler cascade risk
+  const altRisk = alt >= 800 && alt <= 1400;
+  const massRisk = catastrophic && (mA > 100 || mB > 100);
+  let kesslerLevel, kesslerColor, kesslerMsg;
+  if (altRisk && massRisk) {
+    kesslerLevel = 'HIGH CASCADE RISK';
+    kesslerColor = 'var(--red)';
+    kesslerMsg = `At ${alt} km with ${formatCount(nTrackable)} new trackable fragments, this collision falls in the critical density altitude band. Without active debris removal, fragments from this event could trigger further cascading collisions. This is exactly the Kessler scenario.`;
+  } else if (altRisk || (catastrophic && (mA>50||mB>50))) {
+    kesslerLevel = 'ELEVATED RISK';
+    kesslerColor = 'var(--amber)';
+    kesslerMsg = `This collision generates a significant debris cloud${altRisk ? ` at a high-risk altitude (${alt} km)` : ''}. Below 600 km, atmospheric drag will naturally remove most fragments within years. Above 800 km, fragments can persist for decades to centuries.`;
+  } else {
+    kesslerLevel = 'CONTAINED EVENT';
+    kesslerColor = 'var(--green)';
+    kesslerMsg = `This collision is relatively contained. ${catastrophic ? 'The small masses involved limit fragment count.' : 'Non-catastrophic: the impactor cratered rather than fully fragmenting the target.'} Atmospheric drag at this altitude will deorbit most small fragments over time.`;
+  }
+
+  // Orbital lifetime of fragments (rough)
+  let lifetime;
+  if (alt < 350) lifetime = 'weeks to months';
+  else if (alt < 500) lifetime = '1–5 years';
+  else if (alt < 700) lifetime = '5–25 years';
+  else if (alt < 900) lifetime = '25–100 years';
+  else lifetime = 'centuries';
+
+  // Fragment bar max
+  const maxN = Math.max(nTiny, 1);
+
+  // Build result HTML
+  const html = `
+    <div class="result-hero">
+      <div class="result-hero-label">Kinetic Energy Released</div>
+      <div class="result-hero-val">${formatNum(keJ)}</div>
+      <div class="result-hero-unit">reduced-mass · (${vel} km/s)²</div>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">Collision Type</div>
+        <div class="result-cell-val" style="color:${catastrophic?'var(--red)':'var(--amber)'}">${catastrophic?'Catastrophic':'Cratering'}</div>
+        <div class="result-cell-sub">E* = ${eStarkJ.toFixed(0)} kJ/kg${catastrophic?' (>40 threshold)':' (<40 threshold)'}</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">Fragment Lifetime</div>
+        <div class="result-cell-val" style="font-size:16px;font-style:normal;font-family:var(--mono);color:var(--muted)">${lifetime}</div>
+        <div class="result-cell-sub">at ${alt} km altitude</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">Relative Velocity</div>
+        <div class="result-cell-val">${vel}</div>
+        <div class="result-cell-sub">km/s · ${(vel/29.8*100).toFixed(0)}% of Earth orbital speed</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">Reduced Mass</div>
+        <div class="result-cell-val">${mu.toFixed(1)}</div>
+        <div class="result-cell-sub">kg · m₁m₂/(m₁+m₂)</div>
+      </div>
+    </div>
+    <div class="severity-wrap">
+      <div class="severity-label">
+        <span>Impact Severity</span>
+        <span style="color:${sevColor}">${sevPct.toFixed(0)}%</span>
+      </div>
+      <div class="severity-bar-track"><div class="severity-bar-fill" style="width:${sevPct}%;background:${sevColor};"></div></div>
+      <div class="severity-ticks"><span>Tiny</span><span>Hand grenade</span><span>Car</span><span>Bomb</span><span>Nuclear</span></div>
+    </div>
+    <div class="analogy-wrap">
+      <div class="analogy-eyebrow">Energy equivalents — closest matches</div>
+      <div class="analogy-cards">
+        ${analogies.slice(Math.max(0,closestIdx-1),closestIdx+2).map((a,i) => `
+          <div class="analogy-card ${i===Math.min(closestIdx,1)?'analogy-active':''}">
+            <div class="analogy-icon">${a.icon}</div>
+            <div class="analogy-name">${a.name}</div>
+            <div class="analogy-val">${formatNum(a.kJ*1000)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="fragment-wrap">
+      <div class="fragment-label">NASA SBM Fragment Estimates</div>
+      <div class="fragment-bars">
+        <div class="fbar-row">
+          <span class="fbar-cat">≥10 cm</span>
+          <div class="fbar-track"><div class="fbar-fill" style="width:${(nTrackable/maxN*100)}%;background:var(--red);"></div></div>
+          <span class="fbar-count">${formatCount(nTrackable)}</span>
+        </div>
+        <div class="fbar-row">
+          <span class="fbar-cat">≥1 cm</span>
+          <div class="fbar-track"><div class="fbar-fill" style="width:${(nLethal/maxN*100)}%;background:var(--amber);"></div></div>
+          <span class="fbar-count">${formatCount(nLethal)}</span>
+        </div>
+        <div class="fbar-row">
+          <span class="fbar-cat">≥1 mm</span>
+          <div class="fbar-track"><div class="fbar-fill" style="width:100%;background:var(--faint);"></div></div>
+          <span class="fbar-count">${formatCount(nTiny)}</span>
+        </div>
+      </div>
+    </div>
+    <div class="kessler-wrap">
+      <div class="kessler-badge" style="color:${kesslerColor};border-color:${kesslerColor};background:${kesslerColor}22;">
+        <div class="kessler-dot" style="background:${kesslerColor};"></div>
+        ${kesslerLevel}
+      </div>
+      <div class="kessler-msg">${kesslerMsg}</div>
+    </div>
+    <div class="share-wrap">
+      <span class="share-label">Share this result</span>
+      <button class="share-btn" id="share-btn" onclick="shareResult(${mA},${mB},${vel},${alt})">↗ Copy Link</button>
+    </div>
+  `;
+
+  document.getElementById('results-empty').style.display = 'none';
+  const body = document.getElementById('results-body');
+  body.style.display = 'block';
+  body.innerHTML = html;
+}
+
+function shareResult(mA,mB,vel,alt) {
+  const url = `${location.origin}/calculator?mA=${mA}&mB=${mB}&v=${vel}&alt=${alt}`;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('share-btn');
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '↗ Copy Link'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── AUTO-LOAD FROM URL PARAMS ─────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(location.search);
+  if (p.has('mA')) document.getElementById('massA').value = p.get('mA');
+  if (p.has('mB')) document.getElementById('massB').value = p.get('mB');
+  if (p.has('v'))  document.getElementById('velRel').value = p.get('v');
+  if (p.has('alt')) document.getElementById('altitude').value = p.get('alt');
+  // sync sliders
+  ['slMassA','slMassB','slVel'].forEach(id => {
+    const linked = {slMassA:'massA',slMassB:'massB',slVel:'velRel'}[id];
+    document.getElementById(id).value = document.getElementById(linked).value;
+  });
+  if (p.has('mA') || p.has('mB') || p.has('v')) calculate();
+  else loadPreset('iridium'); // default
+});
+</script>
+</body>
+</html>"""
+
+GLOSSARY_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary — VectraSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#080c12; --ink2:#0d1320; --ink3:#131d2e; --panel:#0f1925;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#ccd6e0; --muted:#8aaac5; --faint:#2a3d50;
+  --accent:#4a9eff; --accent2:#7bc4ff; --green:#34d399; --amber:#f59e0b; --red:#f87171;
+  --serif:'Instrument Serif',Georgia,serif; --mono:'DM Mono',monospace; --sans:'Outfit',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.94);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-family:var(--sans);font-size:16px;font-weight:600;}
+.nav-brand em{color:var(--accent);font-style:normal;}
+.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 16px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
+.nav-back:hover{color:var(--text);border-color:var(--border2);}
+
+.hero{padding:120px 48px 60px;max-width:860px;margin:0 auto;}
+.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:16px;}
+.hero-title{font-family:var(--serif);font-size:clamp(40px,5vw,64px);font-weight:400;color:#fff;line-height:1.1;letter-spacing:-0.5px;margin-bottom:16px;}
+.hero-title em{font-style:italic;color:var(--accent2);}
+.hero-body{font-size:16px;color:var(--muted);line-height:1.8;max-width:600px;}
+
+.search-wrap{max-width:860px;margin:0 auto;padding:0 48px 48px;}
+.search-box{position:relative;}
+.search-input{
+  width:100%;padding:14px 20px 14px 48px;background:var(--ink2);
+  border:1px solid var(--border);border-radius:8px;color:var(--text);
+  font-family:var(--mono);font-size:13px;outline:none;transition:border-color 0.2s;
+}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:var(--faint);}
+.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
+.search-count{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:10px;color:var(--faint);}
+
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.filter-btn{
+  font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  padding:5px 14px;border-radius:20px;border:1px solid var(--border);
+  color:var(--muted);background:transparent;cursor:pointer;transition:all 0.15s;
+}
+.filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.07);}
+
+.glossary-wrap{max-width:860px;margin:0 auto;padding:0 48px 100px;}
+.alpha-section{margin-bottom:48px;}
+.alpha-letter{
+  font-family:var(--serif);font-size:48px;font-style:italic;color:var(--accent);
+  line-height:1;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);
+  opacity:0.7;
+}
+.term-card{
+  padding:20px 24px;border-left:2px solid var(--border);margin-bottom:2px;
+  transition:border-color 0.15s,background 0.15s;cursor:default;
+}
+.term-card:hover{border-color:var(--accent);background:rgba(74,158,255,0.03);}
+.term-card.hidden{display:none;}
+.term-name{font-family:var(--sans);font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;}
+.term-abbr{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px;margin-left:8px;vertical-align:middle;}
+.term-category{
+  display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:1.5px;
+  text-transform:uppercase;padding:2px 8px;border-radius:12px;border:1px solid;
+  margin-bottom:8px;
+}
+.cat-orbital{color:#4a9eff;border-color:rgba(74,158,255,0.3);}
+.cat-detection{color:#34d399;border-color:rgba(52,211,153,0.3);}
+.cat-debris{color:#f87171;border-color:rgba(248,113,113,0.3);}
+.cat-operations{color:#f59e0b;border-color:rgba(245,158,11,0.3);}
+.cat-physics{color:#a78bfa;border-color:rgba(167,139,250,0.3);}
+.term-def{font-size:14px;color:var(--muted);line-height:1.7;}
+.term-def strong{color:var(--text);}
+.no-results{padding:60px 0;text-align:center;font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:1px;display:none;}
+.no-results.show{display:block;}
+
+@media(max-width:600px){
+  nav{padding:0 16px;}
+  .hero,.search-wrap,.glossary-wrap{padding-left:20px;padding-right:20px;}
+  .hero{padding-top:100px;}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-brand">Vectra<em>Space</em></a>
+  <a href="/" class="nav-back">← Learning Hub</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">// Reference</div>
+  <h1 class="hero-title">Space Safety <em>Glossary</em></h1>
+  <p class="hero-body">Definitions for every key term used across the VectraSpace platform — from orbital mechanics and conjunction analysis to debris modeling and space operations.</p>
+</div>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <span class="search-icon">⌕</span>
+    <input type="text" class="search-input" id="glossary-search" placeholder="Search terms, abbreviations, definitions..." autocomplete="off" spellcheck="false">
+    <span class="search-count" id="glossary-count"></span>
+  </div>
+  <div class="filter-row">
+    <button class="filter-btn active" data-cat="all">All</button>
+    <button class="filter-btn" data-cat="orbital">Orbital Mechanics</button>
+    <button class="filter-btn" data-cat="detection">Conjunction & Detection</button>
+    <button class="filter-btn" data-cat="debris">Debris & Kessler</button>
+    <button class="filter-btn" data-cat="operations">Operations & Standards</button>
+    <button class="filter-btn" data-cat="physics">Physics & Math</button>
+  </div>
+</div>
+
+<div class="glossary-wrap" id="glossary-content">
+  <div class="no-results" id="no-results">No terms match your search.</div>
+</div>
+
+<script>
+const TERMS = [
+  // ── ORBITAL MECHANICS ────────────────────────────────────────
+  { name:"Two-Line Element Set", abbr:"TLE", cat:"orbital", def:"A standardized data format encoding the mean Keplerian orbital elements of an Earth-orbiting object at a given epoch. Used by SGP4 to propagate satellite positions forward in time. Accuracy degrades from ~1 km at epoch to 10+ km after 7 days for LEO objects." },
+  { name:"SGP4", abbr:"", cat:"orbital", def:"Simplified General Perturbations model 4. The standard analytical propagator for Earth satellites using TLE data. Models atmospheric drag (via <dfn data-term="B*">ballistic coefficient B*</dfn>), J2 oblateness, and secular/periodic terms. Used by every space surveillance network globally." },
+  { name:"Semi-Major Axis", abbr:"a", cat:"orbital", def:"Half the longest diameter of an elliptical orbit, measured in kilometers. Determines the orbital energy and period via Kepler's Third Law: T = 2π√(a³/μ). For circular orbits, equals the orbital radius." },
+  { name:"Eccentricity", abbr:"e", cat:"orbital", def:"Dimensionless measure of orbital shape: e=0 is circular, 0<e<1 is elliptical, e=1 is parabolic (escape), e>1 is hyperbolic. Geostationary satellites maintain e≈0; Molniya orbits use e≈0.74." },
+  { name:"Inclination", abbr:"i", cat:"orbital", def:"Angle between the orbital plane and Earth's equatorial plane, measured at the ascending node. i=0° is equatorial prograde, i=90° is polar, i=98° is sun-synchronous for LEO, i=180° is equatorial retrograde." },
+  { name:"Right Ascension of Ascending Node", abbr:"RAAN", cat:"orbital", def:"The angle in the equatorial plane from the vernal equinox to the ascending node — where the satellite crosses from southern to northern hemisphere. RAAN drifts westward for prograde LEO orbits due to J₂ oblateness at ~6–7°/day." },
+  { name:"Argument of Perigee", abbr:"ω", cat:"orbital", def:"Angle within the orbital plane from the ascending node to the perigee point. Defines the orientation of the ellipse within its plane. Precesses due to J₂ at a rate depending on inclination; zero precession occurs at i≈63.4° (critical inclination)." },
+  { name:"True Anomaly", abbr:"ν", cat:"orbital", def:"The actual angular position of a satellite in its orbit, measured from perigee. Unlike mean anomaly, it correctly represents the satellite's real position on the ellipse at any instant. Requires solving Kepler's equation to convert from mean anomaly." },
+  { name:"Mean Anomaly", abbr:"M", cat:"orbital", def:"A uniformly increasing angle that represents what the true anomaly would be if the orbit were circular with the same period. Related to eccentric anomaly E by Kepler's equation: M = E − e·sin(E). Used in TLEs." },
+  { name:"Vis-Viva Equation", abbr:"", cat:"orbital", def:"The fundamental energy equation of orbital mechanics: v² = μ(2/r − 1/a). Relates orbital speed to current radius r, semi-major axis a, and gravitational parameter μ. Underlies all delta-v calculations." },
+  { name:"Perigee", abbr:"", cat:"orbital", def:"The lowest point in an orbit, closest to Earth. A satellite moves fastest at perigee (vis-viva equation). Atmospheric drag is greatest at perigee for elliptical orbits. Measured as altitude above Earth's surface." },
+  { name:"Apogee", abbr:"", cat:"orbital", def:"The highest point in an orbit, furthest from Earth. A satellite moves slowest at apogee. Used for GTO transfers and Molniya-type high-apogee orbits. Measured as altitude above Earth's surface." },
+  { name:"Low Earth Orbit", abbr:"LEO", cat:"orbital", def:"Orbital regime from ~160–2,000 km altitude. Orbital period 88–127 minutes. Most human spaceflight occurs here. High debris density, significant atmospheric drag, orbital lifetime from days (at 200 km) to decades (at 800 km+)." },
+  { name:"Medium Earth Orbit", abbr:"MEO", cat:"orbital", def:"Orbital regime from ~2,000–35,786 km. Home to GPS (20,200 km), GLONASS, Galileo, and BeiDou navigation satellites. Orbital period 2–24 hours. Passes through the Van Allen radiation belts." },
+  { name:"Geostationary Orbit", abbr:"GEO", cat:"orbital", def:"Circular equatorial orbit at 35,786 km altitude where orbital period exactly matches Earth's rotation (23h 56m). Satellite appears stationary over a fixed ground point. Used for communications, weather, and surveillance satellites." },
+  { name:"Sun-Synchronous Orbit", abbr:"SSO", cat:"orbital", def:"A near-polar orbit (~97–98° inclination) where the J₂-induced RAAN precession (~0.9856°/day) exactly matches Earth's orbital rate around the Sun. The ascending node passes over a given latitude at the same local solar time each orbit — ideal for Earth observation." },
+  { name:"Kepler's Third Law", abbr:"", cat:"orbital", def:"T² = (4π²/μ) · a³. The square of the orbital period is proportional to the cube of the semi-major axis. Derived from conservation of energy and angular momentum. Explains why LEO satellites (~92 min) orbit much faster than GEO (~24 h)." },
+  { name:"Gravitational Parameter", abbr:"μ", cat:"physics", def:"Product of the gravitational constant G and Earth's mass M: μ = GM ≈ 398,600.4418 km³/s². Used in all orbital mechanics equations. More precisely known than G or M individually because it can be determined from spacecraft tracking data." },
+
+  // ── PERTURBATIONS ────────────────────────────────────────────
+  { name:"J₂ Coefficient", abbr:"J₂", cat:"orbital", def:"The dominant oblateness term in Earth's gravitational potential, J₂ = 1.08263×10⁻³. Earth's equatorial bulge (6,378 km vs 6,357 km polar radius) creates a non-central force causing nodal regression (RAAN drift) and apsidal precession." },
+  { name:"Atmospheric Drag", abbr:"", cat:"orbital", def:"Aerodynamic force opposing orbital motion from residual atmosphere. At 400 km, density ~3×10⁻¹⁰ kg/m³. Drag force ∝ ρ·v²·Cd·A/m. Decreases semi-major axis, raises speed, lowers orbital altitude. Primary mechanism for natural LEO debris removal." },
+  { name:"Ballistic Coefficient", abbr:"B*", cat:"orbital", def:"TLE drag term encoding a satellite's aerodynamic characteristics: B* = (Cd·A)/(2·m) × ρ₀. Higher B* = more drag sensitivity. Estimated from tracking data, updated in TLEs. Critical for accurate SGP4 propagation of low-altitude objects." },
+  { name:"Solar Radiation Pressure", abbr:"SRP", cat:"physics", def:"Force exerted by photon momentum from sunlight: F = P·Cr·(A/m), where P ≈ 4.56×10⁻⁶ N/m² at 1 AU. Most significant for high area-to-mass ratio objects (solar sails, thin-film satellites). Causes orbit eccentricity growth for GEO satellites." },
+
+  // ── CONJUNCTION & DETECTION ──────────────────────────────────
+  { name:"Conjunction", abbr:"", cat:"detection", def:"An orbital event where two space objects pass within a defined proximity threshold (typically 5 km in radial, 1 km in along-track and cross-track directions for LEO). Not a collision — a close approach that warrants probability-of-collision analysis." },
+  { name:"Time of Closest Approach", abbr:"TCA", cat:"detection", def:"The time instant when two conjunction objects achieve minimum separation: TCA = argmin_t |r₁(t) − r₂(t)|. The reference epoch for miss distance, conjunction geometry, and Pc calculations. Computed by iterative minimization of the inter-satellite distance function." },
+  { name:"Miss Distance", abbr:"", cat:"detection", def:"The minimum center-to-center separation between two objects at TCA, measured in kilometers. A 5 km miss distance is not necessarily safe — Pc depends on position uncertainty relative to the miss distance. Small uncertainty → low Pc; large uncertainty → potentially high Pc." },
+  { name:"Probability of Collision", abbr:"Pc", cat:"detection", def:"The probability that two objects physically contact during a conjunction event. Computed by integrating the combined position uncertainty PDF over the collision cross-section in the conjunction plane. Threshold for operator action typically 1×10⁻⁴." },
+  { name:"Foster-Alfano Method", abbr:"", cat:"detection", def:"The standard 2D Pc calculation method: projects relative position uncertainty onto the conjunction plane and integrates a 2D Gaussian over a disk of radius equal to the combined hard-body radius. Named after Lauri Newman (formerly NASA) and Russell Alfano." },
+  { name:"Conjunction Data Message", abbr:"CDM", cat:"operations", def:"CCSDS standard 508.0-B-1 format for exchanging conjunction screening results between space surveillance providers and satellite operators. Contains TCA, miss distance, relative velocity, covariance matrices in RTN frame, Pc estimate, and object catalog data." },
+  { name:"RTN Frame", abbr:"RTN", cat:"detection", def:"Radial-Transverse-Normal coordinate frame centered on a reference satellite. R points from Earth center through satellite, T (tangential) is perpendicular to R in the orbit plane in direction of motion, N is orbit-plane normal. Standard frame for CDM covariance matrices." },
+  { name:"Covariance Matrix", abbr:"", cat:"detection", def:"A 3×3 or 6×6 symmetric matrix encoding position (and velocity) uncertainty and correlations in RTN coordinates. Diagonal elements are position variances (σ_R², σ_T², σ_N²). Used with miss distance to compute Pc. Quality of Pc estimate depends critically on covariance accuracy." },
+  { name:"Hard-Body Radius", abbr:"HBR", cat:"detection", def:"The effective collision radius used in Pc calculations, equal to the sum of the physical radii of both objects (approximated as spheres). A collision occurs if the center-to-center distance at TCA is less than the HBR." },
+  { name:"Screening Volume", abbr:"", cat:"detection", def:"The spatial region around a protected object used to filter potential conjunctions for detailed analysis. Typical NASA/ESA screening volumes for LEO: 5 km radial, 25 km along-track, 25 km cross-track. Objects entering this volume receive full CDM analysis." },
+  { name:"Clohessy-Wiltshire Equations", abbr:"CW / Hill", cat:"detection", def:"Linear equations of relative motion for a spacecraft in a nearly circular reference orbit, also known as Hill's equations. Enable analytical solutions for rendezvous and maneuver planning. Used in CDM-driven maneuver planning to compute minimum-Δv avoidance burns." },
+  { name:"Space Fence", abbr:"", cat:"operations", def:"US Space Force S-band radar system in Kwajalein Atoll, operational since 2020. Tracks objects as small as 5 cm in LEO. Generates ~1.5 million observations per day, dramatically improving the Space Surveillance Network catalog completeness." },
+
+  // ── DEBRIS & KESSLER ─────────────────────────────────────────
+  { name:"Kessler Syndrome", abbr:"", cat:"debris", def:"Proposed by Donald Kessler (NASA, 1978): a cascade of collisions where debris from each event creates more debris that triggers further collisions, self-sustaining above a critical debris density. Potentially irreversible in altitude bands above 800 km where atmospheric drag is negligible." },
+  { name:"NASA Standard Breakup Model", abbr:"SBM", cat:"debris", def:"Empirical model (NASA 1996, updated 2001) predicting the number, size distribution, and velocity distribution of fragments from satellite collisions or explosions. Inputs: mass of impactor/target, relative velocity, collision type. Used in EVOLVE and LEGEND long-term environment models." },
+  { name:"Active Debris Removal", abbr:"ADR", cat:"debris", def:"Technologies and missions to physically remove large debris objects from orbit. Approaches include harpoon capture (e.g., RemoveDebris), net capture, robotic arm grapple, ion beam shepherd, and electrodynamic tether deorbit. Critical for stabilizing high-density altitude bands." },
+  { name:"IADC", abbr:"IADC", cat:"operations", def:"Inter-Agency Space Debris Coordination Committee. International body (NASA, ESA, JAXA, Roscosmos, CSA, and others) establishing debris mitigation guidelines including the 25-year deorbit rule, passivation of propellant/pressure vessels, and protected orbital regions." },
+  { name:"25-Year Rule", abbr:"", cat:"operations", def:"IADC/FCC guideline requiring satellites to deorbit within 25 years of end-of-mission. For LEO, achievable through residual atmospheric drag or controlled reentry burns. Under revision toward a 5-year standard given mega-constellation growth. Not universally enforced." },
+  { name:"Passivation", abbr:"", cat:"operations", def:"Deliberate removal of stored energy from a spacecraft at end-of-mission: venting residual propellants, discharging batteries, releasing pressurized gases. Prevents on-orbit explosions that create large debris clouds. Required by IADC guidelines for all satellites." },
+  { name:"Orbital Lifetime", abbr:"", cat:"debris", def:"The time a debris object remains in orbit before atmospheric drag causes reentry. Highly sensitive to altitude (days at 200 km, centuries at 900 km+) and solar activity (increased solar flux expands atmosphere, increasing drag). The primary natural debris removal mechanism below 600 km." },
+  { name:"Graveyard Orbit", abbr:"", cat:"operations", def:"A supersynchronous disposal orbit ~300 km above GEO (>36,000 km) used for retired GEO satellites that cannot be deorbited. Objects here remain for thousands of years. Required by ITU/IADC for GEO operators unable to perform controlled reentry." },
+  { name:"Fengyun-1C", abbr:"FY-1C", cat:"debris", def:"Chinese weather satellite destroyed by a kinetic anti-satellite weapon test in January 2007 at 863 km altitude. Created ~3,500+ trackable fragments and an estimated 150,000+ untrackable debris pieces. One of the worst single debris-generating events in history." },
+  { name:"Iridium-Cosmos Collision", abbr:"", cat:"debris", def:"First accidental satellite-to-satellite collision (February 10, 2009). Iridium 33 and Cosmos 2251 collided at 789 km at ~11.7 km/s, generating ~2,000+ trackable fragments. Demonstrated Kessler cascade risk at operational satellite densities." },
+
+  // ── OPERATIONS & STANDARDS ───────────────────────────────────
+  { name:"Space Surveillance Network", abbr:"SSN", cat:"operations", def:"US Space Force global network of ground-based radars and optical sensors tracking ~30,000 objects larger than 10 cm in Earth orbit. Publishes TLEs via Space-Track.org and CelesTrak. Generates the authoritative satellite catalog used by VectraSpace." },
+  { name:"CelesTrak", abbr:"", cat:"operations", def:"Public satellite tracking data service operated by T.S. Kelso (CSSI). Provides TLE data from the Space Surveillance Network, supplemented by commercial tracking. Primary public source for orbital element sets. API used by VectraSpace for real-time TLE updates." },
+  { name:"NORAD Catalog Number", abbr:"", cat:"operations", def:"Unique integer identifier assigned by US Space Force to every tracked Earth-orbiting object. Also called the Satellite Catalog Number. NORAD 25544 = ISS, 20580 = Hubble. Assigned sequentially; over 60,000 numbers assigned including reentries." },
+  { name:"Delta-V", abbr:"Δv", cat:"operations", def:"Change in velocity (km/s or m/s) required for an orbital maneuver. The 'currency' of spaceflight — limited by onboard propellant. A typical LEO conjunction avoidance maneuver requires 0.01–0.5 m/s Δv. GEO station-keeping consumes ~50 m/s/year." },
+  { name:"Conjunction Assessment", abbr:"CA", cat:"operations", def:"The end-to-end process of screening the satellite catalog for close approaches, computing CDMs, estimating Pc, and advising operators on maneuver necessity. US 18th Space Defense Squadron performs CA for authorized operators globally, free of charge." },
+  { name:"Space-Track", abbr:"", cat:"operations", def:"Official US Space Force portal (space-track.org) providing access to the satellite catalog, TLEs, CDMs, and special perturbations data for registered users. Free access for government, commercial, and research users who agree to usage terms." },
+  { name:"Epoch", abbr:"", cat:"orbital", def:"The reference time at which orbital elements are defined. TLE epoch is encoded in decimal day-of-year format. Propagation accuracy degrades from epoch: elements should be refreshed every 1–7 days for LEO objects." },
+  { name:"Maneuver", abbr:"", cat:"operations", def:"A deliberate change in a satellite's orbit via thruster firing. Conjunction avoidance maneuvers typically lower or raise the satellite by a few km. Requires Δv budget, maneuver window calculation (before TCA), and post-maneuver TLE update." },
+];
+
+let activeFilter = 'all';
+let searchQuery = '';
+
+function buildGlossary() {
+  const filtered = TERMS.filter(t => {
+    const matchesCat = activeFilter === 'all' || t.cat === activeFilter;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      t.name.toLowerCase().includes(q) ||
+      (t.abbr && t.abbr.toLowerCase().includes(q)) ||
+      t.def.toLowerCase().includes(q);
+    return matchesCat && matchesSearch;
+  });
+
+  const container = document.getElementById('glossary-content');
+  const noResults = document.getElementById('no-results');
+  const countEl  = document.getElementById('glossary-count');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '';
+    container.appendChild(noResults);
+    noResults.classList.add('show');
+    countEl.textContent = '';
+    return;
+  }
+  noResults.classList.remove('show');
+  countEl.textContent = filtered.length + ' terms';
+
+  // Group by first letter
+  const byLetter = {};
+  filtered.sort((a,b) => a.name.localeCompare(b.name)).forEach(t => {
+    const l = t.name[0].toUpperCase();
+    if (!byLetter[l]) byLetter[l] = [];
+    byLetter[l].push(t);
+  });
+
+  const CAT_LABELS = {
+    orbital:'Orbital Mechanics', detection:'Conjunction & Detection',
+    debris:'Debris & Kessler', operations:'Operations & Standards', physics:'Physics & Math'
+  };
+
+  const highlight = (text) => {
+    if (!searchQuery) return text;
+    const re = new RegExp('(' + searchQuery.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+    return text.replace(re, '<mark style="background:rgba(74,158,255,0.25);color:#fff;border-radius:2px;">$1</mark>');
+  };
+
+  container.innerHTML = Object.entries(byLetter).map(([letter, terms]) => `
+    <div class="alpha-section">
+      <div class="alpha-letter">${letter}</div>
+      ${terms.map(t => `
+        <div class="term-card">
+          <div class="term-name">${highlight(t.name)}${t.abbr ? `<span class="term-abbr">${t.abbr}</span>` : ''}</div>
+          <div class="term-category cat-${t.cat}">${CAT_LABELS[t.cat]}</div>
+          <div class="term-def">${highlight(t.def)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.cat;
+    buildGlossary();
+  });
+});
+
+// Search input
+const searchEl = document.getElementById('glossary-search');
+searchEl.addEventListener('input', () => {
+  searchQuery = searchEl.value.trim();
+  buildGlossary();
+});
+searchEl.addEventListener('keydown', e => { if (e.key==='Escape') { searchEl.value=''; searchQuery=''; buildGlossary(); } });
+
+// Handle URL hash deep links e.g. /glossary#TLE
+window.addEventListener('DOMContentLoaded', () => {
+  buildGlossary();
+  if (location.hash) {
+    const q = decodeURIComponent(location.hash.slice(1));
+    searchEl.value = q; searchQuery = q; buildGlossary();
+  }
+});
+</script>
+</body>
+</html>"""
 
 RESEARCH_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -9507,6 +10785,43 @@ def build_api(cfg: Config):
     def landing_welcome():
         """Always shows landing page — used by dashboard Home button."""
         return HTMLResponse(content=LANDING_HTML)
+
+
+
+
+    @app.post("/subscribe")
+    async def subscribe(request: Request):
+        """Store email subscriber."""
+        import json, re
+        data = await request.json()
+        email = (data.get("email") or "").strip().lower()
+        if not email or not re.match(r"^[^@]+@[^@]+\.[^@]+$", email):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=400, detail="Invalid email address")
+        subscribers_file = "subscribers.json"
+        try:
+            if os.path.exists(subscribers_file):
+                with open(subscribers_file) as f:
+                    subs = json.load(f)
+            else:
+                subs = []
+        except Exception:
+            subs = []
+        if email not in subs:
+            subs.append(email)
+            with open(subscribers_file, "w") as f:
+                json.dump(subs, f, indent=2)
+        return {"ok": True, "count": len(subs)}
+
+    @app.get("/calculator", response_class=HTMLResponse)
+    def calculator_page():
+        """Interactive collision physics calculator — no auth required."""
+        return HTMLResponse(content=CALC_HTML)
+
+    @app.get("/glossary", response_class=HTMLResponse)
+    def glossary_page():
+        """Searchable glossary of space safety terms — no auth required."""
+        return HTMLResponse(content=GLOSSARY_HTML)
 
     @app.get("/research", response_class=HTMLResponse)
     def research_page():
