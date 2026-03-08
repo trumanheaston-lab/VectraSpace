@@ -4141,7 +4141,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 <!-- CHAPTER 1 QUIZ -->
 <div class="quiz-section" id="ch1-quiz-wrap">
   <div class="quiz-eyebrow">⬡ Knowledge Check</div>
-  <div class="quiz-title">Chapter 01 — Orbital Mechanics</div>
+  <div class="quiz-heading">Chapter 01 Quiz</div>
   <div class="quiz-subtitle">Test your understanding of the two-body problem, Kepler's laws, and SGP4 propagation.</div>
   <div id="ch1-quiz"></div>
 </div>
@@ -4150,70 +4150,74 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 function initQuiz(containerId, questions) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  let answered = 0;
-  let score = 0;
-  const total = questions.length;
   const letters = ['A','B','C','D','E'];
 
   function render() {
-    answered = 0; score = 0;
     container.innerHTML = questions.map((q, qi) => `
       <div class="quiz-q" id="qq-${containerId}-${qi}">
-        <div class="quiz-q-text">${qi+1}. ${q.q}</div>
+        <div class="quiz-q-num">Question ${qi+1} of ${questions.length}</div>
+        <div class="quiz-q-text">${q.q}</div>
         <div class="quiz-options">
           ${q.opts.map((o, oi) => `
-            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${total})" id="qo-${containerId}-${qi}-${oi}">
-              <span class="quiz-opt-letter">${letters[oi]}</span>
-              ${o}
+            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${questions.length})"
+              id="qo-${containerId}-${qi}-${oi}">
+              <span class="quiz-opt-letter">${letters[oi]}</span>${o}
             </button>
           `).join('')}
         </div>
         <div class="quiz-explanation" id="qe-${containerId}-${qi}">${q.explain}</div>
       </div>
-    `).join('') + `<div class="quiz-score-bar" id="qs-${containerId}"></div>`;
+    `).join('') + `<div class="quiz-score-wrap" id="qs-${containerId}"></div>`;
   }
 
-  window['quizAnswer'] = window['quizAnswer'] || function(cid, qi, chosen, correct, total) {
+  window.quizAnswer = function(cid, qi, chosen, correct, total) {
     const optEls = document.querySelectorAll(`[id^="qo-${cid}-${qi}-"]`);
     optEls.forEach(b => b.disabled = true);
     const qEl = document.getElementById(`qq-${cid}-${qi}`);
+    if (qEl.dataset.counted) return;
     qEl.classList.add('answered');
     optEls[correct].classList.add('correct');
     if (chosen !== correct) optEls[chosen].classList.add('wrong');
     const expEl = document.getElementById(`qe-${cid}-${qi}`);
     if (expEl) expEl.classList.add('show');
-    // We track via data attributes
-    if (!qEl.dataset.counted) {
-      qEl.dataset.counted = '1';
-      if (chosen === correct) qEl.dataset.correct = '1';
-      // Check if all answered
-      const allQ = document.querySelectorAll(`[id^="qq-${cid}-"]`);
-      const answeredAll = [...allQ].every(q => q.dataset.counted);
-      if (answeredAll) {
-        const sc = [...allQ].filter(q => q.dataset.correct).length;
-        const tot = allQ.length;
-        const pct = Math.round(sc/tot*100);
-        const scoreEl = document.getElementById(`qs-${cid}`);
-        const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#f87171)';
-        const msg = pct === 100 ? "Perfect score! You've mastered this chapter's core equations." :
-                    pct >= 80  ? "Excellent work — solid grasp of the material." :
-                    pct >= 50  ? "Good effort. Review the explanations and try again." :
-                                 "Keep studying — re-read the section and retry.";
-        scoreEl.innerHTML = `
-          <div class="quiz-score-num" style="color:${color}">${sc}/${tot}</div>
-          <div class="quiz-score-label">Chapter Score · ${pct}%</div>
-          <div class="quiz-score-msg">${msg}</div>
+    qEl.dataset.counted = '1';
+    if (chosen === correct) qEl.dataset.correct = '1';
+    const allQ = document.querySelectorAll(`#${cid} [id^="qq-${cid}-"]`);
+    if ([...allQ].every(q => q.dataset.counted)) {
+      const sc = [...allQ].filter(q => q.dataset.correct).length;
+      const tot = allQ.length;
+      const pct = Math.round(sc / tot * 100);
+      const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#ef4444)';
+      const grade = pct === 100 ? 'Perfect Score' : pct >= 80 ? 'Excellent' : pct >= 50 ? 'Good Effort' : 'Keep Studying';
+      const msg = pct === 100 ? "You've fully mastered this chapter's core concepts and equations." :
+                  pct >= 80  ? "Solid understanding — you're ready to move to the next chapter." :
+                  pct >= 50  ? "Decent foundation. Review the highlighted explanations and retry." :
+                               "Revisit the chapter material before moving on — the explanations above show where to focus.";
+      const scoreEl = document.getElementById(`qs-${cid}`);
+      scoreEl.style.setProperty('--qs-color', color);
+      scoreEl.innerHTML = `
+        <div class="quiz-score-top">
+          <div class="quiz-score-ring" style="--qs-color:${color}">
+            <div class="quiz-score-frac">${sc}/${tot}</div>
+            <div class="quiz-score-pct">${pct}%</div>
+          </div>
+          <div class="quiz-score-right">
+            <div class="quiz-score-title">${grade}</div>
+            <div class="quiz-score-msg">${msg}</div>
+          </div>
+        </div>
+        <div class="quiz-score-bottom">
           <button class="quiz-retry-btn" onclick="document.getElementById('${cid}-wrap').dispatchEvent(new Event('retry'))">↩ Retry Quiz</button>
-        `;
-        scoreEl.classList.add('show');
-        scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
-      }
+        </div>
+      `;
+      scoreEl.classList.add('show');
+      setTimeout(() => scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
     }
   };
 
   render();
   const wrap = document.getElementById(`${containerId}-wrap`);
-  if (wrap) wrap.addEventListener('retry', render);
+  if (wrap) wrap.addEventListener('retry', () => { render(); wrap.scrollIntoView({ behavior:'smooth', block:'start' }); });
 }
 
 initQuiz('ch1-quiz', [
@@ -4558,7 +4562,7 @@ z̈ + n²·z = f_z
 <!-- CHAPTER 2 QUIZ -->
 <div class="quiz-section" id="ch2-quiz-wrap">
   <div class="quiz-eyebrow">⬡ Knowledge Check</div>
-  <div class="quiz-title">Chapter 02 — Collision Prediction</div>
+  <div class="quiz-heading">Chapter 02 Quiz</div>
   <div class="quiz-subtitle">Test your understanding of conjunction analysis, miss distance, and probability of collision.</div>
   <div id="ch2-quiz"></div>
 </div>
@@ -4567,70 +4571,74 @@ z̈ + n²·z = f_z
 function initQuiz(containerId, questions) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  let answered = 0;
-  let score = 0;
-  const total = questions.length;
   const letters = ['A','B','C','D','E'];
 
   function render() {
-    answered = 0; score = 0;
     container.innerHTML = questions.map((q, qi) => `
       <div class="quiz-q" id="qq-${containerId}-${qi}">
-        <div class="quiz-q-text">${qi+1}. ${q.q}</div>
+        <div class="quiz-q-num">Question ${qi+1} of ${questions.length}</div>
+        <div class="quiz-q-text">${q.q}</div>
         <div class="quiz-options">
           ${q.opts.map((o, oi) => `
-            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${total})" id="qo-${containerId}-${qi}-${oi}">
-              <span class="quiz-opt-letter">${letters[oi]}</span>
-              ${o}
+            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${questions.length})"
+              id="qo-${containerId}-${qi}-${oi}">
+              <span class="quiz-opt-letter">${letters[oi]}</span>${o}
             </button>
           `).join('')}
         </div>
         <div class="quiz-explanation" id="qe-${containerId}-${qi}">${q.explain}</div>
       </div>
-    `).join('') + `<div class="quiz-score-bar" id="qs-${containerId}"></div>`;
+    `).join('') + `<div class="quiz-score-wrap" id="qs-${containerId}"></div>`;
   }
 
-  window['quizAnswer'] = window['quizAnswer'] || function(cid, qi, chosen, correct, total) {
+  window.quizAnswer = function(cid, qi, chosen, correct, total) {
     const optEls = document.querySelectorAll(`[id^="qo-${cid}-${qi}-"]`);
     optEls.forEach(b => b.disabled = true);
     const qEl = document.getElementById(`qq-${cid}-${qi}`);
+    if (qEl.dataset.counted) return;
     qEl.classList.add('answered');
     optEls[correct].classList.add('correct');
     if (chosen !== correct) optEls[chosen].classList.add('wrong');
     const expEl = document.getElementById(`qe-${cid}-${qi}`);
     if (expEl) expEl.classList.add('show');
-    // We track via data attributes
-    if (!qEl.dataset.counted) {
-      qEl.dataset.counted = '1';
-      if (chosen === correct) qEl.dataset.correct = '1';
-      // Check if all answered
-      const allQ = document.querySelectorAll(`[id^="qq-${cid}-"]`);
-      const answeredAll = [...allQ].every(q => q.dataset.counted);
-      if (answeredAll) {
-        const sc = [...allQ].filter(q => q.dataset.correct).length;
-        const tot = allQ.length;
-        const pct = Math.round(sc/tot*100);
-        const scoreEl = document.getElementById(`qs-${cid}`);
-        const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#f87171)';
-        const msg = pct === 100 ? "Perfect score! You've mastered this chapter's core equations." :
-                    pct >= 80  ? "Excellent work — solid grasp of the material." :
-                    pct >= 50  ? "Good effort. Review the explanations and try again." :
-                                 "Keep studying — re-read the section and retry.";
-        scoreEl.innerHTML = `
-          <div class="quiz-score-num" style="color:${color}">${sc}/${tot}</div>
-          <div class="quiz-score-label">Chapter Score · ${pct}%</div>
-          <div class="quiz-score-msg">${msg}</div>
+    qEl.dataset.counted = '1';
+    if (chosen === correct) qEl.dataset.correct = '1';
+    const allQ = document.querySelectorAll(`#${cid} [id^="qq-${cid}-"]`);
+    if ([...allQ].every(q => q.dataset.counted)) {
+      const sc = [...allQ].filter(q => q.dataset.correct).length;
+      const tot = allQ.length;
+      const pct = Math.round(sc / tot * 100);
+      const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#ef4444)';
+      const grade = pct === 100 ? 'Perfect Score' : pct >= 80 ? 'Excellent' : pct >= 50 ? 'Good Effort' : 'Keep Studying';
+      const msg = pct === 100 ? "You've fully mastered this chapter's core concepts and equations." :
+                  pct >= 80  ? "Solid understanding — you're ready to move to the next chapter." :
+                  pct >= 50  ? "Decent foundation. Review the highlighted explanations and retry." :
+                               "Revisit the chapter material before moving on — the explanations above show where to focus.";
+      const scoreEl = document.getElementById(`qs-${cid}`);
+      scoreEl.style.setProperty('--qs-color', color);
+      scoreEl.innerHTML = `
+        <div class="quiz-score-top">
+          <div class="quiz-score-ring" style="--qs-color:${color}">
+            <div class="quiz-score-frac">${sc}/${tot}</div>
+            <div class="quiz-score-pct">${pct}%</div>
+          </div>
+          <div class="quiz-score-right">
+            <div class="quiz-score-title">${grade}</div>
+            <div class="quiz-score-msg">${msg}</div>
+          </div>
+        </div>
+        <div class="quiz-score-bottom">
           <button class="quiz-retry-btn" onclick="document.getElementById('${cid}-wrap').dispatchEvent(new Event('retry'))">↩ Retry Quiz</button>
-        `;
-        scoreEl.classList.add('show');
-        scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
-      }
+        </div>
+      `;
+      scoreEl.classList.add('show');
+      setTimeout(() => scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
     }
   };
 
   render();
   const wrap = document.getElementById(`${containerId}-wrap`);
-  if (wrap) wrap.addEventListener('retry', render);
+  if (wrap) wrap.addEventListener('retry', () => { render(); wrap.scrollIntoView({ behavior:'smooth', block:'start' }); });
 }
 
 initQuiz('ch2-quiz', [
@@ -5028,81 +5036,62 @@ tbody tr:hover td { background: var(--ink-2); }
   .page-wrap { padding: 32px 24px 80px; }
   .pert-grid, .j2-vis { grid-template-columns: 1fr; }
   
-/* ── QUIZ WIDGET ── */
+/* ─── QUIZ ─────────────────────────────────────────────────── */
 .quiz-section {
-  margin: 60px 0 0; padding: 40px 0 0; border-top: 1px solid var(--border);
+  margin: 64px 0 0; padding: 48px 0 0;
+  border-top: 1px solid var(--border);
 }
 .quiz-eyebrow {
-  font-family: var(--mono, 'Space Mono', monospace); font-size: 9px;
-  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
-  color: var(--accent);
+  font-family: 'Space Mono', monospace; font-size: 9px;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
 }
-.quiz-title {
-  font-size: 22px; font-weight: 600; color: var(--text, #fff);
-  margin-bottom: 6px; font-family: var(--sans, inherit);
+.quiz-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--accent); display: inline-block; }
+.quiz-heading {
+  font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+  color: #fff; letter-spacing: -0.5px; margin-bottom: 6px;
 }
-.quiz-subtitle {
-  font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.6;
-}
+.quiz-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 36px; line-height: 1.65; }
 .quiz-q {
-  background: var(--panel, rgba(255,255,255,0.04)); border: 1px solid var(--border);
-  border-radius: 8px; padding: 24px 28px; margin-bottom: 16px;
-  transition: border-color 0.2s;
+  background: var(--ink2); border: 1px solid var(--border);
+  border-radius: var(--r, 8px); padding: 24px 28px; margin-bottom: 14px; transition: border-color 0.2s;
 }
-.quiz-q.answered { border-color: var(--border2, rgba(255,255,255,0.15)); }
-.quiz-q-text {
-  font-size: 15px; color: var(--text, #fff); line-height: 1.6; margin-bottom: 16px;
-  font-weight: 500;
-}
+.quiz-q.answered { border-color: var(--border2); }
+.quiz-q-num { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.quiz-q-text { font-size: 15px; color: var(--text); line-height: 1.65; margin-bottom: 18px; font-weight: 500; }
 .quiz-options { display: flex; flex-direction: column; gap: 8px; }
 .quiz-opt {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border);
-  cursor: pointer; transition: all 0.15s; font-size: 13px;
-  color: var(--muted); background: transparent;
-  text-align: left; width: 100%; font-family: inherit;
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 11px 16px; border-radius: 6px; border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s; font-size: 13px; font-family: 'Space Grotesk', sans-serif;
+  color: var(--muted); background: transparent; text-align: left; line-height: 1.5;
 }
-.quiz-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--text, #fff); background: rgba(74,158,255,0.05); }
-.quiz-opt .quiz-opt-letter {
-  width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border);
+.quiz-opt:hover:not(:disabled) { border-color: rgba(59,130,246,0.5); color: var(--text); background: rgba(59,130,246,0.05); }
+.quiz-opt-letter {
+  width: 24px; height: 24px; min-width: 24px; border-radius: 4px; border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono, monospace); font-size: 9px; letter-spacing: 1px;
-  flex-shrink: 0; transition: all 0.15s;
+  font-family: 'Space Mono', monospace; font-size: 9px; flex-shrink: 0; transition: all 0.15s; color: var(--muted);
 }
 .quiz-opt:hover:not(:disabled) .quiz-opt-letter { border-color: var(--accent); color: var(--accent); }
-.quiz-opt.correct { border-color: var(--green, #34d399) !important; color: var(--green, #34d399) !important; background: rgba(52,211,153,0.07) !important; }
-.quiz-opt.correct .quiz-opt-letter { background: var(--green, #34d399); border-color: var(--green, #34d399); color: #000 !important; }
-.quiz-opt.wrong { border-color: var(--red, #f87171) !important; color: var(--red, #f87171) !important; background: rgba(248,113,113,0.07) !important; }
-.quiz-opt.wrong .quiz-opt-letter { background: var(--red, #f87171); border-color: var(--red, #f87171); color: #000 !important; }
-.quiz-opt:disabled { cursor: default; }
-.quiz-explanation {
-  margin-top: 12px; padding: 12px 14px; border-radius: 6px;
-  background: rgba(255,255,255,0.04); font-size: 13px; color: var(--muted);
-  line-height: 1.65; border-left: 2px solid var(--accent); display: none;
-}
-.quiz-explanation.show { display: block; }
-.quiz-score-bar {
-  margin-top: 32px; padding: 24px 28px; border-radius: 8px;
-  background: var(--panel, rgba(255,255,255,0.04)); border: 1px solid var(--border);
-  display: none; text-align: center;
-}
-.quiz-score-bar.show { display: block; }
-.quiz-score-num {
-  font-family: var(--serif, Georgia, serif); font-size: 52px; line-height: 1;
-  margin-bottom: 6px;
-}
-.quiz-score-label {
-  font-family: var(--mono, monospace); font-size: 10px; letter-spacing: 2px;
-  color: var(--muted); text-transform: uppercase; margin-bottom: 16px;
-}
-.quiz-score-msg { font-size: 14px; color: var(--muted); line-height: 1.6; }
-.quiz-retry-btn {
-  margin-top: 16px; padding: 10px 24px; border-radius: 6px;
-  background: transparent; border: 1px solid var(--border);
-  color: var(--muted); font-family: var(--mono, monospace); font-size: 10px;
-  letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
-  transition: all 0.2s;
-}
+.quiz-opt.correct { border-color: var(--green,#10b981) !important; color: var(--green,#10b981) !important; background: rgba(16,185,129,0.06) !important; }
+.quiz-opt.correct .quiz-opt-letter { background: var(--green,#10b981); border-color: var(--green,#10b981); color: #000 !important; font-weight: 700; }
+.quiz-opt.wrong { border-color: var(--red,#ef4444) !important; color: var(--red,#ef4444) !important; background: rgba(239,68,68,0.06) !important; }
+.quiz-opt.wrong .quiz-opt-letter { background: var(--red,#ef4444); border-color: var(--red,#ef4444); color: #fff !important; font-weight: 700; }
+.quiz-opt:disabled { cursor: default; opacity: 0.9; }
+.quiz-explanation { margin-top: 14px; padding: 13px 16px; border-radius: 6px; background: rgba(59,130,246,0.05); border-left: 2px solid var(--accent); font-size: 13px; color: var(--muted); line-height: 1.7; display: none; }
+.quiz-explanation.show { display: block; animation: fadeSlideDown 0.2s ease; }
+@keyframes fadeSlideDown { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+.quiz-score-wrap { margin-top: 28px; border: 1px solid var(--border); border-radius: var(--r,8px); overflow: hidden; display: none; }
+.quiz-score-wrap.show { display: block; animation: fadeSlideDown 0.3s ease; }
+.quiz-score-top { padding: 32px 36px; display: flex; align-items: center; gap: 28px; background: var(--ink2); border-bottom: 1px solid var(--border); }
+.quiz-score-ring { width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; border: 2px solid var(--qs-color,var(--accent)); box-shadow: 0 0 20px color-mix(in srgb, var(--qs-color,var(--accent)) 18%, transparent); }
+.quiz-score-frac { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--qs-color,var(--accent)); line-height: 1; }
+.quiz-score-pct { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+.quiz-score-right { flex: 1; }
+.quiz-score-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.quiz-score-msg { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.quiz-score-bottom { padding: 16px 36px; background: var(--ink3,var(--ink2)); display: flex; justify-content: flex-end; }
+.quiz-retry-btn { padding: 9px 22px; border-radius: 6px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
 .quiz-retry-btn:hover { border-color: var(--accent); color: var(--accent); }
 .chapter-nav { grid-template-columns: 1fr; }
 }
@@ -5676,7 +5665,7 @@ tbody tr:hover td { background: var(--ink-2); }
 <!-- CHAPTER 3 QUIZ -->
 <div class="quiz-section" id="ch3-quiz-wrap">
   <div class="quiz-eyebrow">⬡ Knowledge Check</div>
-  <div class="quiz-title">Chapter 03 — Orbital Perturbations</div>
+  <div class="quiz-heading">Chapter 03 Quiz</div>
   <div class="quiz-subtitle">Test your understanding of J₂, atmospheric drag, and solar radiation pressure.</div>
   <div id="ch3-quiz"></div>
 </div>
@@ -5685,70 +5674,74 @@ tbody tr:hover td { background: var(--ink-2); }
 function initQuiz(containerId, questions) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  let answered = 0;
-  let score = 0;
-  const total = questions.length;
   const letters = ['A','B','C','D','E'];
 
   function render() {
-    answered = 0; score = 0;
     container.innerHTML = questions.map((q, qi) => `
       <div class="quiz-q" id="qq-${containerId}-${qi}">
-        <div class="quiz-q-text">${qi+1}. ${q.q}</div>
+        <div class="quiz-q-num">Question ${qi+1} of ${questions.length}</div>
+        <div class="quiz-q-text">${q.q}</div>
         <div class="quiz-options">
           ${q.opts.map((o, oi) => `
-            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${total})" id="qo-${containerId}-${qi}-${oi}">
-              <span class="quiz-opt-letter">${letters[oi]}</span>
-              ${o}
+            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${questions.length})"
+              id="qo-${containerId}-${qi}-${oi}">
+              <span class="quiz-opt-letter">${letters[oi]}</span>${o}
             </button>
           `).join('')}
         </div>
         <div class="quiz-explanation" id="qe-${containerId}-${qi}">${q.explain}</div>
       </div>
-    `).join('') + `<div class="quiz-score-bar" id="qs-${containerId}"></div>`;
+    `).join('') + `<div class="quiz-score-wrap" id="qs-${containerId}"></div>`;
   }
 
-  window['quizAnswer'] = window['quizAnswer'] || function(cid, qi, chosen, correct, total) {
+  window.quizAnswer = function(cid, qi, chosen, correct, total) {
     const optEls = document.querySelectorAll(`[id^="qo-${cid}-${qi}-"]`);
     optEls.forEach(b => b.disabled = true);
     const qEl = document.getElementById(`qq-${cid}-${qi}`);
+    if (qEl.dataset.counted) return;
     qEl.classList.add('answered');
     optEls[correct].classList.add('correct');
     if (chosen !== correct) optEls[chosen].classList.add('wrong');
     const expEl = document.getElementById(`qe-${cid}-${qi}`);
     if (expEl) expEl.classList.add('show');
-    // We track via data attributes
-    if (!qEl.dataset.counted) {
-      qEl.dataset.counted = '1';
-      if (chosen === correct) qEl.dataset.correct = '1';
-      // Check if all answered
-      const allQ = document.querySelectorAll(`[id^="qq-${cid}-"]`);
-      const answeredAll = [...allQ].every(q => q.dataset.counted);
-      if (answeredAll) {
-        const sc = [...allQ].filter(q => q.dataset.correct).length;
-        const tot = allQ.length;
-        const pct = Math.round(sc/tot*100);
-        const scoreEl = document.getElementById(`qs-${cid}`);
-        const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#f87171)';
-        const msg = pct === 100 ? "Perfect score! You've mastered this chapter's core equations." :
-                    pct >= 80  ? "Excellent work — solid grasp of the material." :
-                    pct >= 50  ? "Good effort. Review the explanations and try again." :
-                                 "Keep studying — re-read the section and retry.";
-        scoreEl.innerHTML = `
-          <div class="quiz-score-num" style="color:${color}">${sc}/${tot}</div>
-          <div class="quiz-score-label">Chapter Score · ${pct}%</div>
-          <div class="quiz-score-msg">${msg}</div>
+    qEl.dataset.counted = '1';
+    if (chosen === correct) qEl.dataset.correct = '1';
+    const allQ = document.querySelectorAll(`#${cid} [id^="qq-${cid}-"]`);
+    if ([...allQ].every(q => q.dataset.counted)) {
+      const sc = [...allQ].filter(q => q.dataset.correct).length;
+      const tot = allQ.length;
+      const pct = Math.round(sc / tot * 100);
+      const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#ef4444)';
+      const grade = pct === 100 ? 'Perfect Score' : pct >= 80 ? 'Excellent' : pct >= 50 ? 'Good Effort' : 'Keep Studying';
+      const msg = pct === 100 ? "You've fully mastered this chapter's core concepts and equations." :
+                  pct >= 80  ? "Solid understanding — you're ready to move to the next chapter." :
+                  pct >= 50  ? "Decent foundation. Review the highlighted explanations and retry." :
+                               "Revisit the chapter material before moving on — the explanations above show where to focus.";
+      const scoreEl = document.getElementById(`qs-${cid}`);
+      scoreEl.style.setProperty('--qs-color', color);
+      scoreEl.innerHTML = `
+        <div class="quiz-score-top">
+          <div class="quiz-score-ring" style="--qs-color:${color}">
+            <div class="quiz-score-frac">${sc}/${tot}</div>
+            <div class="quiz-score-pct">${pct}%</div>
+          </div>
+          <div class="quiz-score-right">
+            <div class="quiz-score-title">${grade}</div>
+            <div class="quiz-score-msg">${msg}</div>
+          </div>
+        </div>
+        <div class="quiz-score-bottom">
           <button class="quiz-retry-btn" onclick="document.getElementById('${cid}-wrap').dispatchEvent(new Event('retry'))">↩ Retry Quiz</button>
-        `;
-        scoreEl.classList.add('show');
-        scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
-      }
+        </div>
+      `;
+      scoreEl.classList.add('show');
+      setTimeout(() => scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
     }
   };
 
   render();
   const wrap = document.getElementById(`${containerId}-wrap`);
-  if (wrap) wrap.addEventListener('retry', render);
+  if (wrap) wrap.addEventListener('retry', () => { render(); wrap.scrollIntoView({ behavior:'smooth', block:'start' }); });
 }
 
 initQuiz('ch3-quiz', [
@@ -6093,81 +6086,62 @@ tbody tr:hover td { background:var(--ink-2); }
   .page-wrap { padding:32px 24px 80px; }
   .adr-grid { grid-template-columns:1fr; }
   
-/* ── QUIZ WIDGET ── */
+/* ─── QUIZ ─────────────────────────────────────────────────── */
 .quiz-section {
-  margin: 60px 0 0; padding: 40px 0 0; border-top: 1px solid var(--border);
+  margin: 64px 0 0; padding: 48px 0 0;
+  border-top: 1px solid var(--border);
 }
 .quiz-eyebrow {
-  font-family: var(--mono, 'Space Mono', monospace); font-size: 9px;
-  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
-  color: var(--accent);
+  font-family: 'Space Mono', monospace; font-size: 9px;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
 }
-.quiz-title {
-  font-size: 22px; font-weight: 600; color: var(--text, #fff);
-  margin-bottom: 6px; font-family: var(--sans, inherit);
+.quiz-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--accent); display: inline-block; }
+.quiz-heading {
+  font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+  color: #fff; letter-spacing: -0.5px; margin-bottom: 6px;
 }
-.quiz-subtitle {
-  font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.6;
-}
+.quiz-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 36px; line-height: 1.65; }
 .quiz-q {
-  background: var(--panel, rgba(255,255,255,0.04)); border: 1px solid var(--border);
-  border-radius: 8px; padding: 24px 28px; margin-bottom: 16px;
-  transition: border-color 0.2s;
+  background: var(--ink2); border: 1px solid var(--border);
+  border-radius: var(--r, 8px); padding: 24px 28px; margin-bottom: 14px; transition: border-color 0.2s;
 }
-.quiz-q.answered { border-color: var(--border2, rgba(255,255,255,0.15)); }
-.quiz-q-text {
-  font-size: 15px; color: var(--text, #fff); line-height: 1.6; margin-bottom: 16px;
-  font-weight: 500;
-}
+.quiz-q.answered { border-color: var(--border2); }
+.quiz-q-num { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.quiz-q-text { font-size: 15px; color: var(--text); line-height: 1.65; margin-bottom: 18px; font-weight: 500; }
 .quiz-options { display: flex; flex-direction: column; gap: 8px; }
 .quiz-opt {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border);
-  cursor: pointer; transition: all 0.15s; font-size: 13px;
-  color: var(--muted); background: transparent;
-  text-align: left; width: 100%; font-family: inherit;
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 11px 16px; border-radius: 6px; border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s; font-size: 13px; font-family: 'Space Grotesk', sans-serif;
+  color: var(--muted); background: transparent; text-align: left; line-height: 1.5;
 }
-.quiz-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--text, #fff); background: rgba(74,158,255,0.05); }
-.quiz-opt .quiz-opt-letter {
-  width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border);
+.quiz-opt:hover:not(:disabled) { border-color: rgba(59,130,246,0.5); color: var(--text); background: rgba(59,130,246,0.05); }
+.quiz-opt-letter {
+  width: 24px; height: 24px; min-width: 24px; border-radius: 4px; border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono, monospace); font-size: 9px; letter-spacing: 1px;
-  flex-shrink: 0; transition: all 0.15s;
+  font-family: 'Space Mono', monospace; font-size: 9px; flex-shrink: 0; transition: all 0.15s; color: var(--muted);
 }
 .quiz-opt:hover:not(:disabled) .quiz-opt-letter { border-color: var(--accent); color: var(--accent); }
-.quiz-opt.correct { border-color: var(--green, #34d399) !important; color: var(--green, #34d399) !important; background: rgba(52,211,153,0.07) !important; }
-.quiz-opt.correct .quiz-opt-letter { background: var(--green, #34d399); border-color: var(--green, #34d399); color: #000 !important; }
-.quiz-opt.wrong { border-color: var(--red, #f87171) !important; color: var(--red, #f87171) !important; background: rgba(248,113,113,0.07) !important; }
-.quiz-opt.wrong .quiz-opt-letter { background: var(--red, #f87171); border-color: var(--red, #f87171); color: #000 !important; }
-.quiz-opt:disabled { cursor: default; }
-.quiz-explanation {
-  margin-top: 12px; padding: 12px 14px; border-radius: 6px;
-  background: rgba(255,255,255,0.04); font-size: 13px; color: var(--muted);
-  line-height: 1.65; border-left: 2px solid var(--accent); display: none;
-}
-.quiz-explanation.show { display: block; }
-.quiz-score-bar {
-  margin-top: 32px; padding: 24px 28px; border-radius: 8px;
-  background: var(--panel, rgba(255,255,255,0.04)); border: 1px solid var(--border);
-  display: none; text-align: center;
-}
-.quiz-score-bar.show { display: block; }
-.quiz-score-num {
-  font-family: var(--serif, Georgia, serif); font-size: 52px; line-height: 1;
-  margin-bottom: 6px;
-}
-.quiz-score-label {
-  font-family: var(--mono, monospace); font-size: 10px; letter-spacing: 2px;
-  color: var(--muted); text-transform: uppercase; margin-bottom: 16px;
-}
-.quiz-score-msg { font-size: 14px; color: var(--muted); line-height: 1.6; }
-.quiz-retry-btn {
-  margin-top: 16px; padding: 10px 24px; border-radius: 6px;
-  background: transparent; border: 1px solid var(--border);
-  color: var(--muted); font-family: var(--mono, monospace); font-size: 10px;
-  letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
-  transition: all 0.2s;
-}
+.quiz-opt.correct { border-color: var(--green,#10b981) !important; color: var(--green,#10b981) !important; background: rgba(16,185,129,0.06) !important; }
+.quiz-opt.correct .quiz-opt-letter { background: var(--green,#10b981); border-color: var(--green,#10b981); color: #000 !important; font-weight: 700; }
+.quiz-opt.wrong { border-color: var(--red,#ef4444) !important; color: var(--red,#ef4444) !important; background: rgba(239,68,68,0.06) !important; }
+.quiz-opt.wrong .quiz-opt-letter { background: var(--red,#ef4444); border-color: var(--red,#ef4444); color: #fff !important; font-weight: 700; }
+.quiz-opt:disabled { cursor: default; opacity: 0.9; }
+.quiz-explanation { margin-top: 14px; padding: 13px 16px; border-radius: 6px; background: rgba(59,130,246,0.05); border-left: 2px solid var(--accent); font-size: 13px; color: var(--muted); line-height: 1.7; display: none; }
+.quiz-explanation.show { display: block; animation: fadeSlideDown 0.2s ease; }
+@keyframes fadeSlideDown { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+.quiz-score-wrap { margin-top: 28px; border: 1px solid var(--border); border-radius: var(--r,8px); overflow: hidden; display: none; }
+.quiz-score-wrap.show { display: block; animation: fadeSlideDown 0.3s ease; }
+.quiz-score-top { padding: 32px 36px; display: flex; align-items: center; gap: 28px; background: var(--ink2); border-bottom: 1px solid var(--border); }
+.quiz-score-ring { width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; border: 2px solid var(--qs-color,var(--accent)); box-shadow: 0 0 20px color-mix(in srgb, var(--qs-color,var(--accent)) 18%, transparent); }
+.quiz-score-frac { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--qs-color,var(--accent)); line-height: 1; }
+.quiz-score-pct { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+.quiz-score-right { flex: 1; }
+.quiz-score-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.quiz-score-msg { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.quiz-score-bottom { padding: 16px 36px; background: var(--ink3,var(--ink2)); display: flex; justify-content: flex-end; }
+.quiz-retry-btn { padding: 9px 22px; border-radius: 6px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
 .quiz-retry-btn:hover { border-color: var(--accent); color: var(--accent); }
 .chapter-nav { grid-template-columns:1fr; }
 }
@@ -6742,70 +6716,74 @@ tbody tr:hover td { background:var(--ink-2); }
 function initQuiz(containerId, questions) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  let answered = 0;
-  let score = 0;
-  const total = questions.length;
   const letters = ['A','B','C','D','E'];
 
   function render() {
-    answered = 0; score = 0;
     container.innerHTML = questions.map((q, qi) => `
       <div class="quiz-q" id="qq-${containerId}-${qi}">
-        <div class="quiz-q-text">${qi+1}. ${q.q}</div>
+        <div class="quiz-q-num">Question ${qi+1} of ${questions.length}</div>
+        <div class="quiz-q-text">${q.q}</div>
         <div class="quiz-options">
           ${q.opts.map((o, oi) => `
-            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${total})" id="qo-${containerId}-${qi}-${oi}">
-              <span class="quiz-opt-letter">${letters[oi]}</span>
-              ${o}
+            <button class="quiz-opt" onclick="quizAnswer('${containerId}',${qi},${oi},${q.ans},${questions.length})"
+              id="qo-${containerId}-${qi}-${oi}">
+              <span class="quiz-opt-letter">${letters[oi]}</span>${o}
             </button>
           `).join('')}
         </div>
         <div class="quiz-explanation" id="qe-${containerId}-${qi}">${q.explain}</div>
       </div>
-    `).join('') + `<div class="quiz-score-bar" id="qs-${containerId}"></div>`;
+    `).join('') + `<div class="quiz-score-wrap" id="qs-${containerId}"></div>`;
   }
 
-  window['quizAnswer'] = window['quizAnswer'] || function(cid, qi, chosen, correct, total) {
+  window.quizAnswer = function(cid, qi, chosen, correct, total) {
     const optEls = document.querySelectorAll(`[id^="qo-${cid}-${qi}-"]`);
     optEls.forEach(b => b.disabled = true);
     const qEl = document.getElementById(`qq-${cid}-${qi}`);
+    if (qEl.dataset.counted) return;
     qEl.classList.add('answered');
     optEls[correct].classList.add('correct');
     if (chosen !== correct) optEls[chosen].classList.add('wrong');
     const expEl = document.getElementById(`qe-${cid}-${qi}`);
     if (expEl) expEl.classList.add('show');
-    // We track via data attributes
-    if (!qEl.dataset.counted) {
-      qEl.dataset.counted = '1';
-      if (chosen === correct) qEl.dataset.correct = '1';
-      // Check if all answered
-      const allQ = document.querySelectorAll(`[id^="qq-${cid}-"]`);
-      const answeredAll = [...allQ].every(q => q.dataset.counted);
-      if (answeredAll) {
-        const sc = [...allQ].filter(q => q.dataset.correct).length;
-        const tot = allQ.length;
-        const pct = Math.round(sc/tot*100);
-        const scoreEl = document.getElementById(`qs-${cid}`);
-        const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#f87171)';
-        const msg = pct === 100 ? "Perfect score! You've mastered this chapter's core equations." :
-                    pct >= 80  ? "Excellent work — solid grasp of the material." :
-                    pct >= 50  ? "Good effort. Review the explanations and try again." :
-                                 "Keep studying — re-read the section and retry.";
-        scoreEl.innerHTML = `
-          <div class="quiz-score-num" style="color:${color}">${sc}/${tot}</div>
-          <div class="quiz-score-label">Chapter Score · ${pct}%</div>
-          <div class="quiz-score-msg">${msg}</div>
+    qEl.dataset.counted = '1';
+    if (chosen === correct) qEl.dataset.correct = '1';
+    const allQ = document.querySelectorAll(`#${cid} [id^="qq-${cid}-"]`);
+    if ([...allQ].every(q => q.dataset.counted)) {
+      const sc = [...allQ].filter(q => q.dataset.correct).length;
+      const tot = allQ.length;
+      const pct = Math.round(sc / tot * 100);
+      const color = pct >= 80 ? 'var(--green,#34d399)' : pct >= 50 ? 'var(--amber,#f59e0b)' : 'var(--red,#ef4444)';
+      const grade = pct === 100 ? 'Perfect Score' : pct >= 80 ? 'Excellent' : pct >= 50 ? 'Good Effort' : 'Keep Studying';
+      const msg = pct === 100 ? "You've fully mastered this chapter's core concepts and equations." :
+                  pct >= 80  ? "Solid understanding — you're ready to move to the next chapter." :
+                  pct >= 50  ? "Decent foundation. Review the highlighted explanations and retry." :
+                               "Revisit the chapter material before moving on — the explanations above show where to focus.";
+      const scoreEl = document.getElementById(`qs-${cid}`);
+      scoreEl.style.setProperty('--qs-color', color);
+      scoreEl.innerHTML = `
+        <div class="quiz-score-top">
+          <div class="quiz-score-ring" style="--qs-color:${color}">
+            <div class="quiz-score-frac">${sc}/${tot}</div>
+            <div class="quiz-score-pct">${pct}%</div>
+          </div>
+          <div class="quiz-score-right">
+            <div class="quiz-score-title">${grade}</div>
+            <div class="quiz-score-msg">${msg}</div>
+          </div>
+        </div>
+        <div class="quiz-score-bottom">
           <button class="quiz-retry-btn" onclick="document.getElementById('${cid}-wrap').dispatchEvent(new Event('retry'))">↩ Retry Quiz</button>
-        `;
-        scoreEl.classList.add('show');
-        scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
-      }
+        </div>
+      `;
+      scoreEl.classList.add('show');
+      setTimeout(() => scoreEl.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
     }
   };
 
   render();
   const wrap = document.getElementById(`${containerId}-wrap`);
-  if (wrap) wrap.addEventListener('retry', render);
+  if (wrap) wrap.addEventListener('retry', () => { render(); wrap.scrollIntoView({ behavior:'smooth', block:'start' }); });
 }
 
 initQuiz('ch4-quiz', [
