@@ -4478,7 +4478,17 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 .cnc-dir{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
 .cnc-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}
 .chapter-nav-card.next{text-align:right;}
-@media(max-width:800px){.learn-layout{grid-template-columns:1fr;padding:0 20px 60px;}.toc{display:none;}.learn-hero{padding:80px 20px 40px;}nav{padding:0 20px;}}
+@media(max-width:800px){
+  .learn-layout{grid-template-columns:1fr;padding:0 20px 60px;}
+  .toc{display:none;}
+  .learn-hero{padding:80px 20px 40px;}
+  nav{padding:0 20px;}
+  .content-block{padding:24px 0;}
+  .equation-box{padding:16px 14px;overflow-x:auto;}
+  .quiz-wrap{padding:24px 20px;}
+  .quiz-option{padding:12px 14px;font-size:13px;}
+  .learn-hero h1{font-size:clamp(26px,7vw,42px);}
+}
 </style>
 </head>
 <body>
@@ -7317,7 +7327,7 @@ nav.scrolled {
 }
 .nav-brand-name em { color: var(--accent); font-style: normal; }
 .nav-links {
-  display: flex; gap: 28px; list-style: none; align-items: center;
+  display: flex; gap: 24px; list-style: none; align-items: center;
 }
 .nav-links a {
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;
@@ -7332,6 +7342,125 @@ nav.scrolled {
   transition: all 0.2s; white-space: nowrap;
 }
 .nav-cta:hover { background: var(--accent); color: var(--ink); }
+/* Mobile hamburger */
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 5px; cursor: pointer;
+  padding: 8px; border: 1px solid transparent; border-radius: 4px;
+  background: transparent; transition: border-color 0.2s;
+}
+.nav-hamburger:hover { border-color: var(--border2); }
+.nav-hamburger span {
+  display: block; width: 20px; height: 1.5px; background: var(--muted);
+  border-radius: 2px; transition: all 0.25s;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+/* Mobile drawer */
+#mobile-nav {
+  display: none; position: fixed; top: 60px; left: 0; right: 0; z-index: 999;
+  background: rgba(8,12,18,0.97); border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px); padding: 20px 24px 28px;
+  flex-direction: column; gap: 4px;
+  transform: translateY(-8px); opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+#mobile-nav.open { transform: translateY(0); opacity: 1; }
+#mobile-nav a {
+  font-family: var(--mono); font-size: 13px; letter-spacing: 1px;
+  color: var(--muted); text-decoration: none; padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  transition: color 0.15s;
+}
+#mobile-nav a:last-child { border-bottom: none; }
+#mobile-nav a:hover { color: var(--text); }
+#mobile-nav a.cta-link {
+  color: var(--accent); margin-top: 8px; border: 1px solid var(--accent);
+  border-radius: 4px; padding: 12px 16px; justify-content: center;
+  border-bottom: 1px solid var(--accent);
+}
+
+/* ── LIVE TLE TICKER ── */
+#tle-ticker {
+  position: relative; z-index: 2;
+  background: rgba(8,12,18,0.7);
+  border-bottom: 1px solid var(--border);
+  padding: 0; overflow: hidden; height: 32px;
+  display: flex; align-items: center;
+}
+.ticker-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent);
+  background: var(--ink); border-right: 1px solid var(--border);
+  padding: 0 14px; height: 100%; display: flex; align-items: center;
+  white-space: nowrap; flex-shrink: 0; z-index: 1;
+}
+.ticker-scroll {
+  display: flex; gap: 0; overflow: hidden; flex: 1;
+}
+.ticker-track {
+  display: flex; gap: 0; animation: ticker-move 60s linear infinite;
+  white-space: nowrap;
+}
+.ticker-track:hover { animation-play-state: paused; }
+@keyframes ticker-move {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.ticker-sat {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px;
+  color: var(--muted); padding: 0 20px; border-right: 1px solid var(--border);
+  height: 32px; display: flex; align-items: center; gap: 8px;
+  transition: color 0.2s;
+}
+.ticker-sat:hover { color: var(--text); }
+.ticker-sat .t-name { color: var(--text); }
+.ticker-sat .t-alt { color: var(--accent); }
+.ticker-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: blink-slow 3s infinite; }
+@keyframes blink-slow { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.ticker-status {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 1px;
+  color: var(--faint); padding: 0 14px; height: 100%; display: flex; align-items: center;
+  white-space: nowrap; flex-shrink: 0; border-left: 1px solid var(--border);
+  background: var(--ink);
+}
+
+/* ── TOOLS STRIP ── */
+.tools-strip {
+  display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap;
+}
+.tool-card {
+  flex: 1; min-width: 200px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px 22px;
+  text-decoration: none; display: flex; align-items: flex-start; gap: 14px;
+  transition: all 0.2s; position: relative; overflow: hidden;
+}
+.tool-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(74,158,255,0.04) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.2s;
+}
+.tool-card:hover { border-color: rgba(74,158,255,0.35); transform: translateY(-2px); }
+.tool-card:hover::before { opacity: 1; }
+.tool-card-icon {
+  width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  background: rgba(74,158,255,0.1); border: 1px solid rgba(74,158,255,0.2);
+}
+.tool-card-icon.green  { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.2); }
+.tool-card-icon.amber  { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.2); }
+.tool-card-icon.purple { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.2); }
+.tool-card-body { flex: 1; }
+.tool-card-title {
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  color: var(--text); margin-bottom: 3px;
+}
+.tool-card-desc {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.3px;
+  color: var(--muted); line-height: 1.5;
+}
 
 /* ── HERO ── */
 #hero {
@@ -8091,6 +8220,8 @@ footer {
 @media (max-width: 960px) {
   nav { padding: 0 24px; }
   .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-cta { display: none; }
   .section-wrap { padding: 0 24px; }
   .mission-grid, .kessler-inner { grid-template-columns: 1fr; gap: 48px; }
   .ssa-pillars { grid-template-columns: 1fr; }
@@ -8110,6 +8241,9 @@ footer {
   .cta-box { padding: 48px 24px; }
   #hero { padding: 100px 16px 60px; }
   .hero-title { letter-spacing: -1px; }
+  .tools-strip { flex-direction: column; }
+  .tool-card { min-width: 0; }
+  #tle-ticker { display: none; } /* too cramped on small phones */
   /* Contact section mobile */
   #contact { padding: 60px 0 !important; }
   #contact .container { padding: 0 16px !important; }
@@ -8149,21 +8283,46 @@ footer {
 <!-- STARFIELD -->
 <div id="starfield"></div>
 
+<!-- LIVE TLE TICKER -->
+<div id="tle-ticker">
+  <div class="ticker-label">⬤ LIVE</div>
+  <div class="ticker-scroll">
+    <div class="ticker-track" id="ticker-track">
+      <span class="ticker-sat"><div class="ticker-dot"></div><span class="t-name">Loading TLE data...</span></span>
+    </div>
+  </div>
+  <div class="ticker-status" id="ticker-status">— sats tracked</div>
+</div>
+
 <!-- NAV -->
 <nav id="nav">
-  <a href="#" class="nav-brand">
+  <a href="/" class="nav-brand">
     <span class="nav-brand-name">Vectra<em>Space</em></span>
   </a>
   <ul class="nav-links">
     <li><a href="#mission">Mission</a></li>
     <li><a href="#learn">Chapters</a></li>
-    <li><a href="#simulation">Simulation</a></li>
+    <li><a href="/scenarios">Scenarios</a></li>
+    <li><a href="/kepler">Orbit Explorer</a></li>
     <li><a href="/glossary">Glossary</a></li>
     <li><a href="/calculator">Calculator</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="/dashboard" class="nav-cta">Dashboard →</a>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<div id="mobile-nav">
+  <a href="#mission">Mission <span>→</span></a>
+  <a href="#learn">Chapters <span>→</span></a>
+  <a href="/scenarios">Scenarios <span>→</span></a>
+  <a href="/kepler">Orbit Explorer <span>→</span></a>
+  <a href="/glossary">Glossary <span>→</span></a>
+  <a href="/calculator">Calculator <span>→</span></a>
+  <a href="#contact">Contact <span>→</span></a>
+  <a href="/dashboard" class="cta-link">Open Dashboard →</a>
+</div>
 
 <!-- HERO -->
 <section id="hero">
@@ -8651,8 +8810,40 @@ footer {
       </div>
     </div>
 
+    <!-- Interactive Tools Strip -->
+    <div class="tools-strip reveal" style="margin-top:40px;">
+      <a href="/scenarios" class="tool-card">
+        <div class="tool-card-icon">💥</div>
+        <div class="tool-card-body">
+          <div class="tool-card-title">Scenario Modules</div>
+          <div class="tool-card-desc">Iridium-Cosmos · Kessler · ASAT · Maneuver</div>
+        </div>
+      </a>
+      <a href="/kepler" class="tool-card">
+        <div class="tool-card-icon green">🌐</div>
+        <div class="tool-card-body">
+          <div class="tool-card-title">Orbit Explorer</div>
+          <div class="tool-card-desc">Drag sliders to warp orbits in real-time 3D</div>
+        </div>
+      </a>
+      <a href="/calculator" class="tool-card">
+        <div class="tool-card-icon amber">⚡</div>
+        <div class="tool-card-body">
+          <div class="tool-card-title">Impact Calculator</div>
+          <div class="tool-card-desc">KE, Pc, fragment counts, Kessler risk</div>
+        </div>
+      </a>
+      <a href="/glossary" class="tool-card">
+        <div class="tool-card-icon purple">📖</div>
+        <div class="tool-card-body">
+          <div class="tool-card-title">Glossary</div>
+          <div class="tool-card-desc">50+ terms · searchable · deep-link ready</div>
+        </div>
+      </a>
+    </div>
+
     <!-- Terminal -->
-    <div class="sim-terminal reveal" style="margin-top:40px;">
+    <div class="sim-terminal reveal" style="margin-top:36px;">
       <div class="sim-terminal-bar">
         <div class="terminal-dots"><span class="td-r"></span><span class="td-y"></span><span class="td-g"></span></div>
         <div class="terminal-title">VectraSpace v11 — Orbital Scan</div>
@@ -8787,6 +8978,7 @@ footer {
       </p>
       <div class="cta-buttons">
         <a href="/education/orbital-mechanics" class="btn-primary-hero">Begin Chapter 01</a>
+        <a href="/scenarios" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:14px 28px;border:1px solid var(--border2);border-radius:6px;color:var(--muted);text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">Try Scenarios →</a>
         <a href="/dashboard" class="btn-secondary-hero">Open Live Dashboard</a>
       </div>
     </div>
@@ -8922,6 +9114,71 @@ footer {
   }
 })();
 
+// ── MOBILE NAV TOGGLE ────────────────────────────────────────
+function toggleMobileNav() {
+  const drawer = document.getElementById('mobile-nav');
+  const btn    = document.getElementById('nav-hamburger');
+  const isOpen = drawer.classList.contains('open');
+  if (isOpen) {
+    drawer.classList.remove('open');
+    btn.classList.remove('open');
+    setTimeout(() => { drawer.style.display = 'none'; }, 220);
+  } else {
+    drawer.style.display = 'flex';
+    requestAnimationFrame(() => {
+      drawer.classList.add('open');
+      btn.classList.add('open');
+    });
+  }
+}
+document.querySelectorAll('#mobile-nav a').forEach(a => {
+  a.addEventListener('click', () => {
+    const drawer = document.getElementById('mobile-nav');
+    const btn    = document.getElementById('nav-hamburger');
+    drawer.classList.remove('open');
+    btn.classList.remove('open');
+    setTimeout(() => { drawer.style.display = 'none'; }, 220);
+  });
+});
+
+// ── LIVE TLE TICKER ──────────────────────────────────────────
+(async function loadTicker() {
+  try {
+    const res  = await fetch('/api/live-sats?limit=60&regime=LEO');
+    const data = await res.json();
+    if (!data.sats || data.sats.length === 0) throw new Error('empty');
+    const track = document.getElementById('ticker-track');
+    const html  = data.sats.map(s =>
+      '<span class="ticker-sat"><div class="ticker-dot"></div>' +
+      '<span class="t-name">' + s.name + '</span>' +
+      '<span class="t-alt">' + Math.round(s.alt) + ' km</span></span>'
+    ).join('');
+    track.innerHTML = html + html; // duplicate for seamless loop
+    const w = track.scrollWidth / 2;
+    track.style.animationDuration = Math.max(30, w / 80) + 's';
+    document.getElementById('ticker-status').textContent =
+      data.count + ' sats · ' + (data.utc || '').slice(11, 16) + ' UTC';
+  } catch(e) {
+    // Static fallback so ticker always shows something
+    const fallback = [
+      'ISS (ZARYA)|418', 'STARLINK-1007|550', 'COSMOS 2251 DEB|789',
+      'STARLINK-3004|553', 'SENTINEL-2A|786', 'TERRA|705', 'AQUA|709',
+      'LANDSAT 8|705', 'NOAA 18|854', 'METOP-B|817', 'FENGYUN 3D|836',
+      'SUOMI NPP|824', 'STARLINK-2488|548', 'ONEWEB-0012|1200',
+      'IRIDIUM 33 DEB|782', 'COSMOS 1408 DEB|760',
+    ];
+    const track = document.getElementById('ticker-track');
+    const html  = fallback.map(s => {
+      const [name, alt] = s.split('|');
+      return '<span class="ticker-sat"><div class="ticker-dot" style="background:var(--faint)"></div>' +
+             '<span class="t-name">' + name + '</span>' +
+             '<span class="t-alt">' + alt + ' km</span></span>';
+    }).join('');
+    track.innerHTML = html + html;
+    document.getElementById('ticker-status').textContent = 'Sample data';
+  }
+})();
+
 // ── NAV SCROLL ────────────────────────────────────────────────
 const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
@@ -9027,6 +9284,1340 @@ async function submitSubscribe() {
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  MODULE 7 — REST API + SSE RUN ENDPOINT                      ║
 # ╚══════════════════════════════════════════════════════════════╝
+
+SCENARIOS_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Interactive Scenarios — VectraSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#080c12;--ink2:#0d1320;--ink3:#111d2e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;
+  --accent:#4a9eff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;
+  --serif:'Instrument Serif',serif;--mono:'DM Mono',monospace;--sans:'Outfit',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--ink);color:var(--text);font-family:var(--sans);overflow:hidden;width:100%;height:100%;}
+
+#topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);}
+.tb-brand{font-family:var(--serif);font-size:16px;font-style:italic;color:#fff;text-decoration:none;}
+.tb-brand em{color:var(--accent);font-style:normal;}
+.tb-links{display:flex;gap:4px;}
+.tb-link{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:5px 12px;border:1px solid transparent;border-radius:4px;transition:all 0.15s;}
+.tb-link:hover,.tb-link.active{border-color:var(--border2);color:var(--text);}
+.tb-link.active{border-color:rgba(74,158,255,0.4);color:var(--accent);background:rgba(74,158,255,0.06);}
+
+#app{display:flex;height:100vh;padding-top:52px;}
+#canvas-wrap{flex:1;position:relative;overflow:hidden;}
+#three-canvas{display:block;width:100%;height:100%;}
+
+/* SCENARIO SELECTOR */
+#scenario-bar{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:50;display:flex;gap:8px;background:rgba(8,12,18,0.9);border:1px solid var(--border);border-radius:8px;padding:8px;}
+.sc-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:7px 16px;border-radius:5px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.sc-btn:hover{border-color:var(--accent);color:var(--accent);}
+.sc-btn.active{background:rgba(74,158,255,0.12);border-color:var(--accent);color:var(--accent);}
+
+/* PLAYBACK BAR */
+#playback{position:absolute;bottom:0;left:0;right:0;z-index:50;background:rgba(8,12,18,0.92);border-top:1px solid var(--border);padding:12px 20px 16px;backdrop-filter:blur(8px);}
+.pb-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.pb-title{font-family:var(--serif);font-size:16px;font-style:italic;color:#fff;flex:1;}
+.pb-time{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;}
+.pb-btns{display:flex;gap:8px;}
+.pb-btn{width:34px;height:34px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.pb-btn:hover{border-color:var(--accent);color:var(--accent);}
+.pb-btn.active{background:rgba(74,158,255,0.12);border-color:var(--accent);color:var(--accent);}
+#pb-progress{width:100%;height:4px;background:var(--border2);border-radius:2px;cursor:pointer;position:relative;}
+#pb-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.05s linear;pointer-events:none;}
+#pb-scrubber{position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:grab;left:0%;margin-left:-6px;}
+
+/* INFO OVERLAY */
+#info-overlay{position:absolute;top:76px;left:20px;z-index:50;max-width:320px;}
+.io-card{background:rgba(8,12,18,0.9);border:1px solid var(--border);border-radius:8px;padding:16px 18px;backdrop-filter:blur(8px);margin-bottom:10px;}
+.io-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.io-title{font-family:var(--serif);font-size:17px;color:#fff;margin-bottom:6px;}
+.io-body{font-size:12px;color:var(--muted);line-height:1.65;}
+.io-body strong{color:var(--text);}
+.io-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+.io-stat{background:var(--ink3);border:1px solid var(--border);border-radius:5px;padding:8px 10px;}
+.io-stat-val{font-family:var(--mono);font-size:13px;color:var(--text);}
+.io-stat-lbl{font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+
+/* FRAGMENT COUNTER */
+#frag-counter{position:absolute;top:76px;right:20px;z-index:50;background:rgba(8,12,18,0.9);border:1px solid var(--border);border-radius:8px;padding:14px 18px;backdrop-filter:blur(8px);text-align:center;min-width:120px;}
+.fc-val{font-family:var(--serif);font-size:32px;font-style:italic;color:var(--red);line-height:1;}
+.fc-lbl{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+
+/* TIMELINE EVENTS */
+#timeline-events{position:absolute;bottom:80px;left:20px;right:20px;pointer-events:none;}
+.te-badge{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 10px;border-radius:4px;white-space:nowrap;opacity:0;transition:opacity 0.3s;}
+.te-badge.show{opacity:1;}
+
+/* MOBILE */
+@media(max-width:700px){
+  #scenario-bar{top:8px;gap:4px;padding:6px;}
+  .sc-btn{font-size:8px;padding:5px 10px;}
+  #info-overlay{max-width:200px;}
+  .io-card{padding:12px 14px;}
+  .tb-link:not(.back-link){display:none;}
+}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="/" class="tb-brand">Vectra<em>Space</em></a>
+  <div class="tb-links">
+    <a href="/" class="tb-link back-link">← Hub</a>
+    <a href="/kepler" class="tb-link">Kepler Explorer</a>
+    <a href="/scenarios" class="tb-link active">Scenarios</a>
+    <a href="/calculator" class="tb-link">Calculator</a>
+    <a href="/glossary" class="tb-link">Glossary</a>
+  </div>
+</div>
+
+<div id="app">
+  <div id="canvas-wrap">
+    <canvas id="three-canvas"></canvas>
+
+    <div id="scenario-bar">
+      <button class="sc-btn active" onclick="loadScenario('iridium')">Iridium-Cosmos</button>
+      <button class="sc-btn" onclick="loadScenario('kessler')">Kessler Cascade</button>
+      <button class="sc-btn" onclick="loadScenario('fy1c')">FY-1C ASAT</button>
+      <button class="sc-btn" onclick="loadScenario('maneuver')">Avoidance Maneuver</button>
+    </div>
+
+    <div id="info-overlay">
+      <div class="io-card" id="io-main">
+        <div class="io-eyebrow" id="io-eyebrow">Feb 10, 2009 · 789 km</div>
+        <div class="io-title" id="io-title">Iridium 33 ↔ Cosmos 2251</div>
+        <div class="io-body" id="io-body">The first accidental hypervelocity collision between two intact satellites. Both were destroyed, generating <strong>~2,300 trackable fragments</strong> — many still orbit today.</div>
+        <div class="io-stats" id="io-stats">
+          <div class="io-stat"><div class="io-stat-val" id="is-v">11.7</div><div class="io-stat-lbl">km/s rel. vel.</div></div>
+          <div class="io-stat"><div class="io-stat-val" id="is-alt">789</div><div class="io-stat-lbl">km altitude</div></div>
+          <div class="io-stat"><div class="io-stat-val" id="is-m1">560</div><div class="io-stat-lbl">Iridium mass (kg)</div></div>
+          <div class="io-stat"><div class="io-stat-val" id="is-m2">900</div><div class="io-stat-lbl">Cosmos mass (kg)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="frag-counter">
+      <div class="fc-val" id="fc-val">0</div>
+      <div class="fc-lbl" id="fc-lbl">Fragments</div>
+    </div>
+
+    <div id="playback">
+      <div class="pb-top">
+        <div class="pb-title" id="pb-title">Iridium-Cosmos Collision Simulation</div>
+        <div class="pb-time" id="pb-time">T+00:00</div>
+        <div class="pb-btns">
+          <button class="pb-btn" id="btn-restart" onclick="restart()" title="Restart">↺</button>
+          <button class="pb-btn active" id="btn-play" onclick="togglePlay()" title="Play/Pause">⏸</button>
+          <button class="pb-btn" id="btn-speed" onclick="cycleSpeed()" title="Speed">1×</button>
+        </div>
+      </div>
+      <div id="pb-progress" onclick="scrubTo(event)">
+        <div id="pb-fill"></div>
+        <div id="pb-scrubber"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ══ THREE.JS SETUP ════════════════════════════════════════════
+const canvas  = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x080c12, 1);
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 800000);
+
+// Earth
+const R_E = 6371;
+const earthMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(R_E, 48, 48),
+  new THREE.MeshPhongMaterial({ color: 0x1a3a6a, emissive: 0x0a1a3a, shininess: 5 })
+);
+scene.add(earthMesh);
+
+// Grid overlay
+const gMat = new THREE.LineBasicMaterial({ color: 0x1a3a6a, transparent: true, opacity: 0.3 });
+for (let la = -80; la <= 80; la += 20) {
+  const pts = [];
+  for (let lo = 0; lo <= 360; lo += 6) {
+    const r=R_E+5, lR=la*Math.PI/180, oR=lo*Math.PI/180;
+    pts.push(new THREE.Vector3(r*Math.cos(lR)*Math.cos(oR), r*Math.sin(lR), r*Math.cos(lR)*Math.sin(oR)));
+  }
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gMat));
+}
+for (let lo = 0; lo < 360; lo += 30) {
+  const pts = [];
+  for (let la = -90; la <= 90; la += 6) {
+    const r=R_E+5, lR=la*Math.PI/180, oR=lo*Math.PI/180;
+    pts.push(new THREE.Vector3(r*Math.cos(lR)*Math.cos(oR), r*Math.sin(lR), r*Math.cos(lR)*Math.sin(oR)));
+  }
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gMat));
+}
+
+// Atmosphere
+scene.add(new THREE.Mesh(
+  new THREE.SphereGeometry(R_E * 1.04, 32, 32),
+  new THREE.MeshPhongMaterial({ color: 0x2a5f9f, transparent: true, opacity: 0.07, side: THREE.FrontSide })
+));
+
+// Stars
+const sPos = [];
+for (let i = 0; i < 2000; i++) sPos.push((Math.random()-.5)*600000, (Math.random()-.5)*600000, (Math.random()-.5)*600000);
+const sGeo = new THREE.BufferGeometry();
+sGeo.setAttribute('position', new THREE.Float32BufferAttribute(sPos, 3));
+scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 80, transparent: true, opacity: 0.5 })));
+
+// Lights
+scene.add(new THREE.AmbientLight(0x223355, 1.2));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.position.set(50000, 20000, 30000);
+scene.add(sun);
+
+// ══ ORBIT MATH ═══════════════════════════════════════════════
+const MU = 398600.4418;
+function orbitPoints(a, e, iDeg, ODeg, wDeg, N=180) {
+  const pts=[], iR=iDeg*Math.PI/180, OR=ODeg*Math.PI/180, wR=wDeg*Math.PI/180;
+  for (let k=0; k<=N; k++) {
+    const nu=(k/N)*2*Math.PI;
+    const p=a*(1-e*e), r=p/(1+e*Math.cos(nu));
+    const xp=r*Math.cos(nu), yp=r*Math.sin(nu);
+    const cosO=Math.cos(OR), sinO=Math.sin(OR), ci=Math.cos(iR), si=Math.sin(iR), cw=Math.cos(wR), sw=Math.sin(wR);
+    pts.push(new THREE.Vector3(
+      (cosO*cw-sinO*sw*ci)*xp+(-cosO*sw-sinO*cw*ci)*yp,
+      (si*sw)*xp+(si*cw)*yp,
+      (sinO*cw+cosO*sw*ci)*xp+(-sinO*sw+cosO*cw*ci)*yp
+    ));
+  }
+  return pts;
+}
+function satPos(a, e, iDeg, ODeg, wDeg, nuDeg) {
+  const pts = orbitPoints(a, e, iDeg, ODeg, wDeg, 1);
+  // recompute at nuDeg
+  const nu=nuDeg*Math.PI/180, iR=iDeg*Math.PI/180, OR=ODeg*Math.PI/180, wR=wDeg*Math.PI/180;
+  const p=a*(1-e*e), r=p/(1+e*Math.cos(nu));
+  const xp=r*Math.cos(nu), yp=r*Math.sin(nu);
+  const cosO=Math.cos(OR), sinO=Math.sin(OR), ci=Math.cos(iR), si=Math.sin(iR), cw=Math.cos(wR), sw=Math.sin(wR);
+  return new THREE.Vector3(
+    (cosO*cw-sinO*sw*ci)*xp+(-cosO*sw-sinO*cw*ci)*yp,
+    (si*sw)*xp+(si*cw)*yp,
+    (sinO*cw+cosO*sw*ci)*xp+(-sinO*sw+cosO*cw*ci)*yp
+  );
+}
+
+// ══ SCENE OBJECTS ═════════════════════════════════════════════
+let sceneGroup = new THREE.Group();
+scene.add(sceneGroup);
+let fragments = [];
+let animState = {};
+let playing = true, speed = 1, t = 0, tMax = 1;
+const speeds = [0.5, 1, 2, 4];
+let speedIdx = 1;
+
+function clearScene() {
+  sceneGroup.clear();
+  fragments = [];
+}
+
+function mkLine(pts, color, opacity=1) {
+  const mat = new THREE.LineBasicMaterial({ color, transparent: opacity<1, opacity });
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);
+}
+function mkSphere(r, color, emissive=0) {
+  return new THREE.Mesh(new THREE.SphereGeometry(r,12,12), new THREE.MeshPhongMaterial({ color, emissive }));
+}
+
+// ══ SCENARIOS ════════════════════════════════════════════════
+const SCENARIOS = {
+  iridium: {
+    title: 'Iridium-Cosmos Collision Simulation',
+    eyebrow: 'Feb 10, 2009 · 789 km',
+    heading: 'Iridium 33 ↔ Cosmos 2251',
+    body: 'The first accidental hypervelocity collision between two intact satellites. Both were destroyed, generating <strong>~2,300 trackable fragments</strong> — many still orbit today.',
+    stats: { v:'11.7', alt:'789', m1:'560', m2:'900', l1:'km/s rel. vel.', l2:'km altitude', l3:'Iridium mass (kg)', l4:'Cosmos mass (kg)' },
+    fcLabel: 'Trackable Fragments',
+    totalFrags: 2300,
+    camera: { pos: [0, 8000, 22000], lookAt: [0, 0, 0] },
+    build() {
+      clearScene();
+      // Iridium orbit (a=7160 km, i=86.4°)
+      const iriPts = orbitPoints(7160, 0.001, 86.4, 340, 0);
+      sceneGroup.add(mkLine(iriPts, 0x4a9eff, 0.6));
+      // Cosmos orbit (a=7159 km, i=74.0°, retrograde)
+      const cosPts = orbitPoints(7159, 0.001, 74.0, 155, 0);
+      sceneGroup.add(mkLine(cosPts, 0xf87171, 0.6));
+
+      // sat meshes (start positions nu=~270)
+      const iriSat = mkSphere(100, 0x4a9eff, 0x103060);
+      const cosSat = mkSphere(100, 0xf87171, 0x601010);
+      const collPt = satPos(7160, 0.001, 86.4, 340, 0, 270);
+      iriSat.position.copy(satPos(7160, 0.001, 86.4, 340, 0, 180));
+      cosSat.position.copy(satPos(7159, 0.001, 74.0, 155, 0, 90));
+      sceneGroup.add(iriSat); sceneGroup.add(cosSat);
+
+      // Collision point marker (appears at t=0.45)
+      const flashGeo = new THREE.SphereGeometry(350, 16, 16);
+      const flashMat = new THREE.MeshPhongMaterial({ color: 0xffaa00, emissive: 0xff6600, transparent: true, opacity: 0 });
+      const flash = new THREE.Mesh(flashGeo, flashMat);
+      flash.position.copy(collPt);
+      sceneGroup.add(flash);
+
+      // Build debris particles
+      const NFRAG = 400;
+      const fragGeo = new THREE.BufferGeometry();
+      const fragPos = new Float32Array(NFRAG * 3);
+      fragGeo.setAttribute('position', new THREE.BufferAttribute(fragPos, 3));
+      const fragMat = new THREE.PointsMaterial({ color: 0xff8844, size: 50, transparent: true, opacity: 0 });
+      const fragPoints = new THREE.Points(fragGeo, fragMat);
+      sceneGroup.add(fragPoints);
+
+      // Collision ring (expanding ring at impact)
+      const ringGeo = new THREE.RingGeometry(100, 160, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xff8844, transparent: true, opacity: 0, side: THREE.DoubleSide });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.copy(collPt);
+      ring.lookAt(0, 1, 0);
+      sceneGroup.add(ring);
+
+      // Store fragment velocity vectors
+      fragments = [];
+      for (let k = 0; k < NFRAG; k++) {
+        const phi = Math.random() * Math.PI * 2;
+        const theta2 = Math.acos(2 * Math.random() - 1);
+        const spd = 300 + Math.random() * 2000;  // m/s dispersion
+        fragments.push({
+          vx: Math.sin(theta2)*Math.cos(phi)*spd,
+          vy: Math.cos(theta2)*spd,
+          vz: Math.sin(theta2)*Math.sin(phi)*spd,
+        });
+      }
+
+      animState = {
+        iriSat, cosSat, flash, flashMat, fragPoints, fragPos, fragMat, ring, ringMat, ringGeo,
+        collPt, NFRAG,
+      };
+    },
+    tick(t) {
+      const s = animState;
+      if (!s.iriSat) return;
+      // Phase 0→0.4: satellites approach
+      const approach = Math.min(t / 0.4, 1.0);
+      const iriNu  = 180 + approach * 90;
+      const cosNu  = 90  + approach * 180;
+      s.iriSat.position.copy(satPos(7160, 0.001, 86.4, 340, 0, iriNu));
+      s.cosSat.position.copy(satPos(7159, 0.001, 74.0, 155, 0, cosNu));
+
+      // Phase 0.4→0.5: collision flash
+      const flashT = Math.max(0, Math.min((t - 0.4) / 0.1, 1));
+      s.flashMat.opacity = flashT < 0.5 ? flashT * 2 : (1 - flashT) * 2;
+
+      // Phase 0.45+: fragments expand
+      if (t > 0.45) {
+        const fT = (t - 0.45) * 3.0;
+        s.iriSat.visible = false; s.cosSat.visible = false;
+        s.fragMat.opacity = Math.min(fT * 3, 0.8);
+        for (let k = 0; k < s.NFRAG; k++) {
+          const f = fragments[k];
+          s.fragPos[k*3]   = s.collPt.x + f.vx * fT * 0.8;
+          s.fragPos[k*3+1] = s.collPt.y + f.vy * fT * 0.8;
+          s.fragPos[k*3+2] = s.collPt.z + f.vz * fT * 0.8;
+        }
+        s.fragPoints.geometry.attributes.position.needsUpdate = true;
+        // Ring expand
+        s.ring.scale.setScalar(1 + fT * 6);
+        s.ringMat.opacity = Math.max(0, 0.5 - fT * 0.5);
+      } else {
+        s.iriSat.visible = true; s.cosSat.visible = true;
+        s.fragMat.opacity = 0;
+      }
+
+      // Fragment counter
+      const fragCount = t > 0.45 ? Math.round(Math.min((t - 0.45) / 0.4 * 2300, 2300)) : 0;
+      document.getElementById('fc-val').textContent = fragCount.toLocaleString();
+    }
+  },
+
+  kessler: {
+    title: 'Kessler Cascade — Runaway Debris Chain',
+    eyebrow: 'Hypothetical · 800–1000 km',
+    heading: 'The Kessler Syndrome',
+    body: 'Each collision generates debris that causes more collisions. Above a critical density, the cascade becomes <strong>self-sustaining and irreversible</strong>. This simulation shows the exponential growth in fragment count.',
+    stats: { v:'9–11', alt:'900', m1:'2', m2:'events', l1:'km/s avg', l2:'km altitude', l3:'cascade', l4:'collisions' },
+    fcLabel: 'Total Fragments',
+    totalFrags: 15000,
+    camera: { pos: [0, 10000, 28000], lookAt: [0, 0, 0] },
+    build() {
+      clearScene();
+      // 6 initial satellite orbits at slightly different inclinations
+      const sats = [];
+      const orbitDefs = [
+        { a:7180, e:0.001, i:82, O:0   },
+        { a:7200, e:0.001, i:86, O:60  },
+        { a:7160, e:0.001, i:78, O:120 },
+        { a:7220, e:0.001, i:94, O:180 },
+        { a:7190, e:0.001, i:90, O:240 },
+        { a:7170, e:0.001, i:72, O:300 },
+      ];
+      const colors = [0x4a9eff, 0x34d399, 0xa78bfa, 0xf59e0b, 0xf87171, 0x67e8f9];
+      orbitDefs.forEach((o, idx) => {
+        const pts = orbitPoints(o.a, o.e, o.i, o.O, 0);
+        sceneGroup.add(mkLine(pts, colors[idx], 0.4));
+        const s = mkSphere(90, colors[idx], 0);
+        s.position.copy(satPos(o.a, o.e, o.i, o.O, 0, idx * 60));
+        sceneGroup.add(s);
+        sats.push({ ...o, mesh: s, nu: idx * 60 });
+      });
+
+      // Debris cloud particles (grows over time)
+      const MAXFRAG = 1200;
+      const fragGeo = new THREE.BufferGeometry();
+      const fragPos = new Float32Array(MAXFRAG * 3);
+      // start all at center far away
+      for (let i = 0; i < MAXFRAG * 3; i++) fragPos[i] = 999999;
+      fragGeo.setAttribute('position', new THREE.BufferAttribute(fragPos, 3));
+      const fragMat = new THREE.PointsMaterial({ color: 0xff6644, size: 35, transparent: true, opacity: 0.6 });
+      const fragPoints = new THREE.Points(fragGeo, fragMat);
+      sceneGroup.add(fragPoints);
+
+      // Collision flash meshes (one per event)
+      const flashes = [];
+      const flashPositions = [
+        satPos(7180, 0.001, 82, 0, 0, 130),
+        satPos(7200, 0.001, 86, 60, 0, 220),
+        satPos(7190, 0.001, 90, 240, 0, 310),
+        satPos(7170, 0.001, 72, 300, 0, 45),
+      ];
+      flashPositions.forEach(p => {
+        const f = mkSphere(280, 0xff8800, 0xff4400);
+        f.material.transparent = true; f.material.opacity = 0;
+        f.position.copy(p);
+        sceneGroup.add(f);
+        flashes.push(f);
+      });
+
+      animState = { sats, fragPoints, fragPos, fragMat, flashes, flashPositions, MAXFRAG };
+      fragments = Array.from({ length: MAXFRAG }, () => ({
+        vx: (Math.random()-.5)*2000, vy: (Math.random()-.5)*2000, vz: (Math.random()-.5)*2000,
+        spawnT: Math.random(),
+        baseX: flashPositions[Math.floor(Math.random()*flashPositions.length)].x,
+        baseY: flashPositions[Math.floor(Math.random()*flashPositions.length)].y,
+        baseZ: flashPositions[Math.floor(Math.random()*flashPositions.length)].z,
+      }));
+    },
+    tick(t) {
+      const s = animState;
+      if (!s.sats) return;
+      // Move satellites
+      s.sats.forEach((sat, i) => {
+        sat.nu = (sat.nu + 0.4 * (1 + i*0.05)) % 360;
+        sat.mesh.position.copy(satPos(sat.a, sat.e, sat.i, sat.O, 0, sat.nu));
+      });
+      // Cascade flashes
+      const eventTimes = [0.15, 0.35, 0.55, 0.75];
+      s.flashes.forEach((f, i) => {
+        const dt = t - eventTimes[i];
+        if (dt > 0 && dt < 0.12) {
+          f.material.opacity = dt < 0.06 ? dt/0.06 : (0.12-dt)/0.06;
+        } else {
+          f.material.opacity = 0;
+        }
+      });
+      // Grow debris cloud
+      let activeFrags = 0;
+      fragments.forEach((frag, k) => {
+        if (t > frag.spawnT) {
+          const age = (t - frag.spawnT) * 1.5;
+          s.fragPos[k*3]   = frag.baseX + frag.vx * age;
+          s.fragPos[k*3+1] = frag.baseY + frag.vy * age;
+          s.fragPos[k*3+2] = frag.baseZ + frag.vz * age;
+          activeFrags++;
+        }
+      });
+      s.fragPoints.geometry.attributes.position.needsUpdate = true;
+      const count = Math.round(t * 15000);
+      document.getElementById('fc-val').textContent = count.toLocaleString();
+      // Hide sats progressively after first collision
+      if (t > 0.2) { s.sats[0].mesh.visible = false; s.sats[1].mesh.visible = false; }
+      if (t > 0.4) { s.sats[2].mesh.visible = false; }
+      if (t > 0.6) { s.sats[3].mesh.visible = false; }
+    }
+  },
+
+  fy1c: {
+    title: 'FY-1C ASAT Strike — Jan 11, 2007',
+    eyebrow: 'Deliberate · 863 km · China',
+    heading: 'FY-1C Anti-Satellite Test',
+    body: 'China destroyed its own Fengyun-1C weather satellite using a direct-ascent kinetic kill vehicle. Created <strong>3,500+ trackable fragments</strong> — the worst single debris-generating event ever.',
+    stats: { v:'9.0', alt:'863', m1:'750', m2:'300', l1:'km/s rel. vel.', l2:'km altitude', l3:'FY-1C mass (kg)', l4:'KKV mass (est., kg)' },
+    fcLabel: 'Debris Objects Created',
+    totalFrags: 3500,
+    camera: { pos: [0, 9000, 24000], lookAt: [0, 0, 0] },
+    build() {
+      clearScene();
+      // FY-1C polar orbit
+      const fyPts = orbitPoints(7234, 0.001, 98.8, 200, 0);
+      sceneGroup.add(mkLine(fyPts, 0x34d399, 0.6));
+      // KKV trajectory (direct ascent from ground, simplified as inclined arc)
+      const kkvPts = [];
+      for (let k = 0; k <= 60; k++) {
+        const frac = k / 60;
+        const alt = R_E + 200 + (863 - 200) * frac;
+        const lng = 100 + frac * 10; // rough path
+        const lat = 28 + frac * 70;
+        const lR = lat*Math.PI/180, oR = lng*Math.PI/180;
+        kkvPts.push(new THREE.Vector3(alt*Math.cos(lR)*Math.cos(oR), alt*Math.sin(lR), alt*Math.cos(lR)*Math.sin(oR)));
+      }
+      sceneGroup.add(mkLine(kkvPts, 0xf87171, 0.7));
+
+      const fy1c = mkSphere(110, 0x34d399, 0x106030);
+      const kkv  = mkSphere(60, 0xf87171, 0x601010);
+      const collPt = satPos(7234, 0.001, 98.8, 200, 0, 260);
+      fy1c.position.copy(satPos(7234, 0.001, 98.8, 200, 0, 180));
+      kkv.position.copy(kkvPts[0]);
+      sceneGroup.add(fy1c); sceneGroup.add(kkv);
+
+      const flash = mkSphere(400, 0xffaa00, 0xff6600);
+      flash.material.transparent = true; flash.material.opacity = 0;
+      flash.position.copy(collPt);
+      sceneGroup.add(flash);
+
+      const NFRAG = 500;
+      const fragGeo = new THREE.BufferGeometry();
+      const fragPos = new Float32Array(NFRAG * 3);
+      for (let i = 0; i < NFRAG*3; i++) fragPos[i] = 999999;
+      fragGeo.setAttribute('position', new THREE.BufferAttribute(fragPos, 3));
+      const fragMat = new THREE.PointsMaterial({ color: 0xff8844, size: 45, transparent: true, opacity: 0 });
+      const fragPoints = new THREE.Points(fragGeo, fragMat);
+      sceneGroup.add(fragPoints);
+
+      fragments = Array.from({ length: NFRAG }, () => {
+        const phi=Math.random()*Math.PI*2, th=Math.acos(2*Math.random()-1);
+        const spd = 400 + Math.random() * 3000;
+        return { vx:Math.sin(th)*Math.cos(phi)*spd, vy:Math.cos(th)*spd, vz:Math.sin(th)*Math.sin(phi)*spd };
+      });
+
+      animState = { fy1c, kkv, flash, kkvPts, collPt, fragPoints, fragPos, fragMat, NFRAG };
+    },
+    tick(t) {
+      const s = animState;
+      if (!s.fy1c) return;
+      const fy1cNu = 180 + t * 0.4 * 80;
+      s.fy1c.position.copy(satPos(7234, 0.001, 98.8, 200, 0, fy1cNu));
+      // KKV rises
+      const kkvIdx = Math.floor(Math.min(t / 0.5, 0.99) * 59);
+      s.kkv.position.copy(s.kkvPts[kkvIdx]);
+      // Flash at t=0.5
+      const flashT = Math.max(0, Math.min((t - 0.5) / 0.1, 1));
+      s.flash.material.opacity = flashT < 0.5 ? flashT * 2 : (1 - flashT) * 2;
+      if (t > 0.52) {
+        s.fy1c.visible = false; s.kkv.visible = false;
+        s.fragMat.opacity = Math.min((t - 0.52) * 3, 0.85);
+        const fT = (t - 0.52) * 2;
+        for (let k = 0; k < s.NFRAG; k++) {
+          const f = fragments[k];
+          s.fragPos[k*3]   = s.collPt.x + f.vx * fT;
+          s.fragPos[k*3+1] = s.collPt.y + f.vy * fT;
+          s.fragPos[k*3+2] = s.collPt.z + f.vz * fT;
+        }
+        s.fragPoints.geometry.attributes.position.needsUpdate = true;
+      } else {
+        s.fy1c.visible = true; s.kkv.visible = true;
+        s.fragMat.opacity = 0;
+      }
+      document.getElementById('fc-val').textContent = t > 0.52 ? Math.round(Math.min((t-0.52)/0.4*3500, 3500)).toLocaleString() : '0';
+    }
+  },
+
+  maneuver: {
+    title: 'Conjunction Avoidance Maneuver',
+    eyebrow: 'Operational · 400 km · LEO',
+    heading: 'Avoidance Delta-V',
+    body: 'When Pc exceeds 1×10⁻⁴, operators execute a small maneuver to change their orbit. Even <strong>0.1 m/s Δv</strong> is enough to move several kilometers in 2 hours.',
+    stats: { v:'0.10', alt:'400', m1:'1e-4', m2:'0.1', l1:'Δv (m/s)', l2:'km altitude', l3:'Pc threshold', l4:'m/s burn' },
+    fcLabel: 'Miss Distance (km)',
+    totalFrags: 12,
+    camera: { pos: [0, 7000, 18000], lookAt: [0, 0, 0] },
+    build() {
+      clearScene();
+      // Primary satellite orbit (ISS-like)
+      const origPts = orbitPoints(6778, 0.001, 51.6, 0, 0);
+      sceneGroup.add(mkLine(origPts, 0x4a9eff, 0.5));
+      // Post-maneuver orbit (slightly higher)
+      const manPts = orbitPoints(6790, 0.001, 51.6, 0, 0);
+      const manLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(manPts),
+        new THREE.LineDashedMaterial({ color: 0x34d399, dashSize: 200, gapSize: 100, transparent: true, opacity: 0 }));
+      manLine.computeLineDistances();
+      sceneGroup.add(manLine);
+      // Debris orbit (crossing)
+      const debrisPts = orbitPoints(6780, 0.001, 68.5, 20, 45);
+      sceneGroup.add(mkLine(debrisPts, 0xf87171, 0.4));
+
+      const sat   = mkSphere(90, 0x4a9eff, 0x103060);
+      const debris = mkSphere(60, 0xf87171, 0x601010);
+      const conjPt = satPos(6778, 0.001, 51.6, 0, 0, 310);
+
+      // Warning ring at conjunction point
+      const warnGeo = new THREE.RingGeometry(200, 320, 32);
+      const warnMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0, side: THREE.DoubleSide });
+      const warnRing = new THREE.Mesh(warnGeo, warnMat);
+      warnRing.position.copy(conjPt);
+      warnRing.lookAt(0, 0, 0);
+      sceneGroup.add(warnRing);
+
+      sat.position.copy(satPos(6778, 0.001, 51.6, 0, 0, 180));
+      debris.position.copy(satPos(6780, 0.001, 68.5, 20, 45, 180));
+      sceneGroup.add(sat); sceneGroup.add(debris);
+
+      animState = { sat, debris, manLine, warnRing, warnMat, conjPt, maneuvered: false };
+    },
+    tick(t) {
+      const s = animState;
+      if (!s.sat) return;
+      // Phase 0-0.4: normal orbit, warning ring pulses
+      const warnT = Math.min(t / 0.4, 1);
+      s.warnMat.opacity = warnT * 0.6 * (0.5 + 0.5 * Math.sin(t * 20));
+
+      const satNu  = 180 + t * 0.4 * 130;
+      const debNu  = 180 + t * 0.4 * 110;
+      const manNu  = 180 + t * 0.4 * 130;
+
+      if (t < 0.5) {
+        s.sat.position.copy(satPos(6778, 0.001, 51.6, 0, 0, satNu));
+        s.manLine.material.opacity = 0;
+      } else {
+        // After maneuver: track higher orbit
+        s.sat.position.copy(satPos(6790, 0.001, 51.6, 0, 0, manNu));
+        s.manLine.material.opacity = Math.min((t - 0.5) * 5, 0.7);
+        s.warnMat.opacity = Math.max(0, 0.6 - (t - 0.5) * 2);
+      }
+      s.debris.position.copy(satPos(6780, 0.001, 68.5, 20, 45, debNu));
+
+      // Miss distance (km)
+      const miss = t < 0.5 ? Math.max(0.1, 3.2 - t * 4) : 0.1 + (t - 0.5) * 28;
+      document.getElementById('fc-val').textContent = miss.toFixed(1);
+    }
+  }
+};
+
+// ══ PLAYBACK CONTROLS ════════════════════════════════════════
+function loadScenario(key) {
+  const sc = SCENARIOS[key];
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().replace(/\s+/g,' ') === {
+    iridium:'Iridium-Cosmos', kessler:'Kessler Cascade', fy1c:'FY-1C ASAT', maneuver:'Avoidance Maneuver'
+  }[key]));
+  document.getElementById('pb-title').textContent = sc.title;
+  document.getElementById('io-eyebrow').textContent = sc.eyebrow;
+  document.getElementById('io-title').textContent = sc.heading;
+  document.getElementById('io-body').innerHTML = sc.body;
+  document.getElementById('is-v').textContent  = sc.stats.v;
+  document.getElementById('is-alt').textContent = sc.stats.alt;
+  document.getElementById('is-m1').textContent = sc.stats.m1;
+  document.getElementById('is-m2').textContent = sc.stats.m2;
+  document.querySelector('#io-stats .io-stat:nth-child(1) .io-stat-lbl').textContent = sc.stats.l1;
+  document.querySelector('#io-stats .io-stat:nth-child(2) .io-stat-lbl').textContent = sc.stats.l2;
+  document.querySelector('#io-stats .io-stat:nth-child(3) .io-stat-lbl').textContent = sc.stats.l3;
+  document.querySelector('#io-stats .io-stat:nth-child(4) .io-stat-lbl').textContent = sc.stats.l4;
+  document.getElementById('fc-lbl').textContent = sc.fcLabel;
+  document.getElementById('fc-val').textContent = '0';
+  camera.position.set(...sc.camera.pos);
+  camera.lookAt(...sc.camera.lookAt);
+  radius = camera.position.length();
+  sc.build();
+  t = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸';
+  currentScenario = key;
+}
+
+let currentScenario = 'iridium';
+let lastTime = null;
+
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('btn-play').textContent = playing ? '⏸' : '▶';
+}
+function restart() {
+  t = 0; playing = true;
+  document.getElementById('btn-play').textContent = '⏸';
+  loadScenario(currentScenario);
+}
+function cycleSpeed() {
+  speedIdx = (speedIdx + 1) % speeds.length;
+  speed = speeds[speedIdx];
+  document.getElementById('btn-speed').textContent = speed + '×';
+}
+function scrubTo(e) {
+  const rect = document.getElementById('pb-progress').getBoundingClientRect();
+  t = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+}
+
+// ══ ORBIT CONTROLS ═══════════════════════════════════════════
+let isDragging=false, lastX=0, lastY=0, lastTouchDist=0;
+let phi=0.5, theta=0.4, radius=24000;
+
+function updateCam() {
+  camera.position.set(radius*Math.sin(phi)*Math.cos(theta), radius*Math.cos(phi), radius*Math.sin(phi)*Math.sin(theta));
+  camera.lookAt(0,0,0);
+}
+canvas.addEventListener('mousedown', e => { isDragging=true; lastX=e.clientX; lastY=e.clientY; });
+window.addEventListener('mouseup', () => isDragging=false);
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  theta -= (e.clientX-lastX)*0.005; phi=Math.max(0.1,Math.min(Math.PI-0.1,phi-(e.clientY-lastY)*0.005));
+  lastX=e.clientX; lastY=e.clientY; updateCam();
+});
+canvas.addEventListener('wheel', e => { radius=Math.max(R_E*1.5,Math.min(200000,radius+e.deltaY*12)); updateCam(); }, { passive:true });
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length===1) { isDragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; }
+  else if (e.touches.length===2) { isDragging=false; lastTouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); }
+}, { passive:true });
+canvas.addEventListener('touchmove', e => {
+  if (e.touches.length===1 && isDragging) {
+    theta-=(e.touches[0].clientX-lastX)*0.007; phi=Math.max(0.1,Math.min(Math.PI-0.1,phi-(e.touches[0].clientY-lastY)*0.007));
+    lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; updateCam();
+  } else if (e.touches.length===2) {
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    radius=Math.max(R_E*1.5,Math.min(200000,radius*(lastTouchDist/d))); lastTouchDist=d; updateCam();
+  }
+}, { passive:true });
+canvas.addEventListener('touchend', ()=>isDragging=false, { passive:true });
+
+// ══ RESIZE ════════════════════════════════════════════════════
+function resize() {
+  const w=canvas.parentElement.clientWidth, h=canvas.parentElement.clientHeight;
+  renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize); resize();
+
+// ══ RENDER LOOP ═══════════════════════════════════════════════
+function animate(ts) {
+  requestAnimationFrame(animate);
+  if (playing && lastTime !== null) {
+    const dt = Math.min((ts - lastTime) / 1000, 0.05) * speed * 0.12;
+    t = Math.min(t + dt, 1.0);
+    if (t >= 1.0) playing = false;
+  }
+  lastTime = ts;
+
+  // Run scenario tick
+  const sc = SCENARIOS[currentScenario];
+  if (sc && sc.tick) sc.tick(t);
+
+  // Update timeline
+  document.getElementById('pb-fill').style.width = (t * 100) + '%';
+  document.getElementById('pb-scrubber').style.left  = (t * 100) + '%';
+  const seconds = Math.round(t * 120);
+  const mm = Math.floor(seconds / 60), ss = seconds % 60;
+  document.getElementById('pb-time').textContent = 'T+' + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+
+  earthMesh.rotation.y += 0.0003;
+  renderer.render(scene, camera);
+}
+
+// ══ INIT ══════════════════════════════════════════════════════
+loadScenario('iridium');
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>"""
+
+KEPLER_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Keplerian Orbit Explorer — VectraSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#080c12;--ink2:#0d1320;--ink3:#111d2e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;
+  --accent:#4a9eff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;
+  --serif:'Instrument Serif',serif;--mono:'DM Mono',monospace;--sans:'Outfit',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--ink);color:var(--text);font-family:var(--sans);overflow:hidden;width:100%;height:100%;}
+
+/* NAV */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);}
+.tb-brand{font-family:var(--serif);font-size:16px;font-style:italic;color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px;}
+.tb-brand em{color:var(--accent);font-style:normal;}
+.tb-links{display:flex;gap:4px;}
+.tb-link{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:5px 12px;border:1px solid transparent;border-radius:4px;transition:all 0.15s;}
+.tb-link:hover,.tb-link.active{border-color:var(--border2);color:var(--text);}
+.tb-link.active{border-color:rgba(74,158,255,0.4);color:var(--accent);background:rgba(74,158,255,0.06);}
+
+/* LAYOUT */
+#app{display:flex;height:100vh;padding-top:52px;}
+#canvas-wrap{flex:1;position:relative;overflow:hidden;touch-action:none;}
+#three-canvas{display:block;width:100%;height:100%;}
+
+/* PANEL */
+#panel{width:300px;min-width:300px;background:var(--ink2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#panel-scroll{flex:1;overflow-y:auto;padding:16px;}
+#panel-scroll::-webkit-scrollbar{width:3px;}
+#panel-scroll::-webkit-scrollbar-thumb{background:var(--faint);border-radius:2px;}
+
+.p-section{margin-bottom:24px;}
+.p-label{font-family:var(--mono);font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.p-label::before{content:'';width:14px;height:1px;background:var(--accent);display:inline-block;}
+
+/* SLIDERS */
+.sl-row{margin-bottom:14px;}
+.sl-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.sl-name{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.5px;}
+.sl-name .sym{color:var(--accent);font-style:italic;margin-right:2px;}
+.sl-val{font-family:var(--mono);font-size:13px;color:var(--text);min-width:60px;text-align:right;}
+.sl-unit{font-family:var(--mono);font-size:9px;color:var(--faint);margin-left:3px;}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:2px;background:var(--border2);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 6px rgba(74,158,255,0.4);}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:none;}
+
+/* ORBIT INFO */
+.orbit-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;}
+.os-cell{background:var(--ink3);border:1px solid var(--border);border-radius:6px;padding:10px 12px;}
+.os-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.os-val{font-family:var(--serif);font-size:18px;font-style:italic;color:var(--text);}
+.os-unit{font-family:var(--mono);font-size:8px;color:var(--faint);display:block;margin-top:1px;}
+
+/* PRESETS */
+.preset-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.preset-chip{font-family:var(--mono);font-size:8px;letter-spacing:0.5px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.15s;}
+.preset-chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.06);}
+.preset-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.08);}
+
+/* LEGEND */
+.legend{display:flex;flex-direction:column;gap:7px;}
+.legend-row{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.5px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+/* INFO BOX */
+.info-box{background:var(--ink3);border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:6px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.65;}
+.info-box strong{color:var(--text);}
+
+/* PANEL TOGGLE (mobile) */
+#panel-toggle{display:none;position:fixed;bottom:20px;right:20px;z-index:200;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:18px;cursor:pointer;box-shadow:0 4px 16px rgba(74,158,255,0.4);}
+
+/* MOBILE */
+@media(max-width:700px){
+  #panel{position:fixed;top:52px;right:0;bottom:0;width:280px;min-width:0;transform:translateX(100%);transition:transform 0.3s ease;z-index:50;border-left:1px solid var(--border2);}
+  #panel.open{transform:translateX(0);}
+  #panel-toggle{display:flex;align-items:center;justify-content:center;}
+  .tb-link{display:none;}
+  .tb-link.back-link{display:block;}
+}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="/" class="tb-brand">Vectra<em>Space</em></a>
+  <div class="tb-links">
+    <a href="/" class="tb-link back-link">← Hub</a>
+    <a href="/kepler" class="tb-link active">Kepler Explorer</a>
+    <a href="/scenarios" class="tb-link">Scenarios</a>
+    <a href="/calculator" class="tb-link">Calculator</a>
+    <a href="/glossary" class="tb-link">Glossary</a>
+  </div>
+</div>
+
+<div id="app">
+  <div id="canvas-wrap">
+    <canvas id="three-canvas"></canvas>
+  </div>
+
+  <div id="panel">
+    <div id="panel-scroll">
+
+      <div class="p-section">
+        <div class="p-label">Keplerian Elements</div>
+
+        <div class="sl-row">
+          <div class="sl-header">
+            <span class="sl-name"><span class="sym">a</span> Semi-Major Axis</span>
+            <span class="sl-val" id="val-a">7,000<span class="sl-unit">km</span></span>
+          </div>
+          <input type="range" id="sl-a" min="6600" max="42000" value="7000" step="50">
+        </div>
+
+        <div class="sl-row">
+          <div class="sl-header">
+            <span class="sl-name"><span class="sym">e</span> Eccentricity</span>
+            <span class="sl-val" id="val-e">0.000</span>
+          </div>
+          <input type="range" id="sl-e" min="0" max="0.95" value="0" step="0.005">
+        </div>
+
+        <div class="sl-row">
+          <div class="sl-header">
+            <span class="sl-name"><span class="sym">i</span> Inclination</span>
+            <span class="sl-val" id="val-i">0°</span>
+          </div>
+          <input type="range" id="sl-i" min="0" max="180" value="0" step="1">
+        </div>
+
+        <div class="sl-row">
+          <div class="sl-header">
+            <span class="sl-name"><span class="sym">Ω</span> RAAN</span>
+            <span class="sl-val" id="val-O">0°</span>
+          </div>
+          <input type="range" id="sl-O" min="0" max="360" value="0" step="1">
+        </div>
+
+        <div class="sl-row">
+          <div class="sl-header">
+            <span class="sl-name"><span class="sym">ω</span> Arg. of Perigee</span>
+            <span class="sl-val" id="val-w">0°</span>
+          </div>
+          <input type="range" id="sl-w" min="0" max="360" value="0" step="1">
+        </div>
+      </div>
+
+      <div class="p-section">
+        <div class="p-label">Derived Properties</div>
+        <div class="orbit-stats">
+          <div class="os-cell">
+            <div class="os-label">Perigee Alt</div>
+            <div class="os-val" id="stat-pe">629</div>
+            <span class="os-unit">km</span>
+          </div>
+          <div class="os-cell">
+            <div class="os-label">Apogee Alt</div>
+            <div class="os-val" id="stat-ap">629</div>
+            <span class="os-unit">km</span>
+          </div>
+          <div class="os-cell">
+            <div class="os-label">Period</div>
+            <div class="os-val" id="stat-T">98.8</div>
+            <span class="os-unit">min</span>
+          </div>
+          <div class="os-cell">
+            <div class="os-label">Perigee Speed</div>
+            <div class="os-val" id="stat-v">7.51</div>
+            <span class="os-unit">km/s</span>
+          </div>
+          <div class="os-cell">
+            <div class="os-label">Regime</div>
+            <div class="os-val" id="stat-reg" style="font-size:14px;font-style:normal;font-family:var(--mono)">LEO</div>
+            <span class="os-unit"></span>
+          </div>
+          <div class="os-cell">
+            <div class="os-label">J₂ RAAN drift</div>
+            <div class="os-val" id="stat-j2" style="font-size:14px;font-style:normal;font-family:var(--mono)">-7.1</div>
+            <span class="os-unit">°/day</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-section">
+        <div class="p-label">Quick Presets</div>
+        <div class="preset-chips">
+          <button class="preset-chip active" onclick="applyPreset('iss')">ISS</button>
+          <button class="preset-chip" onclick="applyPreset('sso')">Sun-Sync</button>
+          <button class="preset-chip" onclick="applyPreset('gto')">GTO</button>
+          <button class="preset-chip" onclick="applyPreset('geo')">GEO</button>
+          <button class="preset-chip" onclick="applyPreset('molniya')">Molniya</button>
+          <button class="preset-chip" onclick="applyPreset('polar')">Polar</button>
+        </div>
+      </div>
+
+      <div class="p-section">
+        <div class="p-label">Legend</div>
+        <div class="legend">
+          <div class="legend-row"><div class="legend-dot" style="background:#4a9eff;"></div>Orbit path</div>
+          <div class="legend-row"><div class="legend-dot" style="background:#34d399;"></div>Satellite (current position)</div>
+          <div class="legend-row"><div class="legend-dot" style="background:#f59e0b;opacity:0.7;"></div>Perigee marker</div>
+          <div class="legend-row"><div class="legend-dot" style="background:#a78bfa;opacity:0.7;"></div>Apogee marker</div>
+          <div class="legend-row"><div class="legend-dot" style="background:rgba(255,255,255,0.15);"></div>Earth (to scale)</div>
+        </div>
+      </div>
+
+      <div class="p-section">
+        <div class="info-box" id="insight-box">
+          <strong>Tip:</strong> Drag the <em>Eccentricity</em> slider to watch a circular orbit stretch into an ellipse. Notice how perigee speed rises while apogee speed drops — that's conservation of angular momentum.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<button id="panel-toggle" onclick="togglePanel()">⚙</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── CONSTANTS ─────────────────────────────────────────────────
+const MU  = 398600.4418; // km³/s²
+const R_E = 6371.0;      // km
+
+// ── THREE.JS SETUP ────────────────────────────────────────────
+const canvas = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x080c12, 1);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 500000);
+camera.position.set(0, 8000, 18000);
+camera.lookAt(0, 0, 0);
+
+// ── EARTH ──────────────────────────────────────────────────────
+const earthGeo = new THREE.SphereGeometry(R_E, 64, 64);
+const earthMat = new THREE.MeshPhongMaterial({
+  color: 0x1a3a6a,
+  emissive: 0x0a1a3a,
+  shininess: 8,
+  specular: 0x204060,
+});
+const earthMesh = new THREE.Mesh(earthGeo, earthMat);
+scene.add(earthMesh);
+
+// Earth grid lines
+const gridMat = new THREE.LineBasicMaterial({ color: 0x1a3a6a, opacity: 0.4, transparent: true });
+for (let lat = -80; lat <= 80; lat += 20) {
+  const pts = [];
+  for (let lng = 0; lng <= 360; lng += 4) {
+    const r = R_E + 2;
+    const lngR = lng * Math.PI / 180, latR = lat * Math.PI / 180;
+    pts.push(new THREE.Vector3(r*Math.cos(latR)*Math.cos(lngR), r*Math.sin(latR), r*Math.cos(latR)*Math.sin(lngR)));
+  }
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat));
+}
+for (let lng = 0; lng < 360; lng += 30) {
+  const pts = [];
+  for (let lat = -90; lat <= 90; lat += 4) {
+    const r = R_E + 2;
+    const lngR = lng * Math.PI / 180, latR = lat * Math.PI / 180;
+    pts.push(new THREE.Vector3(r*Math.cos(latR)*Math.cos(lngR), r*Math.sin(latR), r*Math.cos(latR)*Math.sin(lngR)));
+  }
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat));
+}
+
+// Atmosphere glow sphere
+const atmoGeo = new THREE.SphereGeometry(R_E * 1.04, 32, 32);
+const atmoMat = new THREE.MeshPhongMaterial({
+  color: 0x2a5f9f, transparent: true, opacity: 0.08, side: THREE.FrontSide,
+});
+scene.add(new THREE.Mesh(atmoGeo, atmoMat));
+
+// Equatorial plane ring (faint reference)
+const eqGeo = new THREE.RingGeometry(R_E + 50, R_E + 200, 128);
+const eqMat = new THREE.MeshBasicMaterial({ color: 0x2a3d50, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+scene.add(new THREE.Mesh(eqGeo, eqMat));
+
+// Lights
+scene.add(new THREE.AmbientLight(0x223355, 1.4));
+const sunLight = new THREE.DirectionalLight(0xffffff, 1.8);
+sunLight.position.set(50000, 20000, 30000);
+scene.add(sunLight);
+
+// Starfield
+const starGeo = new THREE.BufferGeometry();
+const starPos = [];
+for (let i = 0; i < 2000; i++) {
+  const r = 300000;
+  starPos.push((Math.random()-0.5)*r*2, (Math.random()-0.5)*r*2, (Math.random()-0.5)*r*2);
+}
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 60, transparent: true, opacity: 0.6 })));
+
+// ── ORBIT OBJECTS ─────────────────────────────────────────────
+let orbitLine = null, satMesh = null, perigeeMesh = null, apogeeMesh = null;
+let orbitGroup = new THREE.Group();
+scene.add(orbitGroup);
+
+function clearOrbit() {
+  orbitGroup.clear();
+}
+
+// ── KEPLERIAN → CARTESIAN ─────────────────────────────────────
+function keplerToCartesian(a, e, iDeg, OmegaDeg, omegaDeg, nuDeg) {
+  const i = iDeg * Math.PI / 180;
+  const O = OmegaDeg * Math.PI / 180;
+  const w = omegaDeg * Math.PI / 180;
+  const nu = nuDeg * Math.PI / 180;
+  const p = a * (1 - e*e);
+  const r = p / (1 + e * Math.cos(nu));
+  // Position in perifocal frame
+  const xp = r * Math.cos(nu);
+  const yp = r * Math.sin(nu);
+  // Rotate: ω, i, Ω
+  const cosO=Math.cos(O), sinO=Math.sin(O);
+  const cosi=Math.cos(i), sini=Math.sin(i);
+  const cosw=Math.cos(w), sinw=Math.sin(w);
+  const x = (cosO*cosw - sinO*sinw*cosi)*xp + (-cosO*sinw - sinO*cosw*cosi)*yp;
+  const y = (sini*sinw)*xp + (sini*cosw)*yp;
+  const z = (sinO*cosw + cosO*sinw*cosi)*xp + (-sinO*sinw + cosO*cosw*cosi)*yp;
+  return new THREE.Vector3(x, y, z);
+}
+
+function buildOrbit(a, e, i, O, w) {
+  clearOrbit();
+  const N = 256;
+  const pts = [];
+  for (let k = 0; k <= N; k++) {
+    const nu = (k / N) * 360;
+    pts.push(keplerToCartesian(a, e, i, O, w, nu));
+  }
+
+  // Orbit line
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x4a9eff, linewidth: 2 });
+  const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+  orbitLine = new THREE.Line(lineGeo, lineMat);
+  orbitGroup.add(orbitLine);
+
+  // Satellite position (nu=45 for visual interest)
+  const satPos = keplerToCartesian(a, e, i, O, w, 45);
+  satMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(120, 12, 12),
+    new THREE.MeshPhongMaterial({ color: 0x34d399, emissive: 0x16a064 })
+  );
+  satMesh.position.copy(satPos);
+  orbitGroup.add(satMesh);
+
+  // Perigee marker (nu=0)
+  const pePos = keplerToCartesian(a, e, i, O, w, 0);
+  perigeeMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(90, 8, 8),
+    new THREE.MeshPhongMaterial({ color: 0xf59e0b, emissive: 0x805300, transparent: true, opacity: 0.85 })
+  );
+  perigeeMesh.position.copy(pePos);
+  orbitGroup.add(perigeeMesh);
+
+  // Apogee marker (nu=180)
+  const apPos = keplerToCartesian(a, e, i, O, w, 180);
+  apogeeMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(90, 8, 8),
+    new THREE.MeshPhongMaterial({ color: 0xa78bfa, emissive: 0x5030a0, transparent: true, opacity: 0.85 })
+  );
+  apogeeMesh.position.copy(apPos);
+  orbitGroup.add(apogeeMesh);
+
+  // Apse line
+  const apseMat = new THREE.LineBasicMaterial({ color: 0x2a3d50 });
+  orbitGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([pePos, apPos]), apseMat));
+
+  // Normal vector indicator
+  const normalDir = new THREE.Vector3(
+    Math.sin(O * Math.PI/180) * Math.sin(i * Math.PI/180),
+    Math.cos(i * Math.PI/180),
+    -Math.cos(O * Math.PI/180) * Math.sin(i * Math.PI/180)
+  ).normalize();
+  const arrowLen = a * 0.4;
+  const arrowEnd = normalDir.clone().multiplyScalar(arrowLen);
+  const normalMat = new THREE.LineBasicMaterial({ color: 0x2a5580, transparent: true, opacity: 0.6 });
+  orbitGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), arrowEnd]), normalMat));
+
+  updateStats(a, e, i);
+}
+
+// ── DERIVED STATS ─────────────────────────────────────────────
+function updateStats(a, e, i) {
+  const pe = a * (1 - e) - R_E;
+  const ap = a * (1 + e) - R_E;
+  const T  = 2 * Math.PI * Math.sqrt(a*a*a / MU) / 60; // minutes
+  // vis-viva at perigee
+  const r_pe = a * (1 - e);
+  const v_pe = Math.sqrt(MU * (2/r_pe - 1/a));
+  // J2 RAAN drift (deg/day)
+  const J2 = 1.08263e-3;
+  const n  = Math.sqrt(MU / (a*a*a)); // rad/s
+  const iR = i * Math.PI / 180;
+  const j2_drift = -1.5 * n * J2 * (R_E/a)**2 * Math.cos(iR) * (180/Math.PI) * 86400;
+  // regime
+  const regime = a-R_E < 2000 ? 'LEO' : a-R_E < 35000 ? 'MEO' : 'GEO';
+
+  document.getElementById('stat-pe').textContent = Math.round(pe);
+  document.getElementById('stat-ap').textContent = Math.round(ap);
+  document.getElementById('stat-T').textContent  = T.toFixed(1);
+  document.getElementById('stat-v').textContent  = v_pe.toFixed(2);
+  document.getElementById('stat-reg').textContent = regime;
+  document.getElementById('stat-j2').textContent = j2_drift.toFixed(1);
+
+  // Contextual insight
+  const iBox = document.getElementById('insight-box');
+  if (e > 0.5) {
+    iBox.innerHTML = '<strong>Highly elliptical orbit.</strong> At perigee the satellite moves at <strong>' + v_pe.toFixed(2) + ' km/s</strong>. This Hohmann-transfer-style shape is used for Molniya communications satellites to linger over high latitudes.';
+  } else if (Math.abs(j2_drift + 0.9856) < 0.5 && i > 85) {
+    iBox.innerHTML = '<strong>Near sun-synchronous!</strong> J₂ RAAN drift ≈ +0.986°/day matches Earth\'s orbital rate, so the orbit plane stays fixed relative to the Sun — ideal for Earth observation.';
+  } else if (a > 40000) {
+    iBox.innerHTML = '<strong>Geostationary regime.</strong> At 35,786 km, orbital period ≈ 24 h. The satellite appears stationary over the equator. GEO slot crowding is a major policy issue.';
+  } else if (i > 85 && i < 95) {
+    iBox.innerHTML = '<strong>Polar orbit.</strong> The satellite crosses both poles, eventually seeing every point on Earth. Used for weather satellites and full-coverage Earth observation.';
+  } else {
+    iBox.innerHTML = '<strong>Tip:</strong> Watch the RAAN drift value change as you move inclination — at <strong>~97–98°</strong> for low altitudes, the drift matches Earth\'s orbit around the Sun, creating a sun-synchronous orbit.';
+  }
+}
+
+// ── SLIDER WIRING ─────────────────────────────────────────────
+const state = { a: 7000, e: 0, i: 0, O: 0, w: 0 };
+
+function wire(id, key, fmt) {
+  const sl = document.getElementById('sl-' + id);
+  const vl = document.getElementById('val-' + id);
+  sl.addEventListener('input', () => {
+    state[key] = parseFloat(sl.value);
+    vl.innerHTML = fmt(state[key]);
+    buildOrbit(state.a, state.e, state.i, state.O, state.w);
+    updateCameraForOrbit();
+  });
+  // touch: prevent page scroll when on slider
+  sl.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+}
+
+wire('a', 'a', v => (v >= 10000 ? (v/1000).toFixed(1)+'k' : Math.round(v).toLocaleString()) + '<span class="sl-unit">km</span>');
+wire('e', 'e', v => v.toFixed(3));
+wire('i', 'i', v => v + '°');
+wire('O', 'O', v => v + '°');
+wire('w', 'w', v => v + '°');
+
+// ── PRESETS ───────────────────────────────────────────────────
+const PRESETS = {
+  iss:     { a: 6778,  e: 0.001, i: 51.6, O: 0,   w: 0,   label: 'ISS' },
+  sso:     { a: 7078,  e: 0.001, i: 98.2, O: 90,  w: 0,   label: 'Sun-Sync' },
+  gto:     { a: 24396, e: 0.73,  i: 27,   O: 0,   w: 178, label: 'GTO' },
+  geo:     { a: 42164, e: 0.001, i: 0.1,  O: 0,   w: 0,   label: 'GEO' },
+  molniya: { a: 26560, e: 0.74,  i: 63.4, O: 270, w: 270, label: 'Molniya' },
+  polar:   { a: 7378,  e: 0.001, i: 90,   O: 180, w: 0,   label: 'Polar' },
+};
+
+function applyPreset(key) {
+  const p = PRESETS[key];
+  state.a = p.a; state.e = p.e; state.i = p.i; state.O = p.O; state.w = p.w;
+  document.getElementById('sl-a').value = p.a;
+  document.getElementById('sl-e').value = p.e;
+  document.getElementById('sl-i').value = p.i;
+  document.getElementById('sl-O').value = p.O;
+  document.getElementById('sl-w').value = p.w;
+  document.getElementById('val-a').innerHTML = (p.a >= 10000 ? (p.a/1000).toFixed(1)+'k' : Math.round(p.a).toLocaleString()) + '<span class="sl-unit">km</span>';
+  document.getElementById('val-e').textContent = p.e.toFixed(3);
+  document.getElementById('val-i').textContent = p.i + '°';
+  document.getElementById('val-O').textContent = p.O + '°';
+  document.getElementById('val-w').textContent = p.w + '°';
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  buildOrbit(state.a, state.e, state.i, state.O, state.w);
+  updateCameraForOrbit();
+}
+
+function updateCameraForOrbit() {
+  const dist = state.a * 3.2;
+  camera.position.set(0, dist * 0.45, dist);
+  camera.lookAt(0, 0, 0);
+}
+
+// ── ORBIT CONTROLS (manual, no import needed) ────────────────
+let isDragging = false, lastX = 0, lastY = 0;
+let phi = 0.4, theta = 0.5, radius = 20000;
+let lastTouchDist = 0;
+
+function updateCamera() {
+  camera.position.set(
+    radius * Math.sin(phi) * Math.cos(theta),
+    radius * Math.cos(phi),
+    radius * Math.sin(phi) * Math.sin(theta)
+  );
+  camera.lookAt(0, 0, 0);
+}
+
+// Mouse
+canvas.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
+window.addEventListener('mouseup',   () => isDragging = false);
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  theta -= (e.clientX - lastX) * 0.005;
+  phi   = Math.max(0.1, Math.min(Math.PI - 0.1, phi - (e.clientY - lastY) * 0.005));
+  lastX = e.clientX; lastY = e.clientY;
+  radius = camera.position.length();
+  updateCamera();
+});
+canvas.addEventListener('wheel', e => {
+  radius = Math.max(R_E * 1.5, Math.min(200000, radius + e.deltaY * 8));
+  updateCamera();
+}, { passive: true });
+
+// Touch orbit
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    lastX = e.touches[0].clientX;
+    lastY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    isDragging = false;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    lastTouchDist = Math.hypot(dx, dy);
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  if (e.touches.length === 1 && isDragging) {
+    theta -= (e.touches[0].clientX - lastX) * 0.007;
+    phi   = Math.max(0.1, Math.min(Math.PI - 0.1, phi - (e.touches[0].clientY - lastY) * 0.007));
+    lastX = e.touches[0].clientX;
+    lastY = e.touches[0].clientY;
+    radius = camera.position.length();
+    updateCamera();
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const d  = Math.hypot(dx, dy);
+    radius = Math.max(R_E * 1.5, Math.min(200000, radius * (lastTouchDist / d)));
+    lastTouchDist = d;
+    updateCamera();
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
+
+// ── RESIZE ────────────────────────────────────────────────────
+function resize() {
+  const w = canvas.parentElement.clientWidth;
+  const h = canvas.parentElement.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── ANIMATE ───────────────────────────────────────────────────
+let satNu = 45;
+function animate() {
+  requestAnimationFrame(animate);
+  // Slow orbit animation
+  satNu = (satNu + 0.08) % 360;
+  if (satMesh) {
+    const p = keplerToCartesian(state.a, state.e, state.i, state.O, state.w, satNu);
+    satMesh.position.copy(p);
+  }
+  earthMesh.rotation.y += 0.0008;
+  renderer.render(scene, camera);
+}
+
+// ── MOBILE PANEL ─────────────────────────────────────────────
+function togglePanel() {
+  document.getElementById('panel').classList.toggle('open');
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+buildOrbit(state.a, state.e, state.i, state.O, state.w);
+updateCamera();
+animate();
+</script>
+</body>
+</html>"""
 
 CALC_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -10869,6 +12460,64 @@ def build_api(cfg: Config):
     def glossary_page():
         """Searchable glossary of space safety terms — no auth required."""
         return HTMLResponse(content=GLOSSARY_HTML)
+
+    @app.get("/scenarios", response_class=HTMLResponse)
+    def scenarios_page():
+        """Interactive scenario modules — Iridium-Cosmos, Kessler, ASAT, maneuver."""
+        return HTMLResponse(content=SCENARIOS_HTML)
+
+    @app.get("/kepler", response_class=HTMLResponse)
+    def kepler_page():
+        """Interactive Keplerian element explorer — no auth required."""
+        return HTMLResponse(content=KEPLER_HTML)
+
+    @app.get("/api/live-sats")
+    async def live_sats_api(limit: int = 80, regime: str = "LEO"):
+        """Stream a sample of live satellite positions from cached TLE data."""
+        import json as _j, math as _m
+        from datetime import datetime, timezone
+        try:
+            from skyfield.api import load as _load
+            ts = _load.timescale()
+            now = ts.now()
+            cache_file = Path("tle_cache.txt")
+            if not cache_file.exists():
+                # Fetch a small CelesTrak subset on-demand (stations + ISS)
+                import urllib.request as _ur
+                tle_raw = _ur.urlopen(
+                    "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle",
+                    timeout=8
+                ).read().decode()
+                cache_file.write_text(tle_raw)
+            sats = _load.tle_file(str(cache_file), reload=False)
+            results = []
+            R_E = 6371.0
+            for s in sats[:min(limit * 3, 600)]:
+                try:
+                    geo = s.at(now)
+                    pos = geo.position.km
+                    alt = (_m.sqrt(pos[0]**2+pos[1]**2+pos[2]**2) - R_E)
+                    if regime == "LEO" and not (160 < alt < 2000): continue
+                    if regime == "MEO" and not (2000 <= alt < 35000): continue
+                    if regime == "GEO" and not (35000 <= alt < 37000): continue
+                    results.append({
+                        "name": s.name,
+                        "x": round(pos[0], 1),
+                        "y": round(pos[1], 1),
+                        "z": round(pos[2], 1),
+                        "alt": round(alt, 1),
+                    })
+                    if len(results) >= limit: break
+                except Exception:
+                    continue
+            return JSONResponse({
+                "sats": results,
+                "count": len(results),
+                "utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "regime": regime,
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e), "sats": [], "count": 0}, status_code=500)
 
     @app.get("/research", response_class=HTMLResponse)
     def research_page():
