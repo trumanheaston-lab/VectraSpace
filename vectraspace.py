@@ -4402,6 +4402,361 @@ const obs = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.3 });
 sections.forEach(s => obs.observe(s));
+
+<!-- ══════════════════════════════════════════════════════════
+     GUIDED TOUR OVERLAY
+     ══════════════════════════════════════════════════════════ -->
+<style>
+/* ── TOUR LAUNCHER ── */
+#tour-fab {
+  position: fixed; bottom: 28px; right: 28px; z-index: 9000;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent); border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(74,158,255,0.5), 0 0 0 0 rgba(74,158,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  animation: tour-pulse 3s ease-in-out infinite;
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: #fff;
+}
+#tour-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(74,158,255,0.7); }
+#tour-fab svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes tour-pulse {
+  0%,100% { box-shadow: 0 4px 20px rgba(74,158,255,0.5), 0 0 0 0 rgba(74,158,255,0.3); }
+  50%      { box-shadow: 0 4px 20px rgba(74,158,255,0.5), 0 0 0 12px rgba(74,158,255,0); }
+}
+#tour-fab-label {
+  position: fixed; bottom: 34px; right: 88px; z-index: 9000;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+  background: var(--panel); border: 1px solid var(--border);
+  padding: 6px 12px; border-radius: 4px; white-space: nowrap;
+  pointer-events: none;
+  opacity: 1; transition: opacity 0.4s;
+}
+
+/* ── TOUR BACKDROP ── */
+#tour-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 8900;
+  background: rgba(4,8,16,0.72); backdrop-filter: blur(3px);
+}
+#tour-backdrop.active { display: block; }
+
+/* ── SPOTLIGHT CUTOUT ── */
+#tour-spotlight {
+  position: fixed; z-index: 8950; pointer-events: none;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(4,8,16,0.76);
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  border: 1.5px solid rgba(74,158,255,0.4);
+}
+
+/* ── TOUR CARD ── */
+#tour-card {
+  display: none; position: fixed; z-index: 9100;
+  width: 320px;
+  background: var(--panel, #0d1320);
+  border: 1px solid rgba(74,158,255,0.25);
+  border-radius: 14px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(74,158,255,0.12);
+  transition: top 0.4s cubic-bezier(0.4,0,0.2,1), left 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+#tour-card.active { display: block; }
+.tc-header {
+  background: linear-gradient(135deg, rgba(74,158,255,0.12), rgba(74,158,255,0.04));
+  border-bottom: 1px solid rgba(74,158,255,0.12);
+  padding: 16px 20px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tc-step-badge {
+  font-family: var(--mono, monospace); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent, #4a9eff);
+  background: rgba(74,158,255,0.1); border: 1px solid rgba(74,158,255,0.2);
+  padding: 3px 9px; border-radius: 12px;
+}
+.tc-close {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: #8aaac5; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; font-size: 14px; transition: all 0.15s; line-height:1;
+  font-family: monospace;
+}
+.tc-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.tc-body { padding: 18px 20px; }
+.tc-icon { font-size: 28px; margin-bottom: 10px; display: block; }
+.tc-title {
+  font-family: var(--serif, serif); font-size: 18px; font-style: italic;
+  color: #fff; margin-bottom: 8px; line-height: 1.25;
+}
+.tc-title em { color: var(--accent, #4a9eff); font-style: normal; }
+.tc-text {
+  font-family: var(--sans, sans-serif); font-size: 13px;
+  color: var(--muted, #8aaac5); line-height: 1.7;
+}
+.tc-text strong { color: var(--text, #ccd6e0); }
+.tc-footer {
+  padding: 14px 20px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.tc-dots { display: flex; gap: 5px; }
+.tc-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.15); transition: background 0.2s;
+}
+.tc-dot.active { background: var(--accent, #4a9eff); }
+.tc-btns { display: flex; gap: 8px; }
+.tc-btn {
+  font-family: var(--mono, monospace); font-size: 9px; letter-spacing: 1px;
+  text-transform: uppercase; padding: 8px 16px; border-radius: 6px;
+  cursor: pointer; border: 1px solid; transition: all 0.15s;
+}
+.tc-btn-skip {
+  background: transparent; border-color: rgba(255,255,255,0.1); color: var(--muted, #8aaac5);
+}
+.tc-btn-skip:hover { border-color: rgba(255,255,255,0.2); color: var(--text, #ccd6e0); }
+.tc-btn-next {
+  background: var(--accent, #4a9eff); border-color: var(--accent, #4a9eff); color: #fff;
+}
+.tc-btn-next:hover { background: #6bb5ff; border-color: #6bb5ff; }
+.tc-progress-bar {
+  height: 2px; background: rgba(74,158,255,0.15);
+  position: relative; overflow: hidden;
+}
+.tc-progress-fill {
+  height: 100%; background: var(--accent, #4a9eff);
+  transition: width 0.4s ease;
+}
+</style>
+
+<!-- Tour Launcher FAB -->
+<div id="tour-fab-label">Take the tour</div>
+<button id="tour-fab" onclick="tourStart()" aria-label="Start guided tour" title="Take the guided tour">
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+</button>
+
+<!-- Tour Backdrop + Spotlight -->
+<div id="tour-backdrop" onclick="tourClose()"></div>
+<div id="tour-spotlight"></div>
+
+<!-- Tour Card -->
+<div id="tour-card">
+  <div class="tc-progress-bar"><div class="tc-progress-fill" id="tc-progress"></div></div>
+  <div class="tc-header">
+    <span class="tc-step-badge" id="tc-badge">Step 1 / 7</span>
+    <button class="tc-close" onclick="tourClose()">✕</button>
+  </div>
+  <div class="tc-body">
+    <span class="tc-icon" id="tc-icon">🛰</span>
+    <div class="tc-title" id="tc-title">Welcome to <em>VectraSpace</em></div>
+    <p class="tc-text" id="tc-text">A two-minute tour of everything the platform can do. Hit Next to start — you can exit anytime.</p>
+  </div>
+  <div class="tc-footer">
+    <div class="tc-dots" id="tc-dots"></div>
+    <div class="tc-btns">
+      <button class="tc-btn tc-btn-skip" onclick="tourClose()">Skip</button>
+      <button class="tc-btn tc-btn-next" id="tc-next" onclick="tourNext()">Start →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // ── TOUR STEPS ───────────────────────────────────────────────
+  const STEPS = [
+    {
+      selector: null, // centre screen intro card
+      icon: '🛰',
+      title: 'Welcome to <em>VectraSpace</em>',
+      text: 'An orbital safety education platform covering real debris events, collision prediction, and Keplerian mechanics. This two-minute tour shows you where everything lives.',
+      pos: 'center',
+      nextLabel: 'Start →'
+    },
+    {
+      selector: '#hero',
+      icon: '⬡',
+      title: 'The <em>Mission</em>',
+      text: 'Over <strong>27,000 objects</strong> are tracked in orbit right now. VectraSpace helps you understand the physics, risks, and real-world events behind the headline numbers.',
+      pos: 'bottom',
+      nextLabel: 'Next →'
+    },
+    {
+      selector: '#learn',
+      icon: '📖',
+      title: 'Four <em>Deep Dives</em>',
+      text: 'Work through four self-paced chapters: <strong>Orbital Mechanics</strong>, <strong>Collision Prediction</strong>, <strong>Perturbation Forces</strong>, and <strong>Debris Modeling</strong>. Each has interactive quizzes and simulations.',
+      pos: 'top',
+      nextLabel: 'Next →'
+    },
+    {
+      selector: '#sim',
+      icon: '💥',
+      title: 'Interactive <em>Scenarios</em>',
+      text: 'Watch the <strong>Iridium-Cosmos collision</strong>, the FY-1C ASAT test, and a Kessler cascade play out in real 3D — with accurate fragment counts and timelines.',
+      pos: 'top',
+      nextLabel: 'Next →'
+    },
+    {
+      selector: '#satod',
+      icon: '🔭',
+      title: 'Satellite of the <em>Day</em>',
+      text: 'Every day a different real satellite is featured — orbital parameters, launch history, and mission context. Bookmark it and come back tomorrow.',
+      pos: 'top',
+      nextLabel: 'Next →'
+    },
+    {
+      selector: '#data',
+      icon: '📡',
+      title: 'Live <em>TLE Feed</em>',
+      text: 'The strip below pulls <strong>live Two-Line Element data</strong> from CelesTrak. Every satellite shown is currently in orbit with a real altitude derived from propagated TLEs.',
+      pos: 'top',
+      nextLabel: 'Next →'
+    },
+    {
+      selector: '#contact',
+      icon: '🚀',
+      title: 'Ready to <em>Explore</em>?',
+      text: 'Head to the <strong>Orbit Explorer</strong> to visualise any Keplerian orbit, try the <strong>Scenarios</strong> for visual impact, or start <strong>Chapter 01</strong> to build your understanding from the ground up.',
+      pos: 'top',
+      nextLabel: 'Explore →'
+    },
+  ];
+
+  let step = 0;
+  let started = false;
+
+  const backdrop   = document.getElementById('tour-backdrop');
+  const spotlight  = document.getElementById('tour-spotlight');
+  const card       = document.getElementById('tour-card');
+  const badge      = document.getElementById('tc-badge');
+  const icon       = document.getElementById('tc-icon');
+  const title      = document.getElementById('tc-title');
+  const text       = document.getElementById('tc-text');
+  const nextBtn    = document.getElementById('tc-next');
+  const dots       = document.getElementById('tc-dots');
+  const progress   = document.getElementById('tc-progress');
+  const fab        = document.getElementById('tour-fab');
+  const fabLabel   = document.getElementById('tour-fab-label');
+
+  // Build dots
+  STEPS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'tc-dot';
+    dots.appendChild(d);
+  });
+
+  function showStep(n) {
+    const s = STEPS[n];
+    const total = STEPS.length;
+    // Update content
+    badge.textContent = 'Step ' + (n+1) + ' / ' + total;
+    icon.textContent  = s.icon;
+    title.innerHTML   = s.title;
+    text.innerHTML    = s.text;
+    nextBtn.textContent = s.nextLabel || 'Next →';
+    // Dots
+    dots.querySelectorAll('.tc-dot').forEach((d,i) => d.classList.toggle('active', i===n));
+    // Progress bar
+    progress.style.width = ((n+1)/total*100) + '%';
+
+    // Spotlight + card positioning
+    if (s.selector) {
+      const el = document.querySelector(s.selector);
+      if (el) {
+        const r = el.getBoundingClientRect();
+        const pad = 12;
+        spotlight.style.display = 'block';
+        spotlight.style.left   = (r.left - pad) + 'px';
+        spotlight.style.top    = (r.top - pad) + 'px';
+        spotlight.style.width  = (r.width + pad*2) + 'px';
+        spotlight.style.height = (r.height + pad*2) + 'px';
+        positionCard(r, s.pos);
+      }
+    } else {
+      // Intro: hide spotlight, centre card
+      spotlight.style.display = 'none';
+      card.style.top  = '50%';
+      card.style.left = '50%';
+      card.style.transform = 'translate(-50%,-50%)';
+    }
+  }
+
+  function positionCard(r, pos) {
+    card.style.transform = '';
+    const cw = 320, ch = 280;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const pad = 16;
+    let top, left;
+
+    if (pos === 'bottom') {
+      top  = r.bottom + 20;
+      left = Math.min(r.left, vw - cw - pad);
+    } else { // top
+      top  = r.top - ch - 20;
+      left = Math.min(r.left, vw - cw - pad);
+    }
+    // Clamp
+    top  = Math.max(pad, Math.min(top,  vh - ch - pad));
+    left = Math.max(pad, Math.min(left, vw - cw - pad));
+
+    card.style.top  = top  + 'px';
+    card.style.left = left + 'px';
+  }
+
+  window.tourStart = function() {
+    if (started) return;
+    started = true;
+    step = 0;
+    backdrop.classList.add('active');
+    card.classList.add('active');
+    fab.style.display = 'none';
+    fabLabel.style.opacity = '0';
+    showStep(0);
+  };
+
+  window.tourNext = function() {
+    step++;
+    if (step >= STEPS.length) {
+      tourClose();
+      // Scroll to learn section as final action
+      const learnEl = document.getElementById('learn');
+      if (learnEl) learnEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    showStep(step);
+  };
+
+  window.tourClose = function() {
+    backdrop.classList.remove('active');
+    spotlight.style.display = 'none';
+    card.classList.remove('active');
+    fab.style.display = 'flex';
+    fabLabel.style.opacity = '1';
+    started = false;
+    step = 0;
+  };
+
+  // Hide label after 6 seconds
+  setTimeout(() => {
+    if (fabLabel) fabLabel.style.opacity = '0';
+  }, 6000);
+
+  // Auto-show tour for first-time visitors
+  try {
+    if (!localStorage.getItem('vs_tour_seen')) {
+      setTimeout(() => {
+        try { localStorage.setItem('vs_tour_seen', '1'); } catch(e){}
+        tourStart();
+      }, 1800);
+    }
+  } catch(e) {
+    // private browsing - show tour anyway after delay
+    setTimeout(tourStart, 1800);
+  }
+})();
+</script>
+
 </script>
 </body>
 </html>
@@ -8054,7 +8409,7 @@ section { position: relative; z-index: 1; }
 }
 
 /* ── SATELLITE OF THE DAY ── */
-#satod { padding: 80px 0; }
+#satod { padding: 40px 0 80px; }
 .satod-card {
   max-width: 900px; margin: 0 auto;
   background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
@@ -8864,7 +9219,7 @@ footer {
 <!-- SATELLITE OF THE DAY -->
 <section id="satod">
   <div class="section-wrap">
-    <div class="section-label reveal">// Featured Object</div>
+    <div class="section-label reveal" style="margin-bottom:28px;">// Featured Object</div>
     <div class="satod-card reveal" id="satod-card">
       <div class="satod-loading">⌁ Loading today's featured satellite...</div>
     </div>
@@ -8951,10 +9306,6 @@ footer {
   </div>
   <!-- TLE Ticker embedded in data section -->
   <div style="padding: 0 48px 48px; position:relative; z-index:1;">
-    <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
-      <span style="width:14px;height:1px;background:var(--accent);display:inline-block;"></span>
-      Live Satellite Feed
-    </div>
     <div id="tle-ticker">
       <div class="ticker-label">⬤ LIVE</div>
       <div class="ticker-scroll">
@@ -10597,20 +10948,21 @@ canvas.addEventListener('touchend', () => { isDragging = false; }, { passive: tr
 
 // ── RESIZE ────────────────────────────────────────────────────
 function resize() {
-  const w = canvas.parentElement.clientWidth;
-  const h = canvas.parentElement.clientHeight;
-  renderer.setSize(w, h);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
+  const wrap = document.getElementById('canvas-wrap');
+  const w = wrap.offsetWidth  || window.innerWidth;
+  const h = wrap.offsetHeight || window.innerHeight - 52;
+  if (w > 0 && h > 0) {
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
 }
 window.addEventListener('resize', resize);
-resize();
 
 // ── ANIMATE ───────────────────────────────────────────────────
 let satNu = 45;
 function animate() {
   requestAnimationFrame(animate);
-  // Slow orbit animation
   satNu = (satNu + 0.08) % 360;
   if (satMesh) {
     const p = keplerToCartesian(state.a, state.e, state.i, state.O, state.w, satNu);
@@ -10626,9 +10978,13 @@ function togglePanel() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-buildOrbit(state.a, state.e, state.i, state.O, state.w);
-updateCameraForOrbit();  // sets camera + syncs phi/theta/radius
-animate();
+// Defer to rAF so flex layout is fully computed before we measure
+requestAnimationFrame(function() {
+  resize();
+  buildOrbit(state.a, state.e, state.i, state.O, state.w);
+  updateCameraForOrbit();
+  animate();
+});
 </script>
 </body>
 </html>"""
@@ -10655,8 +11011,9 @@ html{scroll-behavior:smooth;}
 body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden;min-height:100vh;}
 
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.94);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
-.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-family:var(--sans);font-size:16px;font-weight:600;}
-.nav-brand em{color:var(--accent);font-style:normal;}
+.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}
+.nav-brand-name{font-family:var(--serif);font-size:17px;font-style:italic;letter-spacing:-0.2px;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
 .nav-links{display:flex;gap:4px;align-items:center;}
 .nav-link{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:4px;transition:all 0.2s;border:1px solid transparent;}
 .nav-link:hover{color:var(--text);border-color:var(--border);}
@@ -10819,7 +11176,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-brand">Vectra<em>Space</em></a>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
   <div class="nav-links">
     <a href="/" class="nav-link">Hub</a>
     <a href="/glossary" class="nav-link">Glossary</a>
@@ -11234,8 +11591,9 @@ GLOSSARY_HTML = """<!DOCTYPE html>
 html{scroll-behavior:smooth;}
 body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden;}
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.94);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
-.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-family:var(--sans);font-size:16px;font-weight:600;}
-.nav-brand em{color:var(--accent);font-style:normal;}
+.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}
+.nav-brand-name{font-family:var(--serif);font-size:17px;font-style:italic;letter-spacing:-0.2px;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
 .nav-back{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 16px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
 .nav-back:hover{color:var(--text);border-color:var(--border2);}
 
@@ -11304,7 +11662,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-brand">Vectra<em>Space</em></a>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
   <a href="/" class="nav-back">← Learning Hub</a>
 </nav>
 
