@@ -9397,9 +9397,9 @@ footer {
 
           <div style="flex:1; min-width:220px;">
             <div style="font-family:var(--serif); font-size:26px; color:#fff; font-weight:400; margin-bottom:6px; letter-spacing:-0.3px;">Truman Heaston</div>
-            <div style="font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:16px;">Builder · Student · 17 years old</div>
+            <div style="font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:16px;">Builder · Student · Orbital Mechanics Nerd</div>
             <p style="font-size:15px; color:var(--muted); line-height:1.8; margin:0;">
-              I'm a 17-year-old passionate about space, orbital mechanics, and the belief that great education can change the world. VectraSpace started as a personal obsession — I wanted to understand the real math behind satellite conjunction events, so I built the platform I wished existed. My goal is to make high-stakes technical knowledge genuinely engaging, not just accessible.
+              Passionate about space, orbital mechanics, and the belief that great education can change the world. VectraSpace started as a personal obsession — I wanted to understand the real math behind satellite conjunction events, so I built the platform I wished existed. The goal is to make high-stakes technical knowledge genuinely engaging, not just accessible.
             </p>
           </div>
         </div>
@@ -11585,7 +11585,9 @@ GLOSSARY_HTML = """<!DOCTYPE html>
   --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
   --text:#ccd6e0; --muted:#8aaac5; --faint:#2a3d50;
   --accent:#4a9eff; --accent2:#7bc4ff; --green:#34d399; --amber:#f59e0b; --red:#f87171;
-  --serif:'Instrument Serif',Georgia,serif; --mono:'DM Mono',monospace; --sans:'Outfit',sans-serif;
+  --serif:"Instrument Serif",Georgia,serif;
+  --mono:"DM Mono",monospace;
+  --sans:"Outfit",sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
@@ -11597,66 +11599,49 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
 .nav-back{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 16px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
 .nav-back:hover{color:var(--text);border-color:var(--border2);}
 
-.hero{padding:120px 48px 60px;max-width:860px;margin:0 auto;}
-.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:16px;}
-.hero-title{font-family:var(--serif);font-size:clamp(40px,5vw,64px);font-weight:400;color:#fff;line-height:1.1;letter-spacing:-0.5px;margin-bottom:16px;}
+.hero{padding:110px 48px 48px;max-width:860px;margin:0 auto;}
+.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::before{content:"";width:14px;height:1px;background:var(--green);display:inline-block;}
+.hero-title{font-family:var(--serif);font-size:clamp(38px,5vw,62px);font-weight:400;color:#fff;line-height:1.1;letter-spacing:-0.5px;margin-bottom:14px;}
 .hero-title em{font-style:italic;color:var(--accent2);}
-.hero-body{font-size:16px;color:var(--muted);line-height:1.8;max-width:600px;}
+.hero-body{font-size:15px;color:var(--muted);line-height:1.8;max-width:560px;}
 
-.search-wrap{max-width:860px;margin:0 auto;padding:0 48px 48px;}
+.controls{max-width:860px;margin:0 auto;padding:0 48px 36px;display:flex;flex-direction:column;gap:16px;}
 .search-box{position:relative;}
-.search-input{
-  width:100%;padding:14px 20px 14px 48px;background:var(--ink2);
-  border:1px solid var(--border);border-radius:8px;color:var(--text);
-  font-family:var(--mono);font-size:13px;outline:none;transition:border-color 0.2s;
-}
-.search-input:focus{border-color:var(--accent);}
+.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;}
+.search-input{width:100%;background:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:13px 16px 13px 44px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;transition:border-color 0.2s;letter-spacing:0.3px;}
 .search-input::placeholder{color:var(--faint);}
-.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
-.search-count{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:10px;color:var(--faint);}
+.search-input:focus{border-color:rgba(74,158,255,0.4);}
+.search-meta{display:flex;align-items:center;justify-content:space-between;}
+.search-count{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);}
+.filters{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;}
+.filter-btn:hover{border-color:var(--border2);color:var(--text);}
+.filter-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.07);}
 
-.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
-.filter-btn{
-  font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;
-  padding:5px 14px;border-radius:20px;border:1px solid var(--border);
-  color:var(--muted);background:transparent;cursor:pointer;transition:all 0.15s;
-}
-.filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.07);}
+.glossary-wrap{max-width:860px;margin:0 auto;padding:0 48px 80px;}
+.alpha-group{margin-bottom:36px;}
+.alpha-letter{font-family:var(--serif);font-size:40px;font-style:italic;color:rgba(74,158,255,0.18);margin-bottom:14px;line-height:1;}
+.term-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:10px;transition:border-color 0.2s;}
+.term-card:hover{border-color:var(--border2);}
+.term-header{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+.term-name{font-family:var(--serif);font-size:18px;font-style:italic;color:#fff;}
+.term-abbr{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--accent);background:rgba(74,158,255,0.1);border:1px solid rgba(74,158,255,0.2);padding:2px 8px;border-radius:12px;}
+.term-cat{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:12px;margin-left:auto;}
+.cat-orbital{color:#4a9eff;background:rgba(74,158,255,0.08);}
+.cat-detection{color:#f59e0b;background:rgba(245,158,11,0.08);}
+.cat-debris{color:#f87171;background:rgba(248,113,113,0.08);}
+.cat-operations{color:#34d399;background:rgba(52,211,153,0.08);}
+.cat-physics{color:#a78bfa;background:rgba(167,139,250,0.08);}
+.term-def{font-size:13px;color:var(--muted);line-height:1.75;}
+.term-def mark{background:rgba(74,158,255,0.22);color:var(--text);border-radius:2px;padding:0 1px;}
 
-.glossary-wrap{max-width:860px;margin:0 auto;padding:0 48px 100px;}
-.alpha-section{margin-bottom:48px;}
-.alpha-letter{
-  font-family:var(--serif);font-size:48px;font-style:italic;color:var(--accent);
-  line-height:1;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);
-  opacity:0.7;
-}
-.term-card{
-  padding:20px 24px;border-left:2px solid var(--border);margin-bottom:2px;
-  transition:border-color 0.15s,background 0.15s;cursor:default;
-}
-.term-card:hover{border-color:var(--accent);background:rgba(74,158,255,0.03);}
-.term-card.hidden{display:none;}
-.term-name{font-family:var(--sans);font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;}
-.term-abbr{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px;margin-left:8px;vertical-align:middle;}
-.term-category{
-  display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:1.5px;
-  text-transform:uppercase;padding:2px 8px;border-radius:12px;border:1px solid;
-  margin-bottom:8px;
-}
-.cat-orbital{color:#4a9eff;border-color:rgba(74,158,255,0.3);}
-.cat-detection{color:#34d399;border-color:rgba(52,211,153,0.3);}
-.cat-debris{color:#f87171;border-color:rgba(248,113,113,0.3);}
-.cat-operations{color:#f59e0b;border-color:rgba(245,158,11,0.3);}
-.cat-physics{color:#a78bfa;border-color:rgba(167,139,250,0.3);}
-.term-def{font-size:14px;color:var(--muted);line-height:1.7;}
-.term-def strong{color:var(--text);}
-.no-results{padding:60px 0;text-align:center;font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:1px;display:none;}
-.no-results.show{display:block;}
+.no-results{text-align:center;padding:80px 0;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);}
 
-@media(max-width:600px){
-  nav{padding:0 16px;}
-  .hero,.search-wrap,.glossary-wrap{padding-left:20px;padding-right:20px;}
-  .hero{padding-top:100px;}
+@media(max-width:640px){
+  .hero,.controls,.glossary-wrap{padding-left:20px;padding-right:20px;}
+  .hero{padding-top:90px;}
+  nav{padding:0 20px;}
 }
 </style>
 </head>
@@ -11667,30 +11652,30 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
 </nav>
 
 <div class="hero">
-  <div class="hero-eyebrow">// Reference</div>
+  <div class="hero-eyebrow">Reference</div>
   <h1 class="hero-title">Space Safety <em>Glossary</em></h1>
-  <p class="hero-body">Definitions for every key term used across the VectraSpace platform — from orbital mechanics and conjunction analysis to debris modeling and space operations.</p>
+  <p class="hero-body">Every key term across orbital mechanics, conjunction analysis, debris modeling, and space operations — with full technical definitions.</p>
 </div>
 
-<div class="search-wrap">
+<div class="controls">
   <div class="search-box">
-    <span class="search-icon">⌕</span>
-    <input type="text" class="search-input" id="glossary-search" placeholder="Search terms, abbreviations, definitions..." autocomplete="off" spellcheck="false">
-    <span class="search-count" id="glossary-count"></span>
+    <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" class="search-input" id="gs-input" placeholder="Search terms, abbreviations, definitions..." autocomplete="off" spellcheck="false">
   </div>
-  <div class="filter-row">
-    <button class="filter-btn active" data-cat="all">All</button>
-    <button class="filter-btn" data-cat="orbital">Orbital Mechanics</button>
-    <button class="filter-btn" data-cat="detection">Conjunction & Detection</button>
-    <button class="filter-btn" data-cat="debris">Debris & Kessler</button>
-    <button class="filter-btn" data-cat="operations">Operations & Standards</button>
-    <button class="filter-btn" data-cat="physics">Physics & Math</button>
+  <div class="search-meta">
+    <span class="search-count" id="gs-count"></span>
+    <div class="filters">
+      <button class="filter-btn on" data-cat="all">All</button>
+      <button class="filter-btn" data-cat="orbital">Orbital Mechanics</button>
+      <button class="filter-btn" data-cat="detection">Conjunction</button>
+      <button class="filter-btn" data-cat="debris">Debris</button>
+      <button class="filter-btn" data-cat="operations">Operations</button>
+      <button class="filter-btn" data-cat="physics">Physics</button>
+    </div>
   </div>
 </div>
 
-<div class="glossary-wrap" id="glossary-content">
-  <div class="no-results" id="no-results">No terms match your search.</div>
-</div>
+<div class="glossary-wrap" id="gs-output"></div>
 
 <script>
 const TERMS = [
@@ -11757,102 +11742,108 @@ const TERMS = [
   { name:"Maneuver", abbr:"", cat:"operations", def:"A deliberate change in a satellite's orbit via thruster firing. Conjunction avoidance maneuvers typically lower or raise the satellite by a few km. Requires Δv budget, maneuver window calculation (before TCA), and post-maneuver TLE update." },
 ];
 
-let activeFilter = 'all';
-let searchQuery = '';
-
-const CAT_LABELS = {
-  orbital:'Orbital Mechanics', detection:'Conjunction & Detection',
-  debris:'Debris & Kessler', operations:'Operations & Standards', physics:'Physics & Math'
+var CAT_LABELS = {
+  orbital: "Orbital Mechanics",
+  detection: "Conjunction & Detection",
+  debris: "Debris & Kessler",
+  operations: "Operations & Standards",
+  physics: "Physics & Math"
 };
 
-function escapeRe(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+var activeFilter = "all";
+var searchQuery  = "";
+
+// Highlight without regex — safe substring wrap
+function hlText(str, q) {
+  if (!q) return str;
+  var out = "";
+  var lower = str.toLowerCase();
+  var qlow  = q.toLowerCase();
+  var start = 0;
+  var idx;
+  while ((idx = lower.indexOf(qlow, start)) !== -1) {
+    out += str.slice(start, idx);
+    out += "<mark>" + str.slice(idx, idx + q.length) + "</mark>";
+    start = idx + q.length;
+  }
+  out += str.slice(start);
+  return out;
 }
 
-function highlight(text, q) {
-  if (!q) return text;
-  const re = new RegExp('(' + escapeRe(q) + ')', 'gi');
-  return text.replace(re, '<mark style="background:rgba(74,158,255,0.25);color:#fff;border-radius:2px;padding:0 1px;">$1</mark>');
-}
-
-function buildGlossary() {
-  const q = searchQuery.toLowerCase();
-  const filtered = TERMS.filter(t => {
-    const matchesCat = activeFilter === 'all' || t.cat === activeFilter;
-    const matchesSearch = !q ||
-      t.name.toLowerCase().includes(q) ||
-      (t.abbr && t.abbr.toLowerCase().includes(q)) ||
-      t.def.toLowerCase().includes(q);
-    return matchesCat && matchesSearch;
+function render() {
+  var q = searchQuery.toLowerCase();
+  var filtered = TERMS.filter(function(t) {
+    var matchCat = (activeFilter === "all") || (t.cat === activeFilter);
+    if (!matchCat) return false;
+    if (!q) return true;
+    return t.name.toLowerCase().indexOf(q) !== -1 ||
+           (t.abbr && t.abbr.toLowerCase().indexOf(q) !== -1) ||
+           t.def.toLowerCase().indexOf(q) !== -1;
   });
 
-  const container = document.getElementById('glossary-content');
-  const countEl   = document.getElementById('glossary-count');
+  var out  = document.getElementById("gs-output");
+  var cnt  = document.getElementById("gs-count");
+  cnt.textContent = filtered.length + " term" + (filtered.length !== 1 ? "s" : "");
 
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="no-results show" id="no-results">No terms match your search.</div>';
-    countEl.textContent = '0 terms';
+    out.innerHTML = "<div class=\"no-results\">No terms match your search.</div>";
     return;
   }
 
-  countEl.textContent = filtered.length + ' term' + (filtered.length !== 1 ? 's' : '');
-
-  // Group alphabetically
-  const byLetter = {};
-  filtered.sort((a, b) => a.name.localeCompare(b.name)).forEach(t => {
-    const l = t.name[0].toUpperCase();
-    if (!byLetter[l]) byLetter[l] = [];
-    byLetter[l].push(t);
+  // Sort and group by first letter
+  filtered.sort(function(a,b){ return a.name < b.name ? -1 : 1; });
+  var groups = {};
+  filtered.forEach(function(t) {
+    var l = t.name[0].toUpperCase();
+    if (!groups[l]) groups[l] = [];
+    groups[l].push(t);
   });
 
-  container.innerHTML = Object.entries(byLetter).map(([letter, terms]) =>
-    '<div class="alpha-section">' +
-    '<div class="alpha-letter">' + letter + '</div>' +
-    terms.map(t =>
-      '<div class="term-card">' +
-      '<div class="term-name">' + highlight(t.name, searchQuery) +
-        (t.abbr ? '<span class="term-abbr">' + t.abbr + '</span>' : '') + '</div>' +
-      '<div class="term-category cat-' + t.cat + '">' + CAT_LABELS[t.cat] + '</div>' +
-      '<div class="term-def">' + highlight(t.def, searchQuery) + '</div>' +
-      '</div>'
-    ).join('') +
-    '</div>'
-  ).join('');
+  var html = "";
+  var letters = Object.keys(groups).sort();
+  letters.forEach(function(letter) {
+    html += "<div class=\"alpha-group\">";
+    html += "<div class=\"alpha-letter\">" + letter + "</div>";
+    groups[letter].forEach(function(t) {
+      html += "<div class=\"term-card\">";
+      html += "<div class=\"term-header\">";
+      html += "<span class=\"term-name\">" + hlText(t.name, searchQuery) + "</span>";
+      if (t.abbr) html += "<span class=\"term-abbr\">" + t.abbr + "</span>";
+      html += "<span class=\"term-cat cat-" + t.cat + "\">" + CAT_LABELS[t.cat] + "</span>";
+      html += "</div>";
+      html += "<div class=\"term-def\">" + hlText(t.def, searchQuery) + "</div>";
+      html += "</div>";
+    });
+    html += "</div>";
+  });
+  out.innerHTML = html;
 }
 
-// Init on DOM ready
-document.addEventListener('DOMContentLoaded', function() {
-  buildGlossary();
-
-  // URL hash deep links
-  if (location.hash) {
-    const q = decodeURIComponent(location.hash.slice(1));
-    const searchEl = document.getElementById('glossary-search');
-    if (searchEl) { searchEl.value = q; searchQuery = q; buildGlossary(); }
-  }
-
-  // Filter buttons
-  document.querySelectorAll('.filter-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      activeFilter = btn.dataset.cat;
-      buildGlossary();
-    });
-  });
-
-  // Search input
-  const searchEl = document.getElementById('glossary-search');
-  if (searchEl) {
-    searchEl.addEventListener('input', function() {
-      searchQuery = searchEl.value.trim();
-      buildGlossary();
-    });
-    searchEl.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') { searchEl.value = ''; searchQuery = ''; buildGlossary(); }
-    });
-  }
+// Wire search input
+document.getElementById("gs-input").addEventListener("input", function() {
+  searchQuery = this.value.trim();
+  render();
 });
+
+// Wire filter buttons
+document.querySelectorAll(".filter-btn").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".filter-btn").forEach(function(b){ b.classList.remove("on"); });
+    btn.classList.add("on");
+    activeFilter = btn.dataset.cat;
+    render();
+  });
+});
+
+// Initial render
+render();
+
+// Hash deep-links e.g. /glossary#TLE
+if (location.hash) {
+  var q = decodeURIComponent(location.hash.slice(1));
+  var el = document.getElementById("gs-input");
+  if (el) { el.value = q; searchQuery = q; render(); }
+}
 </script>
 </body>
 </html>"""
