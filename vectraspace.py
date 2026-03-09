@@ -3905,11 +3905,13 @@ body{background:var(--ink);color:var(--text);font-family:'Space Grotesk',sans-se
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
-.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;}
-.nav-brand-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;}
-.nav-brand-name span{color:var(--accent);}
+.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}
+.nav-brand-name{font-family:'Instrument Serif',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
 .nav-back{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
 .nav-back:hover{color:var(--text);border-color:var(--border2);}
+.nav-brand-name{font-family:'Instrument Serif',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;color:#fff;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
 .chapter-progress{flex:1;max-width:300px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:0 40px;overflow:hidden;}
 .chapter-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.1s;}
 
@@ -3989,7 +3991,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 
 <nav>
   <a href="/" class="nav-brand">
-    <span class="nav-brand-name">Vectra<span>Space</span></span>
+    <span class="nav-brand-name">Vectra<em>Space</em></span>
   </a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
   <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
@@ -4414,16 +4416,16 @@ _EDU_COLLISION_HTML = """\
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Collision Prediction — VectraSpace Learn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#0a0e14;--ink2:#111720;--panel:#131b27;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#d4dde8;--muted:#8aaac5;--accent:#f59e0b;--accent-h:#fbbf24;--blue:#3b82f6;--red:#ef4444;--green:#10b981;--r:8px;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
 body{background:var(--ink);color:var(--text);font-family:'Space Grotesk',sans-serif;line-height:1.6;overflow-x:hidden;}
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
-.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;}
-.nav-brand-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;}
-.nav-brand-name span{color:var(--blue);}
+.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}
+.nav-brand-name{font-family:'Instrument Serif',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
 .nav-back{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
 .nav-back:hover{color:var(--text);border-color:var(--border2);}
 .chapter-progress{flex:1;max-width:300px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:0 40px;overflow:hidden;}
@@ -4494,7 +4496,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 <body>
 
 <nav>
-  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<span>Space</span></span></a>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
   <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
@@ -4887,7 +4889,7 @@ _EDU_PERTURBATIONS_HTML = """\
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Orbital Perturbations — VectraSpace Deep Dive</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root {
   --ink:        #070c14;
@@ -5314,13 +5316,13 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
 <div id="progress-bar"></div>
 
 <nav>
-  <a href="/" class="nav-brand">VectraSpace // Education</a>
-  <div style="display:flex;gap:8px;"><a href="/" class="nav-back">← Back to Learning Hub</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
   <div class="hero-breadcrumb">
-    <a href="/">VectraSpace</a> / <a href="/#chapters">Deep Dives</a> / Chapter 03
+    <a href="/">VectraSpace</a> / <a href="/#learn">Chapters</a> / Chapter 03
   </div>
   <span class="chapter-label">Chapter 03</span>
   <h1>Orbital <span class="hero-accent">Perturbations</span></h1>
@@ -6198,7 +6200,7 @@ _EDU_DEBRIS_HTML = """\
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Debris Modeling &amp; Kessler Cascade — VectraSpace Deep Dive</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root {
   --ink:        #070c14;
@@ -6228,7 +6230,9 @@ html { scroll-behavior: smooth; }
 body { background: var(--ink); color: var(--text); font-family: var(--sans); line-height: 1.7; overflow-x: hidden; }
 #progress-bar { position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,var(--red),var(--amber));z-index:200;transition:width 0.1s linear; }
 nav { position:fixed;top:0;left:0;right:0;z-index:100;height:56px;padding:0 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(7,12,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(12px); }
-.nav-brand { font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;text-decoration:none; }
+.nav-brand { text-decoration:none; display:flex; align-items:center; }
+.nav-brand-name { font-family:'Instrument Serif',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;color:#fff; }
+.nav-brand-name em { color:var(--accent);font-style:normal; }
 .nav-back { font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--text-3);text-decoration:none;text-transform:uppercase;transition:color 0.2s; }
 .nav-back:hover { color:var(--accent); }
 .hero { padding:120px 48px 64px;max-width:900px;margin:0 auto; }
@@ -6405,13 +6409,13 @@ tbody tr:hover td { background:var(--ink-2); }
 <div id="progress-bar"></div>
 
 <nav>
-  <a href="/" class="nav-brand">VectraSpace // Education</a>
-  <div style="display:flex;gap:8px;"><a href="/" class="nav-back">← Back to Learning Hub</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
   <div class="hero-breadcrumb">
-    <a href="/">VectraSpace</a> / <a href="/#chapters">Deep Dives</a> / Chapter 04
+    <a href="/">VectraSpace</a> / <a href="/#learn">Chapters</a> / Chapter 04
   </div>
   <span class="chapter-label">Chapter 04</span>
   <h1>Debris Modeling &amp; <span class="hero-accent">Kessler Cascade</span></h1>
@@ -7381,27 +7385,25 @@ nav.scrolled {
   border-bottom: 1px solid var(--accent);
 }
 
-/* ── LIVE TLE TICKER ── */
+/* ── LIVE TLE TICKER (in-page section version) ── */
 #tle-ticker {
-  position: relative; z-index: 2;
-  background: rgba(8,12,18,0.7);
-  border-bottom: 1px solid var(--border);
-  padding: 0; overflow: hidden; height: 32px;
-  display: flex; align-items: center;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; height: 44px;
+  display: flex; align-items: center; max-width: 1100px; margin: 0 auto;
 }
 .ticker-label {
   font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
   text-transform: uppercase; color: var(--accent);
-  background: var(--ink); border-right: 1px solid var(--border);
-  padding: 0 14px; height: 100%; display: flex; align-items: center;
-  white-space: nowrap; flex-shrink: 0; z-index: 1;
+  background: rgba(74,158,255,0.08); border-right: 1px solid var(--border);
+  padding: 0 16px; height: 100%; display: flex; align-items: center;
+  white-space: nowrap; flex-shrink: 0;
 }
 .ticker-scroll {
-  display: flex; gap: 0; overflow: hidden; flex: 1;
+  display: flex; overflow: hidden; flex: 1; height: 100%;
 }
 .ticker-track {
   display: flex; gap: 0; animation: ticker-move 60s linear infinite;
-  white-space: nowrap;
+  white-space: nowrap; align-items: center;
 }
 .ticker-track:hover { animation-play-state: paused; }
 @keyframes ticker-move {
@@ -7410,11 +7412,9 @@ nav.scrolled {
 }
 .ticker-sat {
   font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px;
-  color: var(--muted); padding: 0 20px; border-right: 1px solid var(--border);
-  height: 32px; display: flex; align-items: center; gap: 8px;
-  transition: color 0.2s;
+  color: var(--muted); padding: 0 18px; border-right: 1px solid var(--border);
+  height: 44px; display: flex; align-items: center; gap: 8px;
 }
-.ticker-sat:hover { color: var(--text); }
 .ticker-sat .t-name { color: var(--text); }
 .ticker-sat .t-alt { color: var(--accent); }
 .ticker-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: blink-slow 3s infinite; }
@@ -7423,7 +7423,6 @@ nav.scrolled {
   font-family: var(--mono); font-size: 8px; letter-spacing: 1px;
   color: var(--faint); padding: 0 14px; height: 100%; display: flex; align-items: center;
   white-space: nowrap; flex-shrink: 0; border-left: 1px solid var(--border);
-  background: var(--ink);
 }
 
 /* ── TOOLS STRIP ── */
@@ -8283,17 +8282,6 @@ footer {
 <!-- STARFIELD -->
 <div id="starfield"></div>
 
-<!-- LIVE TLE TICKER -->
-<div id="tle-ticker">
-  <div class="ticker-label">⬤ LIVE</div>
-  <div class="ticker-scroll">
-    <div class="ticker-track" id="ticker-track">
-      <span class="ticker-sat"><div class="ticker-dot"></div><span class="t-name">Loading TLE data...</span></span>
-    </div>
-  </div>
-  <div class="ticker-status" id="ticker-status">— sats tracked</div>
-</div>
-
 <!-- NAV -->
 <nav id="nav">
   <a href="/" class="nav-brand">
@@ -8959,6 +8947,22 @@ footer {
         <span class="data-metric-val" id="count-4">0</span>
         <div class="data-metric-label">kJ Energy: 10 cm Fragment at 10 km/s</div>
       </div>
+    </div>
+  </div>
+  <!-- TLE Ticker embedded in data section -->
+  <div style="padding: 0 48px 48px; position:relative; z-index:1;">
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <span style="width:14px;height:1px;background:var(--accent);display:inline-block;"></span>
+      Live Satellite Feed
+    </div>
+    <div id="tle-ticker">
+      <div class="ticker-label">⬤ LIVE</div>
+      <div class="ticker-scroll">
+        <div class="ticker-track" id="ticker-track">
+          <span class="ticker-sat"><div class="ticker-dot"></div><span class="t-name">Loading...</span></span>
+        </div>
+      </div>
+      <div class="ticker-status" id="ticker-status">— connecting</div>
     </div>
   </div>
 </section>
@@ -10269,8 +10273,7 @@ renderer.setClearColor(0x080c12, 1);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 500000);
-camera.position.set(0, 8000, 18000);
-camera.lookAt(0, 0, 0);
+// camera positioned via updateCameraForOrbit() on init
 
 // ── EARTH ──────────────────────────────────────────────────────
 const earthGeo = new THREE.SphereGeometry(R_E, 64, 64);
@@ -10311,10 +10314,18 @@ const atmoMat = new THREE.MeshPhongMaterial({
 });
 scene.add(new THREE.Mesh(atmoGeo, atmoMat));
 
-// Equatorial plane ring (faint reference)
-const eqGeo = new THREE.RingGeometry(R_E + 50, R_E + 200, 128);
-const eqMat = new THREE.MeshBasicMaterial({ color: 0x2a3d50, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
-scene.add(new THREE.Mesh(eqGeo, eqMat));
+// Equatorial plane circle (line loop — works in r128)
+(function() {
+  const pts = [];
+  for (let k = 0; k <= 128; k++) {
+    const a = (k / 128) * Math.PI * 2;
+    pts.push(new THREE.Vector3(Math.cos(a) * (R_E + 120), 0, Math.sin(a) * (R_E + 120)));
+  }
+  scene.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: 0x1a3050, transparent: true, opacity: 0.4 })
+  ));
+})();
 
 // Lights
 scene.add(new THREE.AmbientLight(0x223355, 1.4));
@@ -10515,6 +10526,10 @@ function updateCameraForOrbit() {
   const dist = state.a * 3.2;
   camera.position.set(0, dist * 0.45, dist);
   camera.lookAt(0, 0, 0);
+  // Sync orbit control state so dragging works immediately after
+  radius = camera.position.length();
+  phi    = Math.acos(camera.position.y / radius);
+  theta  = Math.atan2(camera.position.z, camera.position.x);
 }
 
 // ── ORBIT CONTROLS (manual, no import needed) ────────────────
@@ -10533,17 +10548,16 @@ function updateCamera() {
 
 // Mouse
 canvas.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
-window.addEventListener('mouseup',   () => isDragging = false);
+window.addEventListener('mouseup',   () => { isDragging = false; });
 window.addEventListener('mousemove', e => {
   if (!isDragging) return;
-  theta -= (e.clientX - lastX) * 0.005;
-  phi   = Math.max(0.1, Math.min(Math.PI - 0.1, phi - (e.clientY - lastY) * 0.005));
-  lastX = e.clientX; lastY = e.clientY;
-  radius = camera.position.length();
+  theta += (e.clientX - lastX) * 0.006;
+  phi    = Math.max(0.05, Math.min(Math.PI - 0.05, phi - (e.clientY - lastY) * 0.006));
+  lastX  = e.clientX; lastY = e.clientY;
   updateCamera();
 });
 canvas.addEventListener('wheel', e => {
-  radius = Math.max(R_E * 1.5, Math.min(200000, radius + e.deltaY * 8));
+  radius = Math.max(R_E * 1.8, Math.min(300000, radius * (1 + e.deltaY * 0.001)));
   updateCamera();
 }, { passive: true });
 
@@ -10613,7 +10627,7 @@ function togglePanel() {
 
 // ── INIT ──────────────────────────────────────────────────────
 buildOrbit(state.a, state.e, state.i, state.O, state.w);
-updateCamera();
+updateCameraForOrbit();  // sets camera + syncs phi/theta/radius
 animate();
 </script>
 </body>
@@ -11388,10 +11402,25 @@ const TERMS = [
 let activeFilter = 'all';
 let searchQuery = '';
 
+const CAT_LABELS = {
+  orbital:'Orbital Mechanics', detection:'Conjunction & Detection',
+  debris:'Debris & Kessler', operations:'Operations & Standards', physics:'Physics & Math'
+};
+
+function escapeRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function highlight(text, q) {
+  if (!q) return text;
+  const re = new RegExp('(' + escapeRe(q) + ')', 'gi');
+  return text.replace(re, '<mark style="background:rgba(74,158,255,0.25);color:#fff;border-radius:2px;padding:0 1px;">$1</mark>');
+}
+
 function buildGlossary() {
+  const q = searchQuery.toLowerCase();
   const filtered = TERMS.filter(t => {
     const matchesCat = activeFilter === 'all' || t.cat === activeFilter;
-    const q = searchQuery.toLowerCase();
     const matchesSearch = !q ||
       t.name.toLowerCase().includes(q) ||
       (t.abbr && t.abbr.toLowerCase().includes(q)) ||
@@ -11400,76 +11429,70 @@ function buildGlossary() {
   });
 
   const container = document.getElementById('glossary-content');
-  const noResults = document.getElementById('no-results');
-  const countEl  = document.getElementById('glossary-count');
+  const countEl   = document.getElementById('glossary-count');
 
   if (filtered.length === 0) {
-    container.innerHTML = '';
-    container.appendChild(noResults);
-    noResults.classList.add('show');
-    countEl.textContent = '';
+    container.innerHTML = '<div class="no-results show" id="no-results">No terms match your search.</div>';
+    countEl.textContent = '0 terms';
     return;
   }
-  noResults.classList.remove('show');
-  countEl.textContent = filtered.length + ' terms';
 
-  // Group by first letter
+  countEl.textContent = filtered.length + ' term' + (filtered.length !== 1 ? 's' : '');
+
+  // Group alphabetically
   const byLetter = {};
-  filtered.sort((a,b) => a.name.localeCompare(b.name)).forEach(t => {
+  filtered.sort((a, b) => a.name.localeCompare(b.name)).forEach(t => {
     const l = t.name[0].toUpperCase();
     if (!byLetter[l]) byLetter[l] = [];
     byLetter[l].push(t);
   });
 
-  const CAT_LABELS = {
-    orbital:'Orbital Mechanics', detection:'Conjunction & Detection',
-    debris:'Debris & Kessler', operations:'Operations & Standards', physics:'Physics & Math'
-  };
-
-  const highlight = (text) => {
-    if (!searchQuery) return text;
-    const re = new RegExp('(' + searchQuery.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
-    return text.replace(re, '<mark style="background:rgba(74,158,255,0.25);color:#fff;border-radius:2px;">$1</mark>');
-  };
-
-  container.innerHTML = Object.entries(byLetter).map(([letter, terms]) => `
-    <div class="alpha-section">
-      <div class="alpha-letter">${letter}</div>
-      ${terms.map(t => `
-        <div class="term-card">
-          <div class="term-name">${highlight(t.name)}${t.abbr ? `<span class="term-abbr">${t.abbr}</span>` : ''}</div>
-          <div class="term-category cat-${t.cat}">${CAT_LABELS[t.cat]}</div>
-          <div class="term-def">${highlight(t.def)}</div>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+  container.innerHTML = Object.entries(byLetter).map(([letter, terms]) =>
+    '<div class="alpha-section">' +
+    '<div class="alpha-letter">' + letter + '</div>' +
+    terms.map(t =>
+      '<div class="term-card">' +
+      '<div class="term-name">' + highlight(t.name, searchQuery) +
+        (t.abbr ? '<span class="term-abbr">' + t.abbr + '</span>' : '') + '</div>' +
+      '<div class="term-category cat-' + t.cat + '">' + CAT_LABELS[t.cat] + '</div>' +
+      '<div class="term-def">' + highlight(t.def, searchQuery) + '</div>' +
+      '</div>'
+    ).join('') +
+    '</div>'
+  ).join('');
 }
 
-// Filter buttons
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeFilter = btn.dataset.cat;
-    buildGlossary();
-  });
-});
-
-// Search input
-const searchEl = document.getElementById('glossary-search');
-searchEl.addEventListener('input', () => {
-  searchQuery = searchEl.value.trim();
+// Init on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
   buildGlossary();
-});
-searchEl.addEventListener('keydown', e => { if (e.key==='Escape') { searchEl.value=''; searchQuery=''; buildGlossary(); } });
 
-// Handle URL hash deep links e.g. /glossary#TLE
-window.addEventListener('DOMContentLoaded', () => {
-  buildGlossary();
+  // URL hash deep links
   if (location.hash) {
     const q = decodeURIComponent(location.hash.slice(1));
-    searchEl.value = q; searchQuery = q; buildGlossary();
+    const searchEl = document.getElementById('glossary-search');
+    if (searchEl) { searchEl.value = q; searchQuery = q; buildGlossary(); }
+  }
+
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      activeFilter = btn.dataset.cat;
+      buildGlossary();
+    });
+  });
+
+  // Search input
+  const searchEl = document.getElementById('glossary-search');
+  if (searchEl) {
+    searchEl.addEventListener('input', function() {
+      searchQuery = searchEl.value.trim();
+      buildGlossary();
+    });
+    searchEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { searchEl.value = ''; searchQuery = ''; buildGlossary(); }
+    });
   }
 });
 </script>
