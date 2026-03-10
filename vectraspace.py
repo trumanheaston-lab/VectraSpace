@@ -11798,32 +11798,34 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
 
 <script>
 (function () {
+
+  /* ---- curated fallback articles ---- */
+  var FALLBACK = [{"title": "Rocket Lab Launches HASTE Suborbital Mission for US DoD", "url": "https://www.rocketlabusa.com/updates/", "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Rocket_Lab_Electron.jpg/640px-Rocket_Lab_Electron.jpg", "news_site": "Rocket Lab", "summary": "Rocket Lab successfully launched a HASTE (Hypersonic Accelerator Suborbital Test Electron) vehicle on behalf of a US Department of Defense customer, demonstrating hypersonic test capabilities from its Launch Complex 1 in New Zealand.", "published_at": "2024-10-18T00:00:00Z", "launches": [1], "events": []}, {"title": "ESA's Space Debris Office Reports Record Conjunction Events in 2024", "url": "https://www.esa.int/Space_Safety/Space_Debris", "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Space_Debris.jpg/640px-Space_Debris.jpg", "news_site": "ESA", "summary": "ESA's Space Debris Office recorded over 50,000 conjunction warning notifications in 2024 \u2014 a new annual record \u2014 as the LEO environment grows denser with Starlink, OneWeb and Chinese megaconstellation satellites operating in overlapping orbital shells.", "published_at": "2024-11-05T00:00:00Z", "launches": [], "events": []}, {"title": "SpaceX Starship Flight 6 Completes Full Mission Profile", "url": "https://www.spacex.com/updates", "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Starship_IFT-3_on_the_pad_%28cropped%29.jpg/640px-Starship_IFT-3_on_the_pad_%28cropped%29.jpg", "news_site": "SpaceX", "summary": "SpaceX's sixth integrated Starship flight test achieved its primary objectives including controlled booster catch by the Mechazilla arm and controlled ocean splashdown of the Ship vehicle, marking a major step toward full reusability.", "published_at": "2024-10-13T00:00:00Z", "launches": [1], "events": []}, {"title": "US Space Force Expands Space Domain Awareness Radar Network", "url": "https://www.space.mil", "image_url": "", "news_site": "US Space Force", "summary": "US Space Force awarded contracts for three new ground-based Space Fence radar sites to expand its Space Domain Awareness network, boosting the ability to track small debris objects down to 5cm in low Earth orbit.", "published_at": "2024-09-22T00:00:00Z", "launches": [], "events": []}, {"title": "NASA Artemis II Crew Completes Training Milestones Ahead of Lunar Flyby", "url": "https://www.nasa.gov/artemis", "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Artemis_II_crew.jpg/640px-Artemis_II_crew.jpg", "news_site": "NASA", "summary": "The four-person Artemis II crew \u2014 Reid Wiseman, Victor Glover, Christina Koch and Jeremy Hansen \u2014 completed their final simulation runs and emergency egress training ahead of the planned crewed lunar flyby mission.", "published_at": "2024-10-30T00:00:00Z", "launches": [], "events": [1]}, {"title": "Iridium Reports ADS-B Network Tracks Over 14,000 Aircraft Daily", "url": "https://www.iridium.com", "image_url": "", "news_site": "Iridium", "summary": "Iridium Communications reported its space-based ADS-B network, operated via the Iridium NEXT constellation, now tracks over 14,000 aircraft per day globally \u2014 providing aviation surveillance coverage over oceans and polar regions unreachable by ground radar.", "published_at": "2024-08-14T00:00:00Z", "launches": [], "events": []}, {"title": "OneWeb LEO Constellation Completes Global Coverage Deployment", "url": "https://oneweb.net", "image_url": "", "news_site": "OneWeb", "summary": "OneWeb announced completion of its 648-satellite LEO broadband constellation, achieving full global coverage including polar regions. The network began commercial service for enterprise and government customers across all seven continents.", "published_at": "2024-09-05T00:00:00Z", "launches": [], "events": []}, {"title": "China Launches New Remote Sensing Satellites in Rapid Cadence", "url": "https://www.cmse.gov.cn", "image_url": "", "news_site": "CMSE", "summary": "China conducted back-to-back launches of Yaogan remote sensing satellites within a 72-hour window, adding to its growing surveillance constellation and raising the total number of Chinese government Earth observation satellites to over 200 in orbit.", "published_at": "2024-10-01T00:00:00Z", "launches": [1], "events": []}, {"title": "Active Debris Removal Mission ClearSpace-1 Enters Final Development", "url": "https://clearspace.today", "image_url": "", "news_site": "ClearSpace", "summary": "ClearSpace-1, ESA's first active debris removal mission, entered final system development phase. The mission will attempt to capture and deorbit a Vega rocket adapter (VESPA) left in orbit since 2013, demonstrating key technology for future debris removal operations.", "published_at": "2024-11-12T00:00:00Z", "launches": [], "events": [1]}];
+
   /* ---- state ---- */
-  var TYPE   = "articles";
-  var OFFSET = 0;
-  var LIMIT  = 12;
-  var QUERY  = "";
-  var TOTAL  = 0;
-  var busy   = false;
+  var TYPE     = "articles";
+  var OFFSET   = 0;
+  var LIMIT    = 12;
+  var QUERY    = "";
+  var TOTAL    = 0;
+  var busy     = false;
+  var liveOK   = false;
   var debTimer = null;
 
   /* ---- element refs ---- */
-  var grid    = document.getElementById("ns-grid");
-  var metaEl  = document.getElementById("ns-meta");
-  var srcEl   = document.getElementById("ns-src");
-  var moreBtn = document.getElementById("ns-more");
-  var noticeEl= document.getElementById("ns-notice");
-  var bar     = document.getElementById("load-bar");
-  var barSts  = document.getElementById("load-status");
-  var barInt  = null;
+  var grid     = document.getElementById("ns-grid");
+  var metaEl   = document.getElementById("ns-meta");
+  var srcEl    = document.getElementById("ns-src");
+  var moreBtn  = document.getElementById("ns-more");
+  var noticeEl = document.getElementById("ns-notice");
+  var bar      = document.getElementById("load-bar");
+  var barSts   = document.getElementById("load-status");
+  var barInt   = null;
 
   /* ---- progress bar ---- */
   function pbStart(msg) {
     clearInterval(barInt);
-    bar.style.transition = "none";
-    bar.style.width = "0%";
-    bar.style.background = "linear-gradient(90deg,var(--accent),var(--accent2))";
-    bar.style.opacity = "1";
+    bar.style.cssText = "height:100%;width:0%;background:linear-gradient(90deg,#4a9eff,#7bc4ff);opacity:1;transition:none;box-shadow:0 0 8px rgba(74,158,255,0.6);";
     void bar.offsetWidth;
     bar.style.transition = "width 0.35s ease";
     barSts.textContent = msg || "Connecting…";
@@ -11832,10 +11834,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
     barInt = setInterval(function () {
       pct += (85 - pct) * 0.1;
       bar.style.width = pct + "%";
-      if (pct > 25) barSts.textContent = "Fetching articles…";
-      if (pct > 55) barSts.textContent = "Almost there…";
-      if (pct > 78) barSts.textContent = "Finalising…";
-    }, 280);
+      if (pct > 30) barSts.textContent = "Fetching live articles…";
+      if (pct > 60) barSts.textContent = "Almost there…";
+    }, 300);
   }
 
   function pbDone(msg) {
@@ -11851,15 +11852,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
         bar.style.opacity = "1";
         bar.style.transition = "width 0.35s ease";
       }, 550);
-    }, 500);
+    }, 800);
   }
 
   function pbFail(msg) {
     clearInterval(barInt);
-    bar.style.background = "var(--red)";
+    bar.style.background = "#f87171";
     bar.style.width = "100%";
-    barSts.textContent = msg || "Failed";
-    barSts.style.color = "var(--red)";
+    barSts.textContent = msg || "Could not reach live feed";
+    barSts.style.color = "#f87171";
     setTimeout(function () {
       bar.style.transition = "opacity 0.5s";
       bar.style.opacity = "0";
@@ -11867,17 +11868,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
       setTimeout(function () {
         bar.style.width = "0%";
         bar.style.opacity = "1";
-        bar.style.background = "linear-gradient(90deg,var(--accent),var(--accent2))";
-        barSts.style.color = "var(--accent)";
+        bar.style.background = "linear-gradient(90deg,#4a9eff,#7bc4ff)";
+        barSts.style.color = "#4a9eff";
         bar.style.transition = "width 0.35s ease";
       }, 550);
-    }, 1200);
+    }, 2500);
   }
 
   /* ---- notice ---- */
   function showNotice(icon, text) {
     document.getElementById("ns-nicon").textContent = icon;
-    document.getElementById("ns-ntext").innerHTML   = text;
+    document.getElementById("ns-ntext").innerHTML = text;
     noticeEl.style.display = "block";
   }
   function hideNotice() { noticeEl.style.display = "none"; }
@@ -11890,43 +11891,33 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
     if (diff < 86400)  return Math.floor(diff / 3600)  + "h ago";
     if (diff < 604800) return Math.floor(diff / 86400) + "d ago";
     var d = new Date(iso);
-    return d.toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
+    return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
   }
 
-  function esc(str) {
-    return (str || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+  function esc(v) {
+    return String(v || "")
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
 
-  /* ---- card builder (NO inline onclick — uses data-url + delegation) ---- */
-  function makeCard(art, featured) {
-    var cls    = featured ? "card feat" : "card";
-    var sc     = TYPE === "blogs" ? "blg" : TYPE === "reports" ? "rpt" : "art";
-    var imgCls = featured ? "card-img feat" : "card-img";
-    var noCls  = featured ? "card-nophoto feat" : "card-nophoto";
-
-    var imgHtml;
-    if (art.image_url) {
-      imgHtml = "<img class=\"" + imgCls + "\" src=\"" + esc(art.image_url) + "\" alt=\"\" loading=\"lazy\">"
-              + "<div class=\"" + noCls + "\" style=\"display:none\">&#128752;</div>";
-    } else {
-      imgHtml = "<div class=\"" + noCls + "\">&#128752;</div>";
-    }
-
+  /* ---- card builder ---- */
+  function makeCard(art, feat) {
+    var sc  = TYPE === "blogs" ? "blg" : TYPE === "reports" ? "rpt" : "art";
+    var cls = feat ? "card feat" : "card";
+    var imc = feat ? "card-img feat" : "card-img";
+    var npc = feat ? "card-nophoto feat" : "card-nophoto";
+    var img = art.image_url
+      ? "<img class=\"" + imc + "\" src=\"" + esc(art.image_url) + "\" alt=\"\" loading=\"lazy\">"
+        + "<div class=\"" + npc + "\" style=\"display:none\">&#128752;</div>"
+      : "<div class=\"" + npc + "\">&#128752;</div>";
     var tags = "";
     if (art.launches && art.launches.length) tags += "<span class=\"card-tag\">&#128640; launch</span>";
     if (art.events   && art.events.length)   tags += "<span class=\"card-tag\">&#128225; event</span>";
-
     return "<div class=\"" + cls + "\" data-url=\"" + esc(art.url) + "\">"
-         + imgHtml
+         + img
          + "<div class=\"card-body\">"
-         + "<div class=\"card-meta\">"
-         + "<span class=\"card-src " + sc + "\">" + esc(art.news_site) + "</span>"
-         + "<span class=\"card-age\">" + timeAgo(art.published_at) + "</span>"
-         + "</div>"
+         + "<div class=\"card-meta\"><span class=\"card-src " + sc + "\">" + esc(art.news_site) + "</span>"
+         + "<span class=\"card-age\">" + timeAgo(art.published_at) + "</span></div>"
          + "<div class=\"card-title\">" + esc(art.title) + "</div>"
          + "<div class=\"card-summary\">" + esc(art.summary) + "</div>"
          + "</div>"
@@ -11936,138 +11927,137 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
          + "<svg width=\"11\" height=\"11\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M12 5l7 7-7 7\"/></svg>"
          + "</a>"
          + "<div class=\"card-tags\">" + tags + "</div>"
-         + "</div>"
-         + "</div>";
+         + "</div></div>";
   }
 
-  /* ---- click delegation so cards open URL ---- */
+  /* ---- click delegation ---- */
   grid.addEventListener("click", function (e) {
-    var card = e.target.closest(".card");
-    if (!card) return;
-    if (e.target.closest("a")) return;
-    var url = card.getAttribute("data-url");
-    if (url) window.open(url, "_blank", "noopener");
+    var card = e.target.closest("[data-url]");
+    if (!card || e.target.closest("a")) return;
+    window.open(card.getAttribute("data-url"), "_blank", "noopener");
   });
 
-  /* ---- skeleton ---- */
-  function makeSkel(n) {
-    var h = "";
-    for (var k = 0; k < n; k++) {
-      h += "<div class=\"skel\"><div class=\"skel-img\"></div>"
-         + "<div class=\"skel-body\">"
-         + "<div class=\"skel-line\" style=\"width:55%\"></div>"
-         + "<div class=\"skel-line\" style=\"width:88%\"></div>"
-         + "<div class=\"skel-line\" style=\"width:70%\"></div>"
-         + "</div></div>";
-    }
-    return h;
-  }
-
   /* ---- render ---- */
-  function renderResults(results, append) {
-    if (!append) grid.innerHTML = "";
-    results.forEach(function (art, idx) {
-      grid.innerHTML += makeCard(art, !append && idx === 0 && !QUERY);
+  function renderList(list, append, source) {
+    if (!append) {
+      grid.innerHTML = "";
+      OFFSET = 0;
+    }
+    list.forEach(function (art, i) {
+      grid.innerHTML += makeCard(art, !append && i === 0 && !QUERY);
     });
-    OFFSET += results.length;
+    OFFSET += list.length;
     var label = TYPE === "blogs" ? "blog posts" : TYPE === "reports" ? "reports" : "articles";
     metaEl.textContent = OFFSET + (TOTAL > OFFSET ? " of " + TOTAL : "") + " " + label;
-    if (TOTAL > OFFSET) {
+    srcEl.textContent  = source || "";
+    if (TOTAL > OFFSET && liveOK) {
       moreBtn.style.display = "block";
-      moreBtn.disabled = false;
-      moreBtn.textContent = "Load More →";
+      moreBtn.disabled      = false;
+      moreBtn.textContent   = "Load More →";
     } else {
       moreBtn.style.display = "none";
     }
   }
 
-  /* ---- fallback ---- */
-  var FALLBACK = [{"title": "SpaceX Starship Completes Integrated Flight Test", "url": "https://www.spacex.com/updates", "image_url": "", "news_site": "SpaceX", "summary": "SpaceX successfully completed a fully integrated Starship flight test, achieving milestones in reusability and propellant transfer technology critical for future lunar and Mars missions.", "published_at": "2024-10-14T00:00:00Z", "launches": [], "events": []}, {"title": "NASA Artemis Program: Lunar Gateway Progress", "url": "https://www.nasa.gov/artemis", "image_url": "", "news_site": "NASA", "summary": "NASA's Artemis program continues development of the Lunar Gateway space station, with international partners confirming module contributions for the planned crewed lunar orbit outpost.", "published_at": "2024-11-01T00:00:00Z", "launches": [], "events": []}, {"title": "ESA Reports Record Space Debris Fragmentation Event", "url": "https://www.esa.int/Space_Safety/Space_Debris", "image_url": "", "news_site": "ESA", "summary": "The European Space Agency has catalogued a new debris fragmentation event adding hundreds of trackable objects to the LEO environment, highlighting urgent need for active debris removal.", "published_at": "2024-10-20T00:00:00Z", "launches": [], "events": []}, {"title": "Iridium NEXT Constellation Celebrates 6 Years of Operations", "url": "https://www.iridium.com", "image_url": "", "news_site": "Iridium", "summary": "The Iridium NEXT satellite constellation marks six years since the completion of its deployment, continuing to provide global satellite communications and ADS-B aircraft tracking.", "published_at": "2024-09-15T00:00:00Z", "launches": [], "events": []}, {"title": "Space Force Releases Updated Satellite Catalog Guidelines", "url": "https://www.space.mil", "image_url": "", "news_site": "US Space Force", "summary": "US Space Force published updated guidelines for satellite catalog maintenance, expanding tracking capabilities for objects as small as 5cm in LEO using new radar installations.", "published_at": "2024-10-05T00:00:00Z", "launches": [], "events": []}, {"title": "China Tiangong Station Expansion Continues with New Module", "url": "https://www.cmse.gov.cn", "image_url": "", "news_site": "CMSE", "summary": "China's Tiangong space station welcomed a new science module, expanding research capacity and crew quarters ahead of a planned increase in annual crewed missions.", "published_at": "2024-08-30T00:00:00Z", "launches": [], "events": []}];
-  function showFallback(reason) {
-    TOTAL = FALLBACK.length;
-    renderResults(FALLBACK, false);
-    srcEl.textContent = "Cached · " + FALLBACK.length + " articles";
-    showNotice("&#128225;",
-      "<strong>Showing cached articles.</strong> " + reason
-      + " Live news loads when the connection is available. "
-      + "<a href=\"#\" id=\"retry-live\">Retry live feed →</a>"
-    );
-    document.getElementById("retry-live").addEventListener("click", function (e) {
-      e.preventDefault(); fetchNews(false);
-    });
-    pbFail("Using cached articles");
+  /* ============================================================
+     STEP 1: Show fallback articles IMMEDIATELY — zero wait
+     ============================================================ */
+  function showFallback(filtered) {
+    var list = filtered !== undefined ? filtered : FALLBACK;
+    TOTAL = list.length;
+    liveOK = false;
+    renderList(list, false, "Curated · " + list.length + " articles");
   }
 
-  /* ---- fetch ---- */
-  function fetchNews(append) {
-    if (busy) return;
-    busy = true;
-    hideNotice();
-
-    if (!append) {
-      OFFSET = 0; TOTAL = 0;
-      grid.innerHTML = makeSkel(6);
-      moreBtn.style.display = "none";
-      pbStart("Connecting to Spaceflight News API…");
-    } else {
-      moreBtn.disabled = true;
-      moreBtn.textContent = "Loading…";
-      pbStart("Loading more…");
-    }
-
-    var ac    = (typeof AbortController !== "undefined") ? new AbortController() : null;
-    var timer = ac ? setTimeout(function () { ac.abort(); }, 9000) : null;
+  /* ============================================================
+     STEP 2: Try live fetch in background — swap if successful
+     ============================================================ */
+  function tryLiveFetch() {
+    pbStart("Checking for live articles…");
+    var ac    = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = ac ? setTimeout(function () { ac.abort(); }, 8000) : null;
     var url   = "https://api.spaceflightnewsapi.net/v4/" + TYPE
-              + "/?limit=" + LIMIT + "&offset=" + OFFSET;
+              + "/?limit=" + LIMIT + "&offset=0";
     if (QUERY) url += "&search=" + encodeURIComponent(QUERY);
-    var opts  = ac ? { signal: ac.signal } : {};
+    var opts  = ac ? {signal: ac.signal} : {};
 
     fetch(url, opts)
-      .then(function (resp) {
+      .then(function (r) {
         clearTimeout(timer);
-        if (!resp.ok) throw new Error("HTTP " + resp.status);
-        return resp.json();
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
       })
       .then(function (data) {
-        busy = false;
         var results = Array.isArray(data.results) ? data.results : [];
-        TOTAL = (typeof data.count === "number") ? data.count : results.length;
-        if (results.length === 0 && !append) {
-          grid.innerHTML = "<div style=\"grid-column:1/-1;text-align:center;padding:60px 0;"
-            + "font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);\">"
-            + (QUERY ? "No results for \u201c" + esc(QUERY) + "\u201d" : "No articles available.")
-            + "</div>";
-          metaEl.textContent = "0 results";
-          moreBtn.style.display = "none";
-          pbDone("No results");
-        } else {
-          renderResults(results, append);
-          srcEl.textContent = "Spaceflight News API · live";
-          pbDone("Loaded " + results.length + " articles");
-        }
+        if (results.length === 0) { pbFail("No live articles found"); return; }
+        liveOK = true;
+        TOTAL  = typeof data.count === "number" ? data.count : results.length;
+        OFFSET = 0;
+        hideNotice();
+        renderList(results, false, "Spaceflight News API · live");
+        pbDone("Live feed loaded ✔");
       })
       .catch(function (err) {
         clearTimeout(timer);
-        busy = false;
-        if (!append) {
-          var reason = (err && err.name === "AbortError")
-            ? "Request timed out after 9 s."
-            : "Could not reach Spaceflight News API.";
-          showFallback(reason);
-        } else {
-          pbFail("Load failed");
-          moreBtn.disabled = false;
-          moreBtn.textContent = "Retry →";
-          showNotice("⚠", "Failed to load more. <a href=\"#\" onclick=\"fetchNews(true);return false\">Retry</a>");
-        }
+        var msg = err && err.name === "AbortError" ? "Live feed timed out" : "Live feed unavailable";
+        pbFail(msg);
+        showNotice("⚠",
+          "<strong>Showing curated articles.</strong> Could not reach Spaceflight News API. "
+          + "<a href=\"#\" id=\"rl\">Retry →</a>"
+        );
+        var rl = document.getElementById("rl");
+        if (rl) rl.addEventListener("click", function (e) {
+          e.preventDefault(); hideNotice(); tryLiveFetch();
+        });
       });
   }
+
+  /* ---- load more (live only) ---- */
+  moreBtn.addEventListener("click", function () {
+    if (!liveOK || busy) return;
+    busy = true;
+    moreBtn.disabled = true;
+    moreBtn.textContent = "Loading…";
+    pbStart("Loading more…");
+    var url = "https://api.spaceflightnewsapi.net/v4/" + TYPE
+            + "/?limit=" + LIMIT + "&offset=" + OFFSET;
+    fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        busy = false;
+        var results = Array.isArray(data.results) ? data.results : [];
+        TOTAL = typeof data.count === "number" ? data.count : TOTAL;
+        renderList(results, true, "Spaceflight News API · live");
+        pbDone("Loaded " + results.length + " more");
+      })
+      .catch(function () {
+        busy = false;
+        moreBtn.disabled = false;
+        moreBtn.textContent = "Retry →";
+        pbFail("Failed to load more");
+      });
+  });
 
   /* ---- search ---- */
   document.getElementById("ns-search").addEventListener("input", function () {
     clearTimeout(debTimer);
     var v = this.value.trim();
-    debTimer = setTimeout(function () { QUERY = v; fetchNews(false); }, 350);
+    debTimer = setTimeout(function () {
+      QUERY = v;
+      if (QUERY) {
+        /* filter fallback locally if live isn't available */
+        var ql = QUERY.toLowerCase();
+        var filtered = FALLBACK.filter(function (a) {
+          return a.title.toLowerCase().indexOf(ql) !== -1
+              || a.summary.toLowerCase().indexOf(ql) !== -1
+              || (a.news_site && a.news_site.toLowerCase().indexOf(ql) !== -1);
+        });
+        showFallback(filtered);
+      } else {
+        showFallback();
+      }
+      if (liveOK || !QUERY) tryLiveFetch();
+    }, 350);
   });
 
   /* ---- type filter ---- */
@@ -12078,15 +12068,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
       TYPE  = btn.dataset.type;
       QUERY = "";
       document.getElementById("ns-search").value = "";
-      fetchNews(false);
+      /* show fallback immediately, then try live */
+      showFallback();
+      tryLiveFetch();
     });
   });
 
-  /* ---- load more ---- */
-  moreBtn.addEventListener("click", function () { fetchNews(true); });
-
-  /* ---- kick off ---- */
-  fetchNews(false);
+  /* ============================================================
+     INIT: Show content immediately, try live in background
+     ============================================================ */
+  showFallback();          /* instant — always works */
+  tryLiveFetch();          /* async — upgrades to live if possible */
 
 }());
 </script>
