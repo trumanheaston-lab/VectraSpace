@@ -3994,7 +3994,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
     <span class="nav-brand-name">Vectra<em>Space</em></span>
   </a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
-  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">News</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="learn-hero">
@@ -4345,7 +4345,7 @@ initQuiz('ch1-quiz', [
   };
   const tip = document.createElement('div');
   tip.className = 'gtooltip';
-  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Full glossary →</a>';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Space News →</a>';
   document.body.appendChild(tip);
   let hideTimer;
   document.querySelectorAll('dfn[data-term]').forEach(el => {
@@ -4853,7 +4853,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 <nav>
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
-  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">News</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="learn-hero">
@@ -5174,7 +5174,7 @@ initQuiz('ch2-quiz', [
   };
   const tip = document.createElement('div');
   tip.className = 'gtooltip';
-  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Full glossary →</a>';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Space News →</a>';
   document.body.appendChild(tip);
   let hideTimer;
   document.querySelectorAll('dfn[data-term]').forEach(el => {
@@ -5672,7 +5672,7 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
 
 <nav>
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
-  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">News</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
@@ -6364,7 +6364,7 @@ initQuiz('ch3-quiz', [
   };
   const tip = document.createElement('div');
   tip.className = 'gtooltip';
-  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Full glossary →</a>';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Space News →</a>';
   document.body.appendChild(tip);
   let hideTimer;
   document.querySelectorAll('dfn[data-term]').forEach(el => {
@@ -6765,7 +6765,7 @@ tbody tr:hover td { background:var(--ink-2); }
 
 <nav>
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
-  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Glossary</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">News</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
@@ -7449,7 +7449,7 @@ initQuiz('ch4-quiz', [
   };
   const tip = document.createElement('div');
   tip.className = 'gtooltip';
-  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Full glossary →</a>';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Space News →</a>';
   document.body.appendChild(tip);
   let hideTimer;
   document.querySelectorAll('dfn[data-term]').forEach(el => {
@@ -8647,7 +8647,7 @@ footer {
     <li><a href="#learn">Chapters</a></li>
     <li><a href="/scenarios">Scenarios</a></li>
     <li><a href="/kepler">Orbit Explorer</a></li>
-    <li><a href="/glossary">Glossary</a></li>
+    <li><a href="/glossary">News</a></li>
     <li><a href="/calculator">Calculator</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
@@ -8661,7 +8661,7 @@ footer {
   <a href="#learn">Chapters <span>→</span></a>
   <a href="/scenarios">Scenarios <span>→</span></a>
   <a href="/kepler">Orbit Explorer <span>→</span></a>
-  <a href="/glossary">Glossary <span>→</span></a>
+  <a href="/glossary">News <span>→</span></a>
   <a href="/calculator">Calculator <span>→</span></a>
   <a href="#contact">Contact <span>→</span></a>
   <a href="/dashboard" class="cta-link">Open Dashboard →</a>
@@ -9179,7 +9179,7 @@ footer {
       <a href="/glossary" class="tool-card">
         <div class="tool-card-icon purple">📖</div>
         <div class="tool-card-body">
-          <div class="tool-card-title">Glossary</div>
+          <div class="tool-card-title">Space News</div>
           <div class="tool-card-desc">50+ terms · searchable · deep-link ready</div>
         </div>
       </a>
@@ -9730,7 +9730,7 @@ html,body{background:var(--ink);color:var(--text);font-family:var(--sans);overfl
     <a href="/kepler" class="tb-link">Kepler Explorer</a>
     <a href="/scenarios" class="tb-link active">Scenarios</a>
     <a href="/calculator" class="tb-link">Calculator</a>
-    <a href="/glossary" class="tb-link">Glossary</a>
+    <a href="/glossary" class="tb-link">News</a>
   </div>
 </div>
 
@@ -10483,7 +10483,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
     <a href="/kepler" class="tb-link active">Kepler Explorer</a>
     <a href="/scenarios" class="tb-link">Scenarios</a>
     <a href="/calculator" class="tb-link">Calculator</a>
-    <a href="/glossary" class="tb-link">Glossary</a>
+    <a href="/glossary" class="tb-link">News</a>
   </div>
 </div>
 
@@ -11179,7 +11179,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
   <div class="nav-links">
     <a href="/" class="nav-link">Hub</a>
-    <a href="/glossary" class="nav-link">Glossary</a>
+    <a href="/glossary" class="nav-link">News</a>
     <a href="/calculator" class="nav-link active">Calculator</a>
     <a href="/dashboard" class="nav-link">Dashboard</a>
   </div>
@@ -11575,7 +11575,7 @@ GLOSSARY_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glossary — VectraSpace</title>
+<title>Space News — VectraSpace</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11591,259 +11591,321 @@ GLOSSARY_HTML = """<!DOCTYPE html>
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden;}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.94);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden;min-height:100vh;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
 .nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}
 .nav-brand-name{font-family:var(--serif);font-size:17px;font-style:italic;letter-spacing:-0.2px;}
 .nav-brand-name em{color:var(--accent);font-style:normal;}
+.nav-right{display:flex;align-items:center;gap:8px;}
 .nav-back{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 16px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
 .nav-back:hover{color:var(--text);border-color:var(--border2);}
 
-.hero{padding:110px 48px 48px;max-width:860px;margin:0 auto;}
-.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
-.hero-eyebrow::before{content:"";width:14px;height:1px;background:var(--green);display:inline-block;}
-.hero-title{font-family:var(--serif);font-size:clamp(38px,5vw,62px);font-weight:400;color:#fff;line-height:1.1;letter-spacing:-0.5px;margin-bottom:14px;}
+/* HERO */
+.hero{padding:110px 48px 48px;max-width:1160px;margin:0 auto;}
+.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::before{content:"";width:14px;height:1px;background:var(--amber);display:inline-block;}
+.hero-title{font-family:var(--serif);font-size:clamp(36px,5vw,60px);font-weight:400;color:#fff;line-height:1.1;letter-spacing:-0.5px;margin-bottom:14px;}
 .hero-title em{font-style:italic;color:var(--accent2);}
-.hero-body{font-size:15px;color:var(--muted);line-height:1.8;max-width:560px;}
+.hero-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:20px;}
+.hero-body{font-size:15px;color:var(--muted);line-height:1.8;max-width:520px;}
+.live-badge{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green);background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);padding:7px 14px;border-radius:20px;flex-shrink:0;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
-.controls{max-width:860px;margin:0 auto;padding:0 48px 36px;display:flex;flex-direction:column;gap:16px;}
-.search-box{position:relative;}
-.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;}
-.search-input{width:100%;background:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:13px 16px 13px 44px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;transition:border-color 0.2s;letter-spacing:0.3px;}
+/* CONTROLS */
+.controls{max-width:1160px;margin:0 auto;padding:0 48px 32px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.search-wrap{position:relative;flex:1;min-width:220px;}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;}
+.search-input{width:100%;background:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:11px 14px 11px 42px;font-family:var(--mono);font-size:11px;color:var(--text);outline:none;transition:border-color 0.2s;letter-spacing:0.3px;}
 .search-input::placeholder{color:var(--faint);}
-.search-input:focus{border-color:rgba(74,158,255,0.4);}
-.search-meta{display:flex;align-items:center;justify-content:space-between;}
-.search-count{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);}
+.search-input:focus{border-color:rgba(74,158,255,0.35);}
 .filters{display:flex;gap:6px;flex-wrap:wrap;}
-.filter-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;}
+.filter-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
 .filter-btn:hover{border-color:var(--border2);color:var(--text);}
 .filter-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.07);}
+.filter-btn.on.amber{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,0.07);}
+.filter-btn.on.green{border-color:var(--green);color:var(--green);background:rgba(52,211,153,0.07);}
+.sort-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.sort-btn:hover{color:var(--text);border-color:var(--border2);}
 
-.glossary-wrap{max-width:860px;margin:0 auto;padding:0 48px 80px;}
-.alpha-group{margin-bottom:36px;}
-.alpha-letter{font-family:var(--serif);font-size:40px;font-style:italic;color:rgba(74,158,255,0.18);margin-bottom:14px;line-height:1;}
-.term-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:10px;transition:border-color 0.2s;}
-.term-card:hover{border-color:var(--border2);}
-.term-header{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
-.term-name{font-family:var(--serif);font-size:18px;font-style:italic;color:#fff;}
-.term-abbr{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--accent);background:rgba(74,158,255,0.1);border:1px solid rgba(74,158,255,0.2);padding:2px 8px;border-radius:12px;}
-.term-cat{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:12px;margin-left:auto;}
-.cat-orbital{color:#4a9eff;background:rgba(74,158,255,0.08);}
-.cat-detection{color:#f59e0b;background:rgba(245,158,11,0.08);}
-.cat-debris{color:#f87171;background:rgba(248,113,113,0.08);}
-.cat-operations{color:#34d399;background:rgba(52,211,153,0.08);}
-.cat-physics{color:#a78bfa;background:rgba(167,139,250,0.08);}
-.term-def{font-size:13px;color:var(--muted);line-height:1.75;}
-.term-def mark{background:rgba(74,158,255,0.22);color:var(--text);border-radius:2px;padding:0 1px;}
+/* META BAR */
+.meta-bar{max-width:1160px;margin:0 auto;padding:0 48px 20px;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--faint);}
 
-.no-results{text-align:center;padding:80px 0;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);}
+/* GRID */
+.grid{max-width:1160px;margin:0 auto;padding:0 48px 80px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
 
+/* ARTICLE CARD */
+.article-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.2s,transform 0.2s;cursor:pointer;}
+.article-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.card-img{width:100%;height:180px;object-fit:cover;background:var(--ink3);display:block;}
+.card-img-placeholder{width:100%;height:180px;background:linear-gradient(135deg,var(--ink3),var(--ink2));display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--faint);}
+.card-body{padding:18px 20px;flex:1;display:flex;flex-direction:column;gap:10px;}
+.card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-source{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.15);padding:3px 9px;border-radius:12px;white-space:nowrap;}
+.card-source.blog{color:var(--amber);background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.15);}
+.card-source.report{color:var(--green);background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.15);}
+.card-date{font-family:var(--mono);font-size:8px;letter-spacing:0.5px;color:var(--faint);}
+.card-title{font-family:var(--serif);font-size:17px;font-style:italic;color:#fff;line-height:1.35;flex:1;}
+.card-summary{font-size:12px;color:var(--muted);line-height:1.7;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.card-footer{padding:12px 20px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-read{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);text-decoration:none;transition:gap 0.15s;display:flex;align-items:center;gap:6px;}
+.card-read:hover{color:var(--accent2);}
+.card-read svg{transition:transform 0.15s;}
+.card-read:hover svg{transform:translateX(3px);}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.card-tag{font-family:var(--mono);font-size:7px;letter-spacing:0.5px;color:var(--faint);border:1px solid var(--faint);padding:2px 7px;border-radius:8px;}
+
+/* FEATURED CARD (spans 2 cols) */
+.article-card.featured{grid-column:span 2;}
+.article-card.featured .card-img,.article-card.featured .card-img-placeholder{height:240px;}
+.article-card.featured .card-title{font-size:22px;}
+.article-card.featured .card-summary{-webkit-line-clamp:4;}
+
+/* SKELETON */
+.skeleton{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;animation:shimmer 1.6s infinite;}
+@keyframes shimmer{0%,100%{opacity:0.6}50%{opacity:1}}
+.sk-img{height:180px;background:var(--ink3);}
+.sk-body{padding:18px 20px;display:flex;flex-direction:column;gap:10px;}
+.sk-line{height:10px;border-radius:4px;background:var(--ink3);}
+
+/* LOAD MORE */
+.load-more-wrap{max-width:1160px;margin:0 auto;padding:0 48px 80px;display:flex;justify-content:center;}
+.load-more-btn{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:13px 36px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.load-more-btn:hover{border-color:var(--accent);color:var(--accent);}
+.load-more-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ERROR / EMPTY */
+.msg-box{max-width:1160px;margin:0 auto;padding:0 48px 80px;text-align:center;}
+.msg-box p{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);padding:60px 0;}
+.msg-box a{color:var(--accent);}
+
+/* RESPONSIVE */
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}.article-card.featured{grid-column:span 2;}}
 @media(max-width:640px){
-  .hero,.controls,.glossary-wrap{padding-left:20px;padding-right:20px;}
-  .hero{padding-top:90px;}
   nav{padding:0 20px;}
+  .hero,.controls,.meta-bar,.grid,.load-more-wrap,.msg-box{padding-left:20px;padding-right:20px;}
+  .hero{padding-top:90px;}
+  .grid{grid-template-columns:1fr;}
+  .article-card.featured{grid-column:span 1;}
+  .article-card.featured .card-img,.article-card.featured .card-img-placeholder{height:180px;}
+  .article-card.featured .card-title{font-size:17px;}
 }
 </style>
 </head>
 <body>
 <nav>
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
-  <a href="/" class="nav-back">← Learning Hub</a>
+  <div class="nav-right">
+    <a href="/" class="nav-back">← Hub</a>
+    <a href="/dashboard" class="nav-back">Dashboard →</a>
+  </div>
 </nav>
 
 <div class="hero">
-  <div class="hero-eyebrow">Reference</div>
-  <h1 class="hero-title">Space Safety <em>Glossary</em></h1>
-  <p class="hero-body">Every key term across orbital mechanics, conjunction analysis, debris modeling, and space operations — with full technical definitions.</p>
+  <div class="hero-eyebrow">Latest Updates</div>
+  <div class="hero-row">
+    <div>
+      <h1 class="hero-title">Space <em>News</em></h1>
+      <p class="hero-body">Live feed of the latest space industry news, mission updates, and orbital events — pulled directly from Spaceflight News API.</p>
+    </div>
+    <div class="live-badge"><span class="live-dot"></span>Live Feed</div>
+  </div>
 </div>
 
 <div class="controls">
-  <div class="search-box">
-    <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" class="search-input" id="gs-input" placeholder="Search terms, abbreviations, definitions..." autocomplete="off" spellcheck="false">
+  <div class="search-wrap">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" class="search-input" id="ns-search" placeholder="Search headlines, missions, agencies..." autocomplete="off" spellcheck="false">
   </div>
-  <div class="search-meta">
-    <span class="search-count" id="gs-count"></span>
-    <div class="filters">
-      <button class="filter-btn on" data-cat="all">All</button>
-      <button class="filter-btn" data-cat="orbital">Orbital Mechanics</button>
-      <button class="filter-btn" data-cat="detection">Conjunction</button>
-      <button class="filter-btn" data-cat="debris">Debris</button>
-      <button class="filter-btn" data-cat="operations">Operations</button>
-      <button class="filter-btn" data-cat="physics">Physics</button>
-    </div>
+  <div class="filters">
+    <button class="filter-btn on" data-type="articles">Articles</button>
+    <button class="filter-btn amber" data-type="blogs">Blogs</button>
+    <button class="filter-btn green" data-type="reports">Reports</button>
   </div>
 </div>
 
-<div class="glossary-wrap" id="gs-output"></div>
+<div class="meta-bar">
+  <span id="ns-meta">Loading...</span>
+  <span id="ns-updated"></span>
+</div>
+
+<div class="grid" id="ns-grid"></div>
+<div class="load-more-wrap"><button class="load-more-btn" id="ns-more" onclick="loadMore()" style="display:none">Load More</button></div>
+<div class="msg-box" id="ns-msg" style="display:none"></div>
 
 <script>
-const TERMS = [
-  // ── ORBITAL MECHANICS ────────────────────────────────────────
-  { name:"Two-Line Element Set", abbr:"TLE", cat:"orbital", def:"A standardized data format encoding the mean Keplerian orbital elements of an Earth-orbiting object at a given epoch. Used by SGP4 to propagate satellite positions forward in time. Accuracy degrades from ~1 km at epoch to 10+ km after 7 days for LEO objects." },
-  { name:"SGP4", abbr:"", cat:"orbital", def:"Simplified General Perturbations model 4. The standard analytical propagator for Earth satellites using TLE data. Models atmospheric drag (via <dfn data-term="B*">ballistic coefficient B*</dfn>), J2 oblateness, and secular/periodic terms. Used by every space surveillance network globally." },
-  { name:"Semi-Major Axis", abbr:"a", cat:"orbital", def:"Half the longest diameter of an elliptical orbit, measured in kilometers. Determines the orbital energy and period via Kepler's Third Law: T = 2π√(a³/μ). For circular orbits, equals the orbital radius." },
-  { name:"Eccentricity", abbr:"e", cat:"orbital", def:"Dimensionless measure of orbital shape: e=0 is circular, 0<e<1 is elliptical, e=1 is parabolic (escape), e>1 is hyperbolic. Geostationary satellites maintain e≈0; Molniya orbits use e≈0.74." },
-  { name:"Inclination", abbr:"i", cat:"orbital", def:"Angle between the orbital plane and Earth's equatorial plane, measured at the ascending node. i=0° is equatorial prograde, i=90° is polar, i=98° is sun-synchronous for LEO, i=180° is equatorial retrograde." },
-  { name:"Right Ascension of Ascending Node", abbr:"RAAN", cat:"orbital", def:"The angle in the equatorial plane from the vernal equinox to the ascending node — where the satellite crosses from southern to northern hemisphere. RAAN drifts westward for prograde LEO orbits due to J₂ oblateness at ~6–7°/day." },
-  { name:"Argument of Perigee", abbr:"ω", cat:"orbital", def:"Angle within the orbital plane from the ascending node to the perigee point. Defines the orientation of the ellipse within its plane. Precesses due to J₂ at a rate depending on inclination; zero precession occurs at i≈63.4° (critical inclination)." },
-  { name:"True Anomaly", abbr:"ν", cat:"orbital", def:"The actual angular position of a satellite in its orbit, measured from perigee. Unlike mean anomaly, it correctly represents the satellite's real position on the ellipse at any instant. Requires solving Kepler's equation to convert from mean anomaly." },
-  { name:"Mean Anomaly", abbr:"M", cat:"orbital", def:"A uniformly increasing angle that represents what the true anomaly would be if the orbit were circular with the same period. Related to eccentric anomaly E by Kepler's equation: M = E − e·sin(E). Used in TLEs." },
-  { name:"Vis-Viva Equation", abbr:"", cat:"orbital", def:"The fundamental energy equation of orbital mechanics: v² = μ(2/r − 1/a). Relates orbital speed to current radius r, semi-major axis a, and gravitational parameter μ. Underlies all delta-v calculations." },
-  { name:"Perigee", abbr:"", cat:"orbital", def:"The lowest point in an orbit, closest to Earth. A satellite moves fastest at perigee (vis-viva equation). Atmospheric drag is greatest at perigee for elliptical orbits. Measured as altitude above Earth's surface." },
-  { name:"Apogee", abbr:"", cat:"orbital", def:"The highest point in an orbit, furthest from Earth. A satellite moves slowest at apogee. Used for GTO transfers and Molniya-type high-apogee orbits. Measured as altitude above Earth's surface." },
-  { name:"Low Earth Orbit", abbr:"LEO", cat:"orbital", def:"Orbital regime from ~160–2,000 km altitude. Orbital period 88–127 minutes. Most human spaceflight occurs here. High debris density, significant atmospheric drag, orbital lifetime from days (at 200 km) to decades (at 800 km+)." },
-  { name:"Medium Earth Orbit", abbr:"MEO", cat:"orbital", def:"Orbital regime from ~2,000–35,786 km. Home to GPS (20,200 km), GLONASS, Galileo, and BeiDou navigation satellites. Orbital period 2–24 hours. Passes through the Van Allen radiation belts." },
-  { name:"Geostationary Orbit", abbr:"GEO", cat:"orbital", def:"Circular equatorial orbit at 35,786 km altitude where orbital period exactly matches Earth's rotation (23h 56m). Satellite appears stationary over a fixed ground point. Used for communications, weather, and surveillance satellites." },
-  { name:"Sun-Synchronous Orbit", abbr:"SSO", cat:"orbital", def:"A near-polar orbit (~97–98° inclination) where the J₂-induced RAAN precession (~0.9856°/day) exactly matches Earth's orbital rate around the Sun. The ascending node passes over a given latitude at the same local solar time each orbit — ideal for Earth observation." },
-  { name:"Kepler's Third Law", abbr:"", cat:"orbital", def:"T² = (4π²/μ) · a³. The square of the orbital period is proportional to the cube of the semi-major axis. Derived from conservation of energy and angular momentum. Explains why LEO satellites (~92 min) orbit much faster than GEO (~24 h)." },
-  { name:"Gravitational Parameter", abbr:"μ", cat:"physics", def:"Product of the gravitational constant G and Earth's mass M: μ = GM ≈ 398,600.4418 km³/s². Used in all orbital mechanics equations. More precisely known than G or M individually because it can be determined from spacecraft tracking data." },
+(function() {
+  var BASE    = "https://api.spaceflightnewsapi.net/v4/";
+  var TYPE    = "articles";
+  var OFFSET  = 0;
+  var LIMIT   = 12;
+  var QUERY   = "";
+  var loading = false;
+  var total   = 0;
+  var debounceTimer = null;
 
-  // ── PERTURBATIONS ────────────────────────────────────────────
-  { name:"J₂ Coefficient", abbr:"J₂", cat:"orbital", def:"The dominant oblateness term in Earth's gravitational potential, J₂ = 1.08263×10⁻³. Earth's equatorial bulge (6,378 km vs 6,357 km polar radius) creates a non-central force causing nodal regression (RAAN drift) and apsidal precession." },
-  { name:"Atmospheric Drag", abbr:"", cat:"orbital", def:"Aerodynamic force opposing orbital motion from residual atmosphere. At 400 km, density ~3×10⁻¹⁰ kg/m³. Drag force ∝ ρ·v²·Cd·A/m. Decreases semi-major axis, raises speed, lowers orbital altitude. Primary mechanism for natural LEO debris removal." },
-  { name:"Ballistic Coefficient", abbr:"B*", cat:"orbital", def:"TLE drag term encoding a satellite's aerodynamic characteristics: B* = (Cd·A)/(2·m) × ρ₀. Higher B* = more drag sensitivity. Estimated from tracking data, updated in TLEs. Critical for accurate SGP4 propagation of low-altitude objects." },
-  { name:"Solar Radiation Pressure", abbr:"SRP", cat:"physics", def:"Force exerted by photon momentum from sunlight: F = P·Cr·(A/m), where P ≈ 4.56×10⁻⁶ N/m² at 1 AU. Most significant for high area-to-mass ratio objects (solar sails, thin-film satellites). Causes orbit eccentricity growth for GEO satellites." },
-
-  // ── CONJUNCTION & DETECTION ──────────────────────────────────
-  { name:"Conjunction", abbr:"", cat:"detection", def:"An orbital event where two space objects pass within a defined proximity threshold (typically 5 km in radial, 1 km in along-track and cross-track directions for LEO). Not a collision — a close approach that warrants probability-of-collision analysis." },
-  { name:"Time of Closest Approach", abbr:"TCA", cat:"detection", def:"The time instant when two conjunction objects achieve minimum separation: TCA = argmin_t |r₁(t) − r₂(t)|. The reference epoch for miss distance, conjunction geometry, and Pc calculations. Computed by iterative minimization of the inter-satellite distance function." },
-  { name:"Miss Distance", abbr:"", cat:"detection", def:"The minimum center-to-center separation between two objects at TCA, measured in kilometers. A 5 km miss distance is not necessarily safe — Pc depends on position uncertainty relative to the miss distance. Small uncertainty → low Pc; large uncertainty → potentially high Pc." },
-  { name:"Probability of Collision", abbr:"Pc", cat:"detection", def:"The probability that two objects physically contact during a conjunction event. Computed by integrating the combined position uncertainty PDF over the collision cross-section in the conjunction plane. Threshold for operator action typically 1×10⁻⁴." },
-  { name:"Foster-Alfano Method", abbr:"", cat:"detection", def:"The standard 2D Pc calculation method: projects relative position uncertainty onto the conjunction plane and integrates a 2D Gaussian over a disk of radius equal to the combined hard-body radius. Named after Lauri Newman (formerly NASA) and Russell Alfano." },
-  { name:"Conjunction Data Message", abbr:"CDM", cat:"operations", def:"CCSDS standard 508.0-B-1 format for exchanging conjunction screening results between space surveillance providers and satellite operators. Contains TCA, miss distance, relative velocity, covariance matrices in RTN frame, Pc estimate, and object catalog data." },
-  { name:"RTN Frame", abbr:"RTN", cat:"detection", def:"Radial-Transverse-Normal coordinate frame centered on a reference satellite. R points from Earth center through satellite, T (tangential) is perpendicular to R in the orbit plane in direction of motion, N is orbit-plane normal. Standard frame for CDM covariance matrices." },
-  { name:"Covariance Matrix", abbr:"", cat:"detection", def:"A 3×3 or 6×6 symmetric matrix encoding position (and velocity) uncertainty and correlations in RTN coordinates. Diagonal elements are position variances (σ_R², σ_T², σ_N²). Used with miss distance to compute Pc. Quality of Pc estimate depends critically on covariance accuracy." },
-  { name:"Hard-Body Radius", abbr:"HBR", cat:"detection", def:"The effective collision radius used in Pc calculations, equal to the sum of the physical radii of both objects (approximated as spheres). A collision occurs if the center-to-center distance at TCA is less than the HBR." },
-  { name:"Screening Volume", abbr:"", cat:"detection", def:"The spatial region around a protected object used to filter potential conjunctions for detailed analysis. Typical NASA/ESA screening volumes for LEO: 5 km radial, 25 km along-track, 25 km cross-track. Objects entering this volume receive full CDM analysis." },
-  { name:"Clohessy-Wiltshire Equations", abbr:"CW / Hill", cat:"detection", def:"Linear equations of relative motion for a spacecraft in a nearly circular reference orbit, also known as Hill's equations. Enable analytical solutions for rendezvous and maneuver planning. Used in CDM-driven maneuver planning to compute minimum-Δv avoidance burns." },
-  { name:"Space Fence", abbr:"", cat:"operations", def:"US Space Force S-band radar system in Kwajalein Atoll, operational since 2020. Tracks objects as small as 5 cm in LEO. Generates ~1.5 million observations per day, dramatically improving the Space Surveillance Network catalog completeness." },
-
-  // ── DEBRIS & KESSLER ─────────────────────────────────────────
-  { name:"Kessler Syndrome", abbr:"", cat:"debris", def:"Proposed by Donald Kessler (NASA, 1978): a cascade of collisions where debris from each event creates more debris that triggers further collisions, self-sustaining above a critical debris density. Potentially irreversible in altitude bands above 800 km where atmospheric drag is negligible." },
-  { name:"NASA Standard Breakup Model", abbr:"SBM", cat:"debris", def:"Empirical model (NASA 1996, updated 2001) predicting the number, size distribution, and velocity distribution of fragments from satellite collisions or explosions. Inputs: mass of impactor/target, relative velocity, collision type. Used in EVOLVE and LEGEND long-term environment models." },
-  { name:"Active Debris Removal", abbr:"ADR", cat:"debris", def:"Technologies and missions to physically remove large debris objects from orbit. Approaches include harpoon capture (e.g., RemoveDebris), net capture, robotic arm grapple, ion beam shepherd, and electrodynamic tether deorbit. Critical for stabilizing high-density altitude bands." },
-  { name:"IADC", abbr:"IADC", cat:"operations", def:"Inter-Agency Space Debris Coordination Committee. International body (NASA, ESA, JAXA, Roscosmos, CSA, and others) establishing debris mitigation guidelines including the 25-year deorbit rule, passivation of propellant/pressure vessels, and protected orbital regions." },
-  { name:"25-Year Rule", abbr:"", cat:"operations", def:"IADC/FCC guideline requiring satellites to deorbit within 25 years of end-of-mission. For LEO, achievable through residual atmospheric drag or controlled reentry burns. Under revision toward a 5-year standard given mega-constellation growth. Not universally enforced." },
-  { name:"Passivation", abbr:"", cat:"operations", def:"Deliberate removal of stored energy from a spacecraft at end-of-mission: venting residual propellants, discharging batteries, releasing pressurized gases. Prevents on-orbit explosions that create large debris clouds. Required by IADC guidelines for all satellites." },
-  { name:"Orbital Lifetime", abbr:"", cat:"debris", def:"The time a debris object remains in orbit before atmospheric drag causes reentry. Highly sensitive to altitude (days at 200 km, centuries at 900 km+) and solar activity (increased solar flux expands atmosphere, increasing drag). The primary natural debris removal mechanism below 600 km." },
-  { name:"Graveyard Orbit", abbr:"", cat:"operations", def:"A supersynchronous disposal orbit ~300 km above GEO (>36,000 km) used for retired GEO satellites that cannot be deorbited. Objects here remain for thousands of years. Required by ITU/IADC for GEO operators unable to perform controlled reentry." },
-  { name:"Fengyun-1C", abbr:"FY-1C", cat:"debris", def:"Chinese weather satellite destroyed by a kinetic anti-satellite weapon test in January 2007 at 863 km altitude. Created ~3,500+ trackable fragments and an estimated 150,000+ untrackable debris pieces. One of the worst single debris-generating events in history." },
-  { name:"Iridium-Cosmos Collision", abbr:"", cat:"debris", def:"First accidental satellite-to-satellite collision (February 10, 2009). Iridium 33 and Cosmos 2251 collided at 789 km at ~11.7 km/s, generating ~2,000+ trackable fragments. Demonstrated Kessler cascade risk at operational satellite densities." },
-
-  // ── OPERATIONS & STANDARDS ───────────────────────────────────
-  { name:"Space Surveillance Network", abbr:"SSN", cat:"operations", def:"US Space Force global network of ground-based radars and optical sensors tracking ~30,000 objects larger than 10 cm in Earth orbit. Publishes TLEs via Space-Track.org and CelesTrak. Generates the authoritative satellite catalog used by VectraSpace." },
-  { name:"CelesTrak", abbr:"", cat:"operations", def:"Public satellite tracking data service operated by T.S. Kelso (CSSI). Provides TLE data from the Space Surveillance Network, supplemented by commercial tracking. Primary public source for orbital element sets. API used by VectraSpace for real-time TLE updates." },
-  { name:"NORAD Catalog Number", abbr:"", cat:"operations", def:"Unique integer identifier assigned by US Space Force to every tracked Earth-orbiting object. Also called the Satellite Catalog Number. NORAD 25544 = ISS, 20580 = Hubble. Assigned sequentially; over 60,000 numbers assigned including reentries." },
-  { name:"Delta-V", abbr:"Δv", cat:"operations", def:"Change in velocity (km/s or m/s) required for an orbital maneuver. The 'currency' of spaceflight — limited by onboard propellant. A typical LEO conjunction avoidance maneuver requires 0.01–0.5 m/s Δv. GEO station-keeping consumes ~50 m/s/year." },
-  { name:"Conjunction Assessment", abbr:"CA", cat:"operations", def:"The end-to-end process of screening the satellite catalog for close approaches, computing CDMs, estimating Pc, and advising operators on maneuver necessity. US 18th Space Defense Squadron performs CA for authorized operators globally, free of charge." },
-  { name:"Space-Track", abbr:"", cat:"operations", def:"Official US Space Force portal (space-track.org) providing access to the satellite catalog, TLEs, CDMs, and special perturbations data for registered users. Free access for government, commercial, and research users who agree to usage terms." },
-  { name:"Epoch", abbr:"", cat:"orbital", def:"The reference time at which orbital elements are defined. TLE epoch is encoded in decimal day-of-year format. Propagation accuracy degrades from epoch: elements should be refreshed every 1–7 days for LEO objects." },
-  { name:"Maneuver", abbr:"", cat:"operations", def:"A deliberate change in a satellite's orbit via thruster firing. Conjunction avoidance maneuvers typically lower or raise the satellite by a few km. Requires Δv budget, maneuver window calculation (before TCA), and post-maneuver TLE update." },
-];
-
-var CAT_LABELS = {
-  orbital: "Orbital Mechanics",
-  detection: "Conjunction & Detection",
-  debris: "Debris & Kessler",
-  operations: "Operations & Standards",
-  physics: "Physics & Math"
-};
-
-var activeFilter = "all";
-var searchQuery  = "";
-
-// Highlight without regex — safe substring wrap
-function hlText(str, q) {
-  if (!q) return str;
-  var out = "";
-  var lower = str.toLowerCase();
-  var qlow  = q.toLowerCase();
-  var start = 0;
-  var idx;
-  while ((idx = lower.indexOf(qlow, start)) !== -1) {
-    out += str.slice(start, idx);
-    out += "<mark>" + str.slice(idx, idx + q.length) + "</mark>";
-    start = idx + q.length;
-  }
-  out += str.slice(start);
-  return out;
-}
-
-function render() {
-  var q = searchQuery.toLowerCase();
-  var filtered = TERMS.filter(function(t) {
-    var matchCat = (activeFilter === "all") || (t.cat === activeFilter);
-    if (!matchCat) return false;
-    if (!q) return true;
-    return t.name.toLowerCase().indexOf(q) !== -1 ||
-           (t.abbr && t.abbr.toLowerCase().indexOf(q) !== -1) ||
-           t.def.toLowerCase().indexOf(q) !== -1;
-  });
-
-  var out  = document.getElementById("gs-output");
-  var cnt  = document.getElementById("gs-count");
-  cnt.textContent = filtered.length + " term" + (filtered.length !== 1 ? "s" : "");
-
-  if (filtered.length === 0) {
-    out.innerHTML = "<div class=\"no-results\">No terms match your search.</div>";
-    return;
+  function fmtDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    return d.toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
   }
 
-  // Sort and group by first letter
-  filtered.sort(function(a,b){ return a.name < b.name ? -1 : 1; });
-  var groups = {};
-  filtered.forEach(function(t) {
-    var l = t.name[0].toUpperCase();
-    if (!groups[l]) groups[l] = [];
-    groups[l].push(t);
+  function timeAgo(iso) {
+    if (!iso) return "";
+    var diff = (Date.now() - new Date(iso)) / 1000;
+    if (diff < 3600)  return Math.floor(diff/60) + "m ago";
+    if (diff < 86400) return Math.floor(diff/3600) + "h ago";
+    if (diff < 604800) return Math.floor(diff/86400) + "d ago";
+    return fmtDate(iso);
+  }
+
+  function skeleton() {
+    var h = "";
+    for (var k = 0; k < 6; k++) {
+      h += '<div class="skeleton"><div class="sk-img"></div><div class="sk-body">';
+      h += '<div class="sk-line" style="width:60%"></div>';
+      h += '<div class="sk-line" style="width:90%"></div>';
+      h += '<div class="sk-line" style="width:75%"></div>';
+      h += '</div></div>';
+    }
+    return h;
+  }
+
+  function cardHTML(art, featured) {
+    var cls = "article-card" + (featured ? " featured" : "");
+    var srcCls = "card-source" + (TYPE === "blogs" ? " blog" : TYPE === "reports" ? " report" : "");
+    var img = art.image_url
+      ? '<img class="card-img" src="' + art.image_url + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
+        + '<div class="card-img-placeholder" style="display:none">🛰</div>'
+      : '<div class="card-img-placeholder">🛰</div>';
+
+    var tags = "";
+    if (art.launches && art.launches.length) {
+      tags += '<span class="card-tag">🚀 launch</span>';
+    }
+    if (art.events && art.events.length) {
+      tags += '<span class="card-tag">📡 event</span>';
+    }
+
+    return '<div class="' + cls + '" onclick="window.open(\'' + art.url.replace(/'/g,"&#39;") + '\',\'_blank\')">'
+      + img
+      + '<div class="card-body">'
+      + '<div class="card-meta"><span class="' + srcCls + '">' + (art.news_site||"") + '</span>'
+      + '<span class="card-date">' + timeAgo(art.published_at) + '</span></div>'
+      + '<div class="card-title">' + art.title + '</div>'
+      + '<div class="card-summary">' + (art.summary||"") + '</div>'
+      + '</div>'
+      + '<div class="card-footer">'
+      + '<a class="card-read" href="' + art.url + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">'
+      + 'Read full article'
+      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>'
+      + '</a>'
+      + '<div class="card-tags">' + tags + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function fetchNews(append) {
+    if (loading) return;
+    loading = true;
+    var grid = document.getElementById("ns-grid");
+    var msg  = document.getElementById("ns-msg");
+    var more = document.getElementById("ns-more");
+    var meta = document.getElementById("ns-meta");
+
+    if (!append) {
+      OFFSET = 0;
+      grid.innerHTML = skeleton();
+      more.style.display = "none";
+      msg.style.display  = "none";
+    }
+
+    var url = BASE + TYPE + "/?limit=" + LIMIT + "&offset=" + OFFSET;
+    if (QUERY) url += "&search=" + encodeURIComponent(QUERY);
+
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        loading = false;
+        total = data.count || 0;
+        var results = data.results || [];
+
+        if (!append) grid.innerHTML = "";
+
+        if (results.length === 0 && !append) {
+          msg.style.display = "block";
+          msg.innerHTML = "<p>No articles found" + (QUERY ? ' for <strong>"' + QUERY + '"</strong>' : "") + '.<br><a href="#" onclick="clearSearch();return false">Clear search</a></p>';
+          meta.textContent = "0 results";
+          return;
+        }
+
+        results.forEach(function(art, idx) {
+          var featured = (!append && idx === 0 && !QUERY);
+          grid.innerHTML += cardHTML(art, featured);
+        });
+
+        OFFSET += results.length;
+        var showing = OFFSET;
+        meta.textContent = showing + " of " + total + " " + TYPE;
+
+        var updated = document.getElementById("ns-updated");
+        updated.textContent = "Updated " + new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+
+        more.style.display = (OFFSET < total) ? "block" : "none";
+        more.disabled = false;
+        more.textContent = "Load More";
+      })
+      .catch(function(err) {
+        loading = false;
+        if (!append) {
+          grid.innerHTML = "";
+          msg.style.display = "block";
+          msg.innerHTML = "<p>Could not load news. Check your connection or try again.<br><a href='#' onclick='fetchNews(false);return false'>Retry</a></p>";
+          meta.textContent = "";
+        }
+      });
+  }
+
+  window.loadMore = function() {
+    var btn = document.getElementById("ns-more");
+    btn.disabled = true;
+    btn.textContent = "Loading...";
+    fetchNews(true);
+  };
+
+  window.clearSearch = function() {
+    document.getElementById("ns-search").value = "";
+    QUERY = "";
+    fetchNews(false);
+  };
+
+  // Search with 350ms debounce
+  document.getElementById("ns-search").addEventListener("input", function() {
+    clearTimeout(debounceTimer);
+    var val = this.value.trim();
+    debounceTimer = setTimeout(function() {
+      QUERY = val;
+      fetchNews(false);
+    }, 350);
   });
 
-  var html = "";
-  var letters = Object.keys(groups).sort();
-  letters.forEach(function(letter) {
-    html += "<div class=\"alpha-group\">";
-    html += "<div class=\"alpha-letter\">" + letter + "</div>";
-    groups[letter].forEach(function(t) {
-      html += "<div class=\"term-card\">";
-      html += "<div class=\"term-header\">";
-      html += "<span class=\"term-name\">" + hlText(t.name, searchQuery) + "</span>";
-      if (t.abbr) html += "<span class=\"term-abbr\">" + t.abbr + "</span>";
-      html += "<span class=\"term-cat cat-" + t.cat + "\">" + CAT_LABELS[t.cat] + "</span>";
-      html += "</div>";
-      html += "<div class=\"term-def\">" + hlText(t.def, searchQuery) + "</div>";
-      html += "</div>";
+  // Type filters (Articles / Blogs / Reports)
+  document.querySelectorAll(".filter-btn[data-type]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      document.querySelectorAll(".filter-btn[data-type]").forEach(function(b){ b.classList.remove("on"); });
+      btn.classList.add("on");
+      TYPE = btn.dataset.type;
+      QUERY = "";
+      document.getElementById("ns-search").value = "";
+      fetchNews(false);
     });
-    html += "</div>";
   });
-  out.innerHTML = html;
-}
 
-// Wire search input
-document.getElementById("gs-input").addEventListener("input", function() {
-  searchQuery = this.value.trim();
-  render();
-});
-
-// Wire filter buttons
-document.querySelectorAll(".filter-btn").forEach(function(btn) {
-  btn.addEventListener("click", function() {
-    document.querySelectorAll(".filter-btn").forEach(function(b){ b.classList.remove("on"); });
-    btn.classList.add("on");
-    activeFilter = btn.dataset.cat;
-    render();
-  });
-});
-
-// Initial render
-render();
-
-// Hash deep-links e.g. /glossary#TLE
-if (location.hash) {
-  var q = decodeURIComponent(location.hash.slice(1));
-  var el = document.getElementById("gs-input");
-  if (el) { el.value = q; searchQuery = q; render(); }
-}
+  // Initial load
+  fetchNews(false);
+})();
 </script>
 </body>
 </html>"""
