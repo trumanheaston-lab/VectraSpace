@@ -11733,9 +11733,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
     <input type="text" class="search-input" id="ns-search" placeholder="Search headlines, missions, agencies..." autocomplete="off" spellcheck="false">
   </div>
   <div class="filters">
-    <button class="fbtn on"   data-type="articles">Articles</button>
-    <button class="fbtn bl"   data-type="blogs">Blogs</button>
-    <button class="fbtn gr"   data-type="reports">Reports</button>
+    <button class="fbtn on"  data-type="articles">Articles</button>
+    <button class="fbtn bl"  data-type="blogs">Blogs</button>
+    <button class="fbtn gr"  data-type="reports">Reports</button>
   </div>
 </div>
 
@@ -11746,326 +11746,309 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
 
 <div class="notice" id="ns-notice">
   <div class="notice-inner">
-    <span class="notice-icon" id="ns-notice-icon">ℹ</span>
-    <span class="notice-text" id="ns-notice-text"></span>
+    <span class="notice-icon" id="ns-nicon">ℹ</span>
+    <span class="notice-text" id="ns-ntext"></span>
   </div>
 </div>
 
 <div class="grid" id="ns-grid"></div>
-<div class="load-more"><button class="lm-btn" id="ns-more" onclick="loadMore()" style="display:none">Load More →</button></div>
+<div class="load-more">
+  <button class="lm-btn" id="ns-more" style="display:none">Load More →</button>
+</div>
 
 <script>
-(function(){
+(function () {
+  /* ---- state ---- */
+  var TYPE   = "articles";
+  var OFFSET = 0;
+  var LIMIT  = 12;
+  var QUERY  = "";
+  var TOTAL  = 0;
+  var busy   = false;
+  var debTimer = null;
 
-// ── FALLBACK DATA (shown if live API unreachable) ─────────────
-var FALLBACK = [{"title": "SpaceX Starship Completes Integrated Flight Test", "url": "https://www.spacex.com/updates", "image_url": "", "news_site": "SpaceX", "summary": "SpaceX successfully completed a fully integrated Starship flight test, achieving milestones in reusability and propellant transfer technology critical for future lunar and Mars missions.", "published_at": "2024-10-14T00:00:00Z", "launches": [], "events": []}, {"title": "NASA Artemis Program Update: Lunar Gateway Progress", "url": "https://www.nasa.gov/artemis", "image_url": "", "news_site": "NASA", "summary": "NASA's Artemis program continues development of the Lunar Gateway space station, with international partners confirming module contributions for the planned crewed lunar orbit outpost.", "published_at": "2024-11-01T00:00:00Z", "launches": [], "events": []}, {"title": "ESA Reports Record Space Debris Fragmentation Event", "url": "https://www.esa.int/Space_Safety/Space_Debris", "image_url": "", "news_site": "ESA", "summary": "The European Space Agency has catalogued a new debris fragmentation event adding hundreds of trackable objects to the LEO environment, highlighting urgent need for active debris removal.", "published_at": "2024-10-20T00:00:00Z", "launches": [], "events": []}, {"title": "Iridium NEXT Constellation Celebrates 6 Years of Operations", "url": "https://www.iridium.com", "image_url": "", "news_site": "Iridium", "summary": "The Iridium NEXT satellite constellation marks six years since the completion of its deployment, continuing to provide global satellite communications and ADS-B aircraft tracking.", "published_at": "2024-09-15T00:00:00Z", "launches": [], "events": []}, {"title": "Space Force Releases Updated Satellite Catalog Guidelines", "url": "https://www.space.mil", "image_url": "", "news_site": "US Space Force", "summary": "US Space Force published updated guidelines for satellite catalog maintenance, expanding tracking capabilities for objects as small as 5cm in LEO using new radar installations.", "published_at": "2024-10-05T00:00:00Z", "launches": [], "events": []}, {"title": "China's Tiangong Station Expansion Continues with New Module", "url": "https://www.cmse.gov.cn", "image_url": "", "news_site": "CMSE", "summary": "China's Tiangong space station welcomed a new science module, expanding research capacity and crew quarters ahead of a planned increase in annual crewed missions.", "published_at": "2024-08-30T00:00:00Z", "launches": [], "events": []}];
+  /* ---- element refs ---- */
+  var grid    = document.getElementById("ns-grid");
+  var metaEl  = document.getElementById("ns-meta");
+  var srcEl   = document.getElementById("ns-src");
+  var moreBtn = document.getElementById("ns-more");
+  var noticeEl= document.getElementById("ns-notice");
+  var bar     = document.getElementById("load-bar");
+  var barSts  = document.getElementById("load-status");
+  var barInt  = null;
 
-// ── STATE ─────────────────────────────────────────────────────
-var TYPE   = "articles";
-var OFFSET = 0;
-var LIMIT  = 12;
-var QUERY  = "";
-var TOTAL  = 0;
-var busy   = false;
-var debounceTimer = null;
-var usedFallback  = false;
-
-// ── PROGRESS BAR ──────────────────────────────────────────────
-var bar    = document.getElementById("load-bar");
-var barSts = document.getElementById("load-status");
-var barTimer = null;
-
-function progressStart(msg) {
-  clearInterval(barTimer);
-  bar.style.transition = "none";
-  bar.style.width = "0%";
-  // force reflow
-  bar.offsetHeight;
-  bar.style.transition = "width 0.3s ease";
-  barSts.textContent = msg || "Connecting…";
-  barSts.classList.add("show");
-  var pct = 8;
-  barTimer = setInterval(function() {
-    // Logarithmic crawl — approaches 85% but never reaches it until done
-    pct = pct + (85 - pct) * 0.12;
-    bar.style.width = pct + "%";
-    if (pct > 30)  barSts.textContent = "Fetching articles…";
-    if (pct > 55)  barSts.textContent = "Almost there…";
-    if (pct > 78)  barSts.textContent = "Finalising…";
-  }, 300);
-}
-
-function progressDone(msg) {
-  clearInterval(barTimer);
-  bar.style.width = "100%";
-  barSts.textContent = msg || "Done";
-  setTimeout(function() {
-    bar.style.transition = "opacity 0.5s";
-    bar.style.opacity = "0";
-    barSts.classList.remove("show");
-    setTimeout(function() {
-      bar.style.width = "0%";
-      bar.style.opacity = "1";
-      bar.style.transition = "width 0.3s ease";
-    }, 600);
-  }, 500);
-}
-
-function progressFail(msg) {
-  clearInterval(barTimer);
-  bar.style.background = "var(--red)";
-  bar.style.width = "100%";
-  barSts.textContent = msg || "Failed";
-  barSts.style.color = "var(--red)";
-  setTimeout(function() {
-    bar.style.transition = "opacity 0.5s";
-    bar.style.opacity = "0";
-    barSts.classList.remove("show");
-    setTimeout(function() {
-      bar.style.width = "0%";
-      bar.style.opacity = "1";
-      bar.style.background = "linear-gradient(90deg,var(--accent),var(--accent2))";
-      barSts.style.color = "var(--accent)";
-      bar.style.transition = "width 0.3s ease";
-    }, 600);
-  }, 1200);
-}
-
-// ── HELPERS ───────────────────────────────────────────────────
-function timeAgo(iso) {
-  if (!iso) return "";
-  var diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 3600)   return Math.floor(diff / 60) + "m ago";
-  if (diff < 86400)  return Math.floor(diff / 3600) + "h ago";
-  if (diff < 604800) return Math.floor(diff / 86400) + "d ago";
-  var d = new Date(iso);
-  return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
-}
-
-function srcClass() {
-  return TYPE === "blogs" ? "blg" : TYPE === "reports" ? "rpt" : "art";
-}
-
-function showNotice(icon, html, color) {
-  var n  = document.getElementById("ns-notice");
-  var ni = document.getElementById("ns-notice-icon");
-  var nt = document.getElementById("ns-notice-text");
-  n.style.display  = "block";
-  ni.textContent   = icon;
-  nt.innerHTML     = html;
-  if (color) nt.style.color = color;
-}
-
-function hideNotice() {
-  document.getElementById("ns-notice").style.display = "none";
-}
-
-// ── CARD HTML ─────────────────────────────────────────────────
-function makeCard(art, featured) {
-  var sc  = srcClass();
-  var cls = "card" + (featured ? " feat" : "");
-  var imgCls = "card-img" + (featured ? " feat" : "");
-  var noPhCls = "card-nophoto" + (featured ? " feat" : "");
-
-  var imgHtml = art.image_url
-    ? '<img class="' + imgCls + '" src="' + art.image_url + '" alt="" loading="lazy"'
-      + ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
-      + '<div class="' + noPhCls + '" style="display:none">🛰</div>'
-    : '<div class="' + noPhCls + '">🛰</div>';
-
-  var tags = "";
-  if (art.launches && art.launches.length) tags += '<span class="card-tag">🚀 launch</span>';
-  if (art.events   && art.events.length)   tags += '<span class="card-tag">📡 event</span>';
-
-  var safeUrl = (art.url || "#").replace(/"/g, "%22");
-  var safeTitle = (art.title || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-  return '<div class="' + cls + '" onclick="window.open(\'' + safeUrl.replace(/'/g,"%27") + '\',\'_blank\')">'
-    + imgHtml
-    + '<div class="card-body">'
-    + '<div class="card-meta">'
-    + '<span class="card-src ' + sc + '">' + (art.news_site || "") + '</span>'
-    + '<span class="card-age">' + timeAgo(art.published_at) + '</span>'
-    + '</div>'
-    + '<div class="card-title">' + safeTitle + '</div>'
-    + '<div class="card-summary">' + ((art.summary || "").replace(/</g,"&lt;").replace(/>/g,"&gt;")) + '</div>'
-    + '</div>'
-    + '<div class="card-foot">'
-    + '<a class="card-link" href="' + safeUrl + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">'
-    + 'Read full article'
-    + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>'
-    + '</a>'
-    + '<div class="card-tags">' + tags + '</div>'
-    + '</div>'
-    + '</div>';
-}
-
-function makeSkeleton(n) {
-  var h = "";
-  for (var k = 0; k < n; k++) {
-    h += '<div class="skel">'
-       + '<div class="skel-img"></div>'
-       + '<div class="skel-body">'
-       + '<div class="skel-line" style="width:55%"></div>'
-       + '<div class="skel-line" style="width:88%"></div>'
-       + '<div class="skel-line" style="width:72%"></div>'
-       + '</div></div>';
+  /* ---- progress bar ---- */
+  function pbStart(msg) {
+    clearInterval(barInt);
+    bar.style.transition = "none";
+    bar.style.width = "0%";
+    bar.style.background = "linear-gradient(90deg,var(--accent),var(--accent2))";
+    bar.style.opacity = "1";
+    void bar.offsetWidth;
+    bar.style.transition = "width 0.35s ease";
+    barSts.textContent = msg || "Connecting…";
+    barSts.classList.add("show");
+    var pct = 6;
+    barInt = setInterval(function () {
+      pct += (85 - pct) * 0.1;
+      bar.style.width = pct + "%";
+      if (pct > 25) barSts.textContent = "Fetching articles…";
+      if (pct > 55) barSts.textContent = "Almost there…";
+      if (pct > 78) barSts.textContent = "Finalising…";
+    }, 280);
   }
-  return h;
-}
 
-// ── RENDER RESULTS ────────────────────────────────────────────
-function renderResults(results, append) {
-  var grid = document.getElementById("ns-grid");
-  var more = document.getElementById("ns-more");
-  var meta = document.getElementById("ns-meta");
-  var src  = document.getElementById("ns-src");
+  function pbDone(msg) {
+    clearInterval(barInt);
+    bar.style.width = "100%";
+    barSts.textContent = msg || "Done";
+    setTimeout(function () {
+      bar.style.transition = "opacity 0.5s";
+      bar.style.opacity = "0";
+      barSts.classList.remove("show");
+      setTimeout(function () {
+        bar.style.width = "0%";
+        bar.style.opacity = "1";
+        bar.style.transition = "width 0.35s ease";
+      }, 550);
+    }, 500);
+  }
 
-  if (!append) grid.innerHTML = "";
+  function pbFail(msg) {
+    clearInterval(barInt);
+    bar.style.background = "var(--red)";
+    bar.style.width = "100%";
+    barSts.textContent = msg || "Failed";
+    barSts.style.color = "var(--red)";
+    setTimeout(function () {
+      bar.style.transition = "opacity 0.5s";
+      bar.style.opacity = "0";
+      barSts.classList.remove("show");
+      setTimeout(function () {
+        bar.style.width = "0%";
+        bar.style.opacity = "1";
+        bar.style.background = "linear-gradient(90deg,var(--accent),var(--accent2))";
+        barSts.style.color = "var(--accent)";
+        bar.style.transition = "width 0.35s ease";
+      }, 550);
+    }, 1200);
+  }
 
-  results.forEach(function(art, idx) {
-    var featured = (!append && idx === 0 && !QUERY);
-    grid.innerHTML += makeCard(art, featured);
+  /* ---- notice ---- */
+  function showNotice(icon, text) {
+    document.getElementById("ns-nicon").textContent = icon;
+    document.getElementById("ns-ntext").innerHTML   = text;
+    noticeEl.style.display = "block";
+  }
+  function hideNotice() { noticeEl.style.display = "none"; }
+
+  /* ---- helpers ---- */
+  function timeAgo(iso) {
+    if (!iso) return "";
+    var diff = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (diff < 3600)   return Math.floor(diff / 60)   + "m ago";
+    if (diff < 86400)  return Math.floor(diff / 3600)  + "h ago";
+    if (diff < 604800) return Math.floor(diff / 86400) + "d ago";
+    var d = new Date(iso);
+    return d.toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
+  }
+
+  function esc(str) {
+    return (str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /* ---- card builder (NO inline onclick — uses data-url + delegation) ---- */
+  function makeCard(art, featured) {
+    var cls    = featured ? "card feat" : "card";
+    var sc     = TYPE === "blogs" ? "blg" : TYPE === "reports" ? "rpt" : "art";
+    var imgCls = featured ? "card-img feat" : "card-img";
+    var noCls  = featured ? "card-nophoto feat" : "card-nophoto";
+
+    var imgHtml;
+    if (art.image_url) {
+      imgHtml = "<img class=\"" + imgCls + "\" src=\"" + esc(art.image_url) + "\" alt=\"\" loading=\"lazy\">"
+              + "<div class=\"" + noCls + "\" style=\"display:none\">&#128752;</div>";
+    } else {
+      imgHtml = "<div class=\"" + noCls + "\">&#128752;</div>";
+    }
+
+    var tags = "";
+    if (art.launches && art.launches.length) tags += "<span class=\"card-tag\">&#128640; launch</span>";
+    if (art.events   && art.events.length)   tags += "<span class=\"card-tag\">&#128225; event</span>";
+
+    return "<div class=\"" + cls + "\" data-url=\"" + esc(art.url) + "\">"
+         + imgHtml
+         + "<div class=\"card-body\">"
+         + "<div class=\"card-meta\">"
+         + "<span class=\"card-src " + sc + "\">" + esc(art.news_site) + "</span>"
+         + "<span class=\"card-age\">" + timeAgo(art.published_at) + "</span>"
+         + "</div>"
+         + "<div class=\"card-title\">" + esc(art.title) + "</div>"
+         + "<div class=\"card-summary\">" + esc(art.summary) + "</div>"
+         + "</div>"
+         + "<div class=\"card-foot\">"
+         + "<a class=\"card-link\" href=\"" + esc(art.url) + "\" target=\"_blank\" rel=\"noopener\">"
+         + "Read full article"
+         + "<svg width=\"11\" height=\"11\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M12 5l7 7-7 7\"/></svg>"
+         + "</a>"
+         + "<div class=\"card-tags\">" + tags + "</div>"
+         + "</div>"
+         + "</div>";
+  }
+
+  /* ---- click delegation so cards open URL ---- */
+  grid.addEventListener("click", function (e) {
+    var card = e.target.closest(".card");
+    if (!card) return;
+    if (e.target.closest("a")) return;
+    var url = card.getAttribute("data-url");
+    if (url) window.open(url, "_blank", "noopener");
   });
 
-  OFFSET += results.length;
-
-  var label = TYPE === "blogs" ? "blog posts" : TYPE === "reports" ? "reports" : "articles";
-  meta.textContent = OFFSET + (TOTAL > OFFSET ? " of " + TOTAL : "") + " " + label;
-
-  if (TOTAL > OFFSET) {
-    more.style.display  = "block";
-    more.disabled       = false;
-    more.textContent    = "Load More →";
-  } else {
-    more.style.display  = "none";
-  }
-}
-
-// ── SHOW FALLBACK ─────────────────────────────────────────────
-function showFallback(reason) {
-  usedFallback = true;
-  TOTAL = FALLBACK.length;
-  renderResults(FALLBACK, false);
-  showNotice(
-    "📡",
-    "<strong>Showing cached articles.</strong> " + reason + " "
-    + "Live news will appear once the connection is restored. "
-    + '<a href="#" onclick="retryLive();return false">Retry live feed →</a>'
-  );
-  document.getElementById("ns-src").textContent = "Cached · " + FALLBACK.length + " articles";
-  progressFail("Using cached articles");
-}
-
-// ── FETCH ─────────────────────────────────────────────────────
-function fetchNews(append) {
-  if (busy) return;
-  busy = true;
-  hideNotice();
-
-  var grid = document.getElementById("ns-grid");
-  var more = document.getElementById("ns-more");
-
-  if (!append) {
-    OFFSET = 0;
-    TOTAL  = 0;
-    grid.innerHTML = makeSkeleton(6);
-    more.style.display = "none";
-    progressStart("Connecting to Spaceflight News API…");
-  } else {
-    more.disabled   = true;
-    more.textContent = "Loading…";
-    progressStart("Loading more…");
+  /* ---- skeleton ---- */
+  function makeSkel(n) {
+    var h = "";
+    for (var k = 0; k < n; k++) {
+      h += "<div class=\"skel\"><div class=\"skel-img\"></div>"
+         + "<div class=\"skel-body\">"
+         + "<div class=\"skel-line\" style=\"width:55%\"></div>"
+         + "<div class=\"skel-line\" style=\"width:88%\"></div>"
+         + "<div class=\"skel-line\" style=\"width:70%\"></div>"
+         + "</div></div>";
+    }
+    return h;
   }
 
-  // AbortController for timeout
-  var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
-  var timer = ac ? setTimeout(function() { ac.abort(); }, 9000) : null;
-
-  var url = "https://api.spaceflightnewsapi.net/v4/" + TYPE
-          + "/?limit=" + LIMIT + "&offset=" + OFFSET;
-  if (QUERY) url += "&search=" + encodeURIComponent(QUERY);
-
-  var opts = ac ? { signal: ac.signal } : {};
-
-  fetch(url, opts)
-    .then(function(resp) {
-      clearTimeout(timer);
-      if (!resp.ok) throw new Error("HTTP " + resp.status);
-      progressStart("Parsing response…");
-      return resp.json();
-    })
-    .then(function(data) {
-      busy = false;
-      var results = Array.isArray(data.results) ? data.results : [];
-      TOTAL = typeof data.count === "number" ? data.count : results.length;
-
-      if (results.length === 0 && !append) {
-        renderResults([], false);
-        document.getElementById("ns-grid").innerHTML =
-          '<div style="grid-column:1/-1;text-align:center;padding:60px 0;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);">'
-          + (QUERY ? 'No results for "' + QUERY + '"' : "No articles available.")
-          + '</div>';
-        document.getElementById("ns-meta").textContent = "0 results";
-        document.getElementById("ns-more").style.display = "none";
-        progressDone("No results");
-      } else {
-        renderResults(results, append);
-        document.getElementById("ns-src").textContent = "Spaceflight News API · live";
-        progressDone("Loaded " + results.length + " articles");
-      }
-    })
-    .catch(function(err) {
-      clearTimeout(timer);
-      busy = false;
-      if (!append) {
-        var reason = (err && err.name === "AbortError")
-          ? "Request timed out after 9 seconds."
-          : "Could not reach Spaceflight News API.";
-        showFallback(reason);
-      } else {
-        progressFail("Load failed");
-        document.getElementById("ns-more").disabled  = false;
-        document.getElementById("ns-more").textContent = "Retry →";
-        showNotice("⚠", "Failed to load more articles. <a href='#' onclick='loadMore();return false'>Retry</a>", "var(--amber)");
-      }
+  /* ---- render ---- */
+  function renderResults(results, append) {
+    if (!append) grid.innerHTML = "";
+    results.forEach(function (art, idx) {
+      grid.innerHTML += makeCard(art, !append && idx === 0 && !QUERY);
     });
-}
+    OFFSET += results.length;
+    var label = TYPE === "blogs" ? "blog posts" : TYPE === "reports" ? "reports" : "articles";
+    metaEl.textContent = OFFSET + (TOTAL > OFFSET ? " of " + TOTAL : "") + " " + label;
+    if (TOTAL > OFFSET) {
+      moreBtn.style.display = "block";
+      moreBtn.disabled = false;
+      moreBtn.textContent = "Load More →";
+    } else {
+      moreBtn.style.display = "none";
+    }
+  }
 
-// ── PUBLIC FUNCTIONS ──────────────────────────────────────────
-window.loadMore = function() { fetchNews(true); };
+  /* ---- fallback ---- */
+  var FALLBACK = [{"title": "SpaceX Starship Completes Integrated Flight Test", "url": "https://www.spacex.com/updates", "image_url": "", "news_site": "SpaceX", "summary": "SpaceX successfully completed a fully integrated Starship flight test, achieving milestones in reusability and propellant transfer technology critical for future lunar and Mars missions.", "published_at": "2024-10-14T00:00:00Z", "launches": [], "events": []}, {"title": "NASA Artemis Program: Lunar Gateway Progress", "url": "https://www.nasa.gov/artemis", "image_url": "", "news_site": "NASA", "summary": "NASA's Artemis program continues development of the Lunar Gateway space station, with international partners confirming module contributions for the planned crewed lunar orbit outpost.", "published_at": "2024-11-01T00:00:00Z", "launches": [], "events": []}, {"title": "ESA Reports Record Space Debris Fragmentation Event", "url": "https://www.esa.int/Space_Safety/Space_Debris", "image_url": "", "news_site": "ESA", "summary": "The European Space Agency has catalogued a new debris fragmentation event adding hundreds of trackable objects to the LEO environment, highlighting urgent need for active debris removal.", "published_at": "2024-10-20T00:00:00Z", "launches": [], "events": []}, {"title": "Iridium NEXT Constellation Celebrates 6 Years of Operations", "url": "https://www.iridium.com", "image_url": "", "news_site": "Iridium", "summary": "The Iridium NEXT satellite constellation marks six years since the completion of its deployment, continuing to provide global satellite communications and ADS-B aircraft tracking.", "published_at": "2024-09-15T00:00:00Z", "launches": [], "events": []}, {"title": "Space Force Releases Updated Satellite Catalog Guidelines", "url": "https://www.space.mil", "image_url": "", "news_site": "US Space Force", "summary": "US Space Force published updated guidelines for satellite catalog maintenance, expanding tracking capabilities for objects as small as 5cm in LEO using new radar installations.", "published_at": "2024-10-05T00:00:00Z", "launches": [], "events": []}, {"title": "China Tiangong Station Expansion Continues with New Module", "url": "https://www.cmse.gov.cn", "image_url": "", "news_site": "CMSE", "summary": "China's Tiangong space station welcomed a new science module, expanding research capacity and crew quarters ahead of a planned increase in annual crewed missions.", "published_at": "2024-08-30T00:00:00Z", "launches": [], "events": []}];
+  function showFallback(reason) {
+    TOTAL = FALLBACK.length;
+    renderResults(FALLBACK, false);
+    srcEl.textContent = "Cached · " + FALLBACK.length + " articles";
+    showNotice("&#128225;",
+      "<strong>Showing cached articles.</strong> " + reason
+      + " Live news loads when the connection is available. "
+      + "<a href=\"#\" id=\"retry-live\">Retry live feed →</a>"
+    );
+    document.getElementById("retry-live").addEventListener("click", function (e) {
+      e.preventDefault(); fetchNews(false);
+    });
+    pbFail("Using cached articles");
+  }
 
-window.retryLive = function() {
-  usedFallback = false;
-  fetchNews(false);
-};
+  /* ---- fetch ---- */
+  function fetchNews(append) {
+    if (busy) return;
+    busy = true;
+    hideNotice();
 
-// ── SEARCH (350ms debounce) ───────────────────────────────────
-document.getElementById("ns-search").addEventListener("input", function() {
-  clearTimeout(debounceTimer);
-  var val = this.value.trim();
-  debounceTimer = setTimeout(function() {
-    QUERY = val;
-    fetchNews(false);
-  }, 350);
-});
+    if (!append) {
+      OFFSET = 0; TOTAL = 0;
+      grid.innerHTML = makeSkel(6);
+      moreBtn.style.display = "none";
+      pbStart("Connecting to Spaceflight News API…");
+    } else {
+      moreBtn.disabled = true;
+      moreBtn.textContent = "Loading…";
+      pbStart("Loading more…");
+    }
 
-// ── TYPE FILTER BUTTONS ───────────────────────────────────────
-document.querySelectorAll(".fbtn[data-type]").forEach(function(btn) {
-  btn.addEventListener("click", function() {
-    document.querySelectorAll(".fbtn[data-type]").forEach(function(b) { b.classList.remove("on"); });
-    btn.classList.add("on");
-    TYPE  = btn.dataset.type;
-    QUERY = "";
-    document.getElementById("ns-search").value = "";
-    fetchNews(false);
+    var ac    = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var timer = ac ? setTimeout(function () { ac.abort(); }, 9000) : null;
+    var url   = "https://api.spaceflightnewsapi.net/v4/" + TYPE
+              + "/?limit=" + LIMIT + "&offset=" + OFFSET;
+    if (QUERY) url += "&search=" + encodeURIComponent(QUERY);
+    var opts  = ac ? { signal: ac.signal } : {};
+
+    fetch(url, opts)
+      .then(function (resp) {
+        clearTimeout(timer);
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        return resp.json();
+      })
+      .then(function (data) {
+        busy = false;
+        var results = Array.isArray(data.results) ? data.results : [];
+        TOTAL = (typeof data.count === "number") ? data.count : results.length;
+        if (results.length === 0 && !append) {
+          grid.innerHTML = "<div style=\"grid-column:1/-1;text-align:center;padding:60px 0;"
+            + "font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);\">"
+            + (QUERY ? "No results for \u201c" + esc(QUERY) + "\u201d" : "No articles available.")
+            + "</div>";
+          metaEl.textContent = "0 results";
+          moreBtn.style.display = "none";
+          pbDone("No results");
+        } else {
+          renderResults(results, append);
+          srcEl.textContent = "Spaceflight News API · live";
+          pbDone("Loaded " + results.length + " articles");
+        }
+      })
+      .catch(function (err) {
+        clearTimeout(timer);
+        busy = false;
+        if (!append) {
+          var reason = (err && err.name === "AbortError")
+            ? "Request timed out after 9 s."
+            : "Could not reach Spaceflight News API.";
+          showFallback(reason);
+        } else {
+          pbFail("Load failed");
+          moreBtn.disabled = false;
+          moreBtn.textContent = "Retry →";
+          showNotice("⚠", "Failed to load more. <a href=\"#\" onclick=\"fetchNews(true);return false\">Retry</a>");
+        }
+      });
+  }
+
+  /* ---- search ---- */
+  document.getElementById("ns-search").addEventListener("input", function () {
+    clearTimeout(debTimer);
+    var v = this.value.trim();
+    debTimer = setTimeout(function () { QUERY = v; fetchNews(false); }, 350);
   });
-});
 
-// ── INIT ─────────────────────────────────────────────────────
-fetchNews(false);
+  /* ---- type filter ---- */
+  document.querySelectorAll(".fbtn[data-type]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".fbtn[data-type]").forEach(function (b) { b.classList.remove("on"); });
+      btn.classList.add("on");
+      TYPE  = btn.dataset.type;
+      QUERY = "";
+      document.getElementById("ns-search").value = "";
+      fetchNews(false);
+    });
+  });
 
-})();
+  /* ---- load more ---- */
+  moreBtn.addEventListener("click", function () { fetchNews(true); });
+
+  /* ---- kick off ---- */
+  fetchNews(false);
+
+}());
 </script>
 </body>
 </html>"""
