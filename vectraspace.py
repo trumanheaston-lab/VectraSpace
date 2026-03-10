@@ -9382,53 +9382,93 @@ footer {
 </section>
 
 <section id="contact" style="padding:100px 0; position:relative; z-index:1;">
-  <div class="container" style="max-width:860px; margin:0 auto; padding:0 48px;">
-    <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
-      <!-- top accent line -->
-      <div style="height:2px; background:linear-gradient(90deg, var(--accent) 0%, var(--green) 50%, transparent 100%);"></div>
-      <div style="padding:64px 72px;">
-        <!-- eyebrow -->
-        <div style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:20px;">About the Creator</div>
+  <div class="container" style="max-width:1080px; margin:0 auto; padding:0 48px;">
 
-        <!-- avatar + bio row -->
-        <div class="contact-bio-row" style="display:flex; gap:40px; align-items:flex-start; margin-bottom:52px; flex-wrap:wrap;">
-          <!-- avatar placeholder -->
-          <div style="flex-shrink:0; width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg, var(--accent) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:32px; color:#fff; letter-spacing:-1px; box-shadow:0 0 0 3px var(--border), 0 0 32px rgba(74,158,255,0.2);">T</div>
+    <!-- section eyebrow -->
+    <div style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:10px;">
+      <span style="display:inline-block; width:14px; height:1px; background:var(--green);"></span>The Team
+    </div>
+    <div style="font-family:var(--serif); font-size:clamp(28px,3.5vw,44px); color:#fff; font-weight:400; line-height:1.15; letter-spacing:-0.4px; margin-bottom:52px;">
+      The people behind<br><em style="font-style:italic; color:var(--accent2);">VectraSpace</em>
+    </div>
 
-          <div style="flex:1; min-width:220px;">
-            <div style="font-family:var(--serif); font-size:26px; color:#fff; font-weight:400; margin-bottom:6px; letter-spacing:-0.3px;">Truman Heaston</div>
-            <div style="font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:16px;">Builder · Student · Orbital Mechanics Nerd</div>
-            <p style="font-size:15px; color:var(--muted); line-height:1.8; margin:0;">
-              Passionate about space, orbital mechanics, and the belief that great education can change the world. VectraSpace started as a personal obsession — I wanted to understand the real math behind satellite conjunction events, so I built the platform I wished existed. The goal is to make high-stakes technical knowledge genuinely engaging, not just accessible.
-            </p>
+    <!-- two-card grid -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:60px;">
+
+      <!-- ── Truman card ── -->
+      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
+        <div style="height:2px; background:linear-gradient(90deg, var(--accent) 0%, var(--green) 60%, transparent 100%);"></div>
+        <div style="padding:40px 44px;">
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:24px;">Founder &amp; Builder</div>
+          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
+            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--accent) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(74,158,255,0.2);">T</div>
+            <div>
+              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Truman Heaston</div>
+              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--accent); text-transform:uppercase;">Builder · Student · Orbital Mechanics Nerd</div>
+            </div>
           </div>
+          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
+            Passionate about space, orbital mechanics, and the belief that great education can change the world. VectraSpace started as a personal obsession — I wanted to understand the real math behind satellite conjunction events, so I built the platform I wished existed.
+          </p>
+          <a href="mailto:trumanheaston@gmail.com"
+             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
+                    background:var(--accent); color:#fff; border-radius:6px;
+                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
+                    text-decoration:none; transition:all 0.2s; font-weight:500;
+                    box-shadow:0 4px 20px rgba(74,158,255,0.25);"
+             onmouseover="this.style.background='#6ab4ff'; this.style.transform='translateY(-2px)';"
+             onmouseout="this.style.background='var(--accent)'; this.style.transform='';">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            trumanheaston@gmail.com
+          </a>
+          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(74,158,255,0.05) 0%, transparent 70%); pointer-events:none;"></div>
         </div>
+      </div>
 
-        <!-- divider -->
-        <div style="height:1px; background:var(--border); margin-bottom:52px;"></div>
+      <!-- ── Will card ── -->
+      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
+        <div style="height:2px; background:linear-gradient(90deg, var(--amber) 0%, var(--green) 60%, transparent 100%);"></div>
+        <div style="padding:40px 44px;">
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--amber); text-transform:uppercase; margin-bottom:24px;">Marketing &amp; Outreach</div>
+          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
+            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--amber) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(245,158,11,0.2);">W</div>
+            <div>
+              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Will Lovelace</div>
+              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--amber); text-transform:uppercase;">Marketing · Outreach · Growth</div>
+            </div>
+          </div>
+          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
+            Leading marketing and outreach for VectraSpace — connecting the platform with researchers, educators, and operators across the space industry. If you're interested in partnerships, press, or collaboration opportunities, Will is your contact.
+          </p>
+          <a href="mailto:Will.s.lovelace@gmail.com"
+             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
+                    background:var(--amber); color:#000; border-radius:6px;
+                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
+                    text-decoration:none; transition:all 0.2s; font-weight:500;
+                    box-shadow:0 4px 20px rgba(245,158,11,0.25);"
+             onmouseover="this.style.background='#fbbf24'; this.style.transform='translateY(-2px)';"
+             onmouseout="this.style.background='var(--amber)'; this.style.transform='';">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            Will.s.lovelace@gmail.com
+          </a>
+          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(245,158,11,0.05) 0%, transparent 70%); pointer-events:none;"></div>
+        </div>
+      </div>
 
-        <!-- contact heading -->
-        <div style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:20px;">Get in Touch</div>
-        <div style="font-family:var(--serif); font-size:clamp(22px,3vw,34px); color:#fff; font-weight:400; line-height:1.25; margin-bottom:16px; letter-spacing:-0.3px;">Have feedback, questions,<br>or want to collaborate?</div>
-        <p style="font-size:15px; color:var(--muted); line-height:1.8; max-width:520px; margin-bottom:36px;">Whether you're a researcher, operator, educator, or fellow student — I'd genuinely love to hear from you. Technical critique, curriculum suggestions, partnership ideas — all of it is welcome.</p>
+    </div>
 
-        <!-- email button -->
-        <a href="mailto:trumanheaston@gmail.com"
-           style="display:inline-flex; align-items:center; gap:10px; padding:14px 28px;
-                  background:var(--accent); color:#fff; border-radius:6px;
-                  font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase;
-                  text-decoration:none; transition:all 0.2s; font-weight:500;
-                  box-shadow:0 4px 24px rgba(74,158,255,0.25);"
-           onmouseover="this.style.background='#6ab4ff'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 32px rgba(74,158,255,0.4)';"
-           onmouseout="this.style.background='var(--accent)'; this.style.transform=''; this.style.boxShadow='0 4px 24px rgba(74,158,255,0.25)';">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-          trumanheaston@gmail.com
-        </a>
-
-        <!-- background glow -->
-        <div style="position:absolute; bottom:-80px; right:-80px; width:360px; height:360px; background:radial-gradient(ellipse, rgba(74,158,255,0.05) 0%, transparent 70%); pointer-events:none;"></div>
+    <!-- get in touch strip -->
+    <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
+      <div style="height:2px; background:linear-gradient(90deg, var(--green) 0%, var(--accent) 50%, transparent 100%);"></div>
+      <div style="padding:48px 56px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:32px;">
+        <div>
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:14px;">Get in Touch</div>
+          <div style="font-family:var(--serif); font-size:clamp(20px,2.5vw,30px); color:#fff; font-weight:400; line-height:1.25; letter-spacing:-0.3px;">Have feedback, questions,<br>or want to collaborate?</div>
+        </div>
+        <p style="font-size:14px; color:var(--muted); line-height:1.8; max-width:380px;">Whether you're a researcher, operator, educator, or fellow student — we'd genuinely love to hear from you. Technical critique, curriculum suggestions, partnership ideas — all of it is welcome.</p>
       </div>
     </div>
+
   </div>
 </section>
 
