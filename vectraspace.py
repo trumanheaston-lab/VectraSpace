@@ -11737,7 +11737,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
 
 <script>
 (function() {
-  var BASE    = "https://api.spaceflightnewsapi.net/v4/";
+  var BASE    = "/api/news?content_type=";
   var TYPE    = "articles";
   var OFFSET  = 0;
   var LIMIT   = 12;
@@ -11822,7 +11822,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
       msg.style.display  = "none";
     }
 
-    var url = BASE + TYPE + "/?limit=" + LIMIT + "&offset=" + OFFSET;
+    var url = BASE + TYPE + "&limit=" + LIMIT + "&offset=" + OFFSET;
     if (QUERY) url += "&search=" + encodeURIComponent(QUERY);
 
     fetch(url)
@@ -12892,8 +12892,26 @@ def build_api(cfg: Config):
 
     @app.get("/glossary", response_class=HTMLResponse)
     def glossary_page():
-        """Searchable glossary of space safety terms — no auth required."""
+        """Space news feed — no auth required."""
         return HTMLResponse(content=GLOSSARY_HTML)
+
+    @app.get("/api/news")
+    async def news_api(content_type: str = "articles", limit: int = 12, offset: int = 0, search: str = ""):
+        """Proxy to Spaceflight News API — avoids browser CORS/network issues."""
+        import urllib.request as _ur, json as _j, urllib.parse as _up
+        try:
+            valid_types = {"articles", "blogs", "reports"}
+            ct = content_type if content_type in valid_types else "articles"
+            params = "?limit=" + str(min(limit, 40)) + "&offset=" + str(offset)
+            if search:
+                params += "&search=" + _up.quote(search[:200])
+            url = "https://api.spaceflightnewsapi.net/v4/" + ct + "/" + params
+            req = _ur.Request(url, headers={"User-Agent": "VectraSpace/1.0"})
+            with _ur.urlopen(req, timeout=10) as resp:
+                data = _j.loads(resp.read().decode())
+            return JSONResponse(data)
+        except Exception as e:
+            return JSONResponse({"error": str(e), "count": 0, "results": []}, status_code=502)
 
     @app.get("/scenarios", response_class=HTMLResponse)
     def scenarios_page():
