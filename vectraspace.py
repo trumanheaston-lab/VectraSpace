@@ -8078,142 +8078,121 @@ section { position: relative; z-index: 1; }
   .satod-footer, .satod-operator { padding-left: 20px; padding-right: 20px; }
 }
 
-/* ── CTA ── */
-#cta { padding: 120px 0; }
-.cta-box {
-  max-width: 820px; margin: 0 auto;
-  background: var(--panel); border: 1px solid var(--border);
-  border-radius: 12px; padding: 80px 64px; text-align: center;
-  position: relative; overflow: hidden;
-}
-.cta-box::before {
-  content: ''; position: absolute;
-  top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
-}
-.cta-glow {
-  position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%);
-  width: 500px; height: 300px;
-  background: radial-gradient(ellipse, rgba(74,158,255,0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
-.cta-eyebrow {
-  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
-  color: var(--green); text-transform: uppercase; margin-bottom: 20px;
-}
-.cta-title {
-  font-family: var(--serif); font-size: clamp(32px, 4vw, 50px);
-  color: #fff; font-weight: 400; line-height: 1.2; margin-bottom: 16px;
-  letter-spacing: -0.5px;
-}
-.cta-title em { font-style: italic; color: var(--accent2); }
-.cta-body {
-  font-size: 16px; font-weight: 300; color: var(--muted);
-  line-height: 1.8; margin-bottom: 44px; max-width: 520px; margin-left: auto; margin-right: auto;
-}
-.cta-buttons {
-  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
-  position: relative; z-index: 1;
-}
-
-/* ── FOOTER ── */
-footer {
-  position: relative; z-index: 1;
-  border-top: 1px solid var(--border);
-  padding: 36px 48px 28px;
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
-}
-.footer-top {
-  width: 100%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
-}
-.footer-brand { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--text); }
-.footer-brand em { color: var(--accent); font-style: normal; }
-.footer-links {
-  display: flex; gap: 24px; list-style: none; flex-wrap: wrap; justify-content: center;
-}
-.footer-links a {
-  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
-  color: var(--muted); text-decoration: none;
-  text-transform: uppercase; transition: color 0.2s;
-}
-.footer-links a:hover { color: var(--text); }
-.footer-contact {
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;
-  color: var(--muted);
-}
-.footer-contact a { color: var(--accent); text-decoration: none; }
-.footer-copy {
-  font-family: var(--mono); font-size: 9px; color: var(--faint);
-  letter-spacing: 1px; border-top: 1px solid var(--border);
-  width: 100%; padding-top: 16px; text-align: center;
-}
-
-/* ── DIVIDER ── */
-.section-divider {
-  height: 1px; margin: 0;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
-  position: relative; z-index: 1;
-}
-
-/* ── RESPONSIVE ── */
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE — TABLET  (≤960px)
+   ═══════════════════════════════════════════════════ */
 @media (max-width: 960px) {
-  nav { padding: 0 24px; }
+  nav { padding: 0 20px; }
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
   .nav-cta { display: none; }
-  .section-wrap { padding: 0 24px; }
-  .mission-grid, .kessler-inner { grid-template-columns: 1fr; gap: 48px; }
-  .ssa-pillars { grid-template-columns: 1fr; }
+  .section-wrap { padding: 0 20px; }
+  .mission-grid, .kessler-inner { grid-template-columns: 1fr; gap: 40px; }
+  .ssa-pillars { grid-template-columns: 1fr 1fr; }
   .sim-grid { grid-template-columns: 1fr 1fr; }
   .chapters-grid { grid-template-columns: 1fr; }
   .data-metrics { grid-template-columns: repeat(2, 1fr); }
-  .mission-visual { height: 280px; }
+  .mission-visual { height: 260px; }
   footer { flex-direction: column; gap: 20px; text-align: center; }
   .kessler-data { position: static; }
-  /* Contact section tablet */
-  #contact .container { padding: 0 24px !important; }
-  #contact .reveal > div { padding: 48px 40px !important; }
+  #contact .container { padding: 0 20px !important; }
+  #contact .reveal > div { padding: 40px 32px !important; }
+  /* Why cards — 2 col on tablet */
+  #why .why-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  /* Howto strip — stack on tablet */
+  #howto .howto-inner { flex-direction: column !important; gap: 0 !important; }
+  #howto .howto-step { border-right: none !important; border-bottom: 1px solid var(--border) !important; padding: 20px 0 !important; }
+  #howto .howto-step:last-child { border-bottom: none !important; }
 }
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE — MOBILE  (≤600px)
+   ═══════════════════════════════════════════════════ */
 @media (max-width: 600px) {
+  /* ── Nav ── */
+  nav { padding: 0 16px; height: 54px; }
+
+  /* ── Hero ── */
+  #hero { padding: 88px 16px 60px; min-height: auto; }
+  .hero-orbit-system { display: none; }
+  .hero-title { font-size: clamp(38px, 11vw, 56px); letter-spacing: -1px; }
+  .hero-title-line2 { font-size: clamp(22px, 7vw, 32px); }
+  .hero-desc { font-size: 15px; margin: 20px auto 32px; }
+  /* Social proof strip — 2x2 grid on mobile */
+  .hero-proof { flex-wrap: wrap !important; gap: 16px !important; }
+  .hero-proof-divider { display: none !important; }
+  .hero-proof-item { min-width: calc(50% - 8px) !important; }
+  .hero-actions { flex-direction: column; gap: 10px; width: 100%; }
+  .btn-primary-hero, .btn-secondary-hero { width: 100%; text-align: center; }
+  .hero-scroll { display: none; }
+
+  /* ── Ticker ── */
+  #tle-ticker { display: none; }
+  .ticker-bar { margin-top: 16px; }
+
+  /* ── Section wrap ── */
+  .section-wrap { padding: 0 16px; }
+
+  /* ── Why cards — single column ── */
+  #why { padding: 60px 0 40px !important; }
+  #why .why-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+
+  /* ── Howto strip ── */
+  #howto { padding: 12px 0 60px !important; }
+  #howto .howto-inner {
+    flex-direction: column !important;
+    padding: 28px 20px !important;
+    gap: 0 !important;
+  }
+  #howto .howto-step {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 20px 0 !important;
+  }
+  #howto .howto-step:last-child { border-bottom: none !important; padding-bottom: 0 !important; }
+
+  /* ── Chapters ── */
+  .chapters-grid { grid-template-columns: 1fr; gap: 14px; }
+  .chapter-card-body { padding: 20px 16px; }
+  .chapter-footer { padding: 12px 16px; }
+  .chapter-topics { gap: 5px; }
+  .topic-pill { font-size: 8px; padding: 3px 8px; }
+
+  /* ── Simulation grid ── */
   .sim-grid { grid-template-columns: 1fr; }
-  .data-metrics { grid-template-columns: 1fr 1fr; }
-  .cta-box { padding: 48px 24px; }
-  #hero { padding: 100px 16px 60px; }
-  .hero-title { letter-spacing: -1px; }
   .tools-strip { flex-direction: column; }
   .tool-card { min-width: 0; }
-  #tle-ticker { display: none; } /* too cramped on small phones */
-  /* Contact section mobile */
+
+  /* ── Data metrics ── */
+  .data-metrics { grid-template-columns: 1fr 1fr; }
+
+  /* ── CTA ── */
+  .cta-box { padding: 40px 20px; }
+  .cta-title { font-size: clamp(22px, 6vw, 34px); }
+
+  /* ── SSA pillars ── */
+  .ssa-pillars { grid-template-columns: 1fr; }
+
+  /* ── Contact ── */
   #contact { padding: 60px 0 !important; }
   #contact .container { padding: 0 16px !important; }
-  #contact .reveal > div { padding: 36px 24px !important; }
-  .contact-bio-row {
-    flex-direction: column !important;
-    gap: 24px !important;
-    align-items: center !important;
-    text-align: center !important;
-  }
-  #contact .reveal [style*="font-size:26px"] { font-size: 20px !important; }
-  #contact .reveal [style*="font-size:clamp(22px"] { font-size: 20px !important; }
+  #contact .reveal > div { padding: 28px 16px !important; }
+  .contact-bio-row { flex-direction: column !important; gap: 20px !important; align-items: center !important; text-align: center !important; }
+  #contact .reveal [style*="font-size:26px"] { font-size: 18px !important; }
+  #contact .reveal [style*="font-size:clamp(22px"] { font-size: 18px !important; }
   #contact .reveal [style*="max-width:520px"] { max-width: 100% !important; }
-  #contact a[href^="mailto"] {
-    width: 100%;
-    justify-content: center !important;
-    font-size: 10px !important;
-    padding: 14px 16px !important;
-    box-sizing: border-box;
+  #contact a[href^="mailto"] { width: 100%; justify-content: center !important; font-size: 9px !important; padding: 12px 12px !important; box-sizing: border-box; }
+  /* Team cards — stack on mobile */
+  #contact .reveal > div > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
   }
-  /* Footer mobile */
-  footer { padding: 32px 20px; gap: 16px; }
+
+  /* ── Footer ── */
+  footer { padding: 28px 16px; gap: 14px; }
   .footer-top { flex-direction: column; align-items: center; text-align: center; }
-  .footer-links { flex-wrap: wrap; justify-content: center; gap: 8px 16px; }
+  .footer-links { flex-wrap: wrap; justify-content: center; gap: 6px 14px; }
   .footer-contact { text-align: center; }
   .footer-copy { font-size: 10px; text-align: center; }
-  /* Hero orbit system — hide on very small screens */
-  .hero-orbit-system { display: none; }
-  /* Chapter cards mobile padding */
-  .chapter-card-body { padding: 24px; }
-  .chapter-footer { padding: 12px 24px; }
 }
 </style>
 </head>
@@ -8275,23 +8254,23 @@ footer {
   </p>
 
   <!-- Social proof strip -->
-  <div style="display:flex;gap:32px;margin:28px 0 36px;flex-wrap:wrap;">
-    <div style="display:flex;flex-direction:column;gap:2px;">
+  <div class="hero-proof" style="display:flex;gap:32px;margin:28px 0 36px;flex-wrap:wrap;">
+    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
       <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:#fff;letter-spacing:-1px;">4</span>
       <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Technical Chapters</span>
     </div>
-    <div style="width:1px;background:var(--border);"></div>
-    <div style="display:flex;flex-direction:column;gap:2px;">
+    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>
+    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
       <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:#fff;letter-spacing:-1px;">27k+</span>
       <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Tracked Objects</span>
     </div>
-    <div style="width:1px;background:var(--border);"></div>
-    <div style="display:flex;flex-direction:column;gap:2px;">
+    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>
+    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
       <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:var(--green);letter-spacing:-1px;">Live</span>
       <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">SGP4 Scanner</span>
     </div>
-    <div style="width:1px;background:var(--border);"></div>
-    <div style="display:flex;flex-direction:column;gap:2px;">
+    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>
+    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
       <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:var(--amber);letter-spacing:-1px;">Free</span>
       <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">No account needed</span>
     </div>
@@ -8339,7 +8318,7 @@ footer {
       <div class="section-label" style="justify-content:center;">// Why orbital safety matters</div>
       <h2 class="section-title">The orbital environment<br>is <em>running out of time</em></h2>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+    <div class="why-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
 
       <div class="reveal" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">
         <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);"></div>
@@ -8369,18 +8348,18 @@ footer {
 <!-- 3-step onboarding strip -->
 <section id="howto" style="padding:20px 0 80px;">
   <div class="section-wrap">
-    <div class="reveal" style="background:var(--ink2);border:1px solid var(--border);border-radius:16px;padding:40px 48px;display:flex;align-items:center;gap:0;flex-wrap:wrap;">
-      <div style="flex:1;min-width:160px;padding:0 24px 0 0;border-right:1px solid var(--border);">
+    <div class="reveal howto-inner" style="background:var(--ink2);border:1px solid var(--border);border-radius:16px;padding:40px 48px;display:flex;align-items:center;gap:0;flex-wrap:wrap;">
+      <div class="howto-step" style="flex:1;min-width:160px;padding:0 24px 0 0;border-right:1px solid var(--border);">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">Step 01</div>
         <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Read the Chapters</div>
         <div style="font-size:12px;color:var(--muted);line-height:1.7;">Four technical deep dives — orbital mechanics, collision prediction, perturbations, debris modeling.</div>
       </div>
-      <div style="flex:1;min-width:160px;padding:0 24px;border-right:1px solid var(--border);">
+      <div class="howto-step" style="flex:1;min-width:160px;padding:0 24px;border-right:1px solid var(--border);">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:10px;">Step 02</div>
         <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Run a Simulation</div>
         <div style="font-size:12px;color:var(--muted);line-height:1.7;">Explore the Kessler cascade, Iridium–Cosmos collision, and ASAT events in interactive 3D.</div>
       </div>
-      <div style="flex:1;min-width:160px;padding:0 0 0 24px;">
+      <div class="howto-step" style="flex:1;min-width:160px;padding:0 0 0 24px;">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">Step 03</div>
         <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Scan Live Orbits</div>
         <div style="font-size:12px;color:var(--muted);line-height:1.7;">Run the live SGP4 conjunction scanner on real TLE data and generate a downloadable CDM report.</div>
