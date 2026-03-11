@@ -1,4 +1,4 @@
-"""VectraSpace v11 — Orbital Safety Platform"""
+"""VectraSpace Orbital Safety Platform"""
 
 import os
 import sys
@@ -4742,18 +4742,10 @@ sections.forEach(s => obs.observe(s));
     if (fabLabel) fabLabel.style.opacity = '0';
   }, 6000);
 
-  // Auto-show tour for first-time visitors
-  try {
-    if (!localStorage.getItem('vs_tour_seen')) {
-      setTimeout(() => {
-        try { localStorage.setItem('vs_tour_seen', '1'); } catch(e){}
-        tourStart();
-      }, 1800);
-    }
-  } catch(e) {
-    // private browsing - show tour anyway after delay
-    setTimeout(tourStart, 1800);
-  }
+  // Auto-show tour for all visitors
+  setTimeout(() => {
+    tourStart();
+  }, 2000);
 })();
 </script>
 
@@ -7610,7 +7602,7 @@ if (fragCanvas) {
 
 """
 
-LANDING_HTML = """\
+LANDING_HTML = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8670,15 +8662,9 @@ footer {
 <!-- HERO -->
 <section id="hero">
   <div class="hero-orbit-system">
-    <div class="orbit-ring orbit-ring-1">
-      <div class="orbit-sat" style="color:#4a9eff;"></div>
-    </div>
-    <div class="orbit-ring orbit-ring-2">
-      <div class="orbit-sat orbit-sat-2" style="top:-4px;left:calc(50% - 4px);"></div>
-    </div>
-    <div class="orbit-ring orbit-ring-3">
-      <div class="orbit-sat orbit-sat-3" style="top:calc(50% - 4px);left:-4px;"></div>
-    </div>
+    <div class="orbit-ring orbit-ring-1"><div class="orbit-sat" style="color:#4a9eff;"></div></div>
+    <div class="orbit-ring orbit-ring-2"><div class="orbit-sat orbit-sat-2" style="top:-4px;left:calc(50% - 4px);"></div></div>
+    <div class="orbit-ring orbit-ring-3"><div class="orbit-sat orbit-sat-3" style="top:calc(50% - 4px);left:-4px;"></div></div>
   </div>
 
   <div class="hero-eyebrow">
@@ -8692,22 +8678,44 @@ footer {
   </h1>
 
   <p class="hero-desc">
-    <strong>27,000+ tracked objects.</strong> A growing debris field that could cascade into an
-    uncontrollable chain reaction. VectraSpace is built to help you understand orbital mechanics,
-    Space Situational Awareness, and the orbital collision physics that define the future of spaceflight.
+    <strong>27,000+ tracked objects.</strong> A debris field that could trigger an irreversible
+    cascade. VectraSpace gives you the physics, the data, and the tools to understand it —
+    from Kepler to Kessler, in four chapters.
   </p>
 
-  <div class="hero-actions">
-    <a href="#learn" class="btn-primary-hero">Start Learning</a>
-    <a href="/dashboard" class="btn-secondary-hero">Live Simulation →</a>
+  <!-- Social proof strip -->
+  <div style="display:flex;gap:32px;margin:28px 0 36px;flex-wrap:wrap;">
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <span style="font-family:var(--mono);font-size:22px;font-weight:500;color:#fff;letter-spacing:-1px;">4</span>
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Technical Chapters</span>
+    </div>
+    <div style="width:1px;background:var(--border);"></div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <span style="font-family:var(--mono);font-size:22px;font-weight:500;color:#fff;letter-spacing:-1px;">27k+</span>
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Tracked Objects</span>
+    </div>
+    <div style="width:1px;background:var(--border);"></div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <span style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--green);letter-spacing:-1px;">Live</span>
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">SGP4 Scanner</span>
+    </div>
+    <div style="width:1px;background:var(--border);"></div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <span style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--amber);letter-spacing:-1px;">Free</span>
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">No account needed</span>
+    </div>
   </div>
 
-  <a href="#mission" class="hero-scroll">
+  <div class="hero-actions">
+    <a href="#learn" class="btn-primary-hero">Start Learning &darr;</a>
+    <a href="/dashboard" class="btn-secondary-hero">Live Scanner &rarr;</a>
+  </div>
+
+  <a href="#why" class="hero-scroll">
     <div class="scroll-line"></div>
-    Explore
+    Why it matters
   </a>
 </section>
-
 <!-- TICKER -->
 <div class="ticker-bar">
   <div class="ticker-inner" id="ticker">
@@ -8732,241 +8740,63 @@ footer {
   </div>
 </div>
 
-<!-- MISSION -->
-<section id="mission">
+
+<!-- WHY IT MATTERS (condensed Mission + SSA + Kessler) -->
+<section id="why" style="padding:80px 0 60px;">
   <div class="section-wrap">
-    <div class="mission-grid">
-      <div class="reveal">
-        <div class="section-label">// Our Mission</div>
-        <h2 class="section-title">The orbital environment<br>is <em>running out of time</em></h2>
-        <p class="section-body" style="margin-bottom:32px;">
-          Every satellite launch adds to the most complex coordination problem humanity has ever faced.
-          Without shared understanding of the physics, the risks, and the mitigation strategies,
-          we risk losing access to the orbits that power modern civilization.
-        </p>
-        <p class="section-body">
-          VectraSpace is a scientific educational platform backed by real SGP4 propagation,
-          collision probability physics, and live TLE data — built so students, researchers,
-          and engineers can develop genuine orbital intuition.
-        </p>
+    <div class="reveal" style="text-align:center;margin-bottom:48px;">
+      <div class="section-label" style="justify-content:center;">// Why orbital safety matters</div>
+      <h2 class="section-title">The orbital environment<br>is <em>running out of time</em></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
 
-        <div class="mission-stats">
-          <div class="mission-stat reveal reveal-delay-1">
-            <div class="mission-stat-num">408<span style="font-size:16px;color:var(--muted);">km</span></div>
-            <div class="mission-stat-label">
-              <strong>ISS orbital altitude (LEO)</strong>
-              Where most debris concentration and human spaceflight activity intersects.
-            </div>
-          </div>
-          <div class="mission-stat reveal reveal-delay-2">
-            <div class="mission-stat-num" style="color:var(--amber);">10×</div>
-            <div class="mission-stat-label">
-              <strong>Relative collision velocity at TCA</strong>
-              Orbital velocities of ~7.8 km/s mean impacts release catastrophic kinetic energy — a 10 cm fragment carries 500 kJ.
-            </div>
-          </div>
-          <div class="mission-stat reveal reveal-delay-3">
-            <div class="mission-stat-num" style="color:var(--red);">∞</div>
-            <div class="mission-stat-label">
-              <strong>Self-sustaining cascade threshold</strong>
-              Above critical density, collisions generate more debris than drag removes — cascade is irreversible.
-            </div>
-          </div>
-        </div>
+      <div class="reveal" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);"></div>
+        <div style="font-family:var(--mono);font-size:42px;font-weight:500;color:var(--accent);letter-spacing:-2px;margin-bottom:10px;">27,000+</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Tracked Objects</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.75;">The US Space Surveillance Network tracks 27,000+ objects larger than 10cm. Hundreds of thousands of smaller fragments — invisible to radar — travel at 7.8 km/s through crowded orbital shells.</p>
       </div>
 
-      <div class="mission-visual reveal reveal-delay-2">
-        <!-- Animated globe with orbit paths -->
-        <div class="mission-globe">
-          <div class="globe-glow"></div>
-          <div class="globe-grid-line globe-lat" style="--t:20%"></div>
-          <div class="globe-grid-line globe-lat" style="--t:40%"></div>
-          <div class="globe-grid-line globe-lat" style="--t:60%"></div>
-          <div class="globe-grid-line globe-lat" style="--t:80%"></div>
-          <div class="globe-grid-line globe-lon" style="--l:25%"></div>
-          <div class="globe-grid-line globe-lon" style="--l:50%"></div>
-          <div class="globe-grid-line globe-lon" style="--l:75%"></div>
-        </div>
-        <div class="orbit-path orbit-path-1">
-          <div class="orb-sat" style="background:#4a9eff;color:#4a9eff;"></div>
-        </div>
-        <div class="orbit-path orbit-path-2">
-          <div class="orb-sat" style="background:#34d399;color:#34d399;top:calc(50% - 4px);left:-4px;"></div>
-        </div>
-        <div class="orbit-path orbit-path-3">
-          <div class="orb-sat" style="background:#f59e0b;color:#f59e0b;top:auto;bottom:-4px;left:calc(50% - 4px);"></div>
-        </div>
-
-        <!-- Regime labels -->
-        <div style="position:absolute;top:30px;right:20px;display:flex;flex-direction:column;gap:8px;text-align:right;">
-          <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:#4a9eff;">LEO &lt;2000 km</div>
-          <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:#34d399;">MEO 2–35k km</div>
-          <div style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:#f59e0b;">GEO 35,786 km</div>
-        </div>
+      <div class="reveal reveal-delay-1" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--amber),transparent);"></div>
+        <div style="font-family:var(--mono);font-size:42px;font-weight:500;color:var(--amber);letter-spacing:-2px;margin-bottom:10px;">10×</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Collision Energy Multiplier</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.75;">Orbital velocities of ~7.8 km/s mean a 10 cm debris fragment carries the kinetic energy of a hand grenade. Even a 1 cm fragment can destroy a satellite — and generate thousands more pieces.</p>
       </div>
+
+      <div class="reveal reveal-delay-2" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent);"></div>
+        <div style="font-family:var(--mono);font-size:42px;font-weight:500;color:var(--red);letter-spacing:-2px;margin-bottom:10px;">Cascade</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Kessler Syndrome Risk</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.75;">Above a critical density threshold, collisions generate debris faster than drag removes it. The cascade becomes self-sustaining — rendering entire orbital shells permanently unusable.</p>
+      </div>
+
     </div>
   </div>
 </section>
 
-<div class="section-divider"></div>
-
-<!-- SSA -->
-<section id="ssa">
+<!-- 3-step onboarding strip -->
+<section id="howto" style="padding:20px 0 80px;">
   <div class="section-wrap">
-    <div class="ssa-header reveal">
-      <div class="section-label">// Space Situational Awareness</div>
-      <h2 class="section-title">Knowing where <em>everything</em> is<br>and where it's going</h2>
-      <p class="section-body">
-        Space Situational Awareness (SSA) is the capacity to observe, understand, and predict the
-        physical location of natural and man-made objects in orbit — and assess the potential
-        impact of space weather, debris events, and close approaches.
-      </p>
-    </div>
-
-    <div class="ssa-pillars reveal">
-      <div class="ssa-pillar" style="--pillar-color:#4a9eff;">
-        <span class="ssa-pillar-icon">📡</span>
-        <div class="ssa-pillar-title">Surveillance &amp; Tracking</div>
-        <p class="ssa-pillar-body">
-          Ground-based radars and optical telescopes continuously track objects larger than 10 cm.
-          The US Space Surveillance Network maintains a catalog of over 27,000 objects,
-          updating TLEs every few hours as objects drift from predicted paths.
-        </p>
-        <span class="ssa-pillar-tag">Radar + Optical</span>
+    <div class="reveal" style="background:var(--ink2);border:1px solid var(--border);border-radius:16px;padding:40px 48px;display:flex;align-items:center;gap:0;flex-wrap:wrap;">
+      <div style="flex:1;min-width:160px;padding:0 24px 0 0;border-right:1px solid var(--border);">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">Step 01</div>
+        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Read the Chapters</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Four technical deep dives — orbital mechanics, collision prediction, perturbations, debris modeling.</div>
       </div>
-
-      <div class="ssa-pillar" style="--pillar-color:#34d399;">
-        <span class="ssa-pillar-icon">🔬</span>
-        <div class="ssa-pillar-title">Conjunction Analysis</div>
-        <p class="ssa-pillar-body">
-          Screening all possible object pairs for close approaches (conjunctions) within a
-          prediction window. Probability of Collision (Pc) estimates using covariance matrices
-          from measured position errors drive operational go/no-go decisions.
-        </p>
-        <span class="ssa-pillar-tag" style="background:rgba(52,211,153,0.08);color:#34d399;border-color:rgba(52,211,153,0.2);">Pc Estimation</span>
+      <div style="flex:1;min-width:160px;padding:0 24px;border-right:1px solid var(--border);">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:10px;">Step 02</div>
+        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Run a Simulation</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Explore the Kessler cascade, Iridium–Cosmos collision, and ASAT events in interactive 3D.</div>
       </div>
-
-      <div class="ssa-pillar" style="--pillar-color:#f59e0b;">
-        <span class="ssa-pillar-icon">🛡</span>
-        <div class="ssa-pillar-title">Threat Mitigation</div>
-        <p class="ssa-pillar-body">
-          When Pc exceeds thresholds (typically 1×10⁻⁴ for crewed vehicles), operators plan
-          avoidance maneuvers. Active Debris Removal (ADR) technologies aim to deorbit legacy
-          rocket bodies before they collide and fragment.
-        </p>
-        <span class="ssa-pillar-tag" style="background:rgba(245,158,11,0.08);color:#f59e0b;border-color:rgba(245,158,11,0.2);">ADR + Maneuver</span>
-      </div>
-    </div>
-
-    <div style="margin-top:48px;padding:32px;background:var(--panel);border:1px solid var(--border);border-radius:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--ink2);" class="reveal">
-      <div style="padding:0 28px;border-right:1px solid var(--border);text-align:center;">
-        <div style="font-family:var(--serif);font-size:32px;color:var(--accent);margin-bottom:6px;">27k+</div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Tracked Objects</div>
-      </div>
-      <div style="padding:0 28px;border-right:1px solid var(--border);text-align:center;">
-        <div style="font-family:var(--serif);font-size:32px;color:var(--amber);margin-bottom:6px;">500k</div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Objects &gt;1 cm</div>
-      </div>
-      <div style="padding:0 28px;border-right:1px solid var(--border);text-align:center;">
-        <div style="font-family:var(--serif);font-size:32px;color:var(--red);margin-bottom:6px;">130M</div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Objects &gt;1 mm</div>
-      </div>
-      <div style="padding:0 28px;text-align:center;">
-        <div style="font-family:var(--serif);font-size:32px;color:#a78bfa;margin-bottom:6px;">10 cm</div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Lethal Threshold</div>
+      <div style="flex:1;min-width:160px;padding:0 0 0 24px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">Step 03</div>
+        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Scan Live Orbits</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Run the live SGP4 conjunction scanner on real TLE data and generate a downloadable CDM report.</div>
       </div>
     </div>
   </div>
 </section>
-
-<div class="section-divider"></div>
-
-<!-- KESSLER -->
-<section id="kessler">
-  <div class="section-wrap">
-    <div class="kessler-inner">
-      <div>
-        <div class="section-label reveal">// Kessler Syndrome</div>
-        <h2 class="section-title reveal">The cascade that<br><em>never stops</em></h2>
-        <p class="section-body reveal" style="margin-bottom:48px;">
-          In 1978, NASA scientist Donald Kessler described a scenario so alarming it now bears his name.
-          At critical orbital density, debris from one collision generates enough new fragments to
-          trigger another — indefinitely. The math is unforgiving.
-        </p>
-
-        <div class="kessler-cascade">
-          <div class="cascade-step reveal" style="--step-color:#4a9eff;">
-            <div class="cascade-num">01</div>
-            <div>
-              <div class="cascade-title">Collision Event</div>
-              <p class="cascade-body">Two objects — active satellite, defunct payload, rocket body fragment — occupy the same volume within close approach geometry. At orbital velocities, the collision is hypervelocity: 7–15 km/s relative speed.</p>
-            </div>
-          </div>
-          <div class="cascade-step reveal reveal-delay-1" style="--step-color:#34d399;">
-            <div class="cascade-num">02</div>
-            <div>
-              <div class="cascade-title">Fragmentation Cloud</div>
-              <p class="cascade-body">The NASA Standard Breakup Model predicts fragment count N(Lc) = 6·d⁰·⁵·Lc⁻¹·⁶. A 1 m collision generates ~6,000 trackable fragments, hundreds of thousands of lethal-but-invisible sub-centimeter debris.</p>
-            </div>
-          </div>
-          <div class="cascade-step reveal reveal-delay-2" style="--step-color:#f59e0b;">
-            <div class="cascade-num">03</div>
-            <div>
-              <div class="cascade-title">Density Increase</div>
-              <p class="cascade-body">Fragments spread through a ±340 km altitude band. Local object density n increases in the affected shell. Collision rate scales as n² — doubling density quadruples the collision probability.</p>
-            </div>
-          </div>
-          <div class="cascade-step reveal reveal-delay-3" style="--step-color:#f87171;">
-            <div class="cascade-num">04</div>
-            <div>
-              <div class="cascade-title">Runaway Cascade</div>
-              <p class="cascade-body">Above critical density n_c, new collisions outpace atmospheric drag removal. The population grows unbounded. Studies find the 750–900 km shell may already be unstable — even with a complete launch moratorium.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="kessler-data">
-        <div class="kd-card reveal" style="--card-tint:rgba(248,113,113,0.04);">
-          <div class="kd-label">Critical Population Threshold</div>
-          <div class="kd-value" style="color:var(--red);">n_c</div>
-          <div class="kd-desc">Critical density where collision generation rate exceeds orbital decay rate. Likely already exceeded in the 750–900 km shell.</div>
-          <div class="kd-bar"><div class="kd-bar-fill" style="width:88%;--bar-color:var(--red);"></div></div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px;">CURRENT DENSITY ≈ 88% OF ESTIMATED n_c</div>
-        </div>
-
-        <div class="kd-card reveal reveal-delay-1">
-          <div class="kd-label">Historical Events</div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
-            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 12px;background:rgba(248,113,113,0.06);border-left:2px solid var(--red);border-radius:2px;">
-              <span style="color:var(--text);font-family:var(--mono);font-size:11px;">Fengyun-1C ASAT</span>
-              <span style="color:var(--red);font-family:var(--mono);font-size:11px;">2007</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 12px;background:rgba(245,158,11,0.06);border-left:2px solid var(--amber);border-radius:2px;">
-              <span style="color:var(--text);font-family:var(--mono);font-size:11px;">Iridium 33 × Cosmos 2251</span>
-              <span style="color:var(--amber);font-family:var(--mono);font-size:11px;">2009</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 12px;background:rgba(248,113,113,0.06);border-left:2px solid var(--red);border-radius:2px;">
-              <span style="color:var(--text);font-family:var(--mono);font-size:11px;">Kosmos 1408 ASAT</span>
-              <span style="color:var(--red);font-family:var(--mono);font-size:11px;">2021</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="kd-card reveal reveal-delay-2" style="--card-tint:rgba(52,211,153,0.03);">
-          <div class="kd-label">ADR Target to Stabilize LEO</div>
-          <div class="kd-value" style="color:var(--green);">5–10</div>
-          <div class="kd-desc">Rocket body removals per year needed (in critical 750–900 km shell) to arrest population growth. Each removal costs $50–200M.</div>
-          <div class="kd-bar"><div class="kd-bar-fill" style="width:12%;--bar-color:var(--green);"></div></div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px;">CURRENT REMOVAL RATE ≈ 0 PER YEAR</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="section-divider"></div>
-
 <!-- DEEP DIVE CHAPTERS -->
 <section id="learn">
   <div class="section-wrap">
