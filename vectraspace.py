@@ -3994,7 +3994,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
     <span class="nav-brand-name">Vectra<em>Space</em></span>
   </a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
-  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">News</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="learn-hero">
@@ -4345,7 +4345,7 @@ initQuiz('ch1-quiz', [
   };
   const tip = document.createElement('div');
   tip.className = 'gtooltip';
-  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Space News →</a>';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Resources →</a>';
   document.body.appendChild(tip);
   let hideTimer;
   document.querySelectorAll('dfn[data-term]').forEach(el => {
@@ -4853,7 +4853,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 <nav>
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
-  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">News</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="learn-hero">
@@ -5174,7 +5174,7 @@ initQuiz('ch2-quiz', [
   };
   const tip = document.createElement('div');
   tip.className = 'gtooltip';
-  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Space News →</a>';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Resources →</a>';
   document.body.appendChild(tip);
   let hideTimer;
   document.querySelectorAll('dfn[data-term]').forEach(el => {
@@ -5672,7 +5672,7 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
 
 <nav>
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
-  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">News</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
@@ -6364,7 +6364,7 @@ initQuiz('ch3-quiz', [
   };
   const tip = document.createElement('div');
   tip.className = 'gtooltip';
-  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Space News →</a>';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Resources →</a>';
   document.body.appendChild(tip);
   let hideTimer;
   document.querySelectorAll('dfn[data-term]').forEach(el => {
@@ -6765,7 +6765,7 @@ tbody tr:hover td { background:var(--ink-2); }
 
 <nav>
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
-  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">News</a><a href="/calculator" class="nav-back">Calculator</a></div>
+  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
@@ -7449,7 +7449,7 @@ initQuiz('ch4-quiz', [
   };
   const tip = document.createElement('div');
   tip.className = 'gtooltip';
-  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Space News →</a>';
+  tip.innerHTML = '<div class="gtooltip-term"></div><div class="gtooltip-def"></div><a class="gtooltip-link" href="/glossary">Resources →</a>';
   document.body.appendChild(tip);
   let hideTimer;
   document.querySelectorAll('dfn[data-term]').forEach(el => {
@@ -8647,7 +8647,7 @@ footer {
     <li><a href="#learn">Chapters</a></li>
     <li><a href="/scenarios">Scenarios</a></li>
     <li><a href="/kepler">Orbit Explorer</a></li>
-    <li><a href="/glossary">News</a></li>
+    <li><a href="/glossary">Resources</a></li>
     <li><a href="/calculator">Calculator</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
@@ -8661,7 +8661,7 @@ footer {
   <a href="#learn">Chapters <span>→</span></a>
   <a href="/scenarios">Scenarios <span>→</span></a>
   <a href="/kepler">Orbit Explorer <span>→</span></a>
-  <a href="/glossary">News <span>→</span></a>
+  <a href="/glossary">Resources <span>→</span></a>
   <a href="/calculator">Calculator <span>→</span></a>
   <a href="#contact">Contact <span>→</span></a>
   <a href="/dashboard" class="cta-link">Open Dashboard →</a>
@@ -9179,7 +9179,7 @@ footer {
       <a href="/glossary" class="tool-card">
         <div class="tool-card-icon purple">📖</div>
         <div class="tool-card-body">
-          <div class="tool-card-title">Space News</div>
+          <div class="tool-card-title">Resources</div>
           <div class="tool-card-desc">50+ terms · searchable · deep-link ready</div>
         </div>
       </a>
@@ -9770,7 +9770,7 @@ html,body{background:var(--ink);color:var(--text);font-family:var(--sans);overfl
     <a href="/kepler" class="tb-link">Kepler Explorer</a>
     <a href="/scenarios" class="tb-link active">Scenarios</a>
     <a href="/calculator" class="tb-link">Calculator</a>
-    <a href="/glossary" class="tb-link">News</a>
+    <a href="/glossary" class="tb-link">Resources</a>
   </div>
 </div>
 
@@ -10523,7 +10523,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
     <a href="/kepler" class="tb-link active">Kepler Explorer</a>
     <a href="/scenarios" class="tb-link">Scenarios</a>
     <a href="/calculator" class="tb-link">Calculator</a>
-    <a href="/glossary" class="tb-link">News</a>
+    <a href="/glossary" class="tb-link">Resources</a>
   </div>
 </div>
 
@@ -11219,7 +11219,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
   <div class="nav-links">
     <a href="/" class="nav-link">Hub</a>
-    <a href="/glossary" class="nav-link">News</a>
+    <a href="/glossary" class="nav-link">Resources</a>
     <a href="/calculator" class="nav-link active">Calculator</a>
     <a href="/dashboard" class="nav-link">Dashboard</a>
   </div>
@@ -11615,7 +11615,7 @@ GLOSSARY_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Space News — VectraSpace</title>
+<title>Resources — VectraSpace</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11624,7 +11624,7 @@ GLOSSARY_HTML = """<!DOCTYPE html>
   --ink:#080c12;--ink2:#0d1320;--ink3:#131d2e;--panel:#0f1925;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
   --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;
-  --accent:#4a9eff;--accent2:#7bc4ff;--green:#34d399;--amber:#f59e0b;--red:#f87171;
+  --accent:#4a9eff;--accent2:#7bc4ff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;
   --serif:"Instrument Serif",Georgia,serif;
   --mono:"DM Mono",monospace;
   --sans:"Outfit",sans-serif;
@@ -11633,454 +11633,350 @@ GLOSSARY_HTML = """<!DOCTYPE html>
 html{scroll-behavior:smooth;}
 body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;min-height:100vh;}
 
-/* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
-.nav-brand{display:flex;align-items:center;text-decoration:none;}
-.nav-brand-name{font-family:var(--serif);font-size:17px;font-style:italic;letter-spacing:-0.2px;color:#fff;}
+.nav-brand{text-decoration:none;}
+.nav-brand-name{font-family:var(--serif);font-size:17px;font-style:italic;color:#fff;letter-spacing:-0.2px;}
 .nav-brand-name em{color:var(--accent);font-style:normal;}
 .nav-right{display:flex;gap:8px;}
 .nav-back{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
 .nav-back:hover{color:var(--text);border-color:var(--border2);}
 
-/* PROGRESS BAR */
-#load-bar-wrap{position:fixed;top:60px;left:0;right:0;z-index:99;height:2px;background:transparent;}
-#load-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.3s ease;box-shadow:0 0 8px rgba(74,158,255,0.6);}
-#load-status{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:99;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:rgba(8,12,18,0.9);border:1px solid rgba(74,158,255,0.2);padding:5px 14px;border-radius:20px;white-space:nowrap;opacity:0;transition:opacity 0.3s;}
-#load-status.show{opacity:1;}
-
 /* HERO */
-.hero{padding:100px 48px 36px;max-width:1160px;margin:0 auto;}
-.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
-.hero-eyebrow::before{content:"";width:14px;height:1px;background:var(--amber);}
-.hero-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;}
-.hero-title{font-family:var(--serif);font-size:clamp(34px,4.5vw,58px);font-weight:400;color:#fff;line-height:1.1;letter-spacing:-0.5px;}
+.hero{padding:108px 48px 52px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.eyebrow::before{content:"";width:14px;height:1px;background:var(--green);}
+.hero-title{font-family:var(--serif);font-size:clamp(36px,5vw,62px);color:#fff;font-weight:400;line-height:1.08;letter-spacing:-0.5px;margin-bottom:14px;}
 .hero-title em{font-style:italic;color:var(--accent2);}
-.hero-sub{font-size:14px;color:var(--muted);line-height:1.75;max-width:480px;margin-top:10px;}
-.live-pill{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--green);background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);padding:6px 13px;border-radius:20px;flex-shrink:0;}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:ldot 2s infinite;}
-@keyframes ldot{0%,100%{opacity:1}50%{opacity:0.25}}
+.hero-sub{font-size:15px;color:var(--muted);max-width:540px;line-height:1.8;}
 
-/* CONTROLS */
-.controls{max-width:1160px;margin:0 auto;padding:0 48px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+/* SEARCH + FILTER */
+.controls{max-width:1100px;margin:0 auto;padding:0 48px 36px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 .search-wrap{position:relative;flex:1;min-width:200px;}
-.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;}
+.si{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;}
 .search-input{width:100%;background:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:10px 13px 10px 40px;font-family:var(--mono);font-size:11px;color:var(--text);outline:none;transition:border-color 0.2s;letter-spacing:0.3px;}
 .search-input::placeholder{color:var(--faint);}
 .search-input:focus{border-color:rgba(74,158,255,0.35);}
 .filters{display:flex;gap:5px;flex-wrap:wrap;}
 .fbtn{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
 .fbtn:hover{border-color:var(--border2);color:var(--text);}
-.fbtn.on{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.07);}
-.fbtn.on.bl{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,0.07);}
-.fbtn.on.gr{border-color:var(--green);color:var(--green);background:rgba(52,211,153,0.07);}
+.fbtn.on{color:#fff;}
+.fbtn[data-cat="all"].on{border-color:var(--accent);background:rgba(74,158,255,0.1);color:var(--accent);}
+.fbtn[data-cat="data"].on{border-color:var(--accent);background:rgba(74,158,255,0.1);color:var(--accent);}
+.fbtn[data-cat="tools"].on{border-color:var(--green);background:rgba(52,211,153,0.1);color:var(--green);}
+.fbtn[data-cat="papers"].on{border-color:var(--amber);background:rgba(245,158,11,0.1);color:var(--amber);}
+.fbtn[data-cat="standards"].on{border-color:var(--red);background:rgba(248,113,113,0.1);color:var(--red);}
+.fbtn[data-cat="courses"].on{border-color:var(--purple);background:rgba(167,139,250,0.1);color:var(--purple);}
 
 /* META */
-.meta-bar{max-width:1160px;margin:0 auto;padding:0 48px 16px;display:flex;align-items:center;justify-content:space-between;}
-.meta-count{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--faint);}
-.meta-src{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--faint);}
+.meta{max-width:1100px;margin:0 auto;padding:0 48px 20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--faint);}
 
 /* GRID */
-.grid{max-width:1160px;margin:0 auto;padding:0 48px 60px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.grid{max-width:1100px;margin:0 auto;padding:0 48px 100px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 
 /* CARD */
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.2s,transform 0.2s;cursor:pointer;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.2s,transform 0.18s;text-decoration:none;color:inherit;}
 .card:hover{border-color:var(--border2);transform:translateY(-2px);}
-.card.feat{grid-column:span 2;}
-.card-img{width:100%;height:175px;object-fit:cover;background:var(--ink3);display:block;}
-.card-img.feat{height:230px;}
-.card-nophoto{width:100%;height:175px;background:linear-gradient(135deg,#0d1825,#0a1520);display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--faint);flex-shrink:0;}
-.card-nophoto.feat{height:230px;}
-.card-body{padding:16px 18px;flex:1;display:flex;flex-direction:column;gap:8px;}
-.card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.card-src{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;border-radius:10px;border:1px solid;white-space:nowrap;}
-.card-src.art{color:var(--accent);border-color:rgba(74,158,255,0.2);background:rgba(74,158,255,0.07);}
-.card-src.blg{color:var(--amber);border-color:rgba(245,158,11,0.2);background:rgba(245,158,11,0.07);}
-.card-src.rpt{color:var(--green);border-color:rgba(52,211,153,0.2);background:rgba(52,211,153,0.07);}
-.card-age{font-family:var(--mono);font-size:8px;color:var(--faint);margin-left:auto;}
-.card-title{font-family:var(--serif);font-size:16px;font-style:italic;color:#fff;line-height:1.35;flex:1;}
-.card.feat .card-title{font-size:21px;}
-.card-summary{font-size:12px;color:var(--muted);line-height:1.7;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
-.card-foot{padding:10px 18px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.card-link{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color 0.15s;}
-.card-link:hover{color:var(--accent2);}
-.card-link svg{transition:transform 0.15s;}
-.card-link:hover svg{transform:translateX(2px);}
-.card-tags{display:flex;gap:4px;}
-.card-tag{font-family:var(--mono);font-size:7px;color:var(--faint);border:1px solid var(--faint);padding:2px 6px;border-radius:8px;}
+.card-top{padding:20px 22px 16px;flex:1;display:flex;flex-direction:column;gap:10px;}
+.card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.tag{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:10px;border:1px solid;white-space:nowrap;flex-shrink:0;}
+.tag-data{color:var(--accent);border-color:rgba(74,158,255,0.25);background:rgba(74,158,255,0.07);}
+.tag-tools{color:var(--green);border-color:rgba(52,211,153,0.25);background:rgba(52,211,153,0.07);}
+.tag-papers{color:var(--amber);border-color:rgba(245,158,11,0.25);background:rgba(245,158,11,0.07);}
+.tag-standards{color:var(--red);border-color:rgba(248,113,113,0.25);background:rgba(248,113,113,0.07);}
+.tag-courses{color:var(--purple);border-color:rgba(167,139,250,0.25);background:rgba(167,139,250,0.07);}
+.card-org{font-family:var(--mono);font-size:8px;letter-spacing:0.5px;color:var(--faint);}
+.card-title{font-family:var(--serif);font-size:17px;font-style:italic;color:#fff;line-height:1.35;}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.7;}
+.card-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-link-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:5px;}
+.card-link-label svg{transition:transform 0.15s;}
+.card:hover .card-link-label svg{transform:translateX(3px);}
+.card-free{font-family:var(--mono);font-size:7px;letter-spacing:1px;color:var(--green);background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);padding:2px 7px;border-radius:8px;}
 
-/* SKELETON */
-.skel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.skel-img{height:175px;background:var(--ink3);position:relative;overflow:hidden;}
-.skel-img::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.04) 50%,transparent 100%);animation:sweep 1.6s infinite;}
-@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
-.skel-body{padding:16px 18px;display:flex;flex-direction:column;gap:10px;}
-.skel-line{height:9px;border-radius:4px;background:var(--ink3);position:relative;overflow:hidden;}
-.skel-line::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.04) 50%,transparent 100%);animation:sweep 1.6s infinite 0.2s;}
+/* EMPTY */
+.empty{grid-column:1/-1;text-align:center;padding:70px 0;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);}
 
-/* LOAD MORE */
-.load-more{max-width:1160px;margin:0 auto;padding:0 48px 80px;display:flex;justify-content:center;}
-.lm-btn{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:12px 34px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;}
-.lm-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
-.lm-btn:disabled{opacity:0.35;cursor:default;}
+/* SECTION DIVIDER */
+.section-label{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding-top:8px;}
+.section-label-text{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;}
+.section-label-line{flex:1;height:1px;background:var(--border);}
 
-/* NOTICE (error / fallback / empty) */
-.notice{max-width:1160px;margin:0 auto;padding:8px 48px 20px;display:none;}
-.notice-inner{background:var(--ink3);border:1px solid var(--border);border-radius:10px;padding:14px 20px;display:flex;align-items:flex-start;gap:12px;}
-.notice-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
-.notice-text{font-family:var(--mono);font-size:10px;letter-spacing:0.5px;color:var(--muted);line-height:1.6;}
-.notice-text strong{color:var(--text);}
-.notice-text a{color:var(--accent);}
-
-@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}.card.feat{grid-column:span 2;}}
-@media(max-width:600px){
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:580px){
   nav{padding:0 20px;}
-  .hero,.controls,.meta-bar,.grid,.load-more,.notice{padding-left:20px;padding-right:20px;}
+  .hero,.controls,.meta,.grid{padding-left:20px;padding-right:20px;}
   .hero{padding-top:88px;}
   .grid{grid-template-columns:1fr;}
-  .card.feat{grid-column:span 1;}
-  .card.feat .card-title{font-size:16px;}
-  .card-nophoto.feat,.card-img.feat{height:175px;}
 }
 </style>
 </head>
 <body>
-
 <nav>
   <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
   <div class="nav-right">
-    <a href="/" class="nav-back">← Hub</a>
-    <a href="/dashboard" class="nav-back">Dashboard →</a>
+    <a href="/" class="nav-back">&larr; Hub</a>
+    <a href="/dashboard" class="nav-back">Dashboard &rarr;</a>
   </div>
 </nav>
 
-<div id="load-bar-wrap"><div id="load-bar"></div></div>
-<div id="load-status"></div>
-
 <div class="hero">
-  <div class="hero-eyebrow">Latest Updates</div>
-  <div class="hero-row">
-    <div>
-      <h1 class="hero-title">Space <em>News</em></h1>
-      <p class="hero-sub">Live articles, blog posts and reports from across the space industry — launches, debris events, policy updates and mission milestones.</p>
-    </div>
-    <div class="live-pill"><span class="live-dot"></span>Spaceflight News API</div>
-  </div>
+  <div class="eyebrow">Curated Library</div>
+  <h1 class="hero-title">Space Safety <em>Resources</em></h1>
+  <p class="hero-sub">Hand-picked datasets, tools, papers, standards, and courses for orbital mechanics researchers, satellite operators, and space safety professionals.</p>
 </div>
 
 <div class="controls">
   <div class="search-wrap">
-    <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" class="search-input" id="ns-search" placeholder="Search headlines, missions, agencies..." autocomplete="off" spellcheck="false">
+    <svg class="si" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="rs-search" type="text" placeholder="Search resources, organisations, topics..." autocomplete="off" spellcheck="false">
   </div>
   <div class="filters">
-    <button class="fbtn on"  data-type="articles">Articles</button>
-    <button class="fbtn bl"  data-type="blogs">Blogs</button>
-    <button class="fbtn gr"  data-type="reports">Reports</button>
+    <button class="fbtn on" data-cat="all">All</button>
+    <button class="fbtn" data-cat="data">Data &amp; Catalogs</button>
+    <button class="fbtn" data-cat="tools">Tools</button>
+    <button class="fbtn" data-cat="papers">Papers</button>
+    <button class="fbtn" data-cat="standards">Standards</button>
+    <button class="fbtn" data-cat="courses">Courses</button>
   </div>
 </div>
 
-<div class="meta-bar">
-  <span class="meta-count" id="ns-meta"></span>
-  <span class="meta-src"   id="ns-src"></span>
-</div>
-
-<div class="notice" id="ns-notice">
-  <div class="notice-inner">
-    <span class="notice-icon" id="ns-nicon">ℹ</span>
-    <span class="notice-text" id="ns-ntext"></span>
-  </div>
-</div>
-
-<div class="grid" id="ns-grid"></div>
-<div class="load-more">
-  <button class="lm-btn" id="ns-more" style="display:none">Load More →</button>
-</div>
+<div class="meta" id="rs-meta"></div>
+<div class="grid" id="rs-grid"></div>
 
 <script>
-(function () {
+var RESOURCES = [
 
-  /* ---- curated fallback articles ---- */
-  var FALLBACK = [{"title": "Rocket Lab Launches HASTE Suborbital Mission for US DoD", "url": "https://www.rocketlabusa.com/updates/", "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Rocket_Lab_Electron.jpg/640px-Rocket_Lab_Electron.jpg", "news_site": "Rocket Lab", "summary": "Rocket Lab successfully launched a HASTE (Hypersonic Accelerator Suborbital Test Electron) vehicle on behalf of a US Department of Defense customer, demonstrating hypersonic test capabilities from its Launch Complex 1 in New Zealand.", "published_at": "2024-10-18T00:00:00Z", "launches": [1], "events": []}, {"title": "ESA's Space Debris Office Reports Record Conjunction Events in 2024", "url": "https://www.esa.int/Space_Safety/Space_Debris", "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Space_Debris.jpg/640px-Space_Debris.jpg", "news_site": "ESA", "summary": "ESA's Space Debris Office recorded over 50,000 conjunction warning notifications in 2024 \u2014 a new annual record \u2014 as the LEO environment grows denser with Starlink, OneWeb and Chinese megaconstellation satellites operating in overlapping orbital shells.", "published_at": "2024-11-05T00:00:00Z", "launches": [], "events": []}, {"title": "SpaceX Starship Flight 6 Completes Full Mission Profile", "url": "https://www.spacex.com/updates", "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Starship_IFT-3_on_the_pad_%28cropped%29.jpg/640px-Starship_IFT-3_on_the_pad_%28cropped%29.jpg", "news_site": "SpaceX", "summary": "SpaceX's sixth integrated Starship flight test achieved its primary objectives including controlled booster catch by the Mechazilla arm and controlled ocean splashdown of the Ship vehicle, marking a major step toward full reusability.", "published_at": "2024-10-13T00:00:00Z", "launches": [1], "events": []}, {"title": "US Space Force Expands Space Domain Awareness Radar Network", "url": "https://www.space.mil", "image_url": "", "news_site": "US Space Force", "summary": "US Space Force awarded contracts for three new ground-based Space Fence radar sites to expand its Space Domain Awareness network, boosting the ability to track small debris objects down to 5cm in low Earth orbit.", "published_at": "2024-09-22T00:00:00Z", "launches": [], "events": []}, {"title": "NASA Artemis II Crew Completes Training Milestones Ahead of Lunar Flyby", "url": "https://www.nasa.gov/artemis", "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Artemis_II_crew.jpg/640px-Artemis_II_crew.jpg", "news_site": "NASA", "summary": "The four-person Artemis II crew \u2014 Reid Wiseman, Victor Glover, Christina Koch and Jeremy Hansen \u2014 completed their final simulation runs and emergency egress training ahead of the planned crewed lunar flyby mission.", "published_at": "2024-10-30T00:00:00Z", "launches": [], "events": [1]}, {"title": "Iridium Reports ADS-B Network Tracks Over 14,000 Aircraft Daily", "url": "https://www.iridium.com", "image_url": "", "news_site": "Iridium", "summary": "Iridium Communications reported its space-based ADS-B network, operated via the Iridium NEXT constellation, now tracks over 14,000 aircraft per day globally \u2014 providing aviation surveillance coverage over oceans and polar regions unreachable by ground radar.", "published_at": "2024-08-14T00:00:00Z", "launches": [], "events": []}, {"title": "OneWeb LEO Constellation Completes Global Coverage Deployment", "url": "https://oneweb.net", "image_url": "", "news_site": "OneWeb", "summary": "OneWeb announced completion of its 648-satellite LEO broadband constellation, achieving full global coverage including polar regions. The network began commercial service for enterprise and government customers across all seven continents.", "published_at": "2024-09-05T00:00:00Z", "launches": [], "events": []}, {"title": "China Launches New Remote Sensing Satellites in Rapid Cadence", "url": "https://www.cmse.gov.cn", "image_url": "", "news_site": "CMSE", "summary": "China conducted back-to-back launches of Yaogan remote sensing satellites within a 72-hour window, adding to its growing surveillance constellation and raising the total number of Chinese government Earth observation satellites to over 200 in orbit.", "published_at": "2024-10-01T00:00:00Z", "launches": [1], "events": []}, {"title": "Active Debris Removal Mission ClearSpace-1 Enters Final Development", "url": "https://clearspace.today", "image_url": "", "news_site": "ClearSpace", "summary": "ClearSpace-1, ESA's first active debris removal mission, entered final system development phase. The mission will attempt to capture and deorbit a Vega rocket adapter (VESPA) left in orbit since 2013, demonstrating key technology for future debris removal operations.", "published_at": "2024-11-12T00:00:00Z", "launches": [], "events": [1]}];
+  /* ── DATA & CATALOGS ─────────────────────────────────────── */
+  { cat:"data", org:"CelesTrak / Dr. T.S. Kelso", free:true,
+    title:"GP Element Sets (TLE Catalog)",
+    desc:"The most widely used source of publicly available TLE data. Provides GP element sets for 20,000+ tracked objects in multiple formats (TLE, JSON, CSV) updated several times daily. Essential for any SGP4-based propagation work.",
+    url:"https://celestrak.org/NORAD/elements/" },
 
-  /* ---- state ---- */
-  var TYPE     = "articles";
-  var OFFSET   = 0;
-  var LIMIT    = 12;
-  var QUERY    = "";
-  var TOTAL    = 0;
-  var busy     = false;
-  var liveOK   = false;
-  var debTimer = null;
+  { cat:"data", org:"18th Space Defense Squadron", free:true,
+    title:"Space-Track.org Satellite Catalog",
+    desc:"The authoritative US government satellite catalog maintained by 18 SDS. Provides TLEs, conjunction data messages (CDMs), launch and decay notifications. Requires free account registration. The source for official SSN tracking data.",
+    url:"https://www.space-track.org" },
 
-  /* ---- element refs ---- */
-  var grid     = document.getElementById("ns-grid");
-  var metaEl   = document.getElementById("ns-meta");
-  var srcEl    = document.getElementById("ns-src");
-  var moreBtn  = document.getElementById("ns-more");
-  var noticeEl = document.getElementById("ns-notice");
-  var bar      = document.getElementById("load-bar");
-  var barSts   = document.getElementById("load-status");
-  var barInt   = null;
+  { cat:"data", org:"ESA DISCOS", free:false,
+    title:"ESA DISCOS Database",
+    desc:"ESA's Database and Information System Characterising Objects in Space. Comprehensive physical and orbital characteristics for space objects — dimensions, mass, shape, material composition. Used for accurate area-to-mass ratio calculations in drag and SRP modeling.",
+    url:"https://discosweb.esoc.esa.int" },
 
-  /* ---- progress bar ---- */
-  function pbStart(msg) {
-    clearInterval(barInt);
-    bar.style.cssText = "height:100%;width:0%;background:linear-gradient(90deg,#4a9eff,#7bc4ff);opacity:1;transition:none;box-shadow:0 0 8px rgba(74,158,255,0.6);";
-    void bar.offsetWidth;
-    bar.style.transition = "width 0.35s ease";
-    barSts.textContent = msg || "Connecting…";
-    barSts.classList.add("show");
-    var pct = 6;
-    barInt = setInterval(function () {
-      pct += (85 - pct) * 0.1;
-      bar.style.width = pct + "%";
-      if (pct > 30) barSts.textContent = "Fetching live articles…";
-      if (pct > 60) barSts.textContent = "Almost there…";
-    }, 300);
-  }
+  { cat:"data", org:"NASA CARA", free:true,
+    title:"Conjunction Assessment Risk Analysis (CARA)",
+    desc:"NASA's public conjunction assessment service providing close approach screening for NASA assets. Publishes methodology papers and probability of collision calculation approaches used as a reference standard across the industry.",
+    url:"https://nasa.gov/conjunction-assessment" },
 
-  function pbDone(msg) {
-    clearInterval(barInt);
-    bar.style.width = "100%";
-    barSts.textContent = msg || "Done";
-    setTimeout(function () {
-      bar.style.transition = "opacity 0.5s";
-      bar.style.opacity = "0";
-      barSts.classList.remove("show");
-      setTimeout(function () {
-        bar.style.width = "0%";
-        bar.style.opacity = "1";
-        bar.style.transition = "width 0.35s ease";
-      }, 550);
-    }, 800);
-  }
+  { cat:"data", org:"LeoLabs", free:false,
+    title:"LeoLabs Space Object Database",
+    desc:"Commercial radar network tracking LEO objects with higher update rates and smaller trackable sizes than SSN. Provides conjunction screening, decay predictions, and maneuver support for commercial operators.",
+    url:"https://leolabs.space" },
 
-  function pbFail(msg) {
-    clearInterval(barInt);
-    bar.style.background = "#f87171";
-    bar.style.width = "100%";
-    barSts.textContent = msg || "Could not reach live feed";
-    barSts.style.color = "#f87171";
-    setTimeout(function () {
-      bar.style.transition = "opacity 0.5s";
-      bar.style.opacity = "0";
-      barSts.classList.remove("show");
-      setTimeout(function () {
-        bar.style.width = "0%";
-        bar.style.opacity = "1";
-        bar.style.background = "linear-gradient(90deg,#4a9eff,#7bc4ff)";
-        barSts.style.color = "#4a9eff";
-        bar.style.transition = "width 0.35s ease";
-      }, 550);
-    }, 2500);
-  }
+  { cat:"data", org:"Aerospace Corp / CCAR", free:true,
+    title:"SOCRATES Conjunction Screening",
+    desc:"Satellite Orbital Conjunction Reports Assessing Threatening Encounters in Space. Daily screening of the entire satellite catalog using publicly available TLEs. Ranks the top conjunction events by probability of collision.",
+    url:"https://celestrak.org/SOCRATES/" },
 
-  /* ---- notice ---- */
-  function showNotice(icon, text) {
-    document.getElementById("ns-nicon").textContent = icon;
-    document.getElementById("ns-ntext").innerHTML = text;
-    noticeEl.style.display = "block";
-  }
-  function hideNotice() { noticeEl.style.display = "none"; }
+  /* ── TOOLS ──────────────────────────────────────────────── */
+  { cat:"tools", org:"AGI / Ansys", free:false,
+    title:"Systems Tool Kit (STK)",
+    desc:"The industry-standard orbital analysis and space mission engineering software. Models satellite coverage, conjunction analysis, sensor performance, and link budgets. Used by most government and commercial satellite operators globally.",
+    url:"https://www.ansys.com/products/missions/ansys-stk" },
 
-  /* ---- helpers ---- */
-  function timeAgo(iso) {
-    if (!iso) return "";
-    var diff = (Date.now() - new Date(iso).getTime()) / 1000;
-    if (diff < 3600)   return Math.floor(diff / 60)   + "m ago";
-    if (diff < 86400)  return Math.floor(diff / 3600)  + "h ago";
-    if (diff < 604800) return Math.floor(diff / 86400) + "d ago";
-    var d = new Date(iso);
-    return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
-  }
+  { cat:"tools", org:"NASA / Vallado", free:true,
+    title:"SGP4 Reference Implementation",
+    desc:"The canonical C++, Python, and MATLAB implementation of the SGP4/SDP4 propagator by David Vallado at Aerospace Corp. The definitive reference for implementing TLE-based orbit propagation consistent with USSPACECOM standards.",
+    url:"https://celestrak.org/software/vallado-sw.php" },
 
-  function esc(v) {
-    return String(v || "")
-      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-  }
+  { cat:"tools", org:"Open Source", free:true,
+    title:"Skyfield (Python)",
+    desc:"High-accuracy Python library for computing positions of stars, planets, and Earth satellites. Uses modern IERS Earth orientation data and supports TLE propagation via SGP4. The best Python library for precise satellite positional astronomy.",
+    url:"https://rhodesmill.org/skyfield/" },
 
-  /* ---- card builder ---- */
-  function makeCard(art, feat) {
-    var sc  = TYPE === "blogs" ? "blg" : TYPE === "reports" ? "rpt" : "art";
-    var cls = feat ? "card feat" : "card";
-    var imc = feat ? "card-img feat" : "card-img";
-    var npc = feat ? "card-nophoto feat" : "card-nophoto";
-    var img = art.image_url
-      ? "<img class=\"" + imc + "\" src=\"" + esc(art.image_url) + "\" alt=\"\" loading=\"lazy\">"
-        + "<div class=\"" + npc + "\" style=\"display:none\">&#128752;</div>"
-      : "<div class=\"" + npc + "\">&#128752;</div>";
-    var tags = "";
-    if (art.launches && art.launches.length) tags += "<span class=\"card-tag\">&#128640; launch</span>";
-    if (art.events   && art.events.length)   tags += "<span class=\"card-tag\">&#128225; event</span>";
-    return "<div class=\"" + cls + "\" data-url=\"" + esc(art.url) + "\">"
-         + img
-         + "<div class=\"card-body\">"
-         + "<div class=\"card-meta\"><span class=\"card-src " + sc + "\">" + esc(art.news_site) + "</span>"
-         + "<span class=\"card-age\">" + timeAgo(art.published_at) + "</span></div>"
-         + "<div class=\"card-title\">" + esc(art.title) + "</div>"
-         + "<div class=\"card-summary\">" + esc(art.summary) + "</div>"
-         + "</div>"
-         + "<div class=\"card-foot\">"
-         + "<a class=\"card-link\" href=\"" + esc(art.url) + "\" target=\"_blank\" rel=\"noopener\">"
-         + "Read full article"
-         + "<svg width=\"11\" height=\"11\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M12 5l7 7-7 7\"/></svg>"
-         + "</a>"
-         + "<div class=\"card-tags\">" + tags + "</div>"
-         + "</div></div>";
-  }
+  { cat:"tools", org:"ESA", free:true,
+    title:"DRAMA — Debris Risk Assessment",
+    desc:"ESA's Debris Risk Assessment and Mitigation Analysis tool. Computes casualty risk for uncontrolled reentries, orbital lifetime estimates, and collision avoidance maneuver analysis. Used for compliance with space debris mitigation guidelines.",
+    url:"https://sdup.esoc.esa.int/drama/" },
 
-  /* ---- click delegation ---- */
-  grid.addEventListener("click", function (e) {
-    var card = e.target.closest("[data-url]");
-    if (!card || e.target.closest("a")) return;
-    window.open(card.getAttribute("data-url"), "_blank", "noopener");
+  { cat:"tools", org:"NASA Goddard", free:true,
+    title:"GMAT — General Mission Analysis Tool",
+    desc:"NASA's open-source mission design and navigation software. Supports high-fidelity trajectory optimization, maneuver planning, formation flying analysis, and conjunction assessment. Used for mission planning from LEO to deep space.",
+    url:"https://software.nasa.gov/software/GSC-17177-1" },
+
+  { cat:"tools", org:"Open Source / Helge Eichhorn", free:true,
+    title:"Orekit (Java/Python)",
+    desc:"A highly accurate open-source space dynamics library supporting all major orbit propagators (numerical, SGP4, Eckstein-Hechler), coordinate frame transformations, attitude modeling, and event detection. The reference for high-fidelity propagation in research.",
+    url:"https://www.orekit.org" },
+
+  /* ── PAPERS ─────────────────────────────────────────────── */
+  { cat:"papers", org:"Kessler & Cour-Palais (1978)", free:false,
+    title:"Collision Frequency of Artificial Satellites",
+    desc:"The foundational paper introducing what became known as the Kessler Syndrome — the concept of a self-sustaining debris cascade in LEO. Arguably the most important paper in the history of space debris research. Published in Journal of Geophysical Research.",
+    url:"https://doi.org/10.1029/JA083iA06p02637" },
+
+  { cat:"papers", org:"Alfriend et al. (1999)", free:false,
+    title:"Probability of Collision Error Analysis",
+    desc:"Defines the probability of collision formulation used as the industry standard for conjunction assessment. Introduces the combined covariance approach and the 2D Pc computation method still used by 18 SDS and NASA CARA today.",
+    url:"https://doi.org/10.1023/A:1008168728822" },
+
+  { cat:"papers", org:"Vallado & Crawford (2008)", free:true,
+    title:"SGP4 Orbit Determination",
+    desc:"Comprehensive treatment of SGP4 orbit determination from observations, mean element generation, and TLE fitting. Essential reading for anyone implementing or validating SGP4 propagation. Freely available via AIAA.",
+    url:"https://celestrak.org/publications/AIAA/2008-6770/" },
+
+  { cat:"papers", org:"Letizia et al. (ESA, 2019)", free:true,
+    title:"Extending the Continuum Approach for Debris Evolution",
+    desc:"Presents ESA's DELTA model for long-term debris environment evolution using a continuum (density-based) approach rather than Monte Carlo object-by-object simulation. Provides a computationally tractable method for century-scale debris projections.",
+    url:"https://doi.org/10.1016/j.actaastro.2019.01.039" },
+
+  { cat:"papers", org:"Oltrogge & Alfano (2019)", free:true,
+    title:"The Universal Pc Algorithm",
+    desc:"Proposes a unified probability of collision calculation framework reconciling multiple prior Pc methods. Addresses numerical edge cases in near-miss geometries where the classical Alfriend formulation breaks down. Widely cited in recent conjunction analysis work.",
+    url:"https://doi.org/10.1007/s10569-019-9927-z" },
+
+  /* ── STANDARDS ──────────────────────────────────────────── */
+  { cat:"standards", org:"IADC", free:true,
+    title:"IADC Space Debris Mitigation Guidelines",
+    desc:"The Inter-Agency Space Debris Coordination Committee guidelines — the internationally agreed baseline for debris mitigation. Covers protected orbital regions, passivation requirements, and the 25-year deorbit rule for LEO. The reference standard for compliance.",
+    url:"https://www.iadc-home.org/documents_public/view/id/82" },
+
+  { cat:"standards", org:"ISO", free:false,
+    title:"ISO 24113 — Space Debris Mitigation",
+    desc:"The formal ISO standard codifying space debris mitigation requirements for space systems. Provides normative requirements for mission design, operations, and end-of-life disposal. Referenced in national space law frameworks across multiple jurisdictions.",
+    url:"https://www.iso.org/standard/72383.html" },
+
+  { cat:"standards", org:"CCSDS", free:true,
+    title:"Conjunction Data Message (CDM) Standard",
+    desc:"The CCSDS 508.0-B standard defines the format of Conjunction Data Messages used by 18 SDS, NASA CARA, and commercial screening services. Understanding the CDM format is essential for automated conjunction assessment pipelines.",
+    url:"https://public.ccsds.org/Pubs/508x0b1e2c2.pdf" },
+
+  { cat:"standards", org:"FCC / ITU", free:true,
+    title:"FCC Orbital Debris Mitigation Rules",
+    desc:"The US Federal Communications Commission's orbital debris mitigation rules (47 CFR Part 25), updated in 2022 to require a 5-year post-mission disposal rule for satellites below 2000 km. Required reading for any US-licensed satellite operator.",
+    url:"https://www.fcc.gov/document/fcc-updates-orbital-debris-mitigation-rules" },
+
+  { cat:"standards", org:"NASA", free:true,
+    title:"NASA-STD-8719.14B — Process for Limiting Orbital Debris",
+    desc:"NASA's internal standard for limiting orbital debris generation, used as a design requirement for all NASA missions. More stringent than IADC guidelines in several areas. Provides detailed requirements for mission planning, debris assessment, and reporting.",
+    url:"https://standards.nasa.gov/standard/nasa/nasa-std-871914" },
+
+  /* ── COURSES & LEARNING ─────────────────────────────────── */
+  { cat:"courses", org:"MIT OpenCourseWare", free:true,
+    title:"16.346 — Astrodynamics",
+    desc:"MIT's graduate astrodynamics course covering orbital mechanics, Lambert's problem, orbit determination, and spacecraft navigation. Lecture notes and problem sets freely available. One of the most rigorous freely accessible astrodynamics curricula online.",
+    url:"https://ocw.mit.edu/courses/16-346-astrodynamics-fall-2008/" },
+
+  { cat:"courses", org:"ESA Academy", free:true,
+    title:"ESA Space Debris Training Course",
+    desc:"ESA's dedicated training program on space debris — environment models, mitigation measures, debris removal technologies, and regulatory landscape. Offered periodically as in-person and online formats. Directly relevant to VectraSpace's domain.",
+    url:"https://www.esa.int/Enabling_Support/Space_Engineering_Technology/Space_Debris_Training_Course" },
+
+  { cat:"courses", org:"Coursera / University of Colorado", free:false,
+    title:"Spacecraft Dynamics and Control Specialization",
+    desc:"Four-course specialization covering attitude dynamics, kinematics, control systems, and mission simulation. Highly rated, mathematically rigorous, and directly applicable to satellite conjunction and maneuver planning contexts.",
+    url:"https://www.coursera.org/specializations/spacecraft-dynamics-control" },
+
+  { cat:"courses", org:"AGI / Ansys", free:true,
+    title:"STK Fundamentals Online Training",
+    desc:"Free self-paced online training for Systems Tool Kit (STK), the industry-standard orbital analysis platform. Covers satellite access analysis, coverage, conjunction analysis, and sensor modeling. Certification available upon completion.",
+    url:"https://training.ansys.com/odl/stk_fundamentals/" },
+
+  { cat:"courses", org:"Wertz & Larson (Textbook)", free:false,
+    title:"Space Mission Engineering: The New SMAD",
+    desc:"The reference textbook for space systems engineering — covers orbit design, propulsion, power, communications, and mission operations. Universally recommended as the first technical book for anyone entering the space industry.",
+    url:"https://www.smad.com" },
+
+];
+
+var activeFilter = "all";
+var searchQuery  = "";
+
+function tagClass(cat){ return "tag tag-" + cat; }
+function tagLabel(cat){
+  return {data:"Data & Catalogs", tools:"Tools", papers:"Papers",
+          standards:"Standards", courses:"Courses"}[cat] || cat;
+}
+
+function arrowSVG(){
+  return '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+}
+
+function render(){
+  var q = searchQuery.toLowerCase();
+  var filtered = RESOURCES.filter(function(r){
+    if(activeFilter !== "all" && r.cat !== activeFilter) return false;
+    if(!q) return true;
+    return r.title.toLowerCase().indexOf(q) !== -1
+        || r.desc.toLowerCase().indexOf(q) !== -1
+        || r.org.toLowerCase().indexOf(q) !== -1;
   });
 
-  /* ---- render ---- */
-  function renderList(list, append, source) {
-    if (!append) {
-      grid.innerHTML = "";
-      OFFSET = 0;
+  var grid = document.getElementById("rs-grid");
+  var meta = document.getElementById("rs-meta");
+  meta.textContent = filtered.length + " resource" + (filtered.length !== 1 ? "s" : "");
+
+  if(filtered.length === 0){
+    grid.innerHTML = '<div class="empty">No resources match your search.</div>';
+    return;
+  }
+
+  /* Group by category in a defined order */
+  var ORDER = ["data","tools","papers","standards","courses"];
+  var groups = {};
+  ORDER.forEach(function(c){ groups[c] = []; });
+  filtered.forEach(function(r){ if(groups[r.cat]) groups[r.cat].push(r); });
+
+  var html = "";
+  ORDER.forEach(function(cat){
+    var items = groups[cat];
+    if(!items.length) return;
+    /* Section divider if showing all */
+    if(activeFilter === "all"){
+      html += '<div class="section-label">'
+            + '<span class="section-label-text" style="color:var(--' +
+              {data:"accent",tools:"green",papers:"amber",standards:"red",courses:"purple"}[cat]
+            + ')">' + tagLabel(cat) + '</span>'
+            + '<span class="section-label-line"></span>'
+            + '</div>';
     }
-    list.forEach(function (art, i) {
-      grid.innerHTML += makeCard(art, !append && i === 0 && !QUERY);
-    });
-    OFFSET += list.length;
-    var label = TYPE === "blogs" ? "blog posts" : TYPE === "reports" ? "reports" : "articles";
-    metaEl.textContent = OFFSET + (TOTAL > OFFSET ? " of " + TOTAL : "") + " " + label;
-    srcEl.textContent  = source || "";
-    if (TOTAL > OFFSET && liveOK) {
-      moreBtn.style.display = "block";
-      moreBtn.disabled      = false;
-      moreBtn.textContent   = "Load More →";
-    } else {
-      moreBtn.style.display = "none";
-    }
-  }
-
-  /* ============================================================
-     STEP 1: Show fallback articles IMMEDIATELY — zero wait
-     ============================================================ */
-  function showFallback(filtered) {
-    var list = filtered !== undefined ? filtered : FALLBACK;
-    TOTAL = list.length;
-    liveOK = false;
-    renderList(list, false, "Curated · " + list.length + " articles");
-  }
-
-  /* ============================================================
-     STEP 2: Try live fetch in background — swap if successful
-     ============================================================ */
-  function tryLiveFetch() {
-    pbStart("Checking for live articles…");
-    var ac    = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = ac ? setTimeout(function () { ac.abort(); }, 8000) : null;
-    var url   = "https://api.spaceflightnewsapi.net/v4/" + TYPE
-              + "/?limit=" + LIMIT + "&offset=0";
-    if (QUERY) url += "&search=" + encodeURIComponent(QUERY);
-    var opts  = ac ? {signal: ac.signal} : {};
-
-    fetch(url, opts)
-      .then(function (r) {
-        clearTimeout(timer);
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
-      .then(function (data) {
-        var results = Array.isArray(data.results) ? data.results : [];
-        if (results.length === 0) { pbFail("No live articles found"); return; }
-        liveOK = true;
-        TOTAL  = typeof data.count === "number" ? data.count : results.length;
-        OFFSET = 0;
-        hideNotice();
-        renderList(results, false, "Spaceflight News API · live");
-        pbDone("Live feed loaded ✔");
-      })
-      .catch(function (err) {
-        clearTimeout(timer);
-        var msg = err && err.name === "AbortError" ? "Live feed timed out" : "Live feed unavailable";
-        pbFail(msg);
-        showNotice("⚠",
-          "<strong>Showing curated articles.</strong> Could not reach Spaceflight News API. "
-          + "<a href=\"#\" id=\"rl\">Retry →</a>"
-        );
-        var rl = document.getElementById("rl");
-        if (rl) rl.addEventListener("click", function (e) {
-          e.preventDefault(); hideNotice(); tryLiveFetch();
-        });
-      });
-  }
-
-  /* ---- load more (live only) ---- */
-  moreBtn.addEventListener("click", function () {
-    if (!liveOK || busy) return;
-    busy = true;
-    moreBtn.disabled = true;
-    moreBtn.textContent = "Loading…";
-    pbStart("Loading more…");
-    var url = "https://api.spaceflightnewsapi.net/v4/" + TYPE
-            + "/?limit=" + LIMIT + "&offset=" + OFFSET;
-    fetch(url)
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        busy = false;
-        var results = Array.isArray(data.results) ? data.results : [];
-        TOTAL = typeof data.count === "number" ? data.count : TOTAL;
-        renderList(results, true, "Spaceflight News API · live");
-        pbDone("Loaded " + results.length + " more");
-      })
-      .catch(function () {
-        busy = false;
-        moreBtn.disabled = false;
-        moreBtn.textContent = "Retry →";
-        pbFail("Failed to load more");
-      });
-  });
-
-  /* ---- search ---- */
-  document.getElementById("ns-search").addEventListener("input", function () {
-    clearTimeout(debTimer);
-    var v = this.value.trim();
-    debTimer = setTimeout(function () {
-      QUERY = v;
-      if (QUERY) {
-        /* filter fallback locally if live isn't available */
-        var ql = QUERY.toLowerCase();
-        var filtered = FALLBACK.filter(function (a) {
-          return a.title.toLowerCase().indexOf(ql) !== -1
-              || a.summary.toLowerCase().indexOf(ql) !== -1
-              || (a.news_site && a.news_site.toLowerCase().indexOf(ql) !== -1);
-        });
-        showFallback(filtered);
-      } else {
-        showFallback();
-      }
-      if (liveOK || !QUERY) tryLiveFetch();
-    }, 350);
-  });
-
-  /* ---- type filter ---- */
-  document.querySelectorAll(".fbtn[data-type]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      document.querySelectorAll(".fbtn[data-type]").forEach(function (b) { b.classList.remove("on"); });
-      btn.classList.add("on");
-      TYPE  = btn.dataset.type;
-      QUERY = "";
-      document.getElementById("ns-search").value = "";
-      /* show fallback immediately, then try live */
-      showFallback();
-      tryLiveFetch();
+    items.forEach(function(r){
+      html += '<a class="card" href="' + r.url + '" target="_blank" rel="noopener">'
+            + '<div class="card-top">'
+            + '<div class="card-meta">'
+            + '<span class="' + tagClass(r.cat) + '">' + tagLabel(r.cat) + '</span>'
+            + '<span class="card-org">' + r.org + '</span>'
+            + '</div>'
+            + '<div class="card-title">' + r.title + '</div>'
+            + '<div class="card-desc">' + r.desc + '</div>'
+            + '</div>'
+            + '<div class="card-foot">'
+            + '<span class="card-link-label">Open resource ' + arrowSVG() + '</span>'
+            + (r.free ? '<span class="card-free">Free</span>' : '<span style="font-family:var(--mono);font-size:7px;letter-spacing:1px;color:var(--faint);">Paid / Login</span>')
+            + '</div>'
+            + '</a>';
     });
   });
 
-  /* ============================================================
-     INIT: Show content immediately, try live in background
-     ============================================================ */
-  showFallback();          /* instant — always works */
-  tryLiveFetch();          /* async — upgrades to live if possible */
+  grid.innerHTML = html;
+}
 
-}());
+/* Search */
+document.getElementById("rs-search").addEventListener("input", function(){
+  searchQuery = this.value.trim();
+  render();
+});
+
+/* Filters */
+document.querySelectorAll(".fbtn[data-cat]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.querySelectorAll(".fbtn[data-cat]").forEach(function(b){ b.classList.remove("on"); });
+    btn.classList.add("on");
+    activeFilter = btn.dataset.cat;
+    render();
+  });
+});
+
+render();
 </script>
 </body>
 </html>"""
