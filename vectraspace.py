@@ -1,4 +1,4 @@
-"""VectraSpace v11 — Orbital Safety Platform"""
+"""VectraSpace Orbital Safety Platform"""
 
 import os
 import sys
@@ -7407,6 +7407,15 @@ nav.scrolled {
   transition: all 0.2s; white-space: nowrap;
 }
 .nav-cta:hover { background: var(--accent); color: var(--ink); }
+.nav-signin {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; text-decoration: none;
+  padding: 8px 16px; border: 1px solid var(--border);
+  border-radius: 3px; color: var(--muted);
+  transition: all 0.2s; white-space: nowrap;
+}
+.nav-signin:hover { color: var(--text); border-color: var(--border2); }
+
 /* Mobile hamburger */
 .nav-hamburger {
   display: none; flex-direction: column; gap: 5px; cursor: pointer;
@@ -8348,6 +8357,7 @@ footer {
     <li><a href="/calculator">Calculator</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
+  <a href="/login" class="nav-signin">Sign In</a>
   <a href="/dashboard" class="nav-cta">Dashboard →</a>
   <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -8360,6 +8370,7 @@ footer {
   <a href="/glossary">Resources <span>→</span></a>
   <a href="/calculator">Calculator <span>→</span></a>
   <a href="#contact">Contact <span>→</span></a>
+  <a href="/login" class="cta-link" style="background:var(--accent);color:var(--ink);">Sign In / Create Account →</a>
   <a href="/dashboard" class="cta-link">Open Dashboard →</a>
 </div>
 
@@ -11522,36 +11533,8 @@ ADMIN_HTML = """<!DOCTYPE html>
   </div>
   <div class="analytics-card">
     <div id="analytics-section">
-      <div class="analytics-placeholder">
-        <div class="icon">📊</div>
-        <p>Umami Analytics Not Configured</p>
-        <p style="font-size:10px;color:var(--text);opacity:0.6;margin:8px 0 16px;font-family:DM Sans,sans-serif;letter-spacing:0;">
-          Add free website analytics in 2 minutes. Tracks visits, pageviews, countries, devices — with no cookies or GDPR issues.
-        </p>
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-          <a href="https://cloud.umami.is/signup" target="_blank"
-             style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
-                    padding:10px 20px;border:1px solid var(--accent);border-radius:3px;
-                    color:var(--accent);text-decoration:none;text-transform:uppercase;
-                    transition:all 0.2s;"
-             onmouseover="this.style.background='rgba(0,212,255,0.1)'"
-             onmouseout="this.style.background='transparent'">
-            → Create Free Umami Account
-          </a>
-          <a href="https://analytics.google.com" target="_blank"
-             style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
-                    padding:10px 20px;border:1px solid var(--border);border-radius:3px;
-                    color:var(--muted);text-decoration:none;text-transform:uppercase;
-                    transition:all 0.2s;"
-             onmouseover="this.style.background='rgba(255,255,255,0.03)'"
-             onmouseout="this.style.background='transparent'">
-            → Use Google Analytics
-          </a>
-        </div>
-        <div class="umami-script-box" onclick="copyUmamiInstructions()" id="umami-box">
-Once you have your Umami script tag, add UMAMI_SCRIPT_URL and UMAMI_WEBSITE_ID to your Render environment variables, then redeploy. VectraSpace will inject it automatically into every page.
-        </div>
-      </div>
+      <!-- renderAnalytics() populates this -->
+      <div style="padding:40px;text-align:center;font-family:Share Tech Mono,monospace;font-size:9px;color:#3a5a75;letter-spacing:2px;">LOADING ANALYTICS...</div>
     </div>
   </div>
 
@@ -11664,18 +11647,67 @@ async function loadAdmin() {
       }
     });
 
+    // Render analytics section
+    renderAnalytics(d.umami_url || '', d.umami_id || '');
+
   } catch(e) {
     console.error('Admin load failed:', e);
   }
 }
 
+function renderAnalytics(umami_url, umami_id) {
+  const section = document.getElementById('analytics-section');
+  if (!section) return;
+  if (umami_id) {
+    // Extract website slug for the share URL
+    const shareBase = 'https://cloud.umami.is/share/' + umami_id + '/vectraspace';
+    section.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent3);text-transform:uppercase;">
+          ● Umami Analytics · Live
+        </div>
+        <a href="${shareBase}" target="_blank"
+           style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;
+                  color:var(--accent);text-decoration:none;padding:4px 10px;
+                  border:1px solid var(--accent);border-radius:3px;text-transform:uppercase;
+                  transition:all 0.2s;"
+           onmouseover="this.style.background='rgba(0,212,255,0.1)'"
+           onmouseout="this.style.background='transparent'">
+          Open Full Dashboard →
+        </a>
+      </div>
+      <iframe
+        src="${shareBase}"
+        style="width:100%;height:600px;border:none;border-radius:6px;background:var(--bg2);"
+        loading="lazy"
+        title="Umami Analytics">
+      </iframe>`;
+  } else {
+    section.innerHTML = `
+      <div class="analytics-placeholder">
+        <div class="icon">📊</div>
+        <p>Umami Analytics Not Configured</p>
+        <p style="font-size:10px;color:var(--text);opacity:0.6;margin:8px 0 16px;font-family:sans-serif;">
+          Add free website analytics in 2 minutes. Tracks visits, pageviews, countries, devices — no cookies, no GDPR issues.
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <a href="https://cloud.umami.is/signup" target="_blank"
+             style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+                    padding:10px 20px;border:1px solid var(--accent);border-radius:3px;
+                    color:var(--accent);text-decoration:none;text-transform:uppercase;">
+            → Create Free Umami Account
+          </a>
+        </div>
+        <div class="umami-script-box" style="margin-top:16px;">
+          Set UMAMI_WEBSITE_ID env var on Render, then redeploy.
+        </div>
+      </div>`;
+  }
+}
+
 function copyUmamiInstructions() {
-  const text = 'UMAMI_SCRIPT_URL=https://cloud.umami.is/script.js\nUMEAMI_WEBSITE_ID=your-website-id-here';
-  navigator.clipboard.writeText(text).then(() => {
-    const box = document.getElementById('umami-box');
-    box.style.borderColor = 'var(--accent3)';
-    setTimeout(() => box.style.borderColor = '', 1500);
-  });
+  const text = 'UMAMI_SCRIPT_URL=https://cloud.umami.is/script.js\nUMAMI_WEBSITE_ID=your-website-id-here';
+  navigator.clipboard.writeText(text).catch(() => {});
 }
 
 loadAdmin();
@@ -11785,11 +11817,6 @@ def build_api(cfg: Config):
     # ── Landing page (public marketing page) ─────────────────
     @app.get("/", response_class=HTMLResponse)
     def landing(request: Request):
-        # If user already has a valid session, redirect to dashboard
-        user = get_current_user_from_request(request, cfg)
-        if user:
-            from fastapi.responses import RedirectResponse
-            return RedirectResponse(url="/dashboard", status_code=302)
         return HTMLResponse(content=LANDING_HTML)
 
     @app.get("/welcome", response_class=HTMLResponse)
@@ -13068,6 +13095,14 @@ def build_api(cfg: Config):
             total_conj = 0; total_runs = 0
             recent_out = []; daily_out = []; regime_out = []
 
+        _umami_url = os.environ.get("UMAMI_SCRIPT_URL", "")
+        _umami_id  = os.environ.get("UMAMI_WEBSITE_ID", "")
+        # Also check hardcoded fallback from the dashboard script tag
+        if not _umami_id:
+            _umami_id = "4e12fc04-8b26-4e42-8b69-0700a95c7d30"
+        if not _umami_url:
+            _umami_url = "https://cloud.umami.is/script.js"
+
         return {
             "total_users":        len(all_users),
             "total_scan_runs":    total_runs,
@@ -13077,6 +13112,8 @@ def build_api(cfg: Config):
             "recent_conjunctions": recent_out,
             "daily_scans":        daily_out,
             "regime_breakdown":   regime_out,
+            "umami_url":          _umami_url,
+            "umami_id":           _umami_id,
         }
 
     @app.get("/health")
