@@ -433,26 +433,75 @@ def check_conjunctions(all_tracks: list, cfg: Config, ts,
 
     skipped = 0
 
-    # ── ISS/CSS module filter ─────────────────────────────────────────────
-    # Objects that are docked/attached modules of the same station will
-    # always be close — skip pairs where both names contain the same
-    # station keyword to avoid false-positive conjunction alerts.
-    STATION_KEYWORDS = [
+    # ── ISS/CSS module & same-object filter ─────────────────────────────
+    # Skip pairs where both objects belong to the same space station or
+    # are docked/attached modules — they are always physically close and
+    # will always trigger false-positive conjunction alerts.
+    import re as _re
+
+    # ── Permanent ISS structural modules (always co-located) ────
+    ISS_PERMANENT = {
         "ISS", "ZARYA", "ZVEZDA", "UNITY", "DESTINY", "HARMONY",
         "TRANQUILITY", "SERENITY", "COLUMBUS", "KIBO", "QUEST",
         "PIRS", "POISK", "RASSVET", "NAUKA", "PRICHAL",
-        "CSS", "TIANHE", "WENTIAN", "MENGTIAN",
-    ]
+        "BISHOP", "NANORACKS",
+    }
+    # Visiting vehicles — only skip if paired with another ISS/CSS object
+    ISS_VISITING = {"SOYUZ", "PROGRESS", "CYGNUS", "DRAGON", "STARLINER", "HTV", "ATV"}
+    # CSS permanent modules
+    CSS_PERMANENT = {"TIANHE", "WENTIAN", "MENGTIAN"}
+    CSS_VISITING  = {"CSS", "TIANZHOU", "SHENZHOU"}
+
+    def _is_iss_permanent(name: str) -> bool:
+        nu = name.upper()
+        return any(kw in nu for kw in ISS_PERMANENT)
+
+    def _is_iss_family(name: str) -> bool:
+        nu = name.upper()
+        return any(kw in nu for kw in ISS_PERMANENT | ISS_VISITING)
+
+    def _is_css_permanent(name: str) -> bool:
+        nu = name.upper()
+        return any(kw in nu for kw in CSS_PERMANENT)
+
+    def _is_css_family(name: str) -> bool:
+        nu = name.upper()
+        return any(kw in nu for kw in CSS_PERMANENT | CSS_VISITING)
+
     def _same_station(n1: str, n2: str) -> bool:
-        n1u, n2u = n1.upper(), n2.upper()
-        for kw in STATION_KEYWORDS:
-            if kw in n1u and kw in n2u:
-                return True
-        # Also skip if names are identical except for a trailing number/letter
-        import re as _re
-        base1 = _re.sub(r'[\s\-_][\dA-Z]$', '', n1u)
-        base2 = _re.sub(r'[\s\-_][\dA-Z]$', '', n2u)
-        return base1 == base2 and len(base1) > 4
+        # Two permanent ISS modules are always co-located → skip
+        if _is_iss_permanent(n1) and _is_iss_permanent(n2):
+            return True
+        # A visiting vehicle paired with a permanent ISS module → skip
+        if _is_iss_family(n1) and _is_iss_permanent(n2):
+            return True
+        if _is_iss_permanent(n1) and _is_iss_family(n2):
+            return True
+        # Two visiting ISS vehicles (e.g. two docked Soyuz) → skip
+        if _is_iss_family(n1) and _is_iss_family(n2):
+            return True
+        # Same logic for CSS
+        if _is_css_permanent(n1) and _is_css_permanent(n2):
+            return True
+        if _is_css_family(n1) and _is_css_permanent(n2):
+            return True
+        if _is_css_permanent(n1) and _is_css_family(n2):
+            return True
+        if _is_css_family(n1) and _is_css_family(n2):
+            return True
+        # Identical name root (same object, different designation suffix)
+        # e.g. "STARLINK-1234 A" vs "STARLINK-1234 B"
+        base1 = _re.sub(r'[\s\-_]?[\dA-Z]{1,2}$', '', n1.upper()).strip()
+        base2 = _re.sub(r'[\s\-_]?[\dA-Z]{1,2}$', '', n2.upper()).strip()
+        if base1 == base2 and len(base1) > 5:
+            return True
+        # "ISS (ZARYA)" object variants — any name containing ISS paired
+        # with any other ISS-family name
+        if "ISS" in n1.upper() and _is_iss_family(n2):
+            return True
+        if "ISS" in n2.upper() and _is_iss_family(n1):
+            return True
+        return False
     
     for i in range(n):
         t1 = all_tracks[i]
@@ -2587,20 +2636,18 @@ DASHBOARD_HTML = """<!DOCTYPE html>
         <div style="display:flex;gap:8px;">
           <div class="field" style="flex:1;margin-bottom:0">
             <label>LEO</label>
-            <input type="number" id="num_leo" placeholder="100" min="1" max="300">
+            <input type="number" id="num_leo" placeholder="100" min="1" max="2000">
           </div>
           <div class="field" style="flex:1;margin-bottom:0">
             <label>MEO</label>
-            <input type="number" id="num_meo" placeholder="50" min="1" max="100">
+            <input type="number" id="num_meo" placeholder="50" min="1" max="500">
           </div>
           <div class="field" style="flex:1;margin-bottom:0">
             <label>GEO</label>
-            <input type="number" id="num_geo" placeholder="20" min="1" max="50">
+            <input type="number" id="num_geo" placeholder="20" min="1" max="200">
           </div>
         </div>
-        <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.5px;color:var(--faint);margin-top:5px;text-align:right;">
-          Max: 300 / 100 / 50 &nbsp;·&nbsp; RAM-safe limits
-        </div>
+
       </div>
 
       <div class="section">
@@ -3823,26 +3870,10 @@ async function runDetection() {
     return v;
   }
 
-  // ── Hard limits (RAM/CPU safety) ──────────────────────────
-  const MAX_LEO = 300, MAX_MEO = 100, MAX_GEO = 50;
-  const raw_leo = _intVal('num_leo', 100);
-  const raw_meo = _intVal('num_meo', 50);
-  const raw_geo = _intVal('num_geo', 20);
-  if (raw_leo > MAX_LEO || raw_meo > MAX_MEO || raw_geo > MAX_GEO) {
-    const over = [];
-    if (raw_leo > MAX_LEO) over.push(`LEO max ${MAX_LEO} (requested ${raw_leo})`);
-    if (raw_meo > MAX_MEO) over.push(`MEO max ${MAX_MEO} (requested ${raw_meo})`);
-    if (raw_geo > MAX_GEO) over.push(`GEO max ${MAX_GEO} (requested ${raw_geo})`);
-    addLog('⚠ Scan limit exceeded — ' + over.join(', '), 'warn');
-    addLog('Limits protect server RAM (513 MB) and CPU (0.5 core). Reduce counts and retry.', 'warn');
-    setStatus('Input exceeds safe limits', 'error');
-    resetBtn();
-    return;
-  }
   const params = {
-    num_leo: Math.min(raw_leo, MAX_LEO),
-    num_meo: Math.min(raw_meo, MAX_MEO),
-    num_geo: Math.min(raw_geo, MAX_GEO),
+    num_leo: _intVal('num_leo', 100),
+    num_meo: _intVal('num_meo', 50),
+    num_geo: _intVal('num_geo', 20),
     time_window_hours: _floatVal('time_window', 12),
     collision_alert_km: _floatVal('alert_km', 10),
     refine_threshold_km: _floatVal('refine_km', 50),
@@ -12139,15 +12170,10 @@ def build_api(cfg: Config):
                 # Load saved user preferences to augment alert config
                 user_prefs = _get_user_prefs(user["username"], cfg)
 
-                # Hard server-side clamp — protects against direct API calls
-                _MAX_LEO, _MAX_MEO, _MAX_GEO = 300, 100, 50
-                if num_leo > _MAX_LEO or num_meo > _MAX_MEO or num_geo > _MAX_GEO:
-                    yield f"data: {_json.dumps({'type':'error','text':f'Scan limits exceeded. Max: LEO {_MAX_LEO}, MEO {_MAX_MEO}, GEO {_MAX_GEO}. Requested: LEO {num_leo}, MEO {num_meo}, GEO {num_geo}.'})}\n\n"
-                    return
                 run_cfg = Config(
-                    num_leo=min(num_leo, _MAX_LEO),
-                    num_meo=min(num_meo, _MAX_MEO),
-                    num_geo=min(num_geo, _MAX_GEO),
+                    num_leo=num_leo,
+                    num_meo=num_meo,
+                    num_geo=num_geo,
                     time_window_hours=time_window_hours,
                     collision_alert_km=collision_alert_km,
                     refine_threshold_km=refine_threshold_km,
