@@ -1,4 +1,4 @@
-"""VectraSpace Orbital Safety Platform"""
+"""VectraSpace v11 — Orbital Safety Platform"""
 
 import os
 import sys
@@ -7373,10 +7373,13 @@ body {
 /* ── NAV ── */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-  height: 64px; padding: 0 48px;
-  display: flex; align-items: center; justify-content: space-between;
+  height: 60px; padding: 0 40px;
+  display: flex; align-items: center; gap: 0;
   transition: background 0.4s, border-color 0.4s;
   border-bottom: 1px solid transparent;
+}
+.nav-right {
+  display: flex; align-items: center; gap: 8px; margin-left: auto;
 }
 nav.scrolled {
   background: rgba(8,12,18,0.94);
@@ -7392,7 +7395,8 @@ nav.scrolled {
 }
 .nav-brand-name em { color: var(--accent); font-style: normal; }
 .nav-links {
-  display: flex; gap: 24px; list-style: none; align-items: center;
+  display: flex; gap: 20px; list-style: none; align-items: center;
+  flex: 1; justify-content: center;
 }
 .nav-links a {
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;
@@ -8221,10 +8225,11 @@ footer {
    RESPONSIVE — TABLET  (≤960px)
    ═══════════════════════════════════════════════════ */
 @media (max-width: 960px) {
-  nav { padding: 0 20px; }
+  nav { padding: 0 16px; }
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
   .nav-cta { display: none; }
+  .nav-signin { display: none; }
   .section-wrap { padding: 0 20px; }
   .mission-grid, .kessler-inner { grid-template-columns: 1fr; gap: 40px; }
   .ssa-pillars { grid-template-columns: 1fr 1fr; }
@@ -8317,6 +8322,15 @@ footer {
 
   /* ── Contact ── */
   #contact { padding: 60px 0 !important; }
+  /* Team cards: horizontal scroll on mobile */
+  .team-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  .team-grid > div { min-width: 240px; }
   #contact .container { padding: 0 16px !important; }
   #contact .reveal > div { padding: 28px 16px !important; }
   .contact-bio-row { flex-direction: column !important; gap: 20px !important; align-items: center !important; text-align: center !important; }
@@ -8357,8 +8371,10 @@ footer {
     <li><a href="/calculator">Calculator</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
-  <a href="/login" class="nav-signin">Sign In</a>
-  <a href="/dashboard" class="nav-cta">Dashboard →</a>
+  <div class="nav-right">
+    <a href="/login" class="nav-signin">Sign In</a>
+    <a href="/dashboard" class="nav-cta">Dashboard →</a>
+  </div>
   <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
@@ -8456,11 +8472,38 @@ footer {
 </div>
 
 
-<!-- WHY IT MATTERS (condensed Mission + SSA + Kessler) -->
-<section id="why" style="padding:80px 0 60px;">
+<!-- MISSION / WHY IT MATTERS -->
+<div id="mission" style="position:relative;top:-60px;pointer-events:none;"></div>
+<section id="why"  style="padding:80px 0 60px;">
   <div class="section-wrap">
-    <div class="reveal" style="text-align:center;margin-bottom:48px;">
-      <div class="section-label" style="justify-content:center;">// Why orbital safety matters</div>
+    <!-- ── WHY WE EXIST ── -->
+    <div class="reveal" style="text-align:center;margin-bottom:56px;">
+      <div class="section-label" style="justify-content:center;">// Our Mission</div>
+      <h2 class="section-title" style="margin-bottom:20px;">Built because the physics<br><em>deserves to be understood</em></h2>
+      <p style="font-size:15px;color:var(--muted);max-width:600px;margin:0 auto 40px;line-height:1.85;">
+        VectraSpace exists because orbital safety is one of the most consequential engineering
+        problems of our generation — and almost no one outside the industry understands it.
+        We built a platform where anyone can engage with the real mathematics: not simplified
+        metaphors, but the actual SGP4 propagation, Foster-Alfano probability of collision,
+        and Kessler cascade physics that real SSA operators use every day.
+      </p>
+      <div style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--accent);">Free</span>
+          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Always &amp; Forever</span>
+        </div>
+        <div style="width:1px;background:var(--border);"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--green);">Real</span>
+          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Physics &amp; Data</span>
+        </div>
+        <div style="width:1px;background:var(--border);"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--amber);">Open</span>
+          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">No Account Needed</span>
+        </div>
+      </div>
+      <div class="section-label" style="justify-content:center;margin-bottom:8px;">// Why orbital safety matters</div>
       <h2 class="section-title">The orbital environment<br>is <em>running out of time</em></h2>
     </div>
     <div class="why-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
@@ -8896,7 +8939,7 @@ footer {
     </div>
 
     <!-- two-card grid -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:60px;">
+    <div class="team-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:60px;">
 
       <!-- ── Truman card ── -->
       <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
