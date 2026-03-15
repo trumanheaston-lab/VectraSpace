@@ -20,7 +20,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 
-# ── Manual .env loader — bypasses dotenv OneDrive issues ──────
 def _load_env():
     """Read .env from the same folder as this script and inject into os.environ."""
     env_path = Path(__file__).parent / ".env"
@@ -56,10 +55,6 @@ except ImportError:
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("VectraSpace")
-
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  CONFIG                                                      ║
-# ╚══════════════════════════════════════════════════════════════╝
 
 @dataclass
 class Config:
@@ -114,8 +109,6 @@ CFG = Config(
     collision_alert_km=float(os.environ.get("COLLISION_ALERT_KM", "10000.0")),
 )
 
-# ── In-memory per-user rate limiter for /run ──────────────────
-# { username -> [timestamp, ...] }
 _run_rate_limits: dict = {}
 
 def _check_run_rate_limit(username: str, window_seconds: int = 300) -> bool:
@@ -127,10 +120,6 @@ def _check_run_rate_limit(username: str, window_seconds: int = 300) -> bool:
         return False
     _run_rate_limits[username].append(now)
     return True
-
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 1 — DATA INGESTION                                   ║
-# ╚══════════════════════════════════════════════════════════════╝
 
 SPACETRACK_LOGIN_URL = "https://www.space-track.org/ajaxauth/login"
 SPACETRACK_TLE_URL  = "https://www.space-track.org/basicspacedata/query/class/gp/decay_date/null-val/epoch/%3Enow-30/orderby/norad_cat_id/format/tle"
@@ -224,10 +213,6 @@ def filter_by_regime(satellites, ts) -> dict:
         log.info(f"  {name}: {len(sats)} satellites found")
     return buckets
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 2 — PROPAGATION (vectorized)                         ║
-# ╚══════════════════════════════════════════════════════════════╝
-
 @dataclass
 class SatTrack:
     name: str
@@ -258,10 +243,6 @@ def propagate_satellites(sat_list: list, regime: str, cfg: Config, ts) -> list:
 
     log.info(f"  Propagated {len(tracks)}/{len(sat_list)} {regime} satellites")
     return tracks, times
-
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 3 — COLLISION DETECTION                              ║
-# ╚══════════════════════════════════════════════════════════════╝
 
 @dataclass
 class ManeuverSuggestion:
@@ -433,22 +414,15 @@ def check_conjunctions(all_tracks: list, cfg: Config, ts,
 
     skipped = 0
 
-    # ── ISS/CSS module & same-object filter ─────────────────────────────
-    # Skip pairs where both objects belong to the same space station or
-    # are docked/attached modules — they are always physically close and
-    # will always trigger false-positive conjunction alerts.
     import re as _re
 
-    # ── Permanent ISS structural modules (always co-located) ────
     ISS_PERMANENT = {
         "ISS", "ZARYA", "ZVEZDA", "UNITY", "DESTINY", "HARMONY",
         "TRANQUILITY", "SERENITY", "COLUMBUS", "KIBO", "QUEST",
         "PIRS", "POISK", "RASSVET", "NAUKA", "PRICHAL",
         "BISHOP", "NANORACKS",
     }
-    # Visiting vehicles — only skip if paired with another ISS/CSS object
     ISS_VISITING = {"SOYUZ", "PROGRESS", "CYGNUS", "DRAGON", "STARLINER", "HTV", "ATV"}
-    # CSS permanent modules
     CSS_PERMANENT = {"TIANHE", "WENTIAN", "MENGTIAN"}
     CSS_VISITING  = {"CSS", "TIANZHOU", "SHENZHOU"}
 
@@ -469,18 +443,14 @@ def check_conjunctions(all_tracks: list, cfg: Config, ts,
         return any(kw in nu for kw in CSS_PERMANENT | CSS_VISITING)
 
     def _same_station(n1: str, n2: str) -> bool:
-        # Two permanent ISS modules are always co-located → skip
         if _is_iss_permanent(n1) and _is_iss_permanent(n2):
             return True
-        # A visiting vehicle paired with a permanent ISS module → skip
         if _is_iss_family(n1) and _is_iss_permanent(n2):
             return True
         if _is_iss_permanent(n1) and _is_iss_family(n2):
             return True
-        # Two visiting ISS vehicles (e.g. two docked Soyuz) → skip
         if _is_iss_family(n1) and _is_iss_family(n2):
             return True
-        # Same logic for CSS
         if _is_css_permanent(n1) and _is_css_permanent(n2):
             return True
         if _is_css_family(n1) and _is_css_permanent(n2):
@@ -489,14 +459,10 @@ def check_conjunctions(all_tracks: list, cfg: Config, ts,
             return True
         if _is_css_family(n1) and _is_css_family(n2):
             return True
-        # Identical name root (same object, different designation suffix)
-        # e.g. "STARLINK-1234 A" vs "STARLINK-1234 B"
         base1 = _re.sub(r'[\s\-_]?[\dA-Z]{1,2}$', '', n1.upper()).strip()
         base2 = _re.sub(r'[\s\-_]?[\dA-Z]{1,2}$', '', n2.upper()).strip()
         if base1 == base2 and len(base1) > 5:
             return True
-        # "ISS (ZARYA)" object variants — any name containing ISS paired
-        # with any other ISS-family name
         if "ISS" in n1.upper() and _is_iss_family(n2):
             return True
         if "ISS" in n2.upper() and _is_iss_family(n1):
@@ -508,7 +474,6 @@ def check_conjunctions(all_tracks: list, cfg: Config, ts,
         for j in range(i + 1, n):
             t2 = all_tracks[j]
 
-            # Skip ISS/CSS module pairs — they're always close
             if _same_station(t1.name, t2.name):
                 skipped += 1
                 continue
@@ -567,15 +532,10 @@ def check_conjunctions(all_tracks: list, cfg: Config, ts,
     log.info(f"Found {len(conjunctions)} conjunctions — {skipped} pairs skipped by pre-filter")
     return conjunctions
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 4 — DATABASE LOGGING                                 ║
-# ╚══════════════════════════════════════════════════════════════╝
-
 def init_db(cfg: Config):
     """Initialize DB with auto-migration for v11 schema additions."""
     con = sqlite3.connect(cfg.db_path)
 
-    # Base conjunctions table
     con.execute("""
         CREATE TABLE IF NOT EXISTS conjunctions (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -660,10 +620,6 @@ def log_conjunctions_to_db(conjunctions: list, con, run_time: str, user_id: Opti
     con.commit()
     log.info(f"Logged {len(rows)} conjunctions to database (user_id={user_id})")
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 4b — CDM EXPORT                                      ║
-# ╚══════════════════════════════════════════════════════════════╝
-
 def generate_cdm(c, run_time: str) -> str:
     now = datetime.datetime.utcnow()
     tca = now + datetime.timedelta(minutes=c.time_min)
@@ -720,10 +676,6 @@ COMMENT Time to CA: +{int(c.time_min // 60)}h {int(c.time_min % 60):02d}m
 """
     return cdm
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 4c — COVARIANCE INGESTION                            ║
-# ╚══════════════════════════════════════════════════════════════╝
-
 SPACETRACK_CDM_URL = (
     "https://www.space-track.org/basicspacedata/query/class/cdm_public"
     "/orderby/TCA desc/limit/100/format/json"
@@ -779,10 +731,6 @@ def fetch_covariance_cache(cfg: Config) -> dict:
         log.warning(f"Covariance ingestion failed ({e}) — using assumed sigmas")
         return {}
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 4d — DEBRIS CLOUD SIMULATION                         ║
-# ╚══════════════════════════════════════════════════════════════╝
-
 def generate_debris_cloud(parent_track, event_type: str, n_debris: int, ts) -> list:
     import math as _math
 
@@ -824,10 +772,6 @@ def generate_debris_cloud(parent_track, event_type: str, n_debris: int, ts) -> l
 
     log.info(f"Generated {len(debris_tracks)} debris objects from {parent_track.name} ({event_type})")
     return debris_tracks
-
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 5 — ALERTING                                         ║
-# ╚══════════════════════════════════════════════════════════════╝
 
 _EMAIL_CSS = """
   body { margin:0; padding:0; background:#050a0f; font-family:'Courier New',monospace; }
@@ -1034,10 +978,6 @@ def _build_html_complete_email(total_sats: int, conjunctions: list,
   </div>
 </div></body></html>"""
 
-# ── EMAIL-01: Multi-provider email engine ────────────────────
-# Provider is selected by EMAIL_PROVIDER env var.
-# Defaults to 'gmail' which uses trumanheaston@gmail.com + App Password.
-# All providers share the same public interface: _send_email(subject, html, to, cfg, plain)
 
 def _build_mime_message(subject: str, from_addr: str, to_addr: str,
                          html_body: str, plain_body: str) -> MIMEMultipart:
@@ -1177,7 +1117,6 @@ def _send_via_postmark(subject: str, html_body: str, to_addr: str,
         log.warning(f"  ✗ Postmark send failed: {e}")
         return False
 
-# ── Provider dispatch ─────────────────────────────────────────
 _EMAIL_PROVIDERS = {
     "gmail":    _send_via_gmail,
     "sendgrid": _send_via_sendgrid,
@@ -1205,7 +1144,6 @@ def _send_email(subject: str, html_body: str, to_addr: str, cfg: Config,
 
     return provider_fn(subject, html_body, to_addr, cfg.alert_email_from, plain_body)
 
-# ── Backwards-compat shim (used internally) ───────────────────
 def _smtp_send(subject: str, html_body: str, to_addr: str, cfg: Config,
                plain_body: str = "") -> bool:
     """Legacy shim — delegates to _send_email."""
@@ -1322,11 +1260,6 @@ def send_propagation_complete(total_sats: int, conjunctions: list,
         pushover_user_key=pv_key,
     )
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 5b — AUTHENTICATION                                  ║
-# ╚══════════════════════════════════════════════════════════════╝
-
-# ── AUTH — stdlib only, no bcrypt/itsdangerous ───────────────────────────────
 import hashlib as _hashlib
 import hmac as _hmac
 import secrets as _secrets
@@ -1386,7 +1319,6 @@ def _verify_session_token(token: str, secret: str, max_age: int = 2592000):
         raise ValueError("expired")
     return username, role
 
-# Keep old name as alias so existing call-sites work
 def _make_session_cookie(username: str, role: str, secret: str) -> str:
     return _make_session_token(username, role, secret)
 
@@ -1417,7 +1349,6 @@ def _load_users(cfg) -> dict:
     """Load users from SQLite DB. Falls back to users.json if DB not ready."""
     try:
         con = sqlite3.connect(cfg.db_path)
-        # Table may not exist yet if init_db hasn't run — check first
         tbl = con.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
         ).fetchone()
@@ -1432,7 +1363,6 @@ def _load_users(cfg) -> dict:
         con.close()
     except Exception as _e:
         log.warning(f"_load_users DB error: {_e}")
-    # Fallback to users.json
     p = Path(cfg.users_file)
     if not p.exists():
         return {}
@@ -1466,7 +1396,6 @@ def _save_users(users: dict, cfg) -> None:
         con.close()
     except Exception as e:
         log.warning(f"Failed to save users to DB: {e}")
-        # Fallback: write JSON
         try:
             Path(cfg.users_file).write_text(json.dumps(list(users.values()), indent=2))
         except Exception:
@@ -1562,8 +1491,6 @@ def _save_user_prefs(username: str, prefs: dict, cfg: Config):
     ))
     con.commit()
 
-# ── AUTH-02: Password reset token helpers ─────────────────────
-
 def _make_reset_token(username: str, secret: str) -> str:
     """Signed time-limited reset token (stdlib only)."""
     import base64, time as _t
@@ -1604,12 +1531,9 @@ def _get_user_email(username: str, cfg: Config) -> Optional[str]:
     u = users.get(username, {})
     if u.get("email"):
         return u["email"]
-    # Fall back to preferences table
     prefs = _get_user_prefs(username, cfg)
     return prefs.get("email")
 
-# ── Auth page HTML templates ──────────────────────────────────
-# Shared CSS injected into all auth pages
 _AUTH_CSS = """
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #050a0f; color: #c8dff0; font-family: 'Exo 2', sans-serif;
@@ -1857,10 +1781,6 @@ PREFERENCES_HTML = """<!DOCTYPE html>
 </body>
 </html>"""
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 5c — SCHEDULED AUTONOMOUS RUNS                       ║
-# ╚══════════════════════════════════════════════════════════════╝
-
 LOCKFILE = Path("vectraspace.lock")
 
 def _acquire_lock() -> bool:
@@ -1949,12 +1869,7 @@ def run_headless(cfg: Config):
     finally:
         _release_lock()
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 6 — WEB UI + CESIUMJS VISUALIZATION                  ║
-# ╚══════════════════════════════════════════════════════════════╝
-
 def _get_cesium_token() -> str:
-    # Use env var if set, otherwise fall back to hardcoded default
     return os.environ.get("CESIUM_ION_TOKEN", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMzRmMGI5Ni1hMTM0LTQxMjgtODgzMy04ZGYxN2UzNzYyN2MiLCJpZCI6MzkyNzg4LCJpYXQiOjE3NzE2OTU4OTF9.lulZ9jWB9A_XCxfui1FpcGmC7A7B49znZpcwn7yg530")
 
 DASHBOARD_HTML = """<!DOCTYPE html>
@@ -4300,7 +4215,6 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
       <p>At ISS altitude (420 km): v ≈ 7.66 km/s. At GEO (35,786 km): v ≈ 3.07 km/s. Two LEO satellites in crossing orbits can have a <strong>relative velocity of up to 15+ km/s</strong> — equivalent to a small car moving 54,000 km/h. A 1 cm aluminum sphere at this speed carries the kinetic energy of a hand grenade.</p>
     </div>
 
-
 <!-- CHAPTER 1 QUIZ -->
 <div class="quiz-section" id="ch1-quiz-wrap" data-storage-key='vs_ch1_done'>
   <div class="quiz-eyebrow">⬡ Knowledge Check</div>
@@ -4774,7 +4688,6 @@ z̈ + n²·z = f_z
         </div>
       </div>
     </div>
-
 
 <!-- CHAPTER 2 QUIZ -->
 <div class="quiz-section" id="ch2-quiz-wrap" data-storage-key='vs_ch2_done'>
@@ -5376,7 +5289,6 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
 .gtooltip-def  { font-size: 12px; color: #8aaac5; line-height: 1.6; }
 .gtooltip-link { display: block; margin-top: 8px; font-family: 'DM Mono','Space Mono',monospace; font-size: 9px; color: #4a9eff; letter-spacing: 1px; opacity: 0.7; }
 
-
 /* ── GLOSSARY TOOLTIPS ── */
 dfn {
   font-style: normal;
@@ -5966,7 +5878,6 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
         thousands of kilometers along-track. Only within the final orbit can reentry location be
         predicted to within ~500 km — and most objects survive only minutes of atmospheric passage.
       </div>
-
 
 <!-- CHAPTER 3 QUIZ -->
 <div class="quiz-section" id="ch3-quiz-wrap" data-storage-key='vs_ch3_done'>
@@ -7052,7 +6963,6 @@ tbody tr:hover td { background:var(--ink-2); }
         <strong>→ Access the live platform at the VectraSpace dashboard to explore these models in action.</strong>
       </div>
 
-
 <!-- CHAPTER 4 QUIZ -->
 <div class="quiz-section" id="ch4-quiz-wrap" data-storage-key='vs_ch4_done'>
   <div class="quiz-eyebrow">⬡ Knowledge Check</div>
@@ -8028,7 +7938,6 @@ section { position: relative; z-index: 1; }
 }
 .chapter-card:hover .chapter-read-link::after { transform: translateX(4px); }
 
-
 /* ── CHAPTER PROGRESS TRACKING ── */
 .chapter-card { position: relative; }
 .chapter-progress-badge {
@@ -8064,9 +7973,6 @@ section { position: relative; z-index: 1; }
   background: linear-gradient(90deg, var(--accent) 0%, var(--green) 100%);
   transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
 }
-
-
-
 
 /* ── DATA SECTION ── */
 #data { padding: 100px 0; }
@@ -8501,7 +8407,6 @@ footer {
     <span class="tick-item"><span class="tick-sep">◆</span> J₂ Coefficient: 1.08263 × 10⁻³</span>
   </div>
 </div>
-
 
 <!-- MISSION / WHY IT MATTERS -->
 <div id="mission" style="position:relative;top:-60px;pointer-events:none;"></div>
@@ -8957,7 +8862,6 @@ footer {
 
 <div class="section-divider"></div>
 
-
 <section id="contact" style="padding:100px 0; position:relative; z-index:1;">
   <div class="container" style="max-width:1080px; margin:0 auto; padding:0 48px;">
 
@@ -9193,9 +9097,6 @@ const counterObserver = new IntersectionObserver((entries) => {
 const metricsEl = document.querySelector('.data-metrics');
 if (metricsEl) counterObserver.observe(metricsEl);
 
-
-
-
 // ── CHAPTER PROGRESS ──────────────────────────────────────────
 (function() {
   const CHAPTERS = [
@@ -9228,10 +9129,6 @@ if (metricsEl) counterObserver.observe(metricsEl);
 </html>
 
 """
-
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MODULE 7 — REST API + SSE RUN ENDPOINT                      ║
-# ╚══════════════════════════════════════════════════════════════╝
 
 SCENARIOS_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -9980,7 +9877,6 @@ requestAnimationFrame(animate);
 </script>
 </body>
 </html>"""
-
 
 CALC_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -11803,7 +11699,6 @@ def build_api(cfg: Config):
                                    StreamingResponse, PlainTextResponse,
                                    RedirectResponse)
 
-    # ── Background auto-scan ─────────────────────────────────────────────────
     _scan_state: dict = {"time": 0, "running": False, "count": 0}
     AUTO_SCAN_INTERVAL_H = 6
 
@@ -11845,7 +11740,6 @@ def build_api(cfg: Config):
         lifespan=_lifespan,
     )
 
-    # ── CORS ─────────────────────────────────────────────────────
     app.add_middleware(
         CORSMiddleware,
         allow_origins=os.environ.get("ALLOWED_ORIGINS", "*").split(","),
@@ -11854,7 +11748,6 @@ def build_api(cfg: Config):
         allow_headers=["*"],
     )
 
-    # ── Security headers ──────────────────────────────────────────
     class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request, call_next):
             response = await call_next(request)
@@ -11865,7 +11758,6 @@ def build_api(cfg: Config):
             return response
     app.add_middleware(_SecurityHeadersMiddleware)
 
-    # ── Global IP-based rate limiter ──────────────────────────────
     _ip_hits: dict = {}
     _IP_LIMIT = int(os.environ.get("RATE_LIMIT_PER_MIN", "120"))
 
@@ -11880,15 +11772,12 @@ def build_api(cfg: Config):
             return await call_next(request)
     app.add_middleware(_RateLimitMiddleware)
 
-    # ── In-memory demo result cache (public/unauthenticated view) ─
     app._demo_result = None   # most recent public (user_id=None) run
     app._user_results = {}    # username -> last result
 
-    # ── Helper: get current user from cookie ──────────────────
     def _get_user(request: Request) -> Optional[dict]:
         return get_current_user_from_request(request, cfg)
 
-    # ── Landing page (public marketing page) ─────────────────
     @app.get("/", response_class=HTMLResponse)
     def landing(request: Request):
         return HTMLResponse(content=LANDING_HTML)
@@ -11897,10 +11786,6 @@ def build_api(cfg: Config):
     def landing_welcome():
         """Always shows landing page — used by dashboard Home button."""
         return HTMLResponse(content=LANDING_HTML)
-
-
-
-
 
     @app.get("/calculator", response_class=HTMLResponse)
     def calculator_page():
@@ -11935,7 +11820,6 @@ def build_api(cfg: Config):
         """Interactive scenario modules — Iridium-Cosmos, Kessler, ASAT, maneuver."""
         return HTMLResponse(content=SCENARIOS_HTML)
 
-    
     @app.get("/api/live-sats")
     async def live_sats_api(limit: int = 80, regime: str = "LEO"):
         """Stream a sample of live satellite positions from cached TLE data."""
@@ -11947,7 +11831,6 @@ def build_api(cfg: Config):
             now = ts.now()
             cache_file = Path("tle_cache.txt")
             if not cache_file.exists():
-                # Fetch a small CelesTrak subset on-demand (stations + ISS)
                 import urllib.request as _ur
                 tle_raw = _ur.urlopen(
                     "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle",
@@ -12022,12 +11905,10 @@ def build_api(cfg: Config):
                 pass
         return PlainTextResponse("No TLE data available", status_code=404)
 
-    # ── Dashboard UI ──────────────────────────────────────────
     @app.get("/dashboard", response_class=HTMLResponse)
     def dashboard():
         return HTMLResponse(content=get_dashboard_html())
 
-    # ── /me — current user info ───────────────────────────────
     @app.get("/me")
     def me(request: Request):
         user = _get_user(request)
@@ -12073,7 +11954,6 @@ def build_api(cfg: Config):
             "age_minutes": round((time.time() - last) / 60, 1) if last else None
         })
 
-    # ── /preferences GET/POST ─────────────────────────────────
     @app.get("/preferences", response_class=HTMLResponse)
     def preferences_page(request: Request):
         user = _get_user(request)
@@ -12110,13 +11990,11 @@ def build_api(cfg: Config):
             .replace("{MESSAGE}", '<div class="ok">✓ Preferences saved.</div>')
         return HTMLResponse(html)
 
-    # ── /demo-results — latest public scan for unauthenticated users ─
     @app.get("/demo-results")
     def demo_results():
         """Returns the most recent public scan (user_id IS NULL) for demo mode."""
         if app._demo_result:
             return JSONResponse(app._demo_result)
-        # Try to load from DB
         try:
             con = sqlite3.connect(cfg.db_path)
             latest = con.execute(
@@ -12124,7 +12002,6 @@ def build_api(cfg: Config):
             ).fetchone()
             if not latest:
                 return JSONResponse({}, status_code=404)
-            # Return empty tracks + conjunctions from DB for demo
             rows = con.execute(
                 "SELECT sat1,sat2,regime1,regime2,min_dist_km,time_min,pc_estimate FROM conjunctions WHERE run_time=? AND user_id IS NULL",
                 (latest[0],)
@@ -12138,7 +12015,6 @@ def build_api(cfg: Config):
             log.warning(f"demo-results error: {e}")
             return JSONResponse({}, status_code=404)
 
-    # ── SSE Run Endpoint ──────────────────────────────────────
     @app.get("/run")
     async def run_scan(
         request: Request,
@@ -12167,7 +12043,6 @@ def build_api(cfg: Config):
                 return
 
             try:
-                # Load saved user preferences to augment alert config
                 user_prefs = _get_user_prefs(user["username"], cfg)
 
                 run_cfg = Config(
@@ -12235,7 +12110,6 @@ def build_api(cfg: Config):
                             yield send_progress(pct_steps[step_idx], pct_msgs[step_idx])
                             step_idx += 1
                             last_step_t = now_t
-                        # Send keepalive ping every 20s to prevent proxy/browser timeouts
                         if now_t - ping_t >= 20.0:
                             yield f"data: {_json.dumps({'type': 'ping'})}\\n\\n"
                             ping_t = now_t
@@ -12248,7 +12122,6 @@ def build_api(cfg: Config):
 
                 _logging.getLogger("VectraSpace").removeHandler(sse_handler)
 
-                # Serialize tracks for Cesium
                 tracks_json = []
                 for t in result["tracks"]:
                     step = max(1, len(t.positions) // 120)
@@ -12306,10 +12179,8 @@ def build_api(cfg: Config):
                         "midpoint": mid,
                     })
 
-                # Store for demo view (public, user_id=None means anonymous/headless)
                 serialized = {"tracks": tracks_json, "conjunctions": conj_json}
                 app._user_results[user["username"]] = result
-                # Also update demo cache (latest authenticated scan visible as demo)
                 app._demo_result = serialized
                 app._last_result = result
 
@@ -12323,7 +12194,6 @@ def build_api(cfg: Config):
 
         return StreamingResponse(event_stream(), media_type="text/event-stream")
 
-    # ── Historical results ────────────────────────────────────
     @app.get("/conjunctions")
     def get_conjunctions(request: Request):
         user = _get_user(request)
@@ -12334,7 +12204,6 @@ def build_api(cfg: Config):
                 (user["username"],)
             ).fetchall()
         else:
-            # Demo: show public/anonymous runs
             rows = con.execute(
                 "SELECT * FROM conjunctions WHERE user_id IS NULL ORDER BY run_time DESC LIMIT 50"
             ).fetchall()
@@ -12375,7 +12244,6 @@ def build_api(cfg: Config):
             "regimes": [{"pair": r[0], "count": r[1]} for r in regimes],
         })
 
-    # ── CDM endpoints ─────────────────────────────────────────
     @app.get("/cdm/{idx}")
     def download_cdm(idx: int, request: Request):
         user = _get_user(request)
@@ -12448,7 +12316,6 @@ def build_api(cfg: Config):
             "Content-Disposition": 'attachment; filename="VectraSpace_CDMs.zip"'
         })
 
-    # ── SEC-01 + PERF-01: Server-side satellite info endpoint ────
     @app.get("/sat-info/{sat_name}")
     async def satellite_info(sat_name: str):
         """
@@ -12533,7 +12400,6 @@ def build_api(cfg: Config):
             log.warning(f"sat-info error for {sat_name}: {e}")
             return JSONResponse({"error": str(e)}, status_code=502)
 
-
     @app.get("/satellite-of-the-day")
     def satellite_of_the_day():
         """Return one featured satellite, rotating daily from a curated list."""
@@ -12572,12 +12438,10 @@ def build_api(cfg: Config):
              "color": "#f472b6", "operator": "ESA"},
         ]
 
-        # Pick based on day-of-year so it's consistent for all users on the same day
         day_key = datetime.datetime.utcnow().strftime("%Y-%j")
         idx = int(_hash.md5(day_key.encode()).hexdigest(), 16) % len(FEATURED)
         sat = FEATURED[idx].copy()
 
-        # Try to compute live orbital parameters from TLE cache
         try:
             from skyfield.api import load as _sf_load
             cache_file = cfg.tle_cache_file
@@ -12591,11 +12455,9 @@ def build_api(cfg: Config):
                     geo = target.at(t)
                     sub = geo.subpoint()
                     alt_km = round(sub.elevation.km, 0)
-                    # Vis-viva for circular approx: v = sqrt(mu/r)
                     mu = 398600.4418
                     r_km = 6371 + alt_km
                     v_kms = round((mu / r_km) ** 0.5, 2)
-                    # Period: T = 2*pi*sqrt(r^3/mu)
                     import math as _math
                     period_min = round(2 * _math.pi * (r_km**3 / mu)**0.5 / 60, 1)
                     sat["alt_km"] = int(alt_km)
@@ -12609,7 +12471,6 @@ def build_api(cfg: Config):
             sat["live"] = False
 
         if not sat.get("live"):
-            # Fallback static estimates
             STATIC = {25544: (420, 7.66, 92.9), 20580: (547, 7.59, 95.4),
                       25994: (705, 7.48, 99.0), 24876: (20200, 3.87, 718),
                       40697: (786, 7.45, 100.4), 44713: (550, 7.61, 95.5),
@@ -12622,7 +12483,6 @@ def build_api(cfg: Config):
         sat["updated_utc"] = datetime.datetime.utcnow().strftime("%H:%M UTC")
         return JSONResponse(sat)
 
-    # ── Auth routes ───────────────────────────────────────────
     @app.get("/login", response_class=HTMLResponse)
     def login_page(request: Request, error: str = ""):
         err_html    = f'<div class="err">⚠ {error}</div>' if error else ""
@@ -12655,7 +12515,6 @@ def build_api(cfg: Config):
         username = str(form.get("username", "")).strip().lower()
         password = str(form.get("password", "")).strip()
         users = _load_users(cfg)
-        # Try exact match first, then lowercase fallback
         user = users.get(username) or users.get(username.lower())
         if not user or not _verify_password(password, user.get("password_hash", "")):
             return _login_page_with_err("Invalid username or password.")
@@ -12675,7 +12534,6 @@ def build_api(cfg: Config):
         resp.delete_cookie("vs_session")
         return resp
 
-    # ── AUTH-01: Self-service signup ──────────────────────────
     # Controlled by SIGNUP_OPEN env var: "true" = open, anything else = closed.
     # Set SIGNUP_OPEN=true in .env to enable public registration.
     SIGNUP_OPEN = os.environ.get("SIGNUP_OPEN", "true").lower() == "true"
@@ -12726,14 +12584,12 @@ def build_api(cfg: Config):
         if not ok:
             err = f'<div class="err">⚠ {errmsg}</div>'
             return HTMLResponse(SIGNUP_HTML.replace("{MESSAGE}", err).replace("{FORM}", _SIGNUP_FORM))
-        # Auto-login after successful registration
         token = _make_session_cookie(username, "operator", cfg.session_secret)
         resp = RedirectResponse(url="/dashboard", status_code=303)
         resp.set_cookie("vs_session", token, httponly=True, samesite="lax", path="/", max_age=2592000)
         log.info(f"New self-signup: '{username}' <{email}>")
         return resp
 
-    # ── AUTH-02: Forgot / reset password ─────────────────────
     # Flow: user submits username → we email a signed 1-hour token link →
     # user clicks link → enters new password → done. No admin needed.
 
@@ -12800,7 +12656,6 @@ def build_api(cfg: Config):
     async def forgot_password_submit(request: Request):
         form = await request.form()
         username = str(form.get("username", "")).strip().lower()
-        # Always show success — never reveal whether a username exists
         success_msg = '<div class="ok">✓ If that username exists and has an email on file, a reset link has been sent. Check your inbox.</div>'
         users = _load_users(cfg)
         if username in users:
@@ -12861,13 +12716,11 @@ def build_api(cfg: Config):
             err = '<div class="err">⚠ Could not update password. Contact trumanheaston@gmail.com.</div>'
             return HTMLResponse(RESET_PASSWORD_HTML.replace("{MESSAGE}", err).replace("{FORM}", ""))
         log.info(f"Password successfully reset for user '{username}' via email token")
-        # Auto-login after successful reset
         token_cookie = _make_session_cookie(username, "operator", cfg.session_secret)
         resp = RedirectResponse(url="/", status_code=303)
         resp.set_cookie("vs_session", token_cookie, httponly=True, samesite="lax", path="/", max_age=2592000)
         return resp
 
-    # ── Authenticated change-password (for logged-in users in prefs) ──
     _CHANGE_PW_FORM = """
     <form method="post" action="/change-password">
       <label>Current Password</label>
@@ -12949,7 +12802,6 @@ def build_api(cfg: Config):
     app.add_middleware(AuthMiddleware)
     log.info("Auth middleware enabled")
 
-    # ── Debris simulation endpoint ────────────────────────────
     @app.get("/debris/simulate")
     async def simulate_debris(
         request: Request,
@@ -12998,8 +12850,6 @@ def build_api(cfg: Config):
 
         return JSONResponse({"debris_tracks": tracks_json, "conjunctions": conj_json})
 
-    # FEEDBACK + ADMIN VERIFY ROUTES
-
     @app.post("/feedback")
     async def submit_feedback(request: Request):
         """Save feedback to feedback.json and optionally email it."""
@@ -13030,7 +12880,6 @@ def build_api(cfg: Config):
             "ua":        ua,
         }
 
-        # Append to feedback.json
         fb_path = Path(cfg.db_path).parent / "feedback.json"
         try:
             existing = json.loads(fb_path.read_text()) if fb_path.exists() else []
@@ -13039,7 +12888,6 @@ def build_api(cfg: Config):
         existing.append(entry)
         fb_path.write_text(json.dumps(existing, indent=2))
 
-        # Email notification to admin
         try:
             _send_email(
                 subject=f"[VectraSpace Feedback] {fb_type.upper()} from {user}",
@@ -13059,10 +12907,6 @@ def build_api(cfg: Config):
 
         log.info(f"Feedback received: [{fb_type}] from {user}")
         return JSONResponse({"ok": True, "id": entry["id"]})
-
-    # /admin/verify removed — admin access via login only
-
-    # ADMIN ROUTES
 
     @app.get("/admin", response_class=HTMLResponse)
     def admin_page(request: Request):
@@ -13084,7 +12928,6 @@ def build_api(cfg: Config):
 
         import datetime as _dt
 
-        # ── Users ────────────────────────────────────────────────────
         all_users = list(_load_users(cfg).values())
         now = _dt.datetime.utcnow()
         week_ago = (now - _dt.timedelta(days=7)).isoformat()
@@ -13093,7 +12936,6 @@ def build_api(cfg: Config):
             if u.get("created_at", "0") >= week_ago
         )
 
-        # Per-user scan counts
         try:
             with sqlite3.connect(cfg.db_path) as con:
                 scan_counts_raw = con.execute(
@@ -13114,17 +12956,14 @@ def build_api(cfg: Config):
                 "scan_count": scan_by_user.get(u.get("username", ""), 0),
             })
 
-        # ── Conjunction DB stats ──────────────────────────────────────
         try:
             with sqlite3.connect(cfg.db_path) as con:
                 total_conj = con.execute("SELECT COUNT(*) FROM conjunctions").fetchone()[0]
 
-                # Unique scan runs (distinct run_time values)
                 total_runs = con.execute(
                     "SELECT COUNT(DISTINCT run_time) FROM conjunctions"
                 ).fetchone()[0]
 
-                # Recent 50 events
                 recent = con.execute(
                     """SELECT run_time, user_id, sat1, sat2, regime1, regime2,
                               min_dist_km, pc_estimate
@@ -13141,7 +12980,6 @@ def build_api(cfg: Config):
                     for r in recent
                 ]
 
-                # Daily scan runs (last 30 days)
                 thirty_ago = (now - _dt.timedelta(days=30)).date().isoformat()
                 daily_raw = con.execute(
                     """SELECT DATE(run_time) as day, COUNT(DISTINCT run_time) as cnt
@@ -13152,7 +12990,6 @@ def build_api(cfg: Config):
                 ).fetchall()
                 daily_out = [{"day": r[0], "count": r[1]} for r in daily_raw]
 
-                # Regime breakdown
                 regime_raw = con.execute(
                     """SELECT regime1 || '/' || regime2 as pair, COUNT(*) as cnt
                        FROM conjunctions
@@ -13166,7 +13003,6 @@ def build_api(cfg: Config):
 
         _umami_url = os.environ.get("UMAMI_SCRIPT_URL", "")
         _umami_id  = os.environ.get("UMAMI_WEBSITE_ID", "")
-        # Also check hardcoded fallback from the dashboard script tag
         if not _umami_id:
             _umami_id = "4e12fc04-8b26-4e42-8b69-0700a95c7d30"
         if not _umami_url:
@@ -13194,7 +13030,6 @@ def build_api(cfg: Config):
             "product": "VectraSpace — Orbital Safety Platform",
         }
 
-    # ── Education chapter pages ───────────────────────────────────
     @app.get("/education/orbital-mechanics", response_class=HTMLResponse)
     def edu_orbital():
         return HTMLResponse(content=_EDU_ORBITAL_HTML)
@@ -13246,25 +13081,17 @@ def _run_pipeline(cfg: Config, covariance_cache: Optional[dict] = None,
 
     duration = time.time() - t_start
 
-    # Use user-specific prefs for alerts if provided
     send_alerts(conjunctions, cfg, total_sats=len(all_tracks), user_prefs=user_prefs)
     send_propagation_complete(len(all_tracks), conjunctions, duration, cfg, user_prefs=user_prefs)
 
     return {"tracks": all_tracks, "conjunctions": conjunctions,
             "run_time": run_time, "ts": ts}
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║  MAIN                                                        ║
-# ╚══════════════════════════════════════════════════════════════╝
-
-# ── Module-level app init (for uvicorn vectraspace:app on Render/cloud) ──────
 def _init_app():
     """Build the FastAPI app and run startup tasks. Called at import time."""
     import os as _os
     from pathlib import Path as _Path
 
-    # Auto-create admin user from env vars on every startup.
-    # ADMIN_PASS is required. Falls back to ADMIN_PASSCODE if ADMIN_PASS not set.
     _admin_user = _os.environ.get("ADMIN_USER", "admin").strip().lower()
     _admin_pass = (
         _os.environ.get("ADMIN_PASS", "").strip() or
@@ -13289,7 +13116,6 @@ def _init_app():
     except Exception as e:
         log.warning(f"[startup] Could not init admin user: {e}")
 
-    # Build and return the FastAPI app (init_db already called above)
     return build_api(CFG)
 
 app = _init_app()
@@ -13334,7 +13160,6 @@ if __name__ == "__main__":
             print("Run: pip install fastapi uvicorn")
             sys.exit(1)
 
-        # Validate critical environment variables
         if not os.environ.get("SESSION_SECRET"):
             log.warning("SESSION_SECRET not set — using random secret (sessions won't survive restart)")
         if not os.environ.get("CESIUM_ION_TOKEN"):
@@ -13342,11 +13167,9 @@ if __name__ == "__main__":
         if not os.environ.get("ANTHROPIC_API_KEY"):
             log.warning("ANTHROPIC_API_KEY not set — satellite info modal will show CelesTrak fallback")
 
-        # Ensure DB is initialized on startup
         init_db(CFG)
 
-        # ── Auto-create admin from env vars (for Render/cloud deploys) ───────
-        # Set ADMIN_USER + ADMIN_PASS in environment to skip the --create-user step.
+            # Set ADMIN_USER + ADMIN_PASS in environment to skip the --create-user step.
         # Only runs if users.json doesn't exist yet — safe to leave set permanently.
         _admin_user = os.environ.get("ADMIN_USER", "").strip().lower()
         _admin_pass = os.environ.get("ADMIN_PASS", "").strip()
@@ -13356,7 +13179,6 @@ if __name__ == "__main__":
                 create_user(_admin_user, _admin_pass, "admin", cfg=CFG)
                 log.info(f"Auto-created admin user '{_admin_user}' from ADMIN_USER/ADMIN_PASS")
             else:
-                # Always ensure role is admin
                 if existing[_admin_user].get("role") != "admin":
                     existing[_admin_user]["role"] = "admin"
                     _save_users(existing, CFG)
