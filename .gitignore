@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+*.env
+
+# Runtime data (generated, not committed)
+conjunctions.db
+tle_cache.txt
+users.json
+users.json.migrated
+feedback.json
+catalog.json
+vectraspace.lock
+vectraspace_scheduled.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Credentials — NEVER commit these
+*.pem
+*.key
+*.p12
