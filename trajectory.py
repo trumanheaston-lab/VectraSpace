@@ -240,7 +240,7 @@ def _build_html() -> str:
         "Cesium.Ion.defaultAccessToken = '" + CESIUM_TOKEN + "';\n"
         "\n"
         "const viewer = new Cesium.Viewer('cesium-container', {\n"
-        "  terrainProvider: Cesium.createWorldTerrain(),\n"
+        "  terrain: Cesium.Terrain.fromWorldTerrain(),\n"
         "  baseLayerPicker: false, navigationHelpButton: false, homeButton: false,\n"
         "  sceneModePicker: false, geocoder: false, animation: false, timeline: false,\n"
         "  fullscreenButton: false, infoBox: false, selectionIndicator: false,\n"
