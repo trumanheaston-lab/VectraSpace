@@ -20,6 +20,9 @@ from config import CFG
 from database import init_db
 from users import create_user, load_users, save_users
 
+# ── Apply landing page patches (trajectory button, etc.) ─────────────────────
+import templates_loader_patch  # noqa: F401  — side-effect: patches LANDING_HTML
+
 log = logging.getLogger("VectraSpace")
 
 # ── IP-level rate limit (120 req/min default) ────────────────────────────────
