@@ -151,13 +151,13 @@ def create_app() -> FastAPI:
     from auth_routes import router as auth_router
     from satellites import router as sat_router
     from admin import router as admin_router
-    from routes.tools import router as tools_router          # ← NEW
+    from trajectory import router as trajectory_router
 
     app.include_router(pages_router)
     app.include_router(auth_router)
     app.include_router(sat_router)
     app.include_router(admin_router)
-    app.include_router(tools_router, prefix="/api/tools", tags=["tools"])  # ← NEW
+    app.include_router(trajectory_router, prefix="/api/tools", tags=["tools"])
 
     return app
 
