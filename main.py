@@ -23,6 +23,9 @@ from users import create_user, load_users, save_users
 # ── Apply landing page patches (trajectory button, etc.) ─────────────────────
 import templates_loader_patch  # noqa: F401  — side-effect: patches LANDING_HTML
 
+# SECURITY: import hardening layer (rate limiting, validation, key management)
+from security import SecurityMiddleware, log_security_startup, config_router
+
 log = logging.getLogger("VectraSpace")
 
 # ── IP-level rate limit (120 req/min default) ────────────────────────────────
@@ -95,6 +98,7 @@ async def lifespan(app: FastAPI):
     init_db(CFG)
     _ensure_admin()
     task = asyncio.create_task(_auto_scan_loop())
+    log_security_startup()  # logs which env secrets are present (never their values)
     log.info("[startup] VectraSpace v11 ready")
     yield
     # ── Shutdown ─────────────────────────────────────────────
@@ -140,8 +144,9 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
-    app.add_middleware(SecurityHeadersMiddleware)
-    app.add_middleware(RateLimitMiddleware)
+    # SECURITY: unified middleware handles headers + rate limiting (replaces
+    # the old RateLimitMiddleware and SecurityHeadersMiddleware)
+    app.add_middleware(SecurityMiddleware)
 
     # ── Shared state (demo results, last scan, etc.) ──────────
     app.state.demo_result = None
@@ -161,6 +166,7 @@ def create_app() -> FastAPI:
     app.include_router(sat_router)
     app.include_router(admin_router)
     app.include_router(trajectory_router, prefix="/api/tools", tags=["tools"])
+    app.include_router(config_router)  # serves /api/config (Cesium token)
 
     return app
 
