@@ -1,56 +1,65 @@
-"""
-VectraSpace v11 — FastAPI application entrypoint.
-This version includes the trajectory API router and guards token imports.
-"""
-
 import os
 import logging
 import time
 import asyncio
-from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from config import CFG
 from database import init_db
 from users import create_user, load_users, save_users
 
-# Security & rate-limit layer
 from security import SecurityMiddleware, log_security_startup, config_router
+from pages import router as pages_router
+from auth_routes import router as auth_router
+from satellites import router as sat_router
+from admin import router as admin_router
+from trajectory import router as trajectory_router
 
 log = logging.getLogger("VectraSpace")
+logging.basicConfig(level=logging.DEBUG)
 
-_scan_state: dict = {"time": 0, "running": False, "count": 0}
+_scan_state = {"time": 0, "running": False, "count": 0}
 AUTO_SCAN_INTERVAL_H = 6
 
 async def _auto_scan_loop():
     import functools
     from pipeline import run_pipeline
 
-    await asyncio.sleep(30)
+    await asyncio.sleep(20)
     while True:
         if not _scan_state["running"]:
+            _scan_state["running"] = True
             try:
-                _scan_state["running"] = True
-                log.info("[auto-scan] starting next run")
+                log.info("[auto-scan] starting")
                 loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(
+                await loop.run_in_executor(
                     None,
                     functools.partial(run_pipeline, CFG, "scheduled", "__auto__")
                 )
-                _scan_state["time"] = time.time()
-                _scan_state["count"] = len(result.get("conjunctions", []))
             except Exception as e:
-                log.error(f"[auto-scan] crashed: {e}")
+                log.exception(f"[auto-scan] failed: {e}")
             finally:
                 _scan_state["running"] = False
 
         await asyncio.sleep(AUTO_SCAN_INTERVAL_H * 3600)
 
+def _ensure_admin():
+    admin_user = os.environ.get("ADMIN_USER", "admin").lower().strip()
+    admin_pass = os.environ.get("ADMIN_PASS") or ""
+
+    try:
+        users = load_users(CFG)
+        if admin_user not in users:
+            create_user(admin_user, admin_pass, "admin", cfg=CFG)
+            log.info(f"Created admin '{admin_user}'")
+    except Exception as e:
+        log.exception(f"Admin init error: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logging.basicConfig(level=logging.INFO)
     init_db(CFG)
     _ensure_admin()
     log_security_startup()
@@ -59,32 +68,8 @@ async def lifespan(app: FastAPI):
     yield
     task.cancel()
 
-def _ensure_admin():
-    admin_user = os.environ.get("ADMIN_USER", "admin").lower().strip()
-    admin_pass = (
-        os.environ.get("ADMIN_PASS", "").strip() or
-        os.environ.get("ADMIN_PASSCODE", "").strip()
-    )
-    if not admin_pass:
-        log.warning("[startup] default admin password used")
-
-    try:
-        existing = load_users(CFG)
-        if admin_user not in existing:
-            create_user(admin_user, admin_pass, "admin", cfg=CFG)
-            log.info("[startup] admin created")
-        else:
-            existing[admin_user]["role"] = "admin"
-            save_users(existing, CFG)
-    except Exception as e:
-        log.error(f"[startup] user init failed: {e}")
-
 def create_app() -> FastAPI:
-    app = FastAPI(
-        title="VectraSpace API v11",
-        version="11.0",
-        lifespan=lifespan,
-    )
+    app = FastAPI(lifespan=lifespan)
 
     app.add_middleware(
         CORSMiddleware,
@@ -95,27 +80,23 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(SecurityMiddleware)
 
-    app.state.scan_state = _scan_state
-
-    # — existing routers —
-    from pages import router as pages_router
-    from auth_routes import router as auth_router
-    from satellites import router as sat_router
-    from admin import router as admin_router
-    from trajectory import router as trajectory_router
+    @app.exception_handler(Exception)
+    async def all_exception_handler(request: Request, exc: Exception):
+        log.exception(f"Unhandled error on {request.url.path}: {exc}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal server error",
+                "exception": str(exc),
+            },
+        )
 
     app.include_router(pages_router)
     app.include_router(auth_router)
     app.include_router(sat_router)
     app.include_router(admin_router)
     app.include_router(config_router)
-
-    # — trajectory API (under /api/tools) —
-    app.include_router(
-        trajectory_router,
-        prefix="/api/tools",
-        tags=["tools"],
-    )
+    app.include_router(trajectory_router, prefix="/api/tools", tags=["tools"])
 
     return app
 
