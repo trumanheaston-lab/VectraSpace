@@ -7,6 +7,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from contextlib import asynccontextmanager   # ← THIS LINE FIXES THE ERROR
+
 from config import CFG
 from database import init_db
 from users import create_user, load_users, save_users
