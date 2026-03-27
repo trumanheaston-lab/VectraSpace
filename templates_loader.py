@@ -127,6 +127,34 @@ def _patch_landing(html: str) -> str:
         )
 
     return html
+# templates_loader.py (excerpt – add the patch below)
+
+# ------------------------------------------------------------------
+# 1️⃣  Import the tool‑section helper
+# ------------------------------------------------------------------
+try:
+    from tools import TOOLS_HTML
+except Exception:
+    TOOLS_HTML = ""
+
+# ------------------------------------------------------------------
+# 2️⃣  Insert the tool‑section after the hero block.
+#     We look for the first closing </section> of the hero banner
+#     and insert the snippet right after it.
+# ------------------------------------------------------------------
+def _patch_landing(html: str) -> str:
+    # Find the end of the hero section (assumes a </section> close)
+    end_hero = html.find("</section>")
+    if end_hero >= 0:
+        return html[: end_hero + len("</section>")] + "\n" + TOOLS_HTML + html[end_hero + len("</section>") :]
+    # Fallback – simply prepend
+    return TOOLS_HTML + html
+
+# ------------------------------------------------------------------
+# 3️⃣  Apply the patch to the base landing HTML
+# ------------------------------------------------------------------
+# ─────── original line ──────────────────────
+# LANDING_HTML = _patch_landing(_LANDING_BASE)
 
 
 LANDING_HTML = _patch_landing(_LANDING_BASE)
