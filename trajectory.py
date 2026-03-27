@@ -8,6 +8,7 @@ INTEGRATION — add two lines inside create_app() in main.py, in the routers sec
 """
 
 import math
+import os
 from dataclasses import dataclass
 
 from fastapi import APIRouter, HTTPException
@@ -229,11 +230,13 @@ async def run_simulation(params: TrajectoryRequest):
 # ════════════════════════════════════════════════════════════════════════════════
 
 def _build_html() -> str:
-    CESIUM_TOKEN = (
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-        ".eyJqdGkiOiJlMzRmMGI5Ni1hMTM0LTQxMjgtODgzMy04ZGYxN2UzNzYyN2MiLCJpZCI6MzkyNzg4LCJpYXQiOjE3NzE2OTU4OTF9"
-        ".lulZ9jWB9A_XCxfui1FpcGmC7A7B49znZpcwn7yg530"
-    )
+    # SECURITY: load token from env var, never hardcode secrets in source.
+    # Set CESIUM_ION_TOKEN in Render Dashboard -> Environment Variables.
+    try:
+        from security import get_cesium_token
+        CESIUM_TOKEN = get_cesium_token()
+    except ImportError:
+        CESIUM_TOKEN = os.environ.get('CESIUM_ION_TOKEN', '')
 
     # JS is written as a plain Python string — no triple-quote collision possible
     js = (
