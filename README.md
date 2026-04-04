@@ -23,6 +23,7 @@ VectraSpace/
 ├── auth_routes.py        # Login/signup/reset/preferences (APIRouter)
 ├── satellites.py         # /run SSE, /conjunctions, /cdm, /sat-info (APIRouter)
 ├── admin.py              # /admin, /admin/data (APIRouter)
+├── trajectory.py         # Suborbital trajectory simulator (APIRouter → /api/tools/trajectory)
 ├── templates_loader.py   # All HTML constants (populated by build_templates.py)
 ├── build_templates.py    # One-time extraction script
 ├── Procfile              # Render start command
@@ -145,7 +146,7 @@ python main.py --gen-task-xml     # writes VectraSpace_Task.xml
 |--------|------|---------|
 | **Truman Heaston** | Founder / CEO | trumanheaston@gmail.com |
 | **Will Lovelace** | Marketing & Outreach | Will.s.lovelace@gmail.com |
-| **Grant Gill** | Hardware Lead | Amateur radio · model rocketry |
+| **Grant Gill** | Hardware Lead · 3D File Store Contributor | [jellycatgrant@gmail.com](mailto:jellycatgrant@gmail.com) |
 
 **GitHub:** https://github.com/trumanheaston-lab/VectraSpace
 
