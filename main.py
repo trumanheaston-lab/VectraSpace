@@ -1,3 +1,9 @@
+"""
+VectraSpace — main.py
+Application factory. Auth removed — all routes are public.
+users.py and auth_routes.py deleted from project.
+"""
+
 import os
 import logging
 import asyncio
@@ -74,10 +80,7 @@ def create_app() -> FastAPI:
         log.exception(f"Unhandled error on {request.url.path}: {exc}")
         return JSONResponse(
             status_code=500,
-            content={
-                "error": "Internal server error",
-                "exception": str(exc),
-            },
+            content={"error": "Internal server error", "exception": str(exc)},
         )
 
     app.include_router(pages_router)
