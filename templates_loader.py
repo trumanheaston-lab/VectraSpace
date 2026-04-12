@@ -2017,7 +2017,7 @@ async function runDetection() {
 </html>
 '''
 
-SCENARIOS_HTML = '''<!DOCTYPE html>
+SCENARIOS_HTML = r'''<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
