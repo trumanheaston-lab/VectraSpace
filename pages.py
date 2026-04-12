@@ -1,6 +1,6 @@
 """
-VectraSpace v11 — pages.py
-Static HTML page routes. No auth required for most.
+VectraSpace — pages.py
+Static HTML page routes. All routes are publicly accessible.
 HTML content is imported from templates_loader.py.
 """
 
@@ -117,7 +117,6 @@ def tle_status():
         return JSONResponse({"fresh": False, "age_hours": None, "count": 0,
                              "message": "No TLE data — run a scan"})
     age_h = (time.time() - p.stat().st_mtime) / 3600
-    # rough count: 2 lines per satellite
     lines = p.read_text().count("\n")
     count = lines // 2
     fresh = age_h < 24
