@@ -1,59 +1,9083 @@
 """
-VectraSpace v11 — templates_loader.py
-Loads all HTML content at import time.
-Large page HTML strings live here so every other module stays clean.
-Two additions vs the monolith:
-  1. GitHub repository link in the footer / contact section of LANDING_HTML
-  2. Grant Gill hardware lead contact card in LANDING_HTML
+VectraSpace — templates_loader.py
+All HTML page constants. Loaded at import time.
+All auth, login, logout, signup, and quiz UI elements have been removed.
+All routes are public — no authentication required.
 """
 
-import os
+DASHBOARD_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VectraSpace â Orbital Safety Platform</title>
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #080c12;
+    --bg2:       #0d1320;
+    --bg3:       #111d2e;
+    --panel:     #0a1019;
+    --border:    rgba(255,255,255,0.07);
+    --border2:   rgba(255,255,255,0.13);
+    --accent:    #4a9eff;
+    --accent2:   #f87171;
+    --accent3:   #34d399;
+    --text:      #ccd6e0;
+    --muted:     #8aaac5;
+    --faint:     #2a3d50;
+    --serif:     'Instrument Serif', Georgia, serif;
+    --mono:      'DM Mono', monospace;
+    --sans:      'Outfit', sans-serif;
+    --panel-w:   320px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); }
 
-# ── Cesium token injected at serve time, not here ────────────────────────────
-# DASHBOARD_HTML uses the placeholder __CESIUM_TOKEN__ which
-# pages.py replaces via get_dashboard_html().
+  #app { display: flex; height: 100vh; }
+  #sidebar {
+    width: var(--panel-w);
+    min-width: var(--panel-w);
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 10;
+    transition: width 0.25s ease, min-width 0.25s ease;
+  }
+  #sidebar.collapsed {
+    width: 42px;
+    min-width: 42px;
+  }
+  #sidebar.collapsed .sidebar-collapsible { display: none; }
+  #sidebar.collapsed #sidebar-toggle-btn {
+    margin: 0 auto;
+    border-left: none;
+  }
+  #sidebar-toggle-btn {
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--border);
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 11px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: color 0.2s, background 0.2s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+  }
+  #sidebar-toggle-btn .toggle-label {
+    font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase;
+    transition: opacity 0.2s; color: var(--muted);
+  }
+  #sidebar.collapsed #sidebar-toggle-btn .toggle-label { display: none; }
+  #sidebar-toggle-btn:hover { color: var(--accent); background: rgba(74,158,255,0.06); }
+  #globe-container { flex: 1; position: relative; transition: flex 0.25s ease; }
+  #cesiumContainer { width: 100%; height: 100%; }
 
-# ── All HTML is imported from the original monolith source.  ─────────────────
-# Rather than re-pasting 13k lines here, each constant is defined once
-# and kept in sync with the working monolith.  The two additions below
-# (GitHub link + Grant card) are applied as targeted string replacements
-# so they are easy to find, audit, and revert.
+  #header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+  }
+  #header .logo {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  #header .brand {
+    display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;
+  }
+  #header .brand-name {
+    font-family: var(--serif); font-size: 20px; font-style: italic;
+    color: #fff; letter-spacing: -0.2px;
+  }
+  #header .brand-name em { color: var(--accent); font-style: normal; }
+  #header .brand-tag {
+    font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+    color: var(--faint); text-transform: uppercase;
+  }
+  #header .sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--sans);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+  #user-bar {
+    padding: 6px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    letter-spacing: 0.5px;
+  }
+  #user-bar .user-name { color: var(--accent); }
+  #user-bar a { color: var(--muted); text-decoration: none; font-size: 9px; }
+  #user-bar a:hover { color: var(--accent); }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Import the raw HTML from the single-file monolith section of the codebase.
-# During the transition period we reference the strings directly.  Once the
-# monolith is deleted these constants just live here as plain string literals.
-# ─────────────────────────────────────────────────────────────────────────────
+  #scroll { flex: 1; overflow-y: auto; padding: 18px 16px; }
+  #scroll::-webkit-scrollbar { width: 3px; }
+  #scroll::-webkit-scrollbar-track { background: transparent; }
+  #scroll::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 2px; }
 
-# Inline placeholder — replace with actual HTML string content from monolith.
-# The strings below are symbolic; in production copy the full string literals
-# from vectraspace.py into this file.
+  .section { margin-bottom: 22px; }
+  .section-title {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    width: 16px; height: 1px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
 
-DASHBOARD_HTML       = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">\n<title>VectraSpace — Orbital Safety Platform</title>\n<script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>\n<link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">\n<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>\n<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">\n<style>\n  :root {\n    --bg:        #080c12;\n    --bg2:       #0d1320;\n    --bg3:       #111d2e;\n    --panel:     #0a1019;\n    --border:    rgba(255,255,255,0.07);\n    --border2:   rgba(255,255,255,0.13);\n    --accent:    #4a9eff;\n    --accent2:   #f87171;\n    --accent3:   #34d399;\n    --text:      #ccd6e0;\n    --muted:     #8aaac5;\n    --faint:     #2a3d50;\n    --serif:     \'Instrument Serif\', Georgia, serif;\n    --mono:      \'DM Mono\', monospace;\n    --sans:      \'Outfit\', sans-serif;\n    --panel-w:   320px;\n  }\n  * { box-sizing: border-box; margin: 0; padding: 0; }\n  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); }\n\n  #app { display: flex; height: 100vh; }\n  #sidebar {\n    width: var(--panel-w);\n    min-width: var(--panel-w);\n    background: var(--panel);\n    border-right: 1px solid var(--border);\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    z-index: 10;\n    transition: width 0.25s ease, min-width 0.25s ease;\n  }\n  #sidebar.collapsed {\n    width: 42px;\n    min-width: 42px;\n  }\n  #sidebar.collapsed .sidebar-collapsible { display: none; }\n  #sidebar.collapsed #sidebar-toggle-btn {\n    margin: 0 auto;\n    border-left: none;\n  }\n  #sidebar-toggle-btn {\n    background: transparent;\n    border: none;\n    border-top: 1px solid var(--border);\n    color: var(--faint);\n    font-family: var(--mono);\n    font-size: 14px;\n    padding: 11px;\n    cursor: pointer;\n    width: 100%;\n    text-align: center;\n    transition: color 0.2s, background 0.2s;\n    flex-shrink: 0;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 8px;\n    min-height: 42px;\n  }\n  #sidebar-toggle-btn .toggle-label {\n    font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase;\n    transition: opacity 0.2s; color: var(--muted);\n  }\n  #sidebar.collapsed #sidebar-toggle-btn .toggle-label { display: none; }\n  #sidebar-toggle-btn:hover { color: var(--accent); background: rgba(74,158,255,0.06); }\n  #globe-container { flex: 1; position: relative; transition: flex 0.25s ease; }\n  #cesiumContainer { width: 100%; height: 100%; }\n\n  #header {\n    padding: 18px 20px 14px;\n    border-bottom: 1px solid var(--border);\n    background: var(--bg2);\n    flex-shrink: 0;\n  }\n  #header .logo {\n    font-family: var(--mono);\n    font-size: 8px;\n    color: var(--accent);\n    letter-spacing: 3px;\n    margin-bottom: 8px;\n    text-transform: uppercase;\n    opacity: 0.7;\n  }\n  #header .brand {\n    display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;\n  }\n  #header .brand-name {\n    font-family: var(--serif); font-size: 20px; font-style: italic;\n    color: #fff; letter-spacing: -0.2px;\n  }\n  #header .brand-name em { color: var(--accent); font-style: normal; }\n  #header .brand-tag {\n    font-family: var(--mono); font-size: 8px; letter-spacing: 2px;\n    color: var(--faint); text-transform: uppercase;\n  }\n  #header .sub {\n    font-size: 11px;\n    color: var(--muted);\n    font-family: var(--sans);\n    margin-top: 2px;\n    line-height: 1.4;\n  }\n  #user-bar {\n    padding: 6px 20px;\n    background: var(--bg);\n    border-bottom: 1px solid var(--border);\n    font-family: var(--mono);\n    font-size: 9px;\n    color: var(--muted);\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    letter-spacing: 0.5px;\n  }\n  #user-bar .user-name { color: var(--accent); }\n  #user-bar a { color: var(--muted); text-decoration: none; font-size: 9px; }\n  #user-bar a:hover { color: var(--accent); }\n\n  #scroll { flex: 1; overflow-y: auto; padding: 18px 16px; }\n  #scroll::-webkit-scrollbar { width: 3px; }\n  #scroll::-webkit-scrollbar-track { background: transparent; }\n  #scroll::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 2px; }\n\n  .section { margin-bottom: 22px; }\n  .section-title {\n    font-family: var(--mono);\n    font-size: 8px;\n    letter-spacing: 3px;\n    color: var(--muted);\n    text-transform: uppercase;\n    margin-bottom: 12px;\n    padding-bottom: 8px;\n    border-bottom: 1px solid var(--border);\n    display: flex;\n    align-items: center;\n    gap: 8px;\n  }\n  .section-title::before {\n    content: \'\';\n    width: 16px; height: 1px;\n    background: var(--accent);\n    display: inline-block;\n    flex-shrink: 0;\n  }\n\n  .field { margin-bottom: 14px; }\n  .field label {\n    display: block;\n    font-family: var(--mono);\n    font-size: 9px;\n    color: var(--muted);\n    letter-spacing: 1px;\n    text-transform: uppercase;\n    margin-bottom: 5px;\n  }\n  .field input {\n    width: 100%;\n    background: var(--bg3);\n    border: 1px solid var(--border);\n    border-radius: 6px;\n    color: var(--text);\n    font-family: var(--mono);\n    font-size: 13px;\n    padding: 8px 12px;\n    outline: none;\n    transition: border-color 0.2s;\n  }\n  .field input:focus { border-color: var(--accent); }\n  .field .hint {\n    font-size: 9px;\n    color: var(--faint);\n    margin-top: 4px;\n    font-family: var(--mono);\n    letter-spacing: 0.5px;\n  }\n\n  #run-btn {\n    width: 100%;\n    padding: 12px;\n    background: linear-gradient(135deg, rgba(74,158,255,0.12), rgba(74,158,255,0.04));\n    border: 1px solid rgba(74,158,255,0.4);\n    border-radius: 7px;\n    color: var(--accent);\n    font-family: var(--mono);\n    font-size: 10px;\n    letter-spacing: 2px;\n    text-transform: uppercase;\n    cursor: pointer;\n    transition: all 0.2s;\n    position: relative;\n    overflow: hidden;\n  }\n  #run-btn:hover {\n    background: linear-gradient(135deg, rgba(74,158,255,0.22), rgba(74,158,255,0.08));\n    border-color: var(--accent);\n    box-shadow: 0 0 20px rgba(74,158,255,0.12);\n  }\n  #run-btn:disabled { opacity: 0.4; cursor: not-allowed; }\n  #run-btn.running {\n    border-color: var(--accent3);\n    color: var(--accent3);\n    background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(52,211,153,0.02));\n    animation: pulse-border 1.5s infinite;\n  }\n  @keyframes pulse-border {\n    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.2); }\n    50% { box-shadow: 0 0 0 6px rgba(52,211,153,0); }\n  }\n\n  #run-locked-msg {\n    width: 100%;\n    padding: 12px;\n    background: rgba(74,106,133,0.06);\n    border: 1px solid var(--border);\n    border-radius: 7px;\n    color: var(--muted);\n    font-family: var(--mono);\n    font-size: 10px;\n    letter-spacing: 1px;\n    text-align: center;\n  }\n\n  #status-bar {\n    padding: 9px 20px;\n    border-top: 1px solid var(--border);\n    font-family: var(--mono);\n    font-size: 9px;\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    background: var(--bg);\n    flex-shrink: 0;\n  }\n  #status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex-shrink: 0; }\n  #status-dot.ready { background: var(--accent3); box-shadow: 0 0 6px rgba(52,211,153,0.5); }\n  #status-dot.running { background: var(--accent); animation: blink 1s infinite; }\n  #status-dot.error { background: var(--accent2); }\n  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }\n  #status-text { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.5px; }\n\n  #log-panel {\n    background: var(--bg);\n    border: 1px solid var(--border);\n    border-radius: 6px;\n    height: 140px;\n    overflow-y: auto;\n    padding: 10px 12px;\n    font-family: var(--mono);\n    font-size: 10px;\n    line-height: 1.7;\n  }\n  #log-panel::-webkit-scrollbar { width: 3px; }\n  #log-panel::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 2px; }\n  .log-line { color: var(--faint); }\n  .log-line.info { color: #5ba3c9; }\n  .log-line.ok { color: var(--accent3); }\n  .log-line.warn { color: #f59e0b; }\n  .log-line.error { color: var(--accent2); }\n\n  #results-list { display: flex; flex-direction: column; gap: 6px; }\n  .conj-card {\n    background: var(--bg2);\n    border: 1px solid var(--border);\n    border-left: 2px solid var(--accent2);\n    border-radius: 6px;\n    padding: 10px 12px;\n    cursor: pointer;\n    transition: all 0.15s;\n  }\n  .conj-card:hover { border-color: rgba(74,158,255,0.4); background: var(--bg3); }\n  .conj-card .sats { font-weight: 600; color: var(--text); font-size: 11px; margin-bottom: 4px; font-family: var(--sans); }\n  .conj-card .meta { color: var(--muted); font-family: var(--mono); font-size: 9px; display: flex; gap: 10px; letter-spacing: 0.5px; }\n  .conj-card .dist { color: var(--accent2); font-weight: 600; }\n  .conj-card .pc   { color: #f59e0b; }\n  .conj-card .time { color: var(--muted); }\n  #no-results { color: var(--faint); font-family: var(--mono); font-size: 9px; text-align: center; padding: 20px 0; letter-spacing: 1px; }\n\n  #globe-header {\n    position: absolute;\n    top: 16px; left: 16px;\n    background: rgba(5,10,15,0.85);\n    border: 1px solid var(--border);\n    border-radius: 6px;\n    padding: 8px 14px;\n    font-family: \'Share Tech Mono\', monospace;\n    font-size: 10px;\n    color: var(--accent);\n    letter-spacing: 2px;\n    backdrop-filter: blur(8px);\n    pointer-events: none;\n  }\n  #sat-counter {\n    position: absolute;\n    top: 16px; right: 16px;\n    background: rgba(5,10,15,0.85);\n    border: 1px solid var(--border);\n    border-radius: 6px;\n    padding: 8px 14px;\n    font-family: \'Share Tech Mono\', monospace;\n    font-size: 10px;\n    color: var(--text);\n    backdrop-filter: blur(8px);\n    pointer-events: none;\n    text-align: right;\n  }\n  #sat-counter span { color: var(--accent); font-size: 18px; font-weight: 700; display: block; }\n\n  #tooltip {\n    position: absolute;\n    background: rgba(5,10,15,0.95);\n    border: 1px solid var(--accent);\n    border-radius: 6px;\n    padding: 12px 14px;\n    font-family: \'Share Tech Mono\', monospace;\n    font-size: 10px;\n    color: var(--text);\n    pointer-events: all;\n    display: none;\n    max-width: 260px;\n    backdrop-filter: blur(8px);\n    z-index: 100;\n  }\n  #tooltip .tt-title { color: var(--accent2); font-size: 11px; font-weight: 700; margin-bottom: 6px; }\n  #tooltip .tt-row { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 3px; }\n  #tooltip .tt-key { color: var(--muted); }\n  #tooltip .tt-val { color: #fff; }\n  #tooltip .tt-link { color: var(--accent); text-decoration: underline; cursor: pointer;\n                      font-size: 9px; margin-top: 8px; display: block; text-align: center; }\n\n  #globe-controls {\n    position: absolute;\n    bottom: 32px;\n    left: 50%;\n    transform: translateX(-50%);\n    display: flex;\n    gap: 8px;\n    align-items: center;\n    background: rgba(5,10,15,0.88);\n    border: 1px solid var(--border);\n    border-radius: 8px;\n    padding: 8px 14px;\n    backdrop-filter: blur(8px);\n    z-index: 10;\n  }\n  .ctrl-btn {\n    background: transparent;\n    border: 1px solid var(--border);\n    border-radius: 4px;\n    color: var(--muted);\n    font-family: \'Share Tech Mono\', monospace;\n    font-size: 10px;\n    letter-spacing: 1px;\n    padding: 5px 10px;\n    cursor: pointer;\n    transition: all 0.15s;\n    white-space: nowrap;\n  }\n  .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }\n  .ctrl-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.1); }\n  .ctrl-btn.active-green { border-color: var(--accent3); color: var(--accent3); background: rgba(0,255,136,0.1); }\n  .ctrl-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }\n  #speed-label { font-family: \'Share Tech Mono\', monospace; font-size: 10px; color: var(--muted); }\n\n  #risk-slider-wrap { margin: 6px 0; }\n  #risk-track { position: relative; padding-bottom: 20px; }\n  #risk-track input[type=range] {\n    width: 100%; -webkit-appearance: none; appearance: none;\n    height: 4px; border-radius: 2px; outline: none;\n    background: linear-gradient(to right, #00ff88, #ffaa44, #ff4444, #cc0000);\n    cursor: pointer;\n  }\n  #risk-track input[type=range]::-webkit-slider-thumb {\n    -webkit-appearance: none; width: 14px; height: 14px;\n    border-radius: 50%; background: #fff;\n    border: 2px solid var(--accent); cursor: pointer;\n  }\n  #risk-labels { display: flex; justify-content: space-between;\n                 font-size: 8px; color: var(--muted);\n                 font-family: \'Share Tech Mono\', monospace;\n                 letter-spacing: 1px; margin-top: 4px; }\n  #risk-display { display: flex; justify-content: space-between;\n                  align-items: center; margin-top: 4px; }\n  #risk-name { font-family: \'Share Tech Mono\', monospace; font-size: 11px;\n               font-weight: 700; color: var(--accent3); }\n  #risk-pc-val { font-family: \'Share Tech Mono\', monospace; font-size: 9px; color: var(--muted); }\n\n  #sat-modal-overlay {\n    display: none; position: fixed; inset: 0;\n    background: rgba(0,0,0,0.7); z-index: 200;\n    align-items: center; justify-content: center;\n    backdrop-filter: blur(4px);\n  }\n  #sat-modal-overlay.open { display: flex; }\n  #sat-modal {\n    background: #090f17; border: 1px solid var(--accent);\n    border-radius: 8px; width: 520px; max-height: 80vh;\n    overflow-y: auto; box-shadow: 0 0 40px rgba(0,212,255,0.2);\n  }\n  #sat-modal::-webkit-scrollbar { width: 4px; }\n  #sat-modal::-webkit-scrollbar-thumb { background: var(--border); }\n  #sat-modal-header {\n    padding: 18px 20px 14px; border-bottom: 1px solid var(--border);\n    display: flex; justify-content: space-between; align-items: flex-start;\n    background: linear-gradient(135deg, #0a1929, #0d2137);\n  }\n  #sat-modal-header h2 { font-size: 14px; color: #fff; margin: 0; }\n  #sat-modal-header .badge { font-size: 9px; color: var(--accent);\n    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }\n  #sat-modal-close {\n    background: transparent; border: 1px solid var(--border);\n    border-radius: 4px; color: var(--muted); cursor: pointer;\n    font-size: 14px; padding: 2px 8px; transition: all 0.15s;\n  }\n  #sat-modal-close:hover { border-color: var(--accent2); color: var(--accent2); }\n  #sat-modal-body { padding: 16px 20px; }\n  .sat-field { display: flex; justify-content: space-between;\n               padding: 7px 0; border-bottom: 1px solid #0d2137;\n               font-size: 11px; }\n  .sat-field:last-child { border-bottom: none; }\n  .sat-field .sf-key { color: var(--muted); font-family: \'Share Tech Mono\', monospace;\n                       font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }\n  .sat-field .sf-val { color: #fff; font-weight: 600; text-align: right; max-width: 60%; }\n  #sat-modal-loading { text-align: center; padding: 30px;\n    color: var(--muted); font-family: \'Share Tech Mono\', monospace;\n    font-size: 11px; letter-spacing: 2px; }\n  #sat-modal-error { padding: 20px; color: var(--accent2);\n    font-family: \'Share Tech Mono\', monospace; font-size: 10px; text-align:center; }\n\n  #top-pairs-list .tp-row {\n    display: flex; justify-content: space-between;\n    padding: 5px 0; border-bottom: 1px solid var(--border);\n    font-size: 9px; font-family: \'Share Tech Mono\', monospace;\n  }\n  #top-pairs-list .tp-row .tp-sats { color: var(--text); }\n  #top-pairs-list .tp-row .tp-count { color: var(--accent); }\n  #top-pairs-list .tp-row .tp-dist { color: var(--accent2); }\n\n  /* ── MOBILE HAMBURGER BUTTON ── */\n  #hamburger {\n    display: none;\n    position: fixed;\n    top: 12px; left: 12px;\n    z-index: 200;\n    background: rgba(7,16,26,0.92);\n    border: 1px solid var(--border);\n    border-radius: 6px;\n    width: 40px; height: 40px;\n    flex-direction: column;\n    align-items: center;\n    justify-content: center;\n    gap: 5px;\n    cursor: pointer;\n    backdrop-filter: blur(8px);\n    transition: all 0.2s;\n  }\n  #hamburger:hover { border-color: var(--accent); }\n  #hamburger span {\n    display: block;\n    width: 18px; height: 2px;\n    background: var(--text);\n    border-radius: 1px;\n    transition: all 0.25s;\n  }\n  #hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }\n  #hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }\n  #hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }\n\n  /* ── MOBILE SIDEBAR OVERLAY ── */\n  #sidebar-overlay {\n    display: none;\n    position: fixed;\n    inset: 0;\n    background: rgba(0,0,0,0.6);\n    z-index: 150;\n    backdrop-filter: blur(2px);\n  }\n\n  /* ── RESPONSIVE BREAKPOINTS ── */\n  @media (max-width: 768px) {\n    #hamburger { display: flex; }\n    #sidebar-overlay.active { display: block; }\n\n    #sidebar {\n      position: fixed;\n      top: 0; left: 0;\n      height: 100vh;\n      z-index: 160;\n      transform: translateX(-100%);\n      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n      width: 300px !important;\n      min-width: 300px !important;\n      box-shadow: 4px 0 40px rgba(0,0,0,0.6);\n    }\n    #sidebar.open {\n      transform: translateX(0);\n    }\n\n    /* Globe takes full screen on mobile */\n    #globe-container {\n      width: 100vw;\n      height: 100vh;\n      height: 100dvh;\n    }\n    #app {\n      height: 100vh;\n      height: 100dvh;\n    }\n\n    /* Globe overlays: reposition to avoid hamburger button */\n    #globe-header {\n      top: 12px;\n      left: 60px;\n      font-size: 8px;\n      padding: 6px 10px;\n    }\n    #sat-counter {\n      top: 12px;\n      right: 12px;\n      font-size: 8px;\n      padding: 6px 10px;\n    }\n    #sat-counter span { font-size: 14px; }\n\n    /* Globe controls: scrollable on mobile */\n    #globe-controls {\n      bottom: max(16px, env(safe-area-inset-bottom, 16px));\n      left: 8px;\n      right: 8px;\n      transform: none;\n      overflow-x: auto;\n      border-radius: 6px;\n      padding: 8px 12px;\n      gap: 8px;\n      -webkit-overflow-scrolling: touch;\n      scrollbar-width: none;\n      z-index: 20;\n      flex-wrap: nowrap;\n      min-height: 44px;\n    }\n    #globe-controls::-webkit-scrollbar { display: none; }\n    .ctrl-btn { font-size: 10px; padding: 8px 12px; white-space: nowrap; flex-shrink: 0; min-height: 36px; }\n    #speed-label { font-size: 9px; flex-shrink: 0; }\n\n    /* Tooltip: full width at bottom on mobile */\n    #tooltip {\n      left: 8px !important;\n      right: 8px !important;\n      top: auto !important;\n      bottom: 80px;\n      max-width: none;\n    }\n\n    /* Sat modal: full screen on mobile */\n    #sat-modal-overlay { align-items: flex-end; }\n    #sat-modal { width: 100%; border-radius: 12px 12px 0 0; max-height: 85vh; }\n\n    /* Status bar: compact */\n    #status-bar { padding: 6px 12px; }\n    #status-text { font-size: 9px; }\n\n    /* Log panel: shorter on mobile */\n    #log-panel { height: 90px; }\n  }\n\n  @media (max-width: 480px) {\n    #sidebar { width: 100vw !important; min-width: unset !important; }\n    #globe-header { display: none; }\n    /* Inputs: bigger tap targets */\n    .field input, .field select { font-size: 14px !important; padding: 10px 10px !important; min-height: 44px; }\n    .field label { font-size: 9px; }\n    /* Run button: full width, tall */\n    #run-btn { width: 100% !important; min-height: 52px; font-size: 12px !important; letter-spacing: 2px; }\n    /* Section titles: slightly bigger */\n    .section-title { font-size: 9px; letter-spacing: 2px; }\n    /* Tighter section padding */\n    .section { padding: 10px 12px; }\n    #scroll { padding: 8px; }\n    #header { padding: 10px 12px; }\n    /* Sign-in button full width on small sidebar */\n    .signin-btn { width: 100%; justify-content: center; }\n  }\n\n  /* ── SIGN IN BUTTON ── */\n  .signin-btn {\n    display: inline-flex; align-items: center; gap: 7px;\n    font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;\n    text-transform: uppercase; text-decoration: none;\n    padding: 8px 16px; border-radius: 5px;\n    background: var(--accent); color: var(--bg);\n    border: none; cursor: pointer; font-weight: 600;\n    transition: background 0.2s, transform 0.15s;\n    white-space: nowrap;\n  }\n  .signin-btn:hover { background: #6bb5ff; transform: translateY(-1px); }\n  .signin-btn svg { width: 12px; height: 12px; flex-shrink: 0; }\n  #user-bar {\n    display: flex; align-items: center; justify-content: space-between;\n    padding: 8px 12px; border-bottom: 1px solid var(--border);\n    min-height: 42px; gap: 8px; flex-wrap: wrap;\n  }\n  #user-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.5px; }\n  #user-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }\n  #user-actions a {\n    font-family: var(--mono); font-size: 8px; letter-spacing: 1px;\n    color: var(--muted); text-decoration: none; padding: 4px 8px;\n    border: 1px solid var(--border); border-radius: 3px;\n    text-transform: uppercase; transition: all 0.15s;\n  }\n  #user-actions a:hover { color: var(--accent); border-color: rgba(74,158,255,0.4); }\n</style>\n\n<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>\n</head>\n<body>\n<div id="app">\n\n  <!-- ── MOBILE HAMBURGER ── -->\n  <button id="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">\n    <span></span><span></span><span></span>\n  </button>\n  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>\n\n  <!-- ── SIDEBAR ── -->\n  <div id="sidebar">\n    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Collapse sidebar">◀ <span class="toggle-label">Collapse</span></button>\n    <div class="sidebar-collapsible" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">\n    <div id="header">\n      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">\n        <div class="logo">// Mission Control</div>\n        <a href="/welcome" style="font-family:var(--mono);font-size:8px;\n                           letter-spacing:1.5px;color:var(--muted);text-decoration:none;\n                           padding:4px 10px;border:1px solid var(--border);border-radius:4px;\n                           text-transform:uppercase;transition:all 0.2s;"\n           onmouseover="this.style.color=\'var(--accent)\';this.style.borderColor=\'rgba(74,158,255,0.4)\'"\n           onmouseout="this.style.color=\'var(--muted)\';this.style.borderColor=\'var(--border)\'">\n          ← Hub\n        </a>\n      </div>\n      <div class="brand">\n        <a href="/" class="brand-name" style="text-decoration:none;" title="VectraSpace Home">Vectra<em>Space</em></a>\n        <div class="brand-tag">Platform</div>\n      </div>\n      <div class="sub">Orbital Safety Dashboard</div>\n    </div>\n    <!-- User bar: populated by /me endpoint -->\n    <div id="user-bar">\n      <span id="user-label">Loading...</span>\n      <span id="user-actions"></span>\n    </div>\n\n    <div id="scroll">\n\n      <!-- Demo mode banner (shown when not logged in) -->\n      <div id="demo-banner" style="display:none;margin-bottom:12px;padding:8px 10px;\n           background:rgba(255,170,68,0.08);border:1px solid #ffaa44;border-radius:4px;\n           font-family:Share Tech Mono,monospace;font-size:9px;color:#ffaa44;letter-spacing:1px;">\n        DEMO MODE — Showing latest public scan.<br>\n        </div>\n\n      <!-- Detection Settings -->\n      <div class="section">\n        <div class="section-title">Satellites per Regime</div>\n        <div style="display:flex;gap:8px;">\n          <div class="field" style="flex:1;margin-bottom:0">\n            <label>LEO</label>\n            <input type="number" id="num_leo" placeholder="100" min="1" max="2000">\n          </div>\n          <div class="field" style="flex:1;margin-bottom:0">\n            <label>MEO</label>\n            <input type="number" id="num_meo" placeholder="50" min="1" max="500">\n          </div>\n          <div class="field" style="flex:1;margin-bottom:0">\n            <label>GEO</label>\n            <input type="number" id="num_geo" placeholder="20" min="1" max="200">\n          </div>\n        </div>\n\n      </div>\n\n      <div class="section">\n        <div class="section-title">Detection Parameters</div>\n        <div class="field">\n          <label>Time Window (hours)</label>\n          <input type="number" id="time_window" value="12" min="1" max="72">\n        </div>\n        <div class="field">\n          <label>Collision Alert Threshold (km)</label>\n          <input type="number" id="alert_km" value="10" min="0.1" step="0.1">\n        </div>\n        <div class="field">\n          <label>Refinement Threshold (km)</label>\n          <input type="number" id="refine_km" value="50" min="1">\n          <div class="hint">Candidates below this get refined</div>\n        </div>\n\n        <div class="field">\n          <label>Alert Risk Level</label>\n          <div id="risk-slider-wrap">\n            <div id="risk-track">\n              <div id="risk-fill"></div>\n              <input type="range" id="risk-slider" min="0" max="3" step="1" value="1"\n                     oninput="updateRiskSlider(this.value)">\n              <div id="risk-labels">\n                <span>LOW</span><span>MODERATE</span><span>HIGH</span><span>CRITICAL</span>\n              </div>\n            </div>\n            <div id="risk-display">\n              <span id="risk-name">MODERATE</span>\n              <span id="risk-pc-val">Pc ≥ 1×10⁻⁴</span>\n            </div>\n          </div>\n          <input type="hidden" id="pc_thresh" value="0.0001">\n          <div class="hint">Minimum probability of collision to trigger alert</div>\n        </div>\n      </div>\n\n      <!-- Alert Settings (only shown when logged in) -->\n      <div class="section" id="alert-settings-section" style="display:none;">\n        <div class="section-title">Alert Settings</div>\n        <div class="field">\n          <label>Alert Email</label>\n          <input type="email" id="alert_email" placeholder="you@example.com">\n          <div class="hint">Leave blank to use saved preferences</div>\n        </div>\n        <div class="field">\n          <label>Pushover Key</label>\n          <input type="text" id="pushover_key" placeholder="Leave blank to use saved preferences">\n        </div>\n        <div style="text-align:right;margin-top:-4px;">\n          <a href="/preferences" style="color:var(--accent);font-family:Share Tech Mono,monospace;font-size:9px;letter-spacing:1px;">⚙ Edit Saved Preferences →</a>\n        </div>\n      </div>\n\n      <!-- F-07: Debris Simulation -->\n      <div class="section">\n        <div class="section-title">Debris Simulation</div>\n        <div id="debris-form" style="display:none;">\n          <div class="field">\n            <label>Parent Satellite</label>\n            <select id="debris_sat" style="width:100%;background:#0a1520;border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:Share Tech Mono,monospace;font-size:11px;padding:7px 10px;outline:none;">\n              <option value="">— run a scan first —</option>\n            </select>\n          </div>\n          <div style="display:flex;gap:8px;">\n            <div class="field" style="flex:1;margin-bottom:0">\n              <label>Event Type</label>\n              <select id="debris_type" style="width:100%;background:#0a1520;border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:Share Tech Mono,monospace;font-size:11px;padding:7px 10px;outline:none;">\n                <option value="COLLISION">COLLISION</option>\n                <option value="EXPLOSION">EXPLOSION</option>\n              </select>\n            </div>\n            <div class="field" style="flex:1;margin-bottom:0">\n              <label>Count</label>\n              <input type="number" id="debris_count" placeholder="50" min="10" max="200">\n            </div>\n          </div>\n          <button onclick="simulateFragmentation()" style="width:100%;margin-top:10px;padding:9px;background:transparent;border:1px solid #ff6644;border-radius:4px;color:#ff6644;font-family:Share Tech Mono,monospace;font-size:11px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;"\n            onmouseover="this.style.background=\'rgba(255,102,68,0.1)\'"\n            onmouseout="this.style.background=\'transparent\'">\n            💥 SIMULATE FRAGMENTATION\n          </button>\n        </div>\n        <div id="debris-locked" style="color:var(--muted);font-family:Share Tech Mono,monospace;font-size:9px;text-align:center;padding:8px 0;letter-spacing:1px;">\n          Run a scan to enable\n        </div>\n      </div>\n\n      <!-- Run -->\n      <div class="section">\n        <button id="run-btn" onclick="runDetection()" style="display:none;">▶ EXECUTE SCAN</button>\n        <div id="first-run-tip" style="display:none;margin-top:8px;padding:8px 10px;\n             background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);\n             border-radius:4px;font-family:\'Share Tech Mono\',monospace;font-size:8px;\n             letter-spacing:1px;color:var(--accent);line-height:1.6;">\n          👆 Click to run your first scan<br>\n          <span style="color:var(--muted);">Fetches live TLEs · detects conjunctions · populates globe</span>\n          <button onclick="document.getElementById(\'first-run-tip\').style.display=\'none\';\n                           try{localStorage.setItem(\'vs_seen_tip\',\'1\')}catch(e){}"\n                  style="display:block;margin-top:6px;background:transparent;border:none;\n                         color:var(--muted);font-family:\'Share Tech Mono\',monospace;\n                         font-size:8px;cursor:pointer;letter-spacing:1px;">\n            ✕ dismiss\n          </button>\n        </div>\n        <div id="run-locked-msg" style="display:none;">\n          Run is available\n        </div>\n      </div>\n\n      <!-- Log -->\n      <div class="section">\n        <div class="section-title">Live Log</div>\n        <div id="log-panel"><div class="log-line">Initializing...</div></div>\n      </div>\n\n      <!-- Results -->\n      <div class="section">\n        <div class="section-title">\n          Conjunctions <span id="conj-count" style="color:var(--accent2)"></span>\n          <button id="export-all-btn" onclick="exportAllCDMs()"\n            style="float:right;background:transparent;border:1px solid var(--muted);\n                   border-radius:3px;color:var(--muted);font-family:\'Share Tech Mono\',monospace;\n                   font-size:8px;padding:2px 6px;cursor:pointer;letter-spacing:1px;display:none;">\n            ⬇ ZIP ALL\n          </button>\n        </div>\n        <div id="results-list">\n          <div id="no-results">Run a scan to see results</div>\n        </div>\n      </div>\n\n      <!-- Historical Trends -->\n      <div class="section">\n        <div class="section-title" style="cursor:pointer;user-select:none;" onclick="toggleHistory()">\n          Historical Trends\n          <span id="history-toggle" style="float:right;color:var(--muted);">▶</span>\n        </div>\n        <div id="history-panel" style="display:none;">\n          <div style="margin-bottom:10px;">\n            <canvas id="chart-daily" height="140"></canvas>\n          </div>\n          <div style="margin-bottom:10px;">\n            <canvas id="chart-regimes" height="140"></canvas>\n          </div>\n          <div id="top-pairs-list"></div>\n          <button onclick="loadHistory()"\n            style="width:100%;margin-top:8px;background:transparent;border:1px solid var(--border);\n                   border-radius:4px;color:var(--muted);font-family:\'Share Tech Mono\',monospace;\n                   font-size:9px;padding:6px;cursor:pointer;letter-spacing:2px;">\n            ↺ REFRESH\n          </button>\n        </div>\n      </div>\n\n    </div><!-- /scroll -->\n\n    <!-- TLE Freshness indicator -->\n    <div id="tle-freshness-bar" style="padding:6px 12px;border-top:1px solid var(--border);\n         background:rgba(0,0,0,0.2);font-family:\'Share Tech Mono\',monospace;font-size:8px;\n         letter-spacing:1px;display:flex;align-items:center;gap:6px;color:var(--muted);">\n      <span id="tle-dot" style="width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;"></span>\n      <span id="tle-text">Checking TLE status...</span>\n    </div>\n    <div id="status-bar">\n      <div id="status-dot"></div>\n      <div id="status-text">Initializing...</div>\n    </div>\n    </div><!-- end sidebar-collapsible -->\n  </div><!-- /sidebar -->\n\n  <!-- ── GLOBE ── -->\n  <div id="globe-container">\n    <!-- Cesium init overlay -->\n    <div id="cesium-init-overlay" style="\n        position:absolute;inset:0;z-index:50;\n        background:#030508;\n        display:flex;flex-direction:column;\n        align-items:center;justify-content:center;gap:20px;\n        pointer-events:none;">\n      <div style="font-family:\'Orbitron\',sans-serif;font-size:11px;font-weight:700;\n                  letter-spacing:4px;color:#00d4ff;text-transform:uppercase;">\n        VectraSpace\n      </div>\n      <div style="width:220px;">\n        <div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;\n                    color:#3a5a75;letter-spacing:2px;margin-bottom:8px;\n                    text-transform:uppercase;" id="cesium-init-msg">\n          Initializing Globe...\n        </div>\n        <div style="background:#0a1520;border:1px solid #0d2137;border-radius:3px;\n                    height:3px;overflow:hidden;">\n          <div id="cesium-init-bar" style="\n              height:100%;width:0%;\n              background:linear-gradient(90deg,#00d4ff,#00ff88);\n              border-radius:3px;\n              transition:width 0.4s ease;"></div>\n        </div>\n      </div>\n    </div>\n    <div id="cesiumContainer"></div>\n    <div id="globe-header">VECTRASPACE // LIVE ORBITAL TRACKING</div>\n    <div id="sat-counter">\n      <span id="sat-count">—</span>\n      SATELLITES\n    </div>\n    <div id="tooltip"></div>\n    <div id="globe-controls">\n      <span style="font-family:\'Share Tech Mono\',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-right:4px;">ORBITS</span>\n      <button class="ctrl-btn active" id="filter-all"    onclick="setOrbitFilter(\'all\')">ALL</button>\n      <button class="ctrl-btn"        id="filter-alerts" onclick="setOrbitFilter(\'alerts\')">ALERTS ONLY</button>\n      <button class="ctrl-btn"        id="filter-none"   onclick="setOrbitFilter(\'none\')">NONE</button>\n      <div class="ctrl-divider"></div>\n      <button class="ctrl-btn" id="anim-btn" onclick="toggleAnimation()">▶ ANIMATE</button>\n      <button class="ctrl-btn" id="speed-down" onclick="changeSpeed(-1)">−</button>\n      <span id="speed-label">1×</span>\n      <button class="ctrl-btn" id="speed-up" onclick="changeSpeed(1)">+</button>\n      <button class="ctrl-btn" id="reset-btn" onclick="resetClock()">RESET</button>\n    </div>\n  </div>\n\n</div><!-- /app -->\n\n<!-- ── SATELLITE INFO MODAL ── -->\n<div id="sat-modal-overlay" onclick="closeSatModal(event)">\n  <div id="sat-modal">\n    <div id="sat-modal-header">\n      <div>\n        <div class="badge">VECTRASPACE // SATELLITE RECORD</div>\n        <h2 id="sat-modal-title">Loading...</h2>\n      </div>\n      <button id="sat-modal-close" onclick="closeSatModal()">✕</button>\n    </div>\n    <div id="sat-modal-body">\n      <div id="sat-modal-loading">FETCHING SATELLITE DATA...</div>\n    </div>\n  </div>\n</div>\n\n<script>\n// ── CESIUM INIT ──────────────────────────────────────────────\n\nCesium.Ion.defaultAccessToken = \'__CESIUM_TOKEN__\';\n\n// ── MOBILE SIDEBAR TOGGLE ─────────────────────────────────────────────────\nfunction toggleSidebar() {\n  const sidebar  = document.getElementById(\'sidebar\');\n  const overlay  = document.getElementById(\'sidebar-overlay\');\n  const hamburger = document.getElementById(\'hamburger\');\n  const isOpen = sidebar.classList.contains(\'open\');\n  sidebar.classList.toggle(\'open\', !isOpen);\n  overlay.classList.toggle(\'active\', !isOpen);\n  hamburger.classList.toggle(\'open\', !isOpen);\n}\n\n// Close sidebar when a result card is clicked on mobile\nfunction closeSidebarOnMobile() {\n  if (window.innerWidth <= 768) {\n    const sidebar = document.getElementById(\'sidebar\');\n    if (sidebar.classList.contains(\'open\')) toggleSidebar();\n  }\n}\n\nlet viewer;\nlet viewerReady = false;\n\nlet satEntities = [];\nlet conjEntities = [];\nlet conjData = [];\nlet alertSatNames = new Set();\nlet orbitFilter = \'all\';\nlet animPlaying = false;\nlet animSpeeds = [1, 10, 60, 300, 600];\nlet animSpeedIdx = 0;\nlet startJulian = null;\nlet currentUser = null;  // {username, role} or null\n\nconst COLORS = {\n  LEO: Cesium.Color.fromCssColorString(\'#4da6ff\').withAlpha(0.9),\n  MEO: Cesium.Color.fromCssColorString(\'#ff6b6b\').withAlpha(0.9),\n  GEO: Cesium.Color.fromCssColorString(\'#00ff88\').withAlpha(0.9),\n};\n\nasync function initCesium() {\n  // ── Terrain: Cesium World Terrain (Ion) for photorealistic 3D elevation ──\n  let terrainProvider;\n  try {\n    terrainProvider = await Cesium.createWorldTerrainAsync({\n      requestWaterMask: true,           // shows ocean water surface\n      requestVertexNormals: true,       // enables normal-mapped terrain lighting\n    });\n  } catch(e) {\n    console.warn(\'World terrain unavailable — using ellipsoid fallback\');\n    terrainProvider = new Cesium.EllipsoidTerrainProvider();\n  }\n\n  viewer = new Cesium.Viewer(\'cesiumContainer\', {\n    terrainProvider: terrainProvider,\n    baseLayerPicker: false,\n    geocoder: false,\n    homeButton: false,\n    sceneModePicker: false,\n    navigationHelpButton: false,\n    animation: false,\n    timeline: false,\n    fullscreenButton: false,\n    infoBox: false,\n    selectionIndicator: false,\n    skyBox: new Cesium.SkyBox({\n      sources: {\n        positiveX: \'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_px.jpg\',\n        negativeX: \'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mx.jpg\',\n        positiveY: \'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_py.jpg\',\n        negativeY: \'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_my.jpg\',\n        positiveZ: \'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_pz.jpg\',\n        negativeZ: \'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg\',\n      }\n    }),\n    contextOptions: { requestWebgl2: true, allowTextureFilterAnisotropic: true },\n    shadows: false,\n    orderIndependentTranslucency: false,\n  });\n\n  // ── Imagery: high-resolution aerial with enhanced contrast ──────────────\n  viewer.imageryLayers.removeAll();\n  try {\n    const aerial = await Cesium.createWorldImageryAsync({\n      style: Cesium.IonWorldImageryStyle.AERIAL\n    });\n    const layer = viewer.imageryLayers.add(new Cesium.ImageryLayer(aerial, {\n      brightness: 1.05,\n      contrast: 1.1,\n      saturation: 1.15,\n      gamma: 0.9,\n    }));\n  } catch(e) {\n    console.warn(\'World imagery unavailable — using OSM fallback\');\n    viewer.imageryLayers.add(new Cesium.ImageryLayer(\n      new Cesium.OpenStreetMapImageryProvider({ url: \'https://tile.openstreetmap.org/\', maximumLevel: 18 }),\n      { brightness: 1.0, contrast: 1.1 }\n    ));\n  }\n\n  // ── Scene settings: maximum visual quality ──────────────────────────────\n  // Globe appearance\n  viewer.scene.globe.enableLighting = true;\n  viewer.scene.globe.atmosphereLightIntensity = 15.0;\n  viewer.scene.globe.atmosphereRayleighCoefficient = new Cesium.Cartesian3(5.5e-6, 13.0e-6, 28.4e-6);\n  viewer.scene.globe.atmosphereMieCoefficient = new Cesium.Cartesian3(21e-6, 21e-6, 21e-6);\n  viewer.scene.globe.showGroundAtmosphere = true;\n  viewer.scene.globe.depthTestAgainstTerrain = false;\n  viewer.scene.globe.maximumScreenSpaceError = 1.5;     // more tiles = sharper\n  viewer.scene.globe.tileCacheSize = 200;               // cache more tiles\n  viewer.scene.globe.preloadAncestors = true;\n  viewer.scene.globe.preloadSiblings = true;\n  viewer.scene.globe.translucency.enabled = false;\n\n  // Atmosphere: rich blue scattering\n  viewer.scene.atmosphere.brightnessShift = 0.15;\n  viewer.scene.atmosphere.hueShift = 0.0;\n  viewer.scene.atmosphere.saturationShift = 0.1;\n  viewer.scene.skyAtmosphere.show = true;\n  viewer.scene.skyAtmosphere.atmosphereLightIntensity = 20.0;\n  viewer.scene.skyAtmosphere.atmosphereRayleighCoefficient = new Cesium.Cartesian3(5.5e-6, 13.0e-6, 28.4e-6);\n\n  // Fog: subtle depth\n  viewer.scene.fog.enabled = true;\n  viewer.scene.fog.density = 0.0001;\n  viewer.scene.fog.minimumBrightness = 0.03;\n\n  // Celestial bodies & HDR\n  viewer.scene.sun = new Cesium.Sun();\n  viewer.scene.moon = new Cesium.Moon();\n  viewer.scene.highDynamicRange = true;                 // enable HDR for better contrast\n  viewer.scene.postProcessStages.fxaa.enabled = true;  // anti-aliasing\n\n  // Lighting: sun-based directional\n  viewer.scene.light = new Cesium.SunLight();\n\n  viewer.clock.currentTime = Cesium.JulianDate.now();\n  viewer.clock.shouldAnimate = false;\n\n  viewer.camera.setView({\n    destination: Cesium.Cartesian3.fromDegrees(0, 20, 25000000),\n    orientation: { heading: 0, pitch: -Cesium.Math.PI_OVER_TWO, roll: 0 }\n  });\n\n  // Tooltip setup\n  const tooltip = document.getElementById(\'tooltip\');\n  let tooltipHovered = false;\n  let tooltipHideTimer = null;\n\n  function showTooltip(x, y) {\n    tooltip.style.display = \'block\';\n    tooltip.style.left = (x + 16) + \'px\';\n    tooltip.style.top  = (y - 10) + \'px\';\n  }\n  function hideTooltipNow() {\n    tooltip.style.display = \'none\';\n    tooltipHovered = false;\n  }\n\n  tooltip.addEventListener(\'mouseenter\', () => {\n    tooltipHovered = true;\n    if (tooltipHideTimer) { clearTimeout(tooltipHideTimer); tooltipHideTimer = null; }\n  });\n  tooltip.addEventListener(\'mouseleave\', () => {\n    tooltipHovered = false;\n    tooltipHideTimer = setTimeout(hideTooltipNow, 150);\n  });\n  tooltip.addEventListener(\'click\', (e) => {\n    const link = e.target.closest(\'[data-satname]\');\n    if (link) { e.stopPropagation(); openSatInfo(link.dataset.satname); }\n  });\n\n  viewer.screenSpaceEventHandler.setInputAction(movement => {\n    const picked = viewer.scene.pick(movement.endPosition);\n    if (Cesium.defined(picked) && Cesium.defined(picked.id)) {\n      const entity = picked.id;\n      try {\n        const data = JSON.parse(entity.description.getValue());\n        if (data.type === \'conjunction\') {\n          const c = conjData[data.idx];\n          const h = Math.floor(c.time_min / 60);\n          const m = Math.floor(c.time_min % 60);\n          tooltip.innerHTML = `\n            <div class="tt-title">⚠ CONJUNCTION EVENT</div>\n            <div class="tt-row"><span class="tt-key">SAT 1</span><span class="tt-val">${c.sat1}</span></div>\n            <div class="tt-row"><span class="tt-key">SAT 2</span><span class="tt-val">${c.sat2}</span></div>\n            <div class="tt-row"><span class="tt-key">REGIMES</span><span class="tt-val">${c.regime1} / ${c.regime2}</span></div>\n            <div class="tt-row"><span class="tt-key">MISS DIST</span><span class="tt-val" style="color:#ff4444">${c.min_dist_km.toFixed(3)} km</span></div>\n            <div class="tt-row"><span class="tt-key">Pc</span><span class="tt-val" style="color:#ffaa44">${c.pc_estimate.toExponential(2)}</span></div>\n            <div class="tt-row"><span class="tt-key">TIME TO CA</span><span class="tt-val">+${h}h ${m.toString().padStart(2,\'0\')}m</span></div>\n            <a class="tt-link" data-satname="${c.sat1}">🛰 ${c.sat1} — View Info</a>\n            <a class="tt-link" data-satname="${c.sat2}">🛰 ${c.sat2} — View Info</a>\n          `;\n        } else {\n          tooltip.innerHTML = `\n            <div class="tt-title">${data.name}</div>\n            <div class="tt-row"><span class="tt-key">REGIME</span><span class="tt-val">${data.regime}</span></div>\n            <a class="tt-link" data-satname="${data.name}">🛰 View Satellite Info</a>\n          `;\n        }\n        showTooltip(movement.endPosition.x, movement.endPosition.y);\n      } catch(e) { hideTooltipNow(); }\n    } else {\n      if (!tooltipHovered) {\n        tooltipHideTimer = setTimeout(hideTooltipNow, 150);\n      }\n    }\n  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);\n\n  viewer.screenSpaceEventHandler.setInputAction(click => {\n    const picked = viewer.scene.pick(click.position);\n    if (Cesium.defined(picked) && Cesium.defined(picked.id)) {\n      try {\n        const data = JSON.parse(picked.id.description.getValue());\n        if (data.type === \'conjunction\') {\n          const c = conjData[data.idx];\n          viewer.camera.flyTo({\n            destination: Cesium.Cartesian3.fromDegrees(\n              c.midpoint[0], c.midpoint[1], c.midpoint[2] + 3000000\n            ),\n            duration: 2.0,\n          });\n          document.querySelectorAll(\'.conj-card\').forEach((el,i) => {\n            el.style.borderLeftColor = i === data.idx ? \'var(--accent)\' : \'var(--accent2)\';\n          });\n        }\n      } catch(e) {}\n    }\n  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);\n\n  viewerReady = true;\n  console.log(\'Cesium viewer ready\');\n  // Complete + dismiss the init overlay\n  const _bar = document.getElementById(\'cesium-init-bar\');\n  const _msg = document.getElementById(\'cesium-init-msg\');\n  const _overlay = document.getElementById(\'cesium-init-overlay\');\n  if (window._cesiumInitInterval) clearInterval(window._cesiumInitInterval);\n  if (_bar) _bar.style.width = \'100%\';\n  if (_msg) _msg.textContent = \'Ready\';\n  if (_overlay) {\n    setTimeout(() => {\n      _overlay.style.transition = \'opacity 0.6s ease\';\n      _overlay.style.opacity = \'0\';\n      setTimeout(() => { _overlay.style.display = \'none\'; }, 650);\n    }, 300);\n  }\n}\n\n// ── CESIUM INIT PROGRESS ─────────────────────────────────────────────────────\n(function() {\n  const bar = document.getElementById(\'cesium-init-bar\');\n  const msg = document.getElementById(\'cesium-init-msg\');\n  if (!bar) return;\n  const steps = [\n    [10, \'Loading terrain...\'],\n    [30, \'Connecting to Ion...\'],\n    [55, \'Fetching imagery...\'],\n    [75, \'Building scene...\'],\n    [90, \'Almost ready...\'],\n  ];\n  let i = 0;\n  const interval = setInterval(() => {\n    if (i < steps.length) {\n      bar.style.width = steps[i][0] + \'%\';\n      msg.textContent = steps[i][1];\n      i++;\n    } else {\n      clearInterval(interval);\n    }\n  }, 600);\n  // Store cleanup ref for when Cesium is ready\n  window._cesiumInitInterval = interval;\n  window._cesiumInitBar = bar;\n  window._cesiumInitMsg = msg;\n})();\n\ninitCesium();\n\n// ── CHECK CURRENT USER ────────────────────────────────────────\nfunction toggleSidebar() {\n  const sidebar = document.getElementById(\'sidebar\');\n  const btn = document.getElementById(\'sidebar-toggle-btn\');\n  const label = btn.querySelector(\'.toggle-label\');\n  // On mobile, use open/close drawer pattern instead of collapse\n  if (window.innerWidth <= 768) {\n    const isOpen = sidebar.classList.toggle(\'open\');\n    document.getElementById(\'sidebar-overlay\').classList.toggle(\'active\', isOpen);\n    return;\n  }\n  const collapsed = sidebar.classList.toggle(\'collapsed\');\n  btn.querySelector\n  if (label) label.textContent = collapsed ? \'Expand\' : \'Collapse\';\n  btn.innerHTML = collapsed\n    ? \'▶ <span class="toggle-label">Expand</span>\'\n    : \'◀ <span class="toggle-label">Collapse</span>\';\n  btn.title = collapsed ? \'Expand sidebar\' : \'Collapse sidebar\';\n  try { localStorage.setItem(\'vs_sidebar_collapsed\', collapsed ? \'1\' : \'0\'); } catch(e) {}\n}\n\nfunction initSidebarState() {\n  try {\n    if (window.innerWidth > 768 && localStorage.getItem(\'vs_sidebar_collapsed\') === \'1\') {\n      const sidebar = document.getElementById(\'sidebar\');\n      const btn = document.getElementById(\'sidebar-toggle-btn\');\n      sidebar.classList.add(\'collapsed\');\n      btn.innerHTML = \'▶ <span class="toggle-label">Expand</span>\';\n    }\n  } catch(e) {}\n}\n\nasync function updateTLEStatus() {\n  try {\n    const res = await fetch(\'/tle-status\');\n    if (!res.ok) return;\n    const d = await res.json();\n    const dot  = document.getElementById(\'tle-dot\');\n    const text = document.getElementById(\'tle-text\');\n    if (!dot || !text) return;\n    dot.style.background  = d.fresh ? \'#00ff88\' : \'#ffaa44\';\n    text.style.color      = d.fresh ? \'#4a8a65\' : \'#aa6600\';\n    text.textContent      = d.message || \'TLE unknown\';\n  } catch(e) {}\n}\n\nfunction maybeShowFirstRunTip() {\n  try {\n    if (localStorage.getItem(\'vs_seen_tip\') === \'1\') return;\n    const tip = document.getElementById(\'first-run-tip\');\n    if (tip) tip.style.display = \'block\';\n  } catch(e) {}\n}\n\nasync function initUserState() {\n  try {\n    const res = await fetch(\'/me\');\n    if (res.status === 401) {\n      currentUser = null;\n    } else {\n      currentUser = await res.json();\n    }\n  } catch(e) {\n    currentUser = null;\n  }\n\n  const userLabel = document.getElementById(\'user-label\');\n  const userActions = document.getElementById(\'user-actions\');\n  const runBtn = document.getElementById(\'run-btn\');\n  const runLocked = document.getElementById(\'run-locked-msg\');\n  const alertSettings = document.getElementById(\'alert-settings-section\');\n  const demoBanner = document.getElementById(\'demo-banner\');\n\n  if (currentUser && currentUser.username) {\n    userLabel.innerHTML = `Logged in as <span class="user-name">${currentUser.username}</span>`;\n    const adminLnk = currentUser.role === \'admin\' ? \' &nbsp; <a href="/admin" style="color:#ff6b6b;">⬡ Admin</a>\' : \'\';\n    userActions.innerHTML = \'<a href="/preferences">⚙ Prefs</a>\' + adminLnk + \'\';\n    runBtn.style.display = \'block\';\n    maybeShowFirstRunTip();\n    runLocked.style.display = \'none\';\n    alertSettings.style.display = \'block\';\n    demoBanner.style.display = \'none\';\n    setStatus(\'Ready — authenticated as \' + currentUser.username, \'ready\');\n    // Load demo/public results for now\n    loadDemoResults();\n  } else {\n    userLabel.textContent = \'Demo Mode\';\n    userActions.innerHTML = \'';\';\n    runBtn.style.display = \'none\';\n    runLocked.style.display = \'block\';\n    alertSettings.style.display = \'none\';\n    demoBanner.style.display = \'block\';\n    setStatus(\'Demo mode — showing latest public scan\', \'ready\');\n    loadDemoResults();\n  }\n}\n\nasync function loadDemoResults() {\n  try {\n    const res = await fetch(\'/demo-results\');\n    if (!res.ok) { addLog(\'No public scan data available yet\', \'warn\'); return; }\n    const data = await res.json();\n    if (data.tracks && data.tracks.length > 0) {\n      alertSatNames = new Set();\n      (data.conjunctions || []).forEach(c => {\n        alertSatNames.add(c.sat1);\n        alertSatNames.add(c.sat2);\n      });\n      plotSatellites(data.tracks);\n      plotConjunctions(data.conjunctions || []);\n      renderResults(data.conjunctions || []);\n      if (typeof populateDebrisSatList === \'function\' && data.tracks.length) {\n        populateDebrisSatList(data.tracks.map(t => t.name));\n      }\n      addLog(`Demo: ${data.tracks.length} satellites, ${(data.conjunctions||[]).length} conjunction(s)`, \'ok\');\n    } else {\n      addLog(\'No public scan data yet — run a scan to populate\', \'warn\');\n    }\n  } catch(e) {\n    addLog(\'Demo data unavailable\', \'warn\');\n  }\n}\n\ninitSidebarState();\ninitUserState();\nupdateTLEStatus();\nsetInterval(updateTLEStatus, 5 * 60 * 1000);\n\n// ── PLOT SATELLITES ──────────────────────────────────────────\nfunction plotSatellites(tracks) {\n  satEntities.forEach(e => {\n    if (e.dot) viewer.entities.remove(e.dot);\n    if (e.trail) viewer.entities.remove(e.trail);\n  });\n  satEntities = [];\n\n  const now = Cesium.JulianDate.now();\n  startJulian = now.clone();\n  const end = Cesium.JulianDate.addSeconds(now, (tracks[0]?.positions.length || 120) * 60, new Cesium.JulianDate());\n  viewer.clock.startTime = now.clone();\n  viewer.clock.stopTime = end.clone();\n  viewer.clock.currentTime = now.clone();\n  viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;\n  viewer.clock.multiplier = animSpeeds[animSpeedIdx];\n  viewer.clock.shouldAnimate = false;\n\n  tracks.forEach(track => {\n    const color = COLORS[track.regime] || Cesium.Color.WHITE;\n    const isAlert = alertSatNames.has(track.name);\n\n    const sampledPos = new Cesium.SampledPositionProperty();\n    sampledPos.interpolationDegree = 2;\n    sampledPos.interpolationAlgorithm = Cesium.HermitePolynomialApproximation;\n\n    const cartPositions = [];\n    track.positions.forEach((p, i) => {\n      const cart = Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2]);\n      cartPositions.push(cart);\n      const t = Cesium.JulianDate.addSeconds(now, i * 60, new Cesium.JulianDate());\n      sampledPos.addSample(t, cart);\n    });\n\n    if (cartPositions.length === 0) return;\n\n    const dot = viewer.entities.add({\n      position: sampledPos,\n      point: {\n        pixelSize: isAlert ? 7 : (track.regime === \'GEO\' ? 5 : 3),\n        color: isAlert ? Cesium.Color.YELLOW : color,\n        outlineColor: isAlert ? Cesium.Color.RED : Cesium.Color.BLACK.withAlpha(0.5),\n        outlineWidth: isAlert ? 2 : 1,\n        scaleByDistance: new Cesium.NearFarScalar(1e6, 2.0, 5e7, 0.5),\n      },\n      label: {\n        text: track.name,\n        font: \'9px Share Tech Mono\',\n        fillColor: isAlert ? Cesium.Color.YELLOW : color,\n        outlineColor: Cesium.Color.BLACK,\n        outlineWidth: 2,\n        style: Cesium.LabelStyle.FILL_AND_OUTLINE,\n        pixelOffset: new Cesium.Cartesian2(8, 0),\n        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 8e6),\n        show: isAlert,\n      },\n      description: JSON.stringify({ name: track.name, regime: track.regime }),\n    });\n\n    const trail = cartPositions.length > 1 ? viewer.entities.add({\n      polyline: {\n        positions: cartPositions,\n        width: isAlert ? 2.0 : 1.2,\n        material: new Cesium.ColorMaterialProperty(\n          isAlert ? Cesium.Color.YELLOW.withAlpha(0.7) : color.withAlpha(0.5)\n        ),\n        arcType: Cesium.ArcType.NONE,\n      }\n    }) : null;\n\n    satEntities.push({ dot, trail, name: track.name, isAlert });\n  });\n\n  document.getElementById(\'sat-count\').textContent = tracks.length;\n  applyOrbitFilter();\n}\n\nfunction plotConjunctions(conjunctions) {\n  conjEntities.forEach(e => viewer.entities.remove(e));\n  conjEntities = [];\n  conjData = conjunctions;\n\n  conjunctions.forEach((c, idx) => {\n    const pos = Cesium.Cartesian3.fromDegrees(c.midpoint[0], c.midpoint[1], c.midpoint[2]);\n    const entity = viewer.entities.add({\n      position: pos,\n      point: {\n        pixelSize: 14,\n        color: Cesium.Color.RED.withAlpha(0.85),\n        outlineColor: Cesium.Color.YELLOW,\n        outlineWidth: 2,\n        scaleByDistance: new Cesium.NearFarScalar(1e6, 2.5, 5e7, 1.0),\n      },\n      label: {\n        text: `⚠ ${c.min_dist_km.toFixed(1)}km`,\n        font: \'bold 11px Exo 2\',\n        fillColor: Cesium.Color.YELLOW,\n        outlineColor: Cesium.Color.BLACK,\n        outlineWidth: 2,\n        style: Cesium.LabelStyle.FILL_AND_OUTLINE,\n        pixelOffset: new Cesium.Cartesian2(0, -20),\n        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 3e7),\n      },\n      description: JSON.stringify({type:\'conjunction\', idx}),\n    });\n    conjEntities.push(entity);\n  });\n}\n\nfunction setOrbitFilter(mode) {\n  orbitFilter = mode;\n  [\'all\',\'alerts\',\'none\'].forEach(m => {\n    document.getElementById(\'filter-\'+m).className =\n      \'ctrl-btn\' + (m === mode ? \' active\' : \'\');\n  });\n  applyOrbitFilter();\n}\n\nfunction applyOrbitFilter() {\n  satEntities.forEach(e => {\n    let showDot = true;\n    let showTrail = true;\n    if (orbitFilter === \'none\') { showTrail = false; }\n    else if (orbitFilter === \'alerts\') { showTrail = e.isAlert; showDot = e.isAlert; }\n    if (e.dot) e.dot.show = showDot;\n    if (e.trail) e.trail.show = showTrail;\n  });\n}\n\nfunction toggleAnimation() {\n  animPlaying = !animPlaying;\n  viewer.clock.shouldAnimate = animPlaying;\n  const btn = document.getElementById(\'anim-btn\');\n  btn.textContent = animPlaying ? \'⏸ PAUSE\' : \'▶ ANIMATE\';\n  btn.className = animPlaying ? \'ctrl-btn active-green\' : \'ctrl-btn\';\n}\n\nfunction changeSpeed(dir) {\n  animSpeedIdx = Math.max(0, Math.min(animSpeeds.length - 1, animSpeedIdx + dir));\n  const s = animSpeeds[animSpeedIdx];\n  viewer.clock.multiplier = s;\n  document.getElementById(\'speed-label\').textContent = s < 60 ? s+\'×\' : s >= 600 ? \'600×\' : (s/60).toFixed(0)+\'m/s\';\n}\n\nfunction resetClock() {\n  if (startJulian) {\n    viewer.clock.currentTime = startJulian.clone();\n    viewer.clock.shouldAnimate = false;\n    animPlaying = false;\n    document.getElementById(\'anim-btn\').textContent = \'▶ ANIMATE\';\n    document.getElementById(\'anim-btn\').className = \'ctrl-btn\';\n  }\n}\n\nconst logPanel = document.getElementById(\'log-panel\');\nfunction addLog(text, type=\'info\') {\n  const line = document.createElement(\'div\');\n  line.className = \'log-line \' + type;\n  const time = new Date().toTimeString().slice(0,8);\n  line.textContent = `[${time}] ${text}`;\n  logPanel.appendChild(line);\n  logPanel.scrollTop = logPanel.scrollHeight;\n}\nfunction clearLog() { logPanel.innerHTML = \'\'; }\n\nfunction setStatus(text, state=\'ready\') {\n  document.getElementById(\'status-text\').textContent = text;\n  const dot = document.getElementById(\'status-dot\');\n  dot.className = state;\n}\n\nfunction renderResults(conjunctions) {\n  const list = document.getElementById(\'results-list\');\n  const count = document.getElementById(\'conj-count\');\n  const exportBtn = document.getElementById(\'export-all-btn\');\n  count.textContent = conjunctions.length ? `(${conjunctions.length})` : \'\';\n\n  if (!conjunctions.length) {\n    list.innerHTML = \'<div id="no-results" style="color:var(--accent3);font-family:Share Tech Mono,monospace;font-size:10px;text-align:center;padding:20px 0">✓ No conjunctions detected</div>\';\n    exportBtn.style.display = \'none\';\n    return;\n  }\n\n  exportBtn.style.display = \'inline-block\';\n\n  list.innerHTML = conjunctions.map((c, idx) => {\n    const h = Math.floor(c.time_min / 60);\n    const m = Math.floor(c.time_min % 60);\n    const pcColor = c.pc_estimate >= 1e-3 ? \'#ff4444\' : c.pc_estimate >= 1e-5 ? \'#ffaa44\' : \'#4a6a85\';\n    const covBadge = c.covariance_source === \'measured\'\n      ? \'<span style="color:#00ff88;font-size:8px;margin-left:6px;font-family:Share Tech Mono,monospace;">COV:REAL</span>\' : \'\';\n    const debrisBadge = c.debris\n      ? \'<span style="color:#ff6644;font-size:8px;margin-left:4px;font-family:Share Tech Mono,monospace;">DEBRIS</span>\' : \'\';\n    let maneuverHTML = \'\';\n    if (c.maneuver && c.maneuver.feasible && c.maneuver.delta_v_magnitude != null) {\n      const dv = Number(c.maneuver.delta_v_magnitude).toFixed(2);\n      const rtn = c.maneuver.delta_v_rtn || [0,0,0];\n      maneuverHTML = `\n        <div style="margin-top:6px;padding:5px 7px;background:#0a1015;border-left:2px solid #ffaa44;border-radius:2px;font-family:\'Share Tech Mono\',monospace;">\n          <div style="font-size:8px;color:#ffaa44;letter-spacing:1px;margin-bottom:2px;">Δv MANEUVER <span style="color:#4a6a85;">(CW-LINEAR)</span></div>\n          <div style="font-size:10px;color:#ffaa44;">${dv} m/s</div>\n          <div style="font-size:8px;color:#4a6a85;">R:${Number(rtn[0]).toFixed(3)} T:${Number(rtn[1]).toFixed(3)} N:${Number(rtn[2]).toFixed(3)}</div>\n          <div style="font-size:7px;color:#4a6a85;margin-top:2px;font-style:italic;">${c.maneuver.advisory_note || \'\'}</div>\n        </div>`;\n    } else if (c.maneuver && !c.maneuver.feasible) {\n      maneuverHTML = `<div style="margin-top:5px;font-size:8px;color:#ff4444;font-family:\'Share Tech Mono\',monospace;">Δv: ${c.maneuver.advisory_note || \'Infeasible\'}</div>`;\n    }\n    return `\n      <div class="conj-card" onclick="flyToConjunction(${idx})">\n        <div class="sats">${c.sat1} ↔ ${c.sat2}${covBadge}${debrisBadge}</div>\n        <div class="meta">\n          <span class="dist">${c.min_dist_km.toFixed(2)} km</span>\n          <span class="pc" style="color:${pcColor}">Pc ${c.pc_estimate.toExponential(1)}</span>\n          <span class="time">+${h}h${m.toString().padStart(2,\'0\')}m</span>\n        </div>\n        ${maneuverHTML}\n        <div style="margin-top:6px;display:flex;gap:4px;">\n          <button onclick="event.stopPropagation();downloadCDM(${idx})"\n            style="flex:1;background:transparent;border:1px solid var(--border);border-radius:3px;\n                   color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:8px;\n                   padding:3px;cursor:pointer;letter-spacing:1px;transition:all 0.15s;"\n            onmouseover="this.style.borderColor=\'var(--accent)\';this.style.color=\'var(--accent)\'"\n            onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">\n            ⬇ CDM\n          </button>\n          <button data-satname="${c.sat1}" onclick="event.stopPropagation();openSatInfo(this.dataset.satname)"\n            style="flex:1;background:transparent;border:1px solid var(--border);border-radius:3px;\n                   color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:8px;\n                   padding:3px;cursor:pointer;letter-spacing:1px;transition:all 0.15s;"\n            onmouseover="this.style.borderColor=\'var(--accent)\';this.style.color=\'var(--accent)\'"\n            onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">\n            ℹ ${c.sat1.length > 12 ? c.sat1.slice(0,12)+\'…\' : c.sat1}\n          </button>\n          <button data-satname="${c.sat2}" onclick="event.stopPropagation();openSatInfo(this.dataset.satname)"\n            style="flex:1;background:transparent;border:1px solid var(--border);border-radius:3px;\n                   color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:8px;\n                   padding:3px;cursor:pointer;letter-spacing:1px;transition:all 0.15s;"\n            onmouseover="this.style.borderColor=\'var(--accent)\';this.style.color=\'var(--accent)\'"\n            onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">\n            ℹ ${c.sat2.length > 12 ? c.sat2.slice(0,12)+\'…\' : c.sat2}\n          </button>\n        </div>\n      </div>`;\n  }).join(\'\');\n}\n\nfunction flyToConjunction(idx) {\n  const c = conjData[idx];\n  if (!c) return;\n  closeSidebarOnMobile();\n  viewer.camera.flyTo({\n    destination: Cesium.Cartesian3.fromDegrees(c.midpoint[0], c.midpoint[1], c.midpoint[2] + 3000000),\n    duration: 2.0,\n  });\n}\n\nconst RISK_LEVELS = [\n  { name: \'LOW\',      pc: 1e-6,  label: \'Pc ≥ 1×10⁻⁶\', color: \'#00ff88\' },\n  { name: \'MODERATE\', pc: 1e-4,  label: \'Pc ≥ 1×10⁻⁴\', color: \'#ffaa44\' },\n  { name: \'HIGH\',     pc: 1e-3,  label: \'Pc ≥ 1×10⁻³\', color: \'#ff6644\' },\n  { name: \'CRITICAL\', pc: 1e-2,  label: \'Pc ≥ 1×10⁻²\', color: \'#ff4444\' },\n];\nfunction updateRiskSlider(val) {\n  const r = RISK_LEVELS[parseInt(val)];\n  document.getElementById(\'risk-name\').textContent = r.name;\n  document.getElementById(\'risk-name\').style.color = r.color;\n  document.getElementById(\'risk-pc-val\').textContent = r.label;\n  document.getElementById(\'pc_thresh\').value = r.pc;\n}\nupdateRiskSlider(1);\n\n// ── F-07: Debris simulation ───────────────────────────────────\nlet debrisEntities = [];\n\nfunction populateDebrisSatList(trackNames) {\n  const sel = document.getElementById(\'debris_sat\');\n  sel.innerHTML = trackNames.map(n => `<option value="${n}">${n}</option>`).join(\'\');\n  document.getElementById(\'debris-form\').style.display = \'block\';\n  document.getElementById(\'debris-locked\').style.display = \'none\';\n}\n\nasync function simulateFragmentation() {\n  const satName = document.getElementById(\'debris_sat\').value;\n  const eventType = document.getElementById(\'debris_type\').value;\n  const count = Math.min(200, parseInt(document.getElementById(\'debris_count\').value) || 50);\n  if (!satName) { addLog(\'Select a parent satellite first\', \'warn\'); return; }\n\n  addLog(`Simulating ${eventType} of ${satName} — ${count} fragments...`, \'info\');\n  try {\n    const res = await fetch(`/debris/simulate?sat_name=${encodeURIComponent(satName)}&event_type=${eventType}&n_debris=${count}`);\n    const data = await res.json();\n    if (data.error) { addLog(\'Fragmentation error: \' + data.error, \'error\'); return; }\n\n    debrisEntities.forEach(e => { if(e.dot) viewer.entities.remove(e.dot); if(e.trail) viewer.entities.remove(e.trail); });\n    debrisEntities = [];\n\n    const debColor = Cesium.Color.WHITE.withAlpha(0.8);\n    const now = Cesium.JulianDate.now();\n\n    data.debris_tracks.forEach(track => {\n      const cartPositions = track.positions.map(p => Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2]));\n      if (cartPositions.length === 0) return;\n\n      const sampledPos = new Cesium.SampledPositionProperty();\n      sampledPos.interpolationDegree = 1;\n      sampledPos.interpolationAlgorithm = Cesium.HermitePolynomialApproximation;\n      cartPositions.forEach((cart, i) => {\n        const t = Cesium.JulianDate.addSeconds(now, i * 60, new Cesium.JulianDate());\n        sampledPos.addSample(t, cart);\n      });\n\n      const dot = viewer.entities.add({\n        position: sampledPos,\n        point: { pixelSize: 2, color: debColor, outlineWidth: 0,\n                 scaleByDistance: new Cesium.NearFarScalar(1e6, 1.5, 5e7, 0.3) },\n        description: JSON.stringify({ name: track.name, regime: track.regime }),\n      });\n      const trail = cartPositions.length > 1 ? viewer.entities.add({\n        polyline: {\n          positions: cartPositions,\n          width: 0.8,\n          material: new Cesium.ColorMaterialProperty(Cesium.Color.WHITE.withAlpha(0.25)),\n          arcType: Cesium.ArcType.NONE,\n        }\n      }) : null;\n      debrisEntities.push({ dot, trail, name: track.name, isAlert: false });\n    });\n\n    document.getElementById(\'sat-count\').textContent = satEntities.length + debrisEntities.length;\n    addLog(`${data.debris_tracks.length} debris entities added to globe`, \'ok\');\n\n    if (data.conjunctions && data.conjunctions.length > 0) {\n      addLog(`${data.conjunctions.length} debris-conjunction(s) detected`, \'warn\');\n      renderResults([...conjData, ...data.conjunctions]);\n    }\n  } catch(e) {\n    addLog(\'Fragmentation simulation failed: \' + e.message, \'error\');\n  }\n}\n\n// ── CDM DOWNLOAD ─────────────────────────────────────────────\nfunction downloadCDM(idx) { window.open(`/cdm/${idx}`, \'_blank\'); }\nfunction exportAllCDMs() { window.open(\'/cdm/zip/all\', \'_blank\'); }\n\n// ── SATELLITE INFO MODAL — SEC-01: server-side via /sat-info/ ─\nasync function openSatInfo(satName) {\n  const overlay = document.getElementById(\'sat-modal-overlay\');\n  const title   = document.getElementById(\'sat-modal-title\');\n  const body    = document.getElementById(\'sat-modal-body\');\n\n  title.textContent = satName;\n  body.innerHTML = \'<div id="sat-modal-loading">FETCHING SATELLITE DATA...</div>\';\n  overlay.classList.add(\'open\');\n\n  try {\n    // SEC-01: All Anthropic API calls happen server-side via /sat-info/{name}\n    const res = await fetch(`/sat-info/${encodeURIComponent(satName)}`);\n    if (!res.ok) {\n      throw new Error(`Server returned ${res.status}`);\n    }\n    const info = await res.json();\n\n    if (info.error) {\n      body.innerHTML = `\n        <div style="padding:16px 0;">\n          <div class="sat-field"><span class="sf-key">Name</span><span class="sf-val">${satName}</span></div>\n          <div style="margin-top:16px;text-align:center;">\n            <a href="https://celestrak.org/satcat/records.php?NAME=${encodeURIComponent(satName)}"\n               target="_blank"\n               style="color:var(--accent);font-family:\'Share Tech Mono\',monospace;font-size:10px;\n                      border:1px solid var(--accent);padding:8px 16px;border-radius:4px;\n                      text-decoration:none;display:inline-block;">\n              ↗ VIEW FULL RECORD ON CELESTRAK\n            </a>\n          </div>\n        </div>`;\n      return;\n    }\n\n    // Mission type badge colour\n    const missionColors = {\n      \'Communications\': \'#00d4ff\', \'Earth Observation\': \'#00ff88\',\n      \'Navigation\': \'#ffaa44\', \'Scientific\': \'#aa88ff\',\n      \'Military\': \'#ff4444\', \'Weather\': \'#44aaff\',\n      \'Technology Demo\': \'#ffdd44\', \'Human Spaceflight\': \'#ff88aa\',\n      \'Space Station\': \'#ff88aa\', \'Debris\': \'#888888\', \'Unknown\': \'#4a6a85\',\n    };\n    const mType = info.missionType || \'Unknown\';\n    const mColor = missionColors[mType] || \'#4a6a85\';\n    const missionBadge = `<span style="background:${mColor}22;color:${mColor};\n      border:1px solid ${mColor}55;border-radius:3px;padding:2px 8px;\n      font-size:9px;letter-spacing:1px;text-transform:uppercase;">${mType}</span>`;\n\n    const fields = [\n      [\'Full Name\',       info.fullName],\n      [\'NORAD ID\',        info.noradId],\n      [\'Country\',         info.country || info.owner],\n      [\'Mission Type\',    missionBadge],\n      [\'Object Class\',    info.objectType],\n      [\'Launch Date\',     info.launchDate],\n      [\'Launch Site\',     info.launchSite],\n      [\'Orbit Type\',      info.orbitType],\n      [\'Period\',          info.periodMin ? `${info.periodMin} min` : null],\n      [\'Inclination\',     info.inclinationDeg ? `${info.inclinationDeg}°` : null],\n      [\'Apogee\',          info.apogeeKm ? `${info.apogeeKm} km` : null],\n      [\'Perigee\',         info.perigeeKm ? `${info.perigeeKm} km` : null],\n      [\'RCS Size\',        info.rcsSize],\n      [\'Status\',          info.operationalStatus],\n    ];\n\n    body.innerHTML = fields.filter(([,v]) => v && v !== \'Unknown\' && v !== null).map(([k, v]) =>\n      `<div class="sat-field"><span class="sf-key">${k}</span><span class="sf-val">${v}</span></div>`\n    ).join(\'\') + `\n      <div style="margin-top:16px;text-align:center;">\n        <a href="https://celestrak.org/satcat/records.php?NAME=${encodeURIComponent(satName)}"\n           target="_blank"\n           style="color:var(--accent);font-family:\'Share Tech Mono\',monospace;font-size:10px;\n                  border:1px solid var(--accent);padding:8px 16px;border-radius:4px;\n                  text-decoration:none;display:inline-block;">\n          ↗ VIEW FULL RECORD ON CELESTRAK\n        </a>\n      </div>`;\n  } catch(e) {\n    body.innerHTML = `<div id="sat-modal-error">Could not load satellite data.<br><br>\n      <a href="https://celestrak.org/satcat/records.php?NAME=${encodeURIComponent(satName)}"\n         target="_blank" style="color:var(--accent);">↗ Open on CelesTrak directly</a></div>`;\n  }\n}\n\nfunction closeSatModal(e) {\n  if (!e || e.target === document.getElementById(\'sat-modal-overlay\')) {\n    document.getElementById(\'sat-modal-overlay\').classList.remove(\'open\');\n  }\n}\n\n// ── HISTORICAL TRENDS ─────────────────────────────────────────\nlet historyOpen = false;\nlet chartDaily = null;\nlet chartRegimes = null;\n\nfunction toggleHistory() {\n  historyOpen = !historyOpen;\n  document.getElementById(\'history-panel\').style.display = historyOpen ? \'block\' : \'none\';\n  document.getElementById(\'history-toggle\').textContent = historyOpen ? \'▼\' : \'▶\';\n  if (historyOpen) loadHistory();\n}\n\nasync function loadHistory() {\n  try {\n    const res = await fetch(\'/history\');\n    if (res.status === 401) { addLog(\'Sign in to view history\', \'warn\'); return; }\n    const data = await res.json();\n\n    const dailyCtx = document.getElementById(\'chart-daily\').getContext(\'2d\');\n    if (chartDaily) chartDaily.destroy();\n    chartDaily = new Chart(dailyCtx, {\n      type: \'line\',\n      data: {\n        labels: data.daily.map(d => d.day).reverse(),\n        datasets: [{\n          label: \'Conjunctions / Day\',\n          data: data.daily.map(d => d.count).reverse(),\n          borderColor: \'#00d4ff\',\n          backgroundColor: \'rgba(0,212,255,0.1)\',\n          borderWidth: 1.5,\n          pointRadius: 3,\n          pointBackgroundColor: \'#00d4ff\',\n          tension: 0.3,\n          fill: true,\n        }]\n      },\n      options: {\n        responsive: true,\n        plugins: { legend: { labels: { color: \'#4a6a85\', font: { family: \'Share Tech Mono\', size: 9 } } } },\n        scales: {\n          x: { ticks: { color: \'#4a6a85\', font: { size: 8 } }, grid: { color: \'#0d2137\' } },\n          y: { ticks: { color: \'#4a6a85\', font: { size: 8 } }, grid: { color: \'#0d2137\' } }\n        }\n      }\n    });\n\n    const regCtx = document.getElementById(\'chart-regimes\').getContext(\'2d\');\n    if (chartRegimes) chartRegimes.destroy();\n    chartRegimes = new Chart(regCtx, {\n      type: \'doughnut\',\n      data: {\n        labels: data.regimes.map(r => r.pair),\n        datasets: [{\n          data: data.regimes.map(r => r.count),\n          backgroundColor: [\'#4da6ff\',\'#ff6b6b\',\'#00ff88\',\'#ffaa44\',\'#aa44ff\',\'#00d4ff\'],\n          borderColor: \'#090f17\',\n          borderWidth: 2,\n        }]\n      },\n      options: {\n        responsive: true,\n        plugins: { legend: { position: \'bottom\', labels: { color: \'#4a6a85\', font: { family: \'Share Tech Mono\', size: 8 }, boxWidth: 10 } } }\n      }\n    });\n\n    const pairDiv = document.getElementById(\'top-pairs-list\');\n    if (data.top_pairs.length) {\n      pairDiv.innerHTML = \'<div style="font-size:9px;color:var(--accent);letter-spacing:2px;margin:10px 0 6px;font-family:Share Tech Mono,monospace;">TOP RECURRING PAIRS</div>\' +\n        data.top_pairs.map(p => `\n          <div class="tp-row">\n            <span class="tp-sats">${p.sat1.slice(0,10)} ↔ ${p.sat2.slice(0,10)}</span>\n            <span class="tp-count">${p.count}×</span>\n            <span class="tp-dist">${p.closest.toFixed(1)}km</span>\n          </div>`).join(\'\');\n    } else {\n      pairDiv.innerHTML = \'<div style="color:var(--muted);font-size:9px;text-align:center;padding:8px;font-family:Share Tech Mono,monospace;">No history yet</div>\';\n    }\n  } catch(e) {\n    console.error(\'History load failed:\', e);\n  }\n}\n\n// ── RUN DETECTION ─────────────────────────────────────────────\nasync function runDetection() {\n  if (!currentUser) {\n    addLog(\'Not authenticated — please sign in\', \'error\');\n    return;\n  }\n\n  const btn = document.getElementById(\'run-btn\');\n  btn.disabled = true;\n  btn.className = \'running\';\n  btn.textContent = \'⟳ SCANNING...\';\n  clearLog();\n  setStatus(\'Initializing scan...\', \'running\');\n\n  // Progress bar\n  let pb = document.getElementById(\'vs-pb\');\n  let pbWrap = document.getElementById(\'vs-pb-wrap\');\n  let pbLbl = document.getElementById(\'vs-pb-lbl\');\n  if (!pb) {\n    const w = document.createElement(\'div\');\n    w.id = \'vs-pb-wrap\';\n    w.style.cssText = \'margin:8px 0 4px;background:#0a1520;border:1px solid #0d2137;border-radius:4px;height:6px;overflow:hidden;\';\n    const b = document.createElement(\'div\');\n    b.id = \'vs-pb\';\n    b.style.cssText = \'height:100%;width:0%;background:linear-gradient(90deg,#00d4ff,#00ff88);border-radius:4px;transition:width 0.5s ease;\';\n    w.appendChild(b);\n    const l = document.createElement(\'div\');\n    l.id = \'vs-pb-lbl\';\n    l.style.cssText = \'font-size:9px;color:#4a6a85;letter-spacing:1px;margin-top:3px;font-family:Share Tech Mono,monospace;\';\n    btn.parentNode.insertBefore(w, btn);\n    btn.parentNode.insertBefore(l, btn);\n    pb = b; pbWrap = w; pbLbl = l;\n  }\n  pbWrap.style.display = \'block\';\n  pb.style.width = \'0%\';\n  pbLbl.textContent = \'INITIALIZING...\';\n\n  function setProgress(pct, msg) { pb.style.width = pct+\'%\'; pbLbl.textContent = (msg||\'\').toUpperCase(); }\n  function resetBtn() {\n    btn.disabled = false; btn.className = \'\'; btn.textContent = \'▶ EXECUTE SCAN\';\n    setTimeout(() => { pbWrap.style.display=\'none\'; pbLbl.textContent=\'\'; }, 3000);\n  }\n\n  function _intVal(id, def) {\n    const v = parseInt(document.getElementById(id).value);\n    if (isNaN(v)) { addLog(`${id} not set — using default: ${def}`, \'warn\'); return def; }\n    return v;\n  }\n  function _floatVal(id, def) {\n    const v = parseFloat(document.getElementById(id).value);\n    if (isNaN(v)) { addLog(`${id} not set — using default: ${def}`, \'warn\'); return def; }\n    return v;\n  }\n\n  const params = {\n    num_leo: _intVal(\'num_leo\', 100),\n    num_meo: _intVal(\'num_meo\', 50),\n    num_geo: _intVal(\'num_geo\', 20),\n    time_window_hours: _floatVal(\'time_window\', 12),\n    collision_alert_km: _floatVal(\'alert_km\', 10),\n    refine_threshold_km: _floatVal(\'refine_km\', 50),\n    pc_alert_threshold: parseFloat(document.getElementById(\'pc_thresh\').value),\n    alert_email: document.getElementById(\'alert_email\') ? document.getElementById(\'alert_email\').value || null : null,\n    pushover_user_key: document.getElementById(\'pushover_key\') ? document.getElementById(\'pushover_key\').value || null : null,\n  };\n\n  try {\n    const evtSource = new EventSource(\'/run?\' + new URLSearchParams(params));\n    let scanDone = false;\n    let lastActivity = Date.now();\n\n    // Keepalive watchdog — large scans (10k sats) can take 3+ min.\n    // Only fire if we haven\'t received any message in 4 minutes AND scan isn\'t done.\n    const watchdog = setInterval(() => {\n      if (!scanDone && Date.now() - lastActivity > 240000) {\n        clearInterval(watchdog);\n        evtSource.close();\n        setProgress(0, \'Timeout\');\n        addLog(\'Scan timed out after 4 minutes — try fewer satellites or a shorter window\', \'warn\');\n        setStatus(\'Scan timed out\', \'error\');\n        resetBtn();\n      }\n    }, 15000);\n\n    evtSource.onmessage = (e) => {\n      lastActivity = Date.now();\n      const msg = JSON.parse(e.data);\n      if (msg.type === \'ping\') return; // server keepalive — ignore\n      if (msg.type === \'log\') {\n        const level = msg.text.includes(\'✓\') ? \'ok\' : msg.text.includes(\'✗\') || msg.text.includes(\'ERROR\') ? \'error\' : msg.text.includes(\'WARNING\') ? \'warn\' : \'info\';\n        addLog(msg.text, level);\n        setStatus(msg.text.slice(0, 60), \'running\');\n      } else if (msg.type === \'progress\') {\n        setProgress(msg.pct, msg.text);\n        setStatus(msg.text.slice(0, 60), \'running\');\n      } else if (msg.type === \'rate_limit\') {\n        scanDone = true; clearInterval(watchdog); evtSource.close();\n        setProgress(0, \'Rate limited\');\n        addLog(\'Rate limit: \' + msg.text, \'warn\');\n        setStatus(\'Rate limited — wait before next scan\', \'error\');\n        resetBtn();\n      } else if (msg.type === \'auth_error\') {\n        scanDone = true; clearInterval(watchdog); evtSource.close();\n        setProgress(0, \'Auth required\');\n        addLog(\'Authentication required\', \'error\');\n        setStatus(\'Please sign in\', \'error\');\n        resetBtn();\n      } else if (msg.type === \'done\') {\n        scanDone = true; clearInterval(watchdog); evtSource.close();\n        setProgress(100, \'Complete!\');\n        const results = msg.data;\n        addLog(`Scan complete — ${results.conjunctions.length} conjunction(s) found`, \'ok\');\n        setStatus(`Done — ${results.conjunctions.length} conjunction(s)`, \'ready\');\n        plotConjunctions(results.conjunctions);\n        alertSatNames = new Set();\n        results.conjunctions.forEach(c => { alertSatNames.add(c.sat1); alertSatNames.add(c.sat2); });\n        plotSatellites(results.tracks);\n        renderResults(results.conjunctions);\n        const trackNames = results.tracks.map(t => t.name);\n        if (typeof populateDebrisSatList === \'function\') populateDebrisSatList(trackNames);\n        resetBtn();\n        viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(0, 20, 25000000), duration: 2.0 });\n      } else if (msg.type === \'error\') {\n        scanDone = true; clearInterval(watchdog); evtSource.close();\n        setProgress(0, \'Error\');\n        addLog(\'ERROR: \' + msg.text, \'error\');\n        setStatus(\'Scan failed — \' + msg.text.slice(0, 80), \'error\');\n        resetBtn();\n      }\n    };\n\n    evtSource.onerror = () => {\n      // Some browsers fire onerror on normal stream close — ignore if scan completed\n      if (scanDone) return;\n      clearInterval(watchdog);\n      evtSource.close();\n      setProgress(0, \'Connection lost\');\n      addLog(\'Connection lost — the scan may still be running server-side. Refresh to check results.\', \'warn\');\n      setStatus(\'Connection dropped\', \'error\');\n      resetBtn();\n    };\n\n  } catch(err) {\n    setProgress(0, \'Error\');\n    addLog(\'Failed to start scan: \' + err.message, \'error\');\n    setStatus(\'Error\', \'error\');\n    resetBtn();\n  }\n}\n</script>\n</body>\n</html>\n'
-SCENARIOS_HTML       = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">\n<title>Interactive Scenarios — VectraSpace</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">\n<style>\n:root{\n  --ink:#080c12;--ink2:#0d1320;--ink3:#111d2e;\n  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);\n  --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;\n  --accent:#4a9eff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;\n  --serif:\'Instrument Serif\',serif;--mono:\'DM Mono\',monospace;--sans:\'Outfit\',sans-serif;\n}\n*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}\nhtml,body{background:var(--ink);color:var(--text);font-family:var(--sans);overflow:hidden;width:100%;height:100%;}\n\n#topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);}\n.tb-brand{font-family:var(--serif);font-size:16px;font-style:italic;color:#fff;text-decoration:none;}\n.tb-brand em{color:var(--accent);font-style:normal;}\n.tb-links{display:flex;gap:4px;}\n.tb-link{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:5px 12px;border:1px solid transparent;border-radius:4px;transition:all 0.15s;}\n.tb-link:hover,.tb-link.active{border-color:var(--border2);color:var(--text);}\n.tb-link.active{border-color:rgba(74,158,255,0.4);color:var(--accent);background:rgba(74,158,255,0.06);}\n\n#app{display:flex;height:100vh;padding-top:52px;}\n#canvas-wrap{flex:1;position:relative;overflow:hidden;}\n#three-canvas{display:block;width:100%;height:100%;}\n\n/* SCENARIO SELECTOR */\n#scenario-bar{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:50;display:flex;gap:8px;background:rgba(8,12,18,0.9);border:1px solid var(--border);border-radius:8px;padding:8px;}\n.sc-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:7px 16px;border-radius:5px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}\n.sc-btn:hover{border-color:var(--accent);color:var(--accent);}\n.sc-btn.active{background:rgba(74,158,255,0.12);border-color:var(--accent);color:var(--accent);}\n\n/* PLAYBACK BAR */\n#playback{position:absolute;bottom:0;left:0;right:0;z-index:50;background:rgba(8,12,18,0.92);border-top:1px solid var(--border);padding:12px 20px 16px;backdrop-filter:blur(8px);}\n.pb-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}\n.pb-title{font-family:var(--serif);font-size:16px;font-style:italic;color:#fff;flex:1;}\n.pb-time{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;}\n.pb-btns{display:flex;gap:8px;}\n.pb-btn{width:34px;height:34px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}\n.pb-btn:hover{border-color:var(--accent);color:var(--accent);}\n.pb-btn.active{background:rgba(74,158,255,0.12);border-color:var(--accent);color:var(--accent);}\n#pb-progress{width:100%;height:4px;background:var(--border2);border-radius:2px;cursor:pointer;position:relative;}\n#pb-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.05s linear;pointer-events:none;}\n#pb-scrubber{position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:grab;left:0%;margin-left:-6px;}\n\n/* INFO OVERLAY */\n#info-overlay{position:absolute;top:76px;left:20px;z-index:50;max-width:320px;}\n.io-card{background:rgba(8,12,18,0.9);border:1px solid var(--border);border-radius:8px;padding:16px 18px;backdrop-filter:blur(8px);margin-bottom:10px;}\n.io-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}\n.io-title{font-family:var(--serif);font-size:17px;color:#fff;margin-bottom:6px;}\n.io-body{font-size:12px;color:var(--muted);line-height:1.65;}\n.io-body strong{color:var(--text);}\n.io-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}\n.io-stat{background:var(--ink3);border:1px solid var(--border);border-radius:5px;padding:8px 10px;}\n.io-stat-val{font-family:var(--mono);font-size:13px;color:var(--text);}\n.io-stat-lbl{font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}\n\n/* FRAGMENT COUNTER */\n#frag-counter{position:absolute;top:76px;right:20px;z-index:50;background:rgba(8,12,18,0.9);border:1px solid var(--border);border-radius:8px;padding:14px 18px;backdrop-filter:blur(8px);text-align:center;min-width:120px;}\n.fc-val{font-family:var(--serif);font-size:32px;font-style:italic;color:var(--red);line-height:1;}\n.fc-lbl{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}\n\n/* TIMELINE EVENTS */\n#timeline-events{position:absolute;bottom:80px;left:20px;right:20px;pointer-events:none;}\n.te-badge{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 10px;border-radius:4px;white-space:nowrap;opacity:0;transition:opacity 0.3s;}\n.te-badge.show{opacity:1;}\n\n/* MOBILE */\n@media(max-width:700px){\n  #scenario-bar{top:8px;gap:4px;padding:6px;}\n  .sc-btn{font-size:8px;padding:5px 10px;}\n  #info-overlay{max-width:200px;}\n  .io-card{padding:12px 14px;}\n  .tb-link:not(.back-link){display:none;}\n}\n</style>\n</head>\n<body>\n<div id="topbar">\n  <a href="/" class="tb-brand">Vectra<em>Space</em></a>\n  <div class="tb-links">\n    <a href="/" class="tb-link back-link">← Hub</a>\n    <a href="/scenarios" class="tb-link active">Scenarios</a>\n    <a href="/api/tools/trajectory" class="tb-link" style="color:var(--green);">Trajectory ↗</a>\n    <a href="/calculator" class="tb-link">Calculator</a>\n    <a href="/glossary" class="tb-link">Resources</a>\n  </div>\n</div>\n\n<div id="app">\n  <div id="canvas-wrap">\n    <canvas id="three-canvas"></canvas>\n\n    <div id="scenario-bar">\n      <button class="sc-btn active" onclick="loadScenario(\'iridium\')">Iridium-Cosmos</button>\n      <button class="sc-btn" onclick="loadScenario(\'kessler\')">Kessler Cascade</button>\n      <button class="sc-btn" onclick="loadScenario(\'fy1c\')">FY-1C ASAT</button>\n      <button class="sc-btn" onclick="loadScenario(\'maneuver\')">Avoidance Maneuver</button>\n    </div>\n\n    <div id="info-overlay">\n      <div class="io-card" id="io-main">\n        <div class="io-eyebrow" id="io-eyebrow">Feb 10, 2009 · 789 km</div>\n        <div class="io-title" id="io-title">Iridium 33 ↔ Cosmos 2251</div>\n        <div class="io-body" id="io-body">The first accidental hypervelocity collision between two intact satellites. Both were destroyed, generating <strong>~2,300 trackable fragments</strong> — many still orbit today.</div>\n        <div class="io-stats" id="io-stats">\n          <div class="io-stat"><div class="io-stat-val" id="is-v">11.7</div><div class="io-stat-lbl">km/s rel. vel.</div></div>\n          <div class="io-stat"><div class="io-stat-val" id="is-alt">789</div><div class="io-stat-lbl">km altitude</div></div>\n          <div class="io-stat"><div class="io-stat-val" id="is-m1">560</div><div class="io-stat-lbl">Iridium mass (kg)</div></div>\n          <div class="io-stat"><div class="io-stat-val" id="is-m2">900</div><div class="io-stat-lbl">Cosmos mass (kg)</div></div>\n        </div>\n      </div>\n    </div>\n\n    <div id="frag-counter">\n      <div class="fc-val" id="fc-val">0</div>\n      <div class="fc-lbl" id="fc-lbl">Fragments</div>\n    </div>\n\n    <div id="playback">\n      <div class="pb-top">\n        <div class="pb-title" id="pb-title">Iridium-Cosmos Collision Simulation</div>\n        <div class="pb-time" id="pb-time">T+00:00</div>\n        <div class="pb-btns">\n          <button class="pb-btn" id="btn-restart" onclick="restart()" title="Restart">↺</button>\n          <button class="pb-btn active" id="btn-play" onclick="togglePlay()" title="Play/Pause">⏸</button>\n          <button class="pb-btn" id="btn-speed" onclick="cycleSpeed()" title="Speed">1×</button>\n        </div>\n      </div>\n      <div id="pb-progress" onclick="scrubTo(event)">\n        <div id="pb-fill"></div>\n        <div id="pb-scrubber"></div>\n      </div>\n    </div>\n  </div>\n</div>\n\n<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n<script>\n// ══ THREE.JS SETUP ════════════════════════════════════════════\nconst canvas  = document.getElementById(\'three-canvas\');\nconst renderer = new THREE.WebGLRenderer({ canvas, antialias: true });\nrenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));\nrenderer.setClearColor(0x080c12, 1);\n\nconst scene  = new THREE.Scene();\nconst camera = new THREE.PerspectiveCamera(50, 1, 0.1, 800000);\n\n// Earth\nconst R_E = 6371;\nconst earthMesh = new THREE.Mesh(\n  new THREE.SphereGeometry(R_E, 48, 48),\n  new THREE.MeshPhongMaterial({ color: 0x1a3a6a, emissive: 0x0a1a3a, shininess: 5 })\n);\nscene.add(earthMesh);\n\n// Grid overlay\nconst gMat = new THREE.LineBasicMaterial({ color: 0x1a3a6a, transparent: true, opacity: 0.3 });\nfor (let la = -80; la <= 80; la += 20) {\n  const pts = [];\n  for (let lo = 0; lo <= 360; lo += 6) {\n    const r=R_E+5, lR=la*Math.PI/180, oR=lo*Math.PI/180;\n    pts.push(new THREE.Vector3(r*Math.cos(lR)*Math.cos(oR), r*Math.sin(lR), r*Math.cos(lR)*Math.sin(oR)));\n  }\n  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gMat));\n}\nfor (let lo = 0; lo < 360; lo += 30) {\n  const pts = [];\n  for (let la = -90; la <= 90; la += 6) {\n    const r=R_E+5, lR=la*Math.PI/180, oR=lo*Math.PI/180;\n    pts.push(new THREE.Vector3(r*Math.cos(lR)*Math.cos(oR), r*Math.sin(lR), r*Math.cos(lR)*Math.sin(oR)));\n  }\n  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gMat));\n}\n\n// Atmosphere\nscene.add(new THREE.Mesh(\n  new THREE.SphereGeometry(R_E * 1.04, 32, 32),\n  new THREE.MeshPhongMaterial({ color: 0x2a5f9f, transparent: true, opacity: 0.07, side: THREE.FrontSide })\n));\n\n// Stars\nconst sPos = [];\nfor (let i = 0; i < 2000; i++) sPos.push((Math.random()-.5)*600000, (Math.random()-.5)*600000, (Math.random()-.5)*600000);\nconst sGeo = new THREE.BufferGeometry();\nsGeo.setAttribute(\'position\', new THREE.Float32BufferAttribute(sPos, 3));\nscene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 80, transparent: true, opacity: 0.5 })));\n\n// Lights\nscene.add(new THREE.AmbientLight(0x223355, 1.2));\nconst sun = new THREE.DirectionalLight(0xffffff, 1.6);\nsun.position.set(50000, 20000, 30000);\nscene.add(sun);\n\n// ══ ORBIT MATH ═══════════════════════════════════════════════\nconst MU = 398600.4418;\nfunction orbitPoints(a, e, iDeg, ODeg, wDeg, N=180) {\n  const pts=[], iR=iDeg*Math.PI/180, OR=ODeg*Math.PI/180, wR=wDeg*Math.PI/180;\n  for (let k=0; k<=N; k++) {\n    const nu=(k/N)*2*Math.PI;\n    const p=a*(1-e*e), r=p/(1+e*Math.cos(nu));\n    const xp=r*Math.cos(nu), yp=r*Math.sin(nu);\n    const cosO=Math.cos(OR), sinO=Math.sin(OR), ci=Math.cos(iR), si=Math.sin(iR), cw=Math.cos(wR), sw=Math.sin(wR);\n    pts.push(new THREE.Vector3(\n      (cosO*cw-sinO*sw*ci)*xp+(-cosO*sw-sinO*cw*ci)*yp,\n      (si*sw)*xp+(si*cw)*yp,\n      (sinO*cw+cosO*sw*ci)*xp+(-sinO*sw+cosO*cw*ci)*yp\n    ));\n  }\n  return pts;\n}\nfunction satPos(a, e, iDeg, ODeg, wDeg, nuDeg) {\n  const pts = orbitPoints(a, e, iDeg, ODeg, wDeg, 1);\n  // recompute at nuDeg\n  const nu=nuDeg*Math.PI/180, iR=iDeg*Math.PI/180, OR=ODeg*Math.PI/180, wR=wDeg*Math.PI/180;\n  const p=a*(1-e*e), r=p/(1+e*Math.cos(nu));\n  const xp=r*Math.cos(nu), yp=r*Math.sin(nu);\n  const cosO=Math.cos(OR), sinO=Math.sin(OR), ci=Math.cos(iR), si=Math.sin(iR), cw=Math.cos(wR), sw=Math.sin(wR);\n  return new THREE.Vector3(\n    (cosO*cw-sinO*sw*ci)*xp+(-cosO*sw-sinO*cw*ci)*yp,\n    (si*sw)*xp+(si*cw)*yp,\n    (sinO*cw+cosO*sw*ci)*xp+(-sinO*sw+cosO*cw*ci)*yp\n  );\n}\n\n// ══ SCENE OBJECTS ═════════════════════════════════════════════\nlet sceneGroup = new THREE.Group();\nscene.add(sceneGroup);\nlet fragments = [];\nlet animState = {};\nlet playing = true, speed = 1, t = 0, tMax = 1;\nconst speeds = [0.5, 1, 2, 4];\nlet speedIdx = 1;\n\nfunction clearScene() {\n  sceneGroup.clear();\n  fragments = [];\n}\n\nfunction mkLine(pts, color, opacity=1) {\n  const mat = new THREE.LineBasicMaterial({ color, transparent: opacity<1, opacity });\n  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);\n}\nfunction mkSphere(r, color, emissive=0) {\n  return new THREE.Mesh(new THREE.SphereGeometry(r,12,12), new THREE.MeshPhongMaterial({ color, emissive }));\n}\n\n// ══ SCENARIOS ════════════════════════════════════════════════\nconst SCENARIOS = {\n  iridium: {\n    title: \'Iridium-Cosmos Collision Simulation\',\n    eyebrow: \'Feb 10, 2009 · 789 km\',\n    heading: \'Iridium 33 ↔ Cosmos 2251\',\n    body: \'The first accidental hypervelocity collision between two intact satellites. Both were destroyed, generating <strong>~2,300 trackable fragments</strong> — many still orbit today.\',\n    stats: { v:\'11.7\', alt:\'789\', m1:\'560\', m2:\'900\', l1:\'km/s rel. vel.\', l2:\'km altitude\', l3:\'Iridium mass (kg)\', l4:\'Cosmos mass (kg)\' },\n    fcLabel: \'Trackable Fragments\',\n    totalFrags: 2300,\n    camera: { pos: [0, 8000, 22000], lookAt: [0, 0, 0] },\n    build() {\n      clearScene();\n      // Iridium orbit (a=7160 km, i=86.4°)\n      const iriPts = orbitPoints(7160, 0.001, 86.4, 340, 0);\n      sceneGroup.add(mkLine(iriPts, 0x4a9eff, 0.6));\n      // Cosmos orbit (a=7159 km, i=74.0°, retrograde)\n      const cosPts = orbitPoints(7159, 0.001, 74.0, 155, 0);\n      sceneGroup.add(mkLine(cosPts, 0xf87171, 0.6));\n\n      // sat meshes (start positions nu=~270)\n      const iriSat = mkSphere(100, 0x4a9eff, 0x103060);\n      const cosSat = mkSphere(100, 0xf87171, 0x601010);\n      const collPt = satPos(7160, 0.001, 86.4, 340, 0, 270);\n      iriSat.position.copy(satPos(7160, 0.001, 86.4, 340, 0, 180));\n      cosSat.position.copy(satPos(7159, 0.001, 74.0, 155, 0, 90));\n      sceneGroup.add(iriSat); sceneGroup.add(cosSat);\n\n      // Collision point marker (appears at t=0.45)\n      const flashGeo = new THREE.SphereGeometry(350, 16, 16);\n      const flashMat = new THREE.MeshPhongMaterial({ color: 0xffaa00, emissive: 0xff6600, transparent: true, opacity: 0 });\n      const flash = new THREE.Mesh(flashGeo, flashMat);\n      flash.position.copy(collPt);\n      sceneGroup.add(flash);\n\n      // Build debris particles\n      const NFRAG = 400;\n      const fragGeo = new THREE.BufferGeometry();\n      const fragPos = new Float32Array(NFRAG * 3);\n      fragGeo.setAttribute(\'position\', new THREE.BufferAttribute(fragPos, 3));\n      const fragMat = new THREE.PointsMaterial({ color: 0xff8844, size: 50, transparent: true, opacity: 0 });\n      const fragPoints = new THREE.Points(fragGeo, fragMat);\n      sceneGroup.add(fragPoints);\n\n      // Collision ring (expanding ring at impact)\n      const ringGeo = new THREE.RingGeometry(100, 160, 32);\n      const ringMat = new THREE.MeshBasicMaterial({ color: 0xff8844, transparent: true, opacity: 0, side: THREE.DoubleSide });\n      const ring = new THREE.Mesh(ringGeo, ringMat);\n      ring.position.copy(collPt);\n      ring.lookAt(0, 1, 0);\n      sceneGroup.add(ring);\n\n      // Store fragment velocity vectors\n      fragments = [];\n      for (let k = 0; k < NFRAG; k++) {\n        const phi = Math.random() * Math.PI * 2;\n        const theta2 = Math.acos(2 * Math.random() - 1);\n        const spd = 300 + Math.random() * 2000;  // m/s dispersion\n        fragments.push({\n          vx: Math.sin(theta2)*Math.cos(phi)*spd,\n          vy: Math.cos(theta2)*spd,\n          vz: Math.sin(theta2)*Math.sin(phi)*spd,\n        });\n      }\n\n      animState = {\n        iriSat, cosSat, flash, flashMat, fragPoints, fragPos, fragMat, ring, ringMat, ringGeo,\n        collPt, NFRAG,\n      };\n    },\n    tick(t) {\n      const s = animState;\n      if (!s.iriSat) return;\n      // Phase 0→0.4: satellites approach\n      const approach = Math.min(t / 0.4, 1.0);\n      const iriNu  = 180 + approach * 90;\n      const cosNu  = 90  + approach * 180;\n      s.iriSat.position.copy(satPos(7160, 0.001, 86.4, 340, 0, iriNu));\n      s.cosSat.position.copy(satPos(7159, 0.001, 74.0, 155, 0, cosNu));\n\n      // Phase 0.4→0.5: collision flash\n      const flashT = Math.max(0, Math.min((t - 0.4) / 0.1, 1));\n      s.flashMat.opacity = flashT < 0.5 ? flashT * 2 : (1 - flashT) * 2;\n\n      // Phase 0.45+: fragments expand\n      if (t > 0.45) {\n        const fT = (t - 0.45) * 3.0;\n        s.iriSat.visible = false; s.cosSat.visible = false;\n        s.fragMat.opacity = Math.min(fT * 3, 0.8);\n        for (let k = 0; k < s.NFRAG; k++) {\n          const f = fragments[k];\n          s.fragPos[k*3]   = s.collPt.x + f.vx * fT * 0.8;\n          s.fragPos[k*3+1] = s.collPt.y + f.vy * fT * 0.8;\n          s.fragPos[k*3+2] = s.collPt.z + f.vz * fT * 0.8;\n        }\n        s.fragPoints.geometry.attributes.position.needsUpdate = true;\n        // Ring expand\n        s.ring.scale.setScalar(1 + fT * 6);\n        s.ringMat.opacity = Math.max(0, 0.5 - fT * 0.5);\n      } else {\n        s.iriSat.visible = true; s.cosSat.visible = true;\n        s.fragMat.opacity = 0;\n      }\n\n      // Fragment counter\n      const fragCount = t > 0.45 ? Math.round(Math.min((t - 0.45) / 0.4 * 2300, 2300)) : 0;\n      document.getElementById(\'fc-val\').textContent = fragCount.toLocaleString();\n    }\n  },\n\n  kessler: {\n    title: \'Kessler Cascade — Runaway Debris Chain\',\n    eyebrow: \'Hypothetical · 800–1000 km\',\n    heading: \'The Kessler Syndrome\',\n    body: \'Each collision generates debris that causes more collisions. Above a critical density, the cascade becomes <strong>self-sustaining and irreversible</strong>. This simulation shows the exponential growth in fragment count.\',\n    stats: { v:\'9–11\', alt:\'900\', m1:\'2\', m2:\'events\', l1:\'km/s avg\', l2:\'km altitude\', l3:\'cascade\', l4:\'collisions\' },\n    fcLabel: \'Total Fragments\',\n    totalFrags: 15000,\n    camera: { pos: [0, 10000, 28000], lookAt: [0, 0, 0] },\n    build() {\n      clearScene();\n      // 6 initial satellite orbits at slightly different inclinations\n      const sats = [];\n      const orbitDefs = [\n        { a:7180, e:0.001, i:82, O:0   },\n        { a:7200, e:0.001, i:86, O:60  },\n        { a:7160, e:0.001, i:78, O:120 },\n        { a:7220, e:0.001, i:94, O:180 },\n        { a:7190, e:0.001, i:90, O:240 },\n        { a:7170, e:0.001, i:72, O:300 },\n      ];\n      const colors = [0x4a9eff, 0x34d399, 0xa78bfa, 0xf59e0b, 0xf87171, 0x67e8f9];\n      orbitDefs.forEach((o, idx) => {\n        const pts = orbitPoints(o.a, o.e, o.i, o.O, 0);\n        sceneGroup.add(mkLine(pts, colors[idx], 0.4));\n        const s = mkSphere(90, colors[idx], 0);\n        s.position.copy(satPos(o.a, o.e, o.i, o.O, 0, idx * 60));\n        sceneGroup.add(s);\n        sats.push({ ...o, mesh: s, nu: idx * 60 });\n      });\n\n      // Debris cloud particles (grows over time)\n      const MAXFRAG = 1200;\n      const fragGeo = new THREE.BufferGeometry();\n      const fragPos = new Float32Array(MAXFRAG * 3);\n      // start all at center far away\n      for (let i = 0; i < MAXFRAG * 3; i++) fragPos[i] = 999999;\n      fragGeo.setAttribute(\'position\', new THREE.BufferAttribute(fragPos, 3));\n      const fragMat = new THREE.PointsMaterial({ color: 0xff6644, size: 35, transparent: true, opacity: 0.6 });\n      const fragPoints = new THREE.Points(fragGeo, fragMat);\n      sceneGroup.add(fragPoints);\n\n      // Collision flash meshes (one per event)\n      const flashes = [];\n      const flashPositions = [\n        satPos(7180, 0.001, 82, 0, 0, 130),\n        satPos(7200, 0.001, 86, 60, 0, 220),\n        satPos(7190, 0.001, 90, 240, 0, 310),\n        satPos(7170, 0.001, 72, 300, 0, 45),\n      ];\n      flashPositions.forEach(p => {\n        const f = mkSphere(280, 0xff8800, 0xff4400);\n        f.material.transparent = true; f.material.opacity = 0;\n        f.position.copy(p);\n        sceneGroup.add(f);\n        flashes.push(f);\n      });\n\n      animState = { sats, fragPoints, fragPos, fragMat, flashes, flashPositions, MAXFRAG };\n      fragments = Array.from({ length: MAXFRAG }, () => ({\n        vx: (Math.random()-.5)*2000, vy: (Math.random()-.5)*2000, vz: (Math.random()-.5)*2000,\n        spawnT: Math.random(),\n        baseX: flashPositions[Math.floor(Math.random()*flashPositions.length)].x,\n        baseY: flashPositions[Math.floor(Math.random()*flashPositions.length)].y,\n        baseZ: flashPositions[Math.floor(Math.random()*flashPositions.length)].z,\n      }));\n    },\n    tick(t) {\n      const s = animState;\n      if (!s.sats) return;\n      // Move satellites\n      s.sats.forEach((sat, i) => {\n        sat.nu = (sat.nu + 0.4 * (1 + i*0.05)) % 360;\n        sat.mesh.position.copy(satPos(sat.a, sat.e, sat.i, sat.O, 0, sat.nu));\n      });\n      // Cascade flashes\n      const eventTimes = [0.15, 0.35, 0.55, 0.75];\n      s.flashes.forEach((f, i) => {\n        const dt = t - eventTimes[i];\n        if (dt > 0 && dt < 0.12) {\n          f.material.opacity = dt < 0.06 ? dt/0.06 : (0.12-dt)/0.06;\n        } else {\n          f.material.opacity = 0;\n        }\n      });\n      // Grow debris cloud\n      let activeFrags = 0;\n      fragments.forEach((frag, k) => {\n        if (t > frag.spawnT) {\n          const age = (t - frag.spawnT) * 1.5;\n          s.fragPos[k*3]   = frag.baseX + frag.vx * age;\n          s.fragPos[k*3+1] = frag.baseY + frag.vy * age;\n          s.fragPos[k*3+2] = frag.baseZ + frag.vz * age;\n          activeFrags++;\n        }\n      });\n      s.fragPoints.geometry.attributes.position.needsUpdate = true;\n      const count = Math.round(t * 15000);\n      document.getElementById(\'fc-val\').textContent = count.toLocaleString();\n      // Hide sats progressively after first collision\n      if (t > 0.2) { s.sats[0].mesh.visible = false; s.sats[1].mesh.visible = false; }\n      if (t > 0.4) { s.sats[2].mesh.visible = false; }\n      if (t > 0.6) { s.sats[3].mesh.visible = false; }\n    }\n  },\n\n  fy1c: {\n    title: \'FY-1C ASAT Strike — Jan 11, 2007\',\n    eyebrow: \'Deliberate · 863 km · China\',\n    heading: \'FY-1C Anti-Satellite Test\',\n    body: \'China destroyed its own Fengyun-1C weather satellite using a direct-ascent kinetic kill vehicle. Created <strong>3,500+ trackable fragments</strong> — the worst single debris-generating event ever.\',\n    stats: { v:\'9.0\', alt:\'863\', m1:\'750\', m2:\'300\', l1:\'km/s rel. vel.\', l2:\'km altitude\', l3:\'FY-1C mass (kg)\', l4:\'KKV mass (est., kg)\' },\n    fcLabel: \'Debris Objects Created\',\n    totalFrags: 3500,\n    camera: { pos: [0, 9000, 24000], lookAt: [0, 0, 0] },\n    build() {\n      clearScene();\n      // FY-1C polar orbit\n      const fyPts = orbitPoints(7234, 0.001, 98.8, 200, 0);\n      const fyLine = mkLine(fyPts, 0x44ffaa, 1.0);\n      sceneGroup.add(fyLine);\n      animState._fyLine = fyLine;\n      // KKV trajectory (direct ascent from ground, simplified as inclined arc)\n      const kkvPts = [];\n      for (let k = 0; k <= 60; k++) {\n        const frac = k / 60;\n        const alt = R_E + 200 + (863 - 200) * frac;\n        const lng = 100 + frac * 10; // rough path\n        const lat = 28 + frac * 70;\n        const lR = lat*Math.PI/180, oR = lng*Math.PI/180;\n        kkvPts.push(new THREE.Vector3(alt*Math.cos(lR)*Math.cos(oR), alt*Math.sin(lR), alt*Math.cos(lR)*Math.sin(oR)));\n      }\n      sceneGroup.add(mkLine(kkvPts, 0xf87171, 0.7));\n\n      const fy1c = mkSphere(110, 0x34d399, 0x106030);\n      const kkv  = mkSphere(60, 0xf87171, 0x601010);\n      const collPt = satPos(7234, 0.001, 98.8, 200, 0, 260);\n      fy1c.position.copy(satPos(7234, 0.001, 98.8, 200, 0, 180));\n      kkv.position.copy(kkvPts[0]);\n      sceneGroup.add(fy1c); sceneGroup.add(kkv);\n\n      const flash = mkSphere(400, 0xffaa00, 0xff6600);\n      flash.material.transparent = true; flash.material.opacity = 0;\n      flash.position.copy(collPt);\n      sceneGroup.add(flash);\n\n      const NFRAG = 500;\n      const fragGeo = new THREE.BufferGeometry();\n      const fragPos = new Float32Array(NFRAG * 3);\n      for (let i = 0; i < NFRAG*3; i++) fragPos[i] = 999999;\n      fragGeo.setAttribute(\'position\', new THREE.BufferAttribute(fragPos, 3));\n      const fragMat = new THREE.PointsMaterial({ color: 0xff8844, size: 45, transparent: true, opacity: 0 });\n      const fragPoints = new THREE.Points(fragGeo, fragMat);\n      sceneGroup.add(fragPoints);\n\n      fragments = Array.from({ length: NFRAG }, () => {\n        const phi=Math.random()*Math.PI*2, th=Math.acos(2*Math.random()-1);\n        const spd = 400 + Math.random() * 3000;\n        return { vx:Math.sin(th)*Math.cos(phi)*spd, vy:Math.cos(th)*spd, vz:Math.sin(th)*Math.sin(phi)*spd };\n      });\n\n      animState = { fy1c, kkv, flash, kkvPts, collPt, fragPoints, fragPos, fragMat, NFRAG };\n    },\n    tick(t) {\n      const s = animState;\n      if (!s.fy1c) return;\n      const fy1cNu = 180 + t * 0.4 * 80;\n      s.fy1c.position.copy(satPos(7234, 0.001, 98.8, 200, 0, fy1cNu));\n      // KKV rises\n      const kkvIdx = Math.floor(Math.min(t / 0.5, 0.99) * 59);\n      s.kkv.position.copy(s.kkvPts[kkvIdx]);\n      // Flash at t=0.5\n      const flashT = Math.max(0, Math.min((t - 0.5) / 0.1, 1));\n      s.flash.material.opacity = flashT < 0.5 ? flashT * 2 : (1 - flashT) * 2;\n      if (t > 0.52) {\n        s.fy1c.visible = false; s.kkv.visible = false;\n        if (s._fyLine) s._fyLine.visible = true;\n        s.fragMat.opacity = Math.min((t - 0.52) * 3, 0.85);\n        const fT = (t - 0.52) * 2;\n        for (let k = 0; k < s.NFRAG; k++) {\n          const f = fragments[k];\n          s.fragPos[k*3]   = s.collPt.x + f.vx * fT;\n          s.fragPos[k*3+1] = s.collPt.y + f.vy * fT;\n          s.fragPos[k*3+2] = s.collPt.z + f.vz * fT;\n        }\n        s.fragPoints.geometry.attributes.position.needsUpdate = true;\n      } else {\n        s.fy1c.visible = true; s.kkv.visible = true;\n        s.fragMat.opacity = 0;\n      }\n      document.getElementById(\'fc-val\').textContent = t > 0.52 ? Math.round(Math.min((t-0.52)/0.4*3500, 3500)).toLocaleString() : \'0\';\n    }\n  },\n\n  maneuver: {\n    title: \'Conjunction Avoidance Maneuver\',\n    eyebrow: \'Operational · 400 km · LEO\',\n    heading: \'Avoidance Delta-V\',\n    body: \'When Pc exceeds 1×10⁻⁴, operators execute a small maneuver to change their orbit. Even <strong>0.1 m/s Δv</strong> is enough to move several kilometers in 2 hours.\',\n    stats: { v:\'0.10\', alt:\'400\', m1:\'1e-4\', m2:\'0.1\', l1:\'Δv (m/s)\', l2:\'km altitude\', l3:\'Pc threshold\', l4:\'m/s burn\' },\n    fcLabel: \'Miss Distance (km)\',\n    totalFrags: 12,\n    camera: { pos: [0, 7000, 18000], lookAt: [0, 0, 0] },\n    build() {\n      clearScene();\n      // Primary satellite orbit (ISS-like)\n      const origPts = orbitPoints(6778, 0.001, 51.6, 0, 0);\n      sceneGroup.add(mkLine(origPts, 0x4a9eff, 0.5));\n      // Post-maneuver orbit (slightly higher)\n      const manPts = orbitPoints(6790, 0.001, 51.6, 0, 0);\n      const manLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(manPts),\n        new THREE.LineDashedMaterial({ color: 0x34d399, dashSize: 200, gapSize: 100, transparent: true, opacity: 0 }));\n      manLine.computeLineDistances();\n      sceneGroup.add(manLine);\n      // Debris orbit (crossing)\n      const debrisPts = orbitPoints(6780, 0.001, 68.5, 20, 45);\n      sceneGroup.add(mkLine(debrisPts, 0xf87171, 0.4));\n\n      const sat   = mkSphere(90, 0x4a9eff, 0x103060);\n      const debris = mkSphere(60, 0xf87171, 0x601010);\n      const conjPt = satPos(6778, 0.001, 51.6, 0, 0, 310);\n\n      // Warning ring at conjunction point\n      const warnGeo = new THREE.RingGeometry(200, 320, 32);\n      const warnMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0, side: THREE.DoubleSide });\n      const warnRing = new THREE.Mesh(warnGeo, warnMat);\n      warnRing.position.copy(conjPt);\n      warnRing.lookAt(0, 0, 0);\n      sceneGroup.add(warnRing);\n\n      sat.position.copy(satPos(6778, 0.001, 51.6, 0, 0, 180));\n      debris.position.copy(satPos(6780, 0.001, 68.5, 20, 45, 180));\n      sceneGroup.add(sat); sceneGroup.add(debris);\n\n      animState = { sat, debris, manLine, warnRing, warnMat, conjPt, maneuvered: false };\n    },\n    tick(t) {\n      const s = animState;\n      if (!s.sat) return;\n      // Phase 0-0.4: normal orbit, warning ring pulses\n      const warnT = Math.min(t / 0.4, 1);\n      s.warnMat.opacity = warnT * 0.6 * (0.5 + 0.5 * Math.sin(t * 20));\n\n      const satNu  = 180 + t * 0.4 * 130;\n      const debNu  = 180 + t * 0.4 * 110;\n      const manNu  = 180 + t * 0.4 * 130;\n\n      if (t < 0.5) {\n        s.sat.position.copy(satPos(6778, 0.001, 51.6, 0, 0, satNu));\n        s.manLine.material.opacity = 0;\n      } else {\n        // After maneuver: track higher orbit\n        s.sat.position.copy(satPos(6790, 0.001, 51.6, 0, 0, manNu));\n        s.manLine.material.opacity = Math.min((t - 0.5) * 5, 0.7);\n        s.warnMat.opacity = Math.max(0, 0.6 - (t - 0.5) * 2);\n      }\n      s.debris.position.copy(satPos(6780, 0.001, 68.5, 20, 45, debNu));\n\n      // Miss distance (km)\n      const miss = t < 0.5 ? Math.max(0.1, 3.2 - t * 4) : 0.1 + (t - 0.5) * 28;\n      document.getElementById(\'fc-val\').textContent = miss.toFixed(1);\n    }\n  }\n};\n\n// ══ PLAYBACK CONTROLS ════════════════════════════════════════\nfunction loadScenario(key) {\n  const sc = SCENARIOS[key];\n  document.querySelectorAll(\'.sc-btn\').forEach(b => b.classList.toggle(\'active\', b.textContent.trim().replace(/\\s+/g,\' \') === {\n    iridium:\'Iridium-Cosmos\', kessler:\'Kessler Cascade\', fy1c:\'FY-1C ASAT\', maneuver:\'Avoidance Maneuver\'\n  }[key]));\n  document.getElementById(\'pb-title\').textContent = sc.title;\n  document.getElementById(\'io-eyebrow\').textContent = sc.eyebrow;\n  document.getElementById(\'io-title\').textContent = sc.heading;\n  document.getElementById(\'io-body\').innerHTML = sc.body;\n  document.getElementById(\'is-v\').textContent  = sc.stats.v;\n  document.getElementById(\'is-alt\').textContent = sc.stats.alt;\n  document.getElementById(\'is-m1\').textContent = sc.stats.m1;\n  document.getElementById(\'is-m2\').textContent = sc.stats.m2;\n  document.querySelector(\'#io-stats .io-stat:nth-child(1) .io-stat-lbl\').textContent = sc.stats.l1;\n  document.querySelector(\'#io-stats .io-stat:nth-child(2) .io-stat-lbl\').textContent = sc.stats.l2;\n  document.querySelector(\'#io-stats .io-stat:nth-child(3) .io-stat-lbl\').textContent = sc.stats.l3;\n  document.querySelector(\'#io-stats .io-stat:nth-child(4) .io-stat-lbl\').textContent = sc.stats.l4;\n  document.getElementById(\'fc-lbl\').textContent = sc.fcLabel;\n  document.getElementById(\'fc-val\').textContent = \'0\';\n  camera.position.set(...sc.camera.pos);\n  camera.lookAt(...sc.camera.lookAt);\n  radius = camera.position.length();\n  sc.build();\n  t = 0;\n  playing = true;\n  document.getElementById(\'btn-play\').textContent = \'⏸\';\n  currentScenario = key;\n}\n\nlet currentScenario = \'iridium\';\nlet lastTime = null;\n\nfunction togglePlay() {\n  playing = !playing;\n  document.getElementById(\'btn-play\').textContent = playing ? \'⏸\' : \'▶\';\n}\nfunction restart() {\n  t = 0; playing = true;\n  document.getElementById(\'btn-play\').textContent = \'⏸\';\n  loadScenario(currentScenario);\n}\nfunction cycleSpeed() {\n  speedIdx = (speedIdx + 1) % speeds.length;\n  speed = speeds[speedIdx];\n  document.getElementById(\'btn-speed\').textContent = speed + \'×\';\n}\nfunction scrubTo(e) {\n  const rect = document.getElementById(\'pb-progress\').getBoundingClientRect();\n  t = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));\n}\n\n// ══ ORBIT CONTROLS ═══════════════════════════════════════════\nlet isDragging=false, lastX=0, lastY=0, lastTouchDist=0;\nlet phi=0.5, theta=0.4, radius=24000;\n\nfunction updateCam() {\n  camera.position.set(radius*Math.sin(phi)*Math.cos(theta), radius*Math.cos(phi), radius*Math.sin(phi)*Math.sin(theta));\n  camera.lookAt(0,0,0);\n}\ncanvas.addEventListener(\'mousedown\', e => { isDragging=true; lastX=e.clientX; lastY=e.clientY; });\nwindow.addEventListener(\'mouseup\', () => isDragging=false);\nwindow.addEventListener(\'mousemove\', e => {\n  if (!isDragging) return;\n  theta -= (e.clientX-lastX)*0.005; phi=Math.max(0.1,Math.min(Math.PI-0.1,phi-(e.clientY-lastY)*0.005));\n  lastX=e.clientX; lastY=e.clientY; updateCam();\n});\ncanvas.addEventListener(\'wheel\', e => { radius=Math.max(R_E*1.5,Math.min(200000,radius+e.deltaY*12)); updateCam(); }, { passive:true });\ncanvas.addEventListener(\'touchstart\', e => {\n  if (e.touches.length===1) { isDragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; }\n  else if (e.touches.length===2) { isDragging=false; lastTouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); }\n}, { passive:true });\ncanvas.addEventListener(\'touchmove\', e => {\n  if (e.touches.length===1 && isDragging) {\n    theta-=(e.touches[0].clientX-lastX)*0.007; phi=Math.max(0.1,Math.min(Math.PI-0.1,phi-(e.touches[0].clientY-lastY)*0.007));\n    lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; updateCam();\n  } else if (e.touches.length===2) {\n    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);\n    radius=Math.max(R_E*1.5,Math.min(200000,radius*(lastTouchDist/d))); lastTouchDist=d; updateCam();\n  }\n}, { passive:true });\ncanvas.addEventListener(\'touchend\', ()=>isDragging=false, { passive:true });\n\n// ══ RESIZE ════════════════════════════════════════════════════\nfunction resize() {\n  const w=canvas.parentElement.clientWidth, h=canvas.parentElement.clientHeight;\n  renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix();\n}\nwindow.addEventListener(\'resize\', resize); resize();\n\n// ══ RENDER LOOP ═══════════════════════════════════════════════\nfunction animate(ts) {\n  requestAnimationFrame(animate);\n  if (playing && lastTime !== null) {\n    const dt = Math.min((ts - lastTime) / 1000, 0.05) * speed * 0.12;\n    t = Math.min(t + dt, 1.0);\n    if (t >= 1.0) playing = false;\n  }\n  lastTime = ts;\n\n  // Run scenario tick\n  const sc = SCENARIOS[currentScenario];\n  if (sc && sc.tick) sc.tick(t);\n\n  // Update timeline\n  document.getElementById(\'pb-fill\').style.width = (t * 100) + \'%\';\n  document.getElementById(\'pb-scrubber\').style.left  = (t * 100) + \'%\';\n  const seconds = Math.round(t * 120);\n  const mm = Math.floor(seconds / 60), ss = seconds % 60;\n  document.getElementById(\'pb-time\').textContent = \'T+\' + String(mm).padStart(2,\'0\') + \':\' + String(ss).padStart(2,\'0\');\n\n  earthMesh.rotation.y += 0.0003;\n  renderer.render(scene, camera);\n}\n\n// ══ INIT ══════════════════════════════════════════════════════\nloadScenario(\'iridium\');\nrequestAnimationFrame(animate);\n</script>\n</body>\n</html>'
-CALC_HTML            = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>Impact Calculator — VectraSpace</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">\n<style>\n:root{\n  --ink:#080c12;--ink2:#0d1320;--ink3:#131d2e;--panel:#0f1925;\n  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);\n  --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;\n  --accent:#4a9eff;--accent2:#7bc4ff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;\n  --serif:\'Instrument Serif\',Georgia,serif;--mono:\'DM Mono\',monospace;--sans:\'Outfit\',sans-serif;\n}\n*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}\nhtml{scroll-behavior:smooth;}\nbody{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden;min-height:100vh;}\n\nnav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.94);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}\n.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}\n.nav-brand-name{font-family:var(--serif);font-size:17px;font-style:italic;letter-spacing:-0.2px;}\n.nav-brand-name em{color:var(--accent);font-style:normal;}\n.nav-links{display:flex;gap:4px;align-items:center;}\n.nav-link{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:4px;transition:all 0.2s;border:1px solid transparent;}\n.nav-link:hover{color:var(--text);border-color:var(--border);}\n.nav-link.active{color:var(--accent);border-color:rgba(74,158,255,0.3);background:rgba(74,158,255,0.05);}\n\n/* PAGE LAYOUT */\n.page{padding:96px 48px 80px;max-width:1100px;margin:0 auto;}\n.page-hero{margin-bottom:56px;}\n.page-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:14px;display:flex;align-items:center;gap:10px;}\n.page-eyebrow::before{content:\'\';width:24px;height:1px;background:var(--amber);display:inline-block;}\n.page-title{font-family:var(--serif);font-size:clamp(38px,4.5vw,60px);font-weight:400;color:#fff;line-height:1.1;letter-spacing:-0.5px;margin-bottom:16px;}\n.page-title em{font-style:italic;color:var(--accent2);}\n.page-subtitle{font-size:15px;color:var(--muted);line-height:1.8;max-width:620px;}\n\n/* GRID */\n.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}\n\n/* PANEL */\n.calc-panel{background:var(--ink2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}\n.calc-panel-header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}\n.calc-panel-icon{font-size:16px;}\n.calc-panel-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}\n.calc-panel-body{padding:28px;}\n\n/* INPUTS */\n.field{margin-bottom:24px;}\n.field:last-child{margin-bottom:0;}\n.field-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}\n.field-hint{font-family:var(--mono);font-size:9px;color:var(--faint);letter-spacing:0;text-transform:none;}\n.field-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}\n.field-input{\n  width:100%;padding:11px 16px;background:var(--ink3);\n  border:1px solid var(--border);border-radius:6px;\n  color:var(--text);font-family:var(--mono);font-size:14px;\n  outline:none;transition:border-color 0.2s;\n}\n.field-input:focus{border-color:var(--accent);}\n.field-input::placeholder{color:var(--faint);}\n.field-unit{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;white-space:nowrap;padding:0 4px;}\n\n/* SLIDER */\n.slider-wrap{margin-top:6px;}\n.range-slider{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border2);outline:none;cursor:pointer;}\n.range-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px rgba(74,158,255,0.5);}\n.range-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none;}\n.slider-labels{display:flex;justify-content:space-between;margin-top:4px;font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:1px;}\n\n/* PRESETS */\n.preset-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}\n.preset-btn{\n  font-family:var(--mono);font-size:8px;letter-spacing:0.5px;\n  padding:4px 10px;border-radius:4px;border:1px solid var(--border);\n  color:var(--muted);background:transparent;cursor:pointer;transition:all 0.15s;\n}\n.preset-btn:hover,.preset-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.06);}\n\n/* RESULTS */\n.results-empty{padding:48px 28px;text-align:center;}\n.results-empty-icon{font-size:32px;margin-bottom:12px;opacity:0.3;}\n.results-empty-text{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:1.5px;text-transform:uppercase;line-height:1.8;}\n\n.result-hero{padding:28px;border-bottom:1px solid var(--border);text-align:center;}\n.result-hero-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}\n.result-hero-val{font-family:var(--serif);font-size:52px;font-style:italic;color:var(--accent);line-height:1;}\n.result-hero-unit{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;}\n\n.result-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}\n.result-cell{padding:20px 24px;border-right:1px solid var(--border);}\n.result-cell:nth-child(even){border-right:none;}\n.result-cell-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}\n.result-cell-val{font-family:var(--serif);font-size:24px;font-style:italic;color:var(--text);}\n.result-cell-sub{font-family:var(--mono);font-size:9px;color:var(--faint);margin-top:2px;}\n\n/* SEVERITY METER */\n.severity-wrap{padding:24px 28px;border-bottom:1px solid var(--border);}\n.severity-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;}\n.severity-bar-track{height:6px;background:var(--border2);border-radius:3px;overflow:hidden;margin-bottom:8px;}\n.severity-bar-fill{height:100%;border-radius:3px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1),background 0.4s;}\n.severity-ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:0.5px;}\n\n/* ANALOG */\n.analogy-wrap{padding:20px 28px;border-bottom:1px solid var(--border);}\n.analogy-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}\n.analogy-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}\n.analogy-card{background:var(--ink3);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;}\n.analogy-icon{font-size:20px;margin-bottom:6px;}\n.analogy-name{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}\n.analogy-val{font-family:var(--serif);font-size:15px;color:var(--text);}\n.analogy-active{border-color:var(--accent2);background:rgba(74,158,255,0.06);}\n.analogy-active .analogy-val{color:var(--accent2);}\n\n/* FRAGMENT */\n.fragment-wrap{padding:20px 28px;}\n.fragment-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}\n.fragment-bars{display:flex;flex-direction:column;gap:8px;}\n.fbar-row{display:grid;grid-template-columns:70px 1fr 80px;gap:10px;align-items:center;}\n.fbar-cat{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.5px;}\n.fbar-track{height:6px;background:var(--ink3);border-radius:3px;overflow:hidden;}\n.fbar-fill{height:100%;border-radius:3px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1);}\n.fbar-count{font-family:var(--mono);font-size:10px;color:var(--text);text-align:right;}\n\n/* KESSLER RISK */\n.kessler-wrap{padding:20px 28px;border-top:1px solid var(--border);}\n.kessler-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;border:1px solid;font-family:var(--mono);font-size:11px;letter-spacing:0.5px;}\n.kessler-dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite;}\n@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}\n.kessler-msg{font-size:13px;color:var(--muted);line-height:1.6;margin-top:10px;}\n\n/* SHARE */\n.share-wrap{padding:20px 28px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}\n.share-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}\n.share-btn{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 18px;border-radius:5px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.2s;}\n.share-btn:hover{border-color:var(--accent);color:var(--accent);}\n.share-btn.copied{border-color:var(--green);color:var(--green);}\n\n/* CALC BUTTON */\n.calc-btn{\n  width:100%;margin-top:20px;padding:14px;border-radius:7px;\n  background:linear-gradient(135deg,rgba(74,158,255,0.15),rgba(74,158,255,0.05));\n  border:1px solid rgba(74,158,255,0.4);color:var(--accent2);\n  font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;\n  cursor:pointer;transition:all 0.2s;\n}\n.calc-btn:hover{background:linear-gradient(135deg,rgba(74,158,255,0.25),rgba(74,158,255,0.1));border-color:var(--accent);}\n\n/* SCENARIO CARDS (below) */\n.scenarios{margin-top:40px;}\n.scenarios-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}\n.scenario-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}\n.scenario-card{\n  background:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:16px;\n  cursor:pointer;transition:all 0.2s;\n}\n.scenario-card:hover{border-color:var(--accent);transform:translateY(-2px);}\n.sc-icon{font-size:22px;margin-bottom:8px;}\n.sc-name{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}\n.sc-desc{font-size:11px;color:var(--muted);line-height:1.5;}\n\n/* EDUCATIONAL CALLOUT */\n.edu-callout{margin-top:40px;background:var(--ink2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:24px 28px;}\n.edu-callout-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;}\n.edu-callout-title{font-family:var(--serif);font-size:18px;color:#fff;margin-bottom:8px;}\n.edu-callout-body{font-size:13px;color:var(--muted);line-height:1.7;}\n.edu-link{color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:1px;display:inline-flex;align-items:center;gap:5px;margin-top:12px;transition:color 0.2s;}\n.edu-link:hover{color:var(--accent2);}\n\n@media(max-width:900px){\n  .calc-grid{grid-template-columns:1fr;}\n  .scenario-cards{grid-template-columns:repeat(2,1fr);}\n}\n@media(max-width:600px){\n  nav{padding:0 16px;}\n  .page{padding:88px 20px 60px;}\n  .analogy-cards{grid-template-columns:1fr 1fr;}\n  .result-grid{grid-template-columns:1fr;}\n  .result-cell{border-right:none;border-bottom:1px solid var(--border);}\n  .scenario-cards{grid-template-columns:1fr 1fr;}\n}\n</style>\n</head>\n<body>\n<nav>\n  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>\n  <div class="nav-links">\n    <a href="/" class="nav-link">Hub</a>\n    <a href="/glossary" class="nav-link">Resources</a>\n    <a href="/calculator" class="nav-link active">Calculator</a>\n    <a href="/api/tools/trajectory" class="nav-link" style="color:var(--green);border:1px solid rgba(52,211,153,0.3);border-radius:4px;padding:5px 10px;">Trajectory ↗</a>\n    <a href="/dashboard" class="nav-link">Dashboard</a>\n  </div>\n</nav>\n\n<div class="page">\n  <div class="page-hero">\n    <div class="page-eyebrow">// Interactive Tool</div>\n    <h1 class="page-title">Orbital Collision <em>Impact Calculator</em></h1>\n    <p class="page-subtitle">Model the kinetic energy, fragment count, and cascade risk of any space collision using the NASA Standard Breakup Model and real orbital physics.</p>\n  </div>\n\n  <div class="calc-grid">\n    <!-- LEFT: INPUTS -->\n    <div>\n      <div class="calc-panel">\n        <div class="calc-panel-header">\n          <span class="calc-panel-icon">⚙</span>\n          <span class="calc-panel-title">Collision Parameters</span>\n        </div>\n        <div class="calc-panel-body">\n\n          <!-- Object A -->\n          <div class="field">\n            <div class="field-label">Object A — Mass<span class="field-hint">Primary satellite</span></div>\n            <div class="field-row">\n              <input type="number" class="field-input" id="massA" value="800" min="0.01" max="500000" step="1" placeholder="800">\n              <span class="field-unit">kg</span>\n            </div>\n            <div class="slider-wrap">\n              <input type="range" class="range-slider" id="slMassA" min="1" max="20000" value="800" step="1">\n              <div class="slider-labels"><span>1 kg</span><span>1,000</span><span>5,000</span><span>10,000</span><span>20,000</span></div>\n            </div>\n          </div>\n\n          <!-- Object B -->\n          <div class="field">\n            <div class="field-label">Object B — Mass<span class="field-hint">Impactor / debris</span></div>\n            <div class="field-row">\n              <input type="number" class="field-input" id="massB" value="900" min="0.01" max="500000" step="1" placeholder="900">\n              <span class="field-unit">kg</span>\n            </div>\n            <div class="slider-wrap">\n              <input type="range" class="range-slider" id="slMassB" min="1" max="20000" value="900" step="1">\n              <div class="slider-labels"><span>1 kg</span><span>1,000</span><span>5,000</span><span>10,000</span><span>20,000</span></div>\n            </div>\n          </div>\n\n          <!-- Relative velocity -->\n          <div class="field">\n            <div class="field-label">Relative Velocity<span class="field-hint">At impact (0–15 km/s for LEO)</span></div>\n            <div class="field-row">\n              <input type="number" class="field-input" id="velRel" value="11.7" min="0.1" max="15" step="0.1" placeholder="11.7">\n              <span class="field-unit">km/s</span>\n            </div>\n            <div class="slider-wrap">\n              <input type="range" class="range-slider" id="slVel" min="0.1" max="15" value="11.7" step="0.1">\n              <div class="slider-labels"><span>0</span><span>3.75</span><span>7.5</span><span>11.25</span><span>15 km/s</span></div>\n            </div>\n          </div>\n\n          <!-- Altitude -->\n          <div class="field">\n            <div class="field-label">Altitude<span class="field-hint">Affects cascade risk assessment</span></div>\n            <div class="field-row">\n              <input type="number" class="field-input" id="altitude" value="789" min="160" max="36000" step="1" placeholder="789">\n              <span class="field-unit">km</span>\n            </div>\n            <div class="preset-row">\n              <button class="preset-btn" onclick="setAlt(400)">ISS (400 km)</button>\n              <button class="preset-btn active" onclick="setAlt(789)">Iridium/Cosmos (789)</button>\n              <button class="preset-btn" onclick="setAlt(863)">FY-1C (863)</button>\n              <button class="preset-btn" onclick="setAlt(1200)">High LEO (1,200)</button>\n            </div>\n          </div>\n\n          <div class="field">\n            <div class="field-label">Common Scenarios</div>\n            <div class="preset-row">\n              <button class="preset-btn" onclick="loadPreset(\'frag\')">1 cm fragment</button>\n              <button class="preset-btn" onclick="loadPreset(\'smallsat\')">SmallSat vs debris</button>\n              <button class="preset-btn" onclick="loadPreset(\'iridium\')">Iridium-Cosmos</button>\n              <button class="preset-btn" onclick="loadPreset(\'fy1c\')">FY-1C ASAT</button>\n            </div>\n          </div>\n\n          <button class="calc-btn" onclick="calculate()">▶ Calculate Collision Physics</button>\n        </div>\n      </div>\n\n      <div class="edu-callout" style="margin-top:20px;">\n        <div class="edu-callout-eyebrow">// How the math works</div>\n        <div class="edu-callout-title">NASA Standard Breakup Model</div>\n        <div class="edu-callout-body">Fragment count follows N(L<sub>c</sub>) = 6·M<sup>0.75</sup>·L<sub>c</sub><sup>−1.6</sup> where M is the mass of the smaller object (kg) and L<sub>c</sub> is the minimum fragment characteristic length (m). Kinetic energy KE = ½μv² uses the reduced mass μ = m₁m₂/(m₁+m₂). The specific energy E* = KE/M_total determines whether a collision is catastrophic (E* > 40 kJ/kg) or cratering.</div>\n        <a href="/education/debris-modeling" class="edu-link">Read Chapter 04: Debris Modeling →</a>\n      </div>\n    </div>\n\n    <!-- RIGHT: RESULTS -->\n    <div class="calc-panel" id="results-panel">\n      <div class="calc-panel-header">\n        <span class="calc-panel-icon">📊</span>\n        <span class="calc-panel-title">Results</span>\n      </div>\n      <div class="results-empty" id="results-empty">\n        <div class="results-empty-icon">⚡</div>\n        <div class="results-empty-text">Set parameters<br>and calculate</div>\n      </div>\n      <div id="results-body" style="display:none;">\n        <!-- injected by JS -->\n      </div>\n    </div>\n  </div>\n\n  <!-- SCENARIO CARDS -->\n  <div class="scenarios">\n    <div class="scenarios-label">// Historical & Reference Events</div>\n    <div class="scenario-cards">\n      <div class="scenario-card" onclick="loadPreset(\'iridium\')">\n        <div class="sc-icon">🛰</div>\n        <div class="sc-name">Iridium-Cosmos 2009</div>\n        <div class="sc-desc">First accidental collision — 789 km, 11.7 km/s, ~2,300 trackable fragments</div>\n      </div>\n      <div class="scenario-card" onclick="loadPreset(\'fy1c\')">\n        <div class="sc-icon">💥</div>\n        <div class="sc-name">FY-1C ASAT 2007</div>\n        <div class="sc-desc">Deliberate kinetic impact — 863 km, 9.0 km/s, worst single debris event</div>\n      </div>\n      <div class="scenario-card" onclick="loadPreset(\'smallsat\')">\n        <div class="sc-icon">📦</div>\n        <div class="sc-name">CubeSat Impact</div>\n        <div class="sc-desc">3U CubeSat vs 10 cm fragment at typical LEO crossing velocity</div>\n      </div>\n      <div class="scenario-card" onclick="loadPreset(\'frag\')">\n        <div class="sc-icon">🔩</div>\n        <div class="sc-name">Paint Fleck / Bolt</div>\n        <div class="sc-desc">1 cm fragment vs 500 kg satellite — surprisingly lethal at orbital speeds</div>\n      </div>\n    </div>\n  </div>\n</div>\n\n<script>\n// ── SYNC SLIDERS TO INPUTS ────────────────────────────────────\nfunction syncSlider(inputId, sliderId) {\n  const input  = document.getElementById(inputId);\n  const slider = document.getElementById(sliderId);\n  input.addEventListener(\'input\', () => { slider.value = input.value; });\n  slider.addEventListener(\'input\', () => { input.value = slider.value; });\n}\nsyncSlider(\'massA\',\'slMassA\');\nsyncSlider(\'massB\',\'slMassB\');\nsyncSlider(\'velRel\',\'slVel\');\n\nfunction setAlt(v) {\n  document.getElementById(\'altitude\').value = v;\n  document.querySelectorAll(\'.preset-btn\').forEach(b => {\n    b.classList.toggle(\'active\', b.textContent.includes(\'(\' + v));\n  });\n}\n\n// ── PRESETS ───────────────────────────────────────────────────\nconst PRESETS = {\n  frag:     { massA: 500,   massB: 0.01,  vel: 7.7,  alt: 500,  label: \'1 cm fragment vs 500 kg satellite\' },\n  smallsat: { massA: 4,     massB: 1,     vel: 10.3, alt: 550,  label: \'3U CubeSat vs 1 kg fragment\' },\n  iridium:  { massA: 560,   massB: 900,   vel: 11.7, alt: 789,  label: \'Iridium 33 vs Cosmos 2251 (2009)\' },\n  fy1c:     { massA: 750,   massB: 300,   vel: 9.0,  alt: 863,  label: \'FY-1C ASAT Impact (2007)\' },\n};\nfunction loadPreset(key) {\n  const p = PRESETS[key];\n  document.getElementById(\'massA\').value  = p.massA;\n  document.getElementById(\'massB\').value  = p.massB;\n  document.getElementById(\'velRel\').value = p.vel;\n  document.getElementById(\'altitude\').value = p.alt;\n  document.getElementById(\'slMassA\').value = p.massA;\n  document.getElementById(\'slMassB\').value = p.massB;\n  document.getElementById(\'slVel\').value   = p.vel;\n  calculate();\n}\n\n// ── PHYSICS ───────────────────────────────────────────────────\nfunction formatNum(n) {\n  if (n >= 1e9) return (n/1e9).toFixed(2) + \' GJ\';\n  if (n >= 1e6) return (n/1e6).toFixed(2) + \' MJ\';\n  if (n >= 1e3) return (n/1e3).toFixed(1) + \' kJ\';\n  return n.toFixed(0) + \' J\';\n}\nfunction formatCount(n) {\n  if (n >= 1e6) return \'>\' + (n/1e6).toFixed(1) + \'M\';\n  if (n >= 1e3) return \'~\' + Math.round(n/100)*100;\n  return \'~\' + Math.round(n);\n}\n\nfunction calculate() {\n  const mA  = parseFloat(document.getElementById(\'massA\').value)  || 0;\n  const mB  = parseFloat(document.getElementById(\'massB\').value)  || 0;\n  const vel = parseFloat(document.getElementById(\'velRel\').value) || 0;\n  const alt = parseFloat(document.getElementById(\'altitude\').value) || 0;\n\n  if (!mA || !mB || !vel) return;\n\n  // Reduced mass & kinetic energy\n  const mu    = (mA * mB) / (mA + mB);          // reduced mass, kg\n  const vMs   = vel * 1000;                       // m/s\n  const keJ   = 0.5 * mu * vMs * vMs;            // Joules\n  const kekJ  = keJ / 1000;\n\n  // Full system KE (as reference)\n  const fullKe = 0.5 * (mA + mB) * vMs * vMs;\n\n  // Specific energy (determines catastrophic vs cratering)\n  const eStar = keJ / ((mA + mB) * 1000);   // J/kg → kJ/kg after /1000\n  const eStarkJ = eStar / 1000;\n  const catastrophic = eStarkJ >= 40;\n\n  // NASA SBM fragment counts (using smaller mass as target for catastrophic)\n  // N(Lc) = 6 * M^0.75 * Lc^-1.6\n  const mSBM = catastrophic ? Math.min(mA, mB) : Math.min(mA, mB);\n  const sbmCoeff = 6 * Math.pow(mSBM, 0.75);\n  const nTrackable  = Math.round(sbmCoeff * Math.pow(0.10, -1.6));  // ≥10 cm\n  const nLethal     = Math.round(sbmCoeff * Math.pow(0.01, -1.6));  // ≥1 cm\n  const nTiny       = Math.round(sbmCoeff * Math.pow(0.001,-1.6)); // ≥1 mm\n\n  // Analogy table (kJ)\n  const analogies = [\n    { icon:\'🔫\', name:\'Rifle bullet\', kJ: 3 },\n    { icon:\'💣\', name:\'Hand grenade\', kJ: 400 },\n    { icon:\'🚗\', name:\'Car at 100 mph\', kJ: 540 },\n    { icon:\'🎯\', name:\'AT missile\', kJ: 5000 },\n    { icon:\'✈\', name:\'747 at cruise\', kJ: 3.7e8 },\n    { icon:\'🌋\', name:\'Hiroshima\', kJ: 6.3e10 },\n  ];\n  let closestIdx = 0;\n  let closestDiff = Infinity;\n  analogies.forEach((a,i) => {\n    const diff = Math.abs(Math.log10(kekJ+1) - Math.log10(a.kJ+1));\n    if (diff < closestDiff) { closestDiff = diff; closestIdx = i; }\n  });\n  const showAnalogies = analogies.slice(Math.max(0,closestIdx-1), closestIdx+2);\n\n  // Severity (0–100 log scale)\n  const sevPct = Math.min(100, Math.log10(kekJ + 1) / Math.log10(1e12) * 100);\n  const sevColor = sevPct < 30 ? \'var(--green)\' : sevPct < 60 ? \'var(--amber)\' : \'var(--red)\';\n\n  // Kessler cascade risk\n  const altRisk = alt >= 800 && alt <= 1400;\n  const massRisk = catastrophic && (mA > 100 || mB > 100);\n  let kesslerLevel, kesslerColor, kesslerMsg;\n  if (altRisk && massRisk) {\n    kesslerLevel = \'HIGH CASCADE RISK\';\n    kesslerColor = \'var(--red)\';\n    kesslerMsg = `At ${alt} km with ${formatCount(nTrackable)} new trackable fragments, this collision falls in the critical density altitude band. Without active debris removal, fragments from this event could trigger further cascading collisions. This is exactly the Kessler scenario.`;\n  } else if (altRisk || (catastrophic && (mA>50||mB>50))) {\n    kesslerLevel = \'ELEVATED RISK\';\n    kesslerColor = \'var(--amber)\';\n    kesslerMsg = `This collision generates a significant debris cloud${altRisk ? ` at a high-risk altitude (${alt} km)` : \'\'}. Below 600 km, atmospheric drag will naturally remove most fragments within years. Above 800 km, fragments can persist for decades to centuries.`;\n  } else {\n    kesslerLevel = \'CONTAINED EVENT\';\n    kesslerColor = \'var(--green)\';\n    kesslerMsg = `This collision is relatively contained. ${catastrophic ? \'The small masses involved limit fragment count.\' : \'Non-catastrophic: the impactor cratered rather than fully fragmenting the target.\'} Atmospheric drag at this altitude will deorbit most small fragments over time.`;\n  }\n\n  // Orbital lifetime of fragments (rough)\n  let lifetime;\n  if (alt < 350) lifetime = \'weeks to months\';\n  else if (alt < 500) lifetime = \'1–5 years\';\n  else if (alt < 700) lifetime = \'5–25 years\';\n  else if (alt < 900) lifetime = \'25–100 years\';\n  else lifetime = \'centuries\';\n\n  // Fragment bar max\n  const maxN = Math.max(nTiny, 1);\n\n  // Build result HTML\n  const html = `\n    <div class="result-hero">\n      <div class="result-hero-label">Kinetic Energy Released</div>\n      <div class="result-hero-val">${formatNum(keJ)}</div>\n      <div class="result-hero-unit">reduced-mass · (${vel} km/s)²</div>\n    </div>\n    <div class="result-grid">\n      <div class="result-cell">\n        <div class="result-cell-label">Collision Type</div>\n        <div class="result-cell-val" style="color:${catastrophic?\'var(--red)\':\'var(--amber)\'}">${catastrophic?\'Catastrophic\':\'Cratering\'}</div>\n        <div class="result-cell-sub">E* = ${eStarkJ.toFixed(0)} kJ/kg${catastrophic?\' (>40 threshold)\':\' (<40 threshold)\'}</div>\n      </div>\n      <div class="result-cell">\n        <div class="result-cell-label">Fragment Lifetime</div>\n        <div class="result-cell-val" style="font-size:16px;font-style:normal;font-family:var(--mono);color:var(--muted)">${lifetime}</div>\n        <div class="result-cell-sub">at ${alt} km altitude</div>\n      </div>\n      <div class="result-cell">\n        <div class="result-cell-label">Relative Velocity</div>\n        <div class="result-cell-val">${vel}</div>\n        <div class="result-cell-sub">km/s · ${(vel/29.8*100).toFixed(0)}% of Earth orbital speed</div>\n      </div>\n      <div class="result-cell">\n        <div class="result-cell-label">Reduced Mass</div>\n        <div class="result-cell-val">${mu.toFixed(1)}</div>\n        <div class="result-cell-sub">kg · m₁m₂/(m₁+m₂)</div>\n      </div>\n    </div>\n    <div class="severity-wrap">\n      <div class="severity-label">\n        <span>Impact Severity</span>\n        <span style="color:${sevColor}">${sevPct.toFixed(0)}%</span>\n      </div>\n      <div class="severity-bar-track"><div class="severity-bar-fill" style="width:${sevPct}%;background:${sevColor};"></div></div>\n      <div class="severity-ticks"><span>Tiny</span><span>Hand grenade</span><span>Car</span><span>Bomb</span><span>Nuclear</span></div>\n    </div>\n    <div class="analogy-wrap">\n      <div class="analogy-eyebrow">Energy equivalents — closest matches</div>\n      <div class="analogy-cards">\n        ${analogies.slice(Math.max(0,closestIdx-1),closestIdx+2).map((a,i) => `\n          <div class="analogy-card ${i===Math.min(closestIdx,1)?\'analogy-active\':\'\'}">\n            <div class="analogy-icon">${a.icon}</div>\n            <div class="analogy-name">${a.name}</div>\n            <div class="analogy-val">${formatNum(a.kJ*1000)}</div>\n          </div>\n        `).join(\'\')}\n      </div>\n    </div>\n    <div class="fragment-wrap">\n      <div class="fragment-label">NASA SBM Fragment Estimates</div>\n      <div class="fragment-bars">\n        <div class="fbar-row">\n          <span class="fbar-cat">≥10 cm</span>\n          <div class="fbar-track"><div class="fbar-fill" style="width:${(nTrackable/maxN*100)}%;background:var(--red);"></div></div>\n          <span class="fbar-count">${formatCount(nTrackable)}</span>\n        </div>\n        <div class="fbar-row">\n          <span class="fbar-cat">≥1 cm</span>\n          <div class="fbar-track"><div class="fbar-fill" style="width:${(nLethal/maxN*100)}%;background:var(--amber);"></div></div>\n          <span class="fbar-count">${formatCount(nLethal)}</span>\n        </div>\n        <div class="fbar-row">\n          <span class="fbar-cat">≥1 mm</span>\n          <div class="fbar-track"><div class="fbar-fill" style="width:100%;background:var(--faint);"></div></div>\n          <span class="fbar-count">${formatCount(nTiny)}</span>\n        </div>\n      </div>\n    </div>\n    <div class="kessler-wrap">\n      <div class="kessler-badge" style="color:${kesslerColor};border-color:${kesslerColor};background:${kesslerColor}22;">\n        <div class="kessler-dot" style="background:${kesslerColor};"></div>\n        ${kesslerLevel}\n      </div>\n      <div class="kessler-msg">${kesslerMsg}</div>\n    </div>\n    <div class="share-wrap">\n      <span class="share-label">Share this result</span>\n      <button class="share-btn" id="share-btn" onclick="shareResult(${mA},${mB},${vel},${alt})">↗ Copy Link</button>\n    </div>\n  `;\n\n  document.getElementById(\'results-empty\').style.display = \'none\';\n  const body = document.getElementById(\'results-body\');\n  body.style.display = \'block\';\n  body.innerHTML = html;\n}\n\nfunction shareResult(mA,mB,vel,alt) {\n  const url = `${location.origin}/calculator?mA=${mA}&mB=${mB}&v=${vel}&alt=${alt}`;\n  navigator.clipboard.writeText(url).then(() => {\n    const btn = document.getElementById(\'share-btn\');\n    btn.textContent = \'✓ Copied!\';\n    btn.classList.add(\'copied\');\n    setTimeout(() => { btn.textContent = \'↗ Copy Link\'; btn.classList.remove(\'copied\'); }, 2000);\n  });\n}\n\n// ── AUTO-LOAD FROM URL PARAMS ─────────────────────────────────\nwindow.addEventListener(\'DOMContentLoaded\', () => {\n  const p = new URLSearchParams(location.search);\n  if (p.has(\'mA\')) document.getElementById(\'massA\').value = p.get(\'mA\');\n  if (p.has(\'mB\')) document.getElementById(\'massB\').value = p.get(\'mB\');\n  if (p.has(\'v\'))  document.getElementById(\'velRel\').value = p.get(\'v\');\n  if (p.has(\'alt\')) document.getElementById(\'altitude\').value = p.get(\'alt\');\n  // sync sliders\n  [\'slMassA\',\'slMassB\',\'slVel\'].forEach(id => {\n    const linked = {slMassA:\'massA\',slMassB:\'massB\',slVel:\'velRel\'}[id];\n    document.getElementById(id).value = document.getElementById(linked).value;\n  });\n  if (p.has(\'mA\') || p.has(\'mB\') || p.has(\'v\')) calculate();\n  else loadPreset(\'iridium\'); // default\n});\n</script>\n</body>\n</html>'
-GLOSSARY_HTML        = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>Resources — VectraSpace</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">\n<style>\n:root{\n  --ink:#080c12;--ink2:#0d1320;--ink3:#131d2e;--panel:#0f1925;\n  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);\n  --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;\n  --accent:#4a9eff;--accent2:#7bc4ff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;\n  --serif:"Instrument Serif",Georgia,serif;\n  --mono:"DM Mono",monospace;\n  --sans:"Outfit",sans-serif;\n}\n*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}\nhtml{scroll-behavior:smooth;}\nbody{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;min-height:100vh;}\n\nnav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}\n.nav-brand{text-decoration:none;}\n.nav-brand-name{font-family:var(--serif);font-size:17px;font-style:italic;color:#fff;letter-spacing:-0.2px;}\n.nav-brand-name em{color:var(--accent);font-style:normal;}\n.nav-right{display:flex;gap:8px;}\n.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}\n.nav-back:hover{color:var(--text);border-color:var(--border2);}\n\n/* HERO */\n.hero{padding:108px 48px 52px;max-width:1100px;margin:0 auto;}\n.eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:10px;}\n.eyebrow::before{content:"";width:14px;height:1px;background:var(--green);}\n.hero-title{font-family:var(--serif);font-size:clamp(36px,5vw,62px);color:#fff;font-weight:400;line-height:1.08;letter-spacing:-0.5px;margin-bottom:14px;}\n.hero-title em{font-style:italic;color:var(--accent2);}\n.hero-sub{font-size:15px;color:var(--muted);max-width:540px;line-height:1.8;}\n\n/* SEARCH + FILTER */\n.controls{max-width:1100px;margin:0 auto;padding:0 48px 36px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}\n.search-wrap{position:relative;flex:1;min-width:200px;}\n.si{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;}\n.search-input{width:100%;background:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:10px 13px 10px 40px;font-family:var(--mono);font-size:11px;color:var(--text);outline:none;transition:border-color 0.2s;letter-spacing:0.3px;}\n.search-input::placeholder{color:var(--faint);}\n.search-input:focus{border-color:rgba(74,158,255,0.35);}\n.filters{display:flex;gap:5px;flex-wrap:wrap;}\n.fbtn{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;}\n.fbtn:hover{border-color:var(--border2);color:var(--text);}\n.fbtn.on{color:#fff;}\n.fbtn[data-cat="all"].on{border-color:var(--accent);background:rgba(74,158,255,0.1);color:var(--accent);}\n.fbtn[data-cat="data"].on{border-color:var(--accent);background:rgba(74,158,255,0.1);color:var(--accent);}\n.fbtn[data-cat="tools"].on{border-color:var(--green);background:rgba(52,211,153,0.1);color:var(--green);}\n.fbtn[data-cat="papers"].on{border-color:var(--amber);background:rgba(245,158,11,0.1);color:var(--amber);}\n.fbtn[data-cat="standards"].on{border-color:var(--red);background:rgba(248,113,113,0.1);color:var(--red);}\n.fbtn[data-cat="courses"].on{border-color:var(--purple);background:rgba(167,139,250,0.1);color:var(--purple);}\n\n/* META */\n.meta{max-width:1100px;margin:0 auto;padding:0 48px 20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--faint);}\n\n/* GRID */\n.grid{max-width:1100px;margin:0 auto;padding:0 48px 100px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}\n\n/* CARD */\n.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.2s,transform 0.18s;text-decoration:none;color:inherit;}\n.card:hover{border-color:var(--border2);transform:translateY(-2px);}\n.card-top{padding:20px 22px 16px;flex:1;display:flex;flex-direction:column;gap:10px;}\n.card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;}\n.tag{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:10px;border:1px solid;white-space:nowrap;flex-shrink:0;}\n.tag-data{color:var(--accent);border-color:rgba(74,158,255,0.25);background:rgba(74,158,255,0.07);}\n.tag-tools{color:var(--green);border-color:rgba(52,211,153,0.25);background:rgba(52,211,153,0.07);}\n.tag-papers{color:var(--amber);border-color:rgba(245,158,11,0.25);background:rgba(245,158,11,0.07);}\n.tag-standards{color:var(--red);border-color:rgba(248,113,113,0.25);background:rgba(248,113,113,0.07);}\n.tag-courses{color:var(--purple);border-color:rgba(167,139,250,0.25);background:rgba(167,139,250,0.07);}\n.card-org{font-family:var(--mono);font-size:8px;letter-spacing:0.5px;color:var(--faint);}\n.card-title{font-family:var(--serif);font-size:17px;font-style:italic;color:#fff;line-height:1.35;}\n.card-desc{font-size:12px;color:var(--muted);line-height:1.7;}\n.card-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}\n.card-link-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:5px;}\n.card-link-label svg{transition:transform 0.15s;}\n.card:hover .card-link-label svg{transform:translateX(3px);}\n.card-free{font-family:var(--mono);font-size:7px;letter-spacing:1px;color:var(--green);background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);padding:2px 7px;border-radius:8px;}\n\n/* EMPTY */\n.empty{grid-column:1/-1;text-align:center;padding:70px 0;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);}\n\n/* SECTION DIVIDER */\n.section-label{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding-top:8px;}\n.section-label-text{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;}\n.section-label-line{flex:1;height:1px;background:var(--border);}\n\n@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}}\n@media(max-width:580px){\n  nav{padding:0 20px;}\n  .hero,.controls,.meta,.grid{padding-left:20px;padding-right:20px;}\n  .hero{padding-top:88px;}\n  .grid{grid-template-columns:1fr;}\n}\n</style>\n</head>\n<body>\n<nav>\n  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>\n  <div class="nav-right">\n    <a href="/" class="nav-back">&larr; Hub</a>\n    <a href="/dashboard" class="nav-back">Dashboard &rarr;</a>\n  </div>\n</nav>\n\n<div class="hero">\n  <div class="eyebrow">Curated Library</div>\n  <h1 class="hero-title">Space Safety <em>Resources</em></h1>\n  <p class="hero-sub">Hand-picked datasets, tools, papers, standards, and courses for orbital mechanics researchers, satellite operators, and space safety professionals.</p>\n</div>\n\n<div class="controls">\n  <div class="search-wrap">\n    <svg class="si" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>\n    <input class="search-input" id="rs-search" type="text" placeholder="Search resources, organisations, topics..." autocomplete="off" spellcheck="false">\n  </div>\n  <div class="filters">\n    <button class="fbtn on" data-cat="all">All</button>\n    <button class="fbtn" data-cat="data">Data &amp; Catalogs</button>\n    <button class="fbtn" data-cat="tools">Tools</button>\n    <button class="fbtn" data-cat="papers">Papers</button>\n    <button class="fbtn" data-cat="standards">Standards</button>\n    <button class="fbtn" data-cat="courses">Courses</button>\n  </div>\n</div>\n\n<div class="meta" id="rs-meta"></div>\n<div class="grid" id="rs-grid"></div>\n\n<script>\nvar RESOURCES = [\n\n  /* ── DATA & CATALOGS ─────────────────────────────────────── */\n  { cat:"data", org:"CelesTrak / Dr. T.S. Kelso", free:true,\n    title:"GP Element Sets (TLE Catalog)",\n    desc:"The most widely used source of publicly available TLE data. Provides GP element sets for 20,000+ tracked objects in multiple formats (TLE, JSON, CSV) updated several times daily. Essential for any SGP4-based propagation work.",\n    url:"https://celestrak.org/NORAD/elements/" },\n\n  { cat:"data", org:"18th Space Defense Squadron", free:true,\n    title:"Space-Track.org Satellite Catalog",\n    desc:"The authoritative US government satellite catalog maintained by 18 SDS. Provides TLEs, conjunction data messages (CDMs), launch and decay notifications. Requires free account registration. The source for official SSN tracking data.",\n    url:"https://www.space-track.org" },\n\n  { cat:"data", org:"ESA DISCOS", free:false,\n    title:"ESA DISCOS Database",\n    desc:"ESA\'s Database and Information System Characterising Objects in Space. Comprehensive physical and orbital characteristics for space objects — dimensions, mass, shape, material composition. Used for accurate area-to-mass ratio calculations in drag and SRP modeling.",\n    url:"https://discosweb.esoc.esa.int" },\n\n  { cat:"data", org:"NASA CARA", free:true,\n    title:"Conjunction Assessment Risk Analysis (CARA)",\n    desc:"NASA\'s public conjunction assessment service providing close approach screening for NASA assets. Publishes methodology papers and probability of collision calculation approaches used as a reference standard across the industry.",\n    url:"https://nasa.gov/conjunction-assessment" },\n\n  { cat:"data", org:"LeoLabs", free:false,\n    title:"LeoLabs Space Object Database",\n    desc:"Commercial radar network tracking LEO objects with higher update rates and smaller trackable sizes than SSN. Provides conjunction screening, decay predictions, and maneuver support for commercial operators.",\n    url:"https://leolabs.space" },\n\n  { cat:"data", org:"Aerospace Corp / CCAR", free:true,\n    title:"SOCRATES Conjunction Screening",\n    desc:"Satellite Orbital Conjunction Reports Assessing Threatening Encounters in Space. Daily screening of the entire satellite catalog using publicly available TLEs. Ranks the top conjunction events by probability of collision.",\n    url:"https://celestrak.org/SOCRATES/" },\n\n  /* ── TOOLS ──────────────────────────────────────────────── */\n  { cat:"tools", org:"AGI / Ansys", free:false,\n    title:"Systems Tool Kit (STK)",\n    desc:"The industry-standard orbital analysis and space mission engineering software. Models satellite coverage, conjunction analysis, sensor performance, and link budgets. Used by most government and commercial satellite operators globally.",\n    url:"https://www.ansys.com/products/missions/ansys-stk" },\n\n  { cat:"tools", org:"NASA / Vallado", free:true,\n    title:"SGP4 Reference Implementation",\n    desc:"The canonical C++, Python, and MATLAB implementation of the SGP4/SDP4 propagator by David Vallado at Aerospace Corp. The definitive reference for implementing TLE-based orbit propagation consistent with USSPACECOM standards.",\n    url:"https://celestrak.org/software/vallado-sw.php" },\n\n  { cat:"tools", org:"Open Source", free:true,\n    title:"Skyfield (Python)",\n    desc:"High-accuracy Python library for computing positions of stars, planets, and Earth satellites. Uses modern IERS Earth orientation data and supports TLE propagation via SGP4. The best Python library for precise satellite positional astronomy.",\n    url:"https://rhodesmill.org/skyfield/" },\n\n  { cat:"tools", org:"ESA", free:true,\n    title:"DRAMA — Debris Risk Assessment",\n    desc:"ESA\'s Debris Risk Assessment and Mitigation Analysis tool. Computes casualty risk for uncontrolled reentries, orbital lifetime estimates, and collision avoidance maneuver analysis. Used for compliance with space debris mitigation guidelines.",\n    url:"https://sdup.esoc.esa.int/drama/" },\n\n  { cat:"tools", org:"NASA Goddard", free:true,\n    title:"GMAT — General Mission Analysis Tool",\n    desc:"NASA\'s open-source mission design and navigation software. Supports high-fidelity trajectory optimization, maneuver planning, formation flying analysis, and conjunction assessment. Used for mission planning from LEO to deep space.",\n    url:"https://software.nasa.gov/software/GSC-17177-1" },\n\n  { cat:"tools", org:"Open Source / Helge Eichhorn", free:true,\n    title:"Orekit (Java/Python)",\n    desc:"A highly accurate open-source space dynamics library supporting all major orbit propagators (numerical, SGP4, Eckstein-Hechler), coordinate frame transformations, attitude modeling, and event detection. The reference for high-fidelity propagation in research.",\n    url:"https://www.orekit.org" },\n\n  /* ── PAPERS ─────────────────────────────────────────────── */\n  { cat:"papers", org:"Kessler & Cour-Palais (1978)", free:false,\n    title:"Collision Frequency of Artificial Satellites",\n    desc:"The foundational paper introducing what became known as the Kessler Syndrome — the concept of a self-sustaining debris cascade in LEO. Arguably the most important paper in the history of space debris research. Published in Journal of Geophysical Research.",\n    url:"https://doi.org/10.1029/JA083iA06p02637" },\n\n  { cat:"papers", org:"Alfriend et al. (1999)", free:false,\n    title:"Probability of Collision Error Analysis",\n    desc:"Defines the probability of collision formulation used as the industry standard for conjunction assessment. Introduces the combined covariance approach and the 2D Pc computation method still used by 18 SDS and NASA CARA today.",\n    url:"https://doi.org/10.1023/A:1008168728822" },\n\n  { cat:"papers", org:"Vallado & Crawford (2008)", free:true,\n    title:"SGP4 Orbit Determination",\n    desc:"Comprehensive treatment of SGP4 orbit determination from observations, mean element generation, and TLE fitting. Essential reading for anyone implementing or validating SGP4 propagation. Freely available via AIAA.",\n    url:"https://celestrak.org/publications/AIAA/2008-6770/" },\n\n  { cat:"papers", org:"Letizia et al. (ESA, 2019)", free:true,\n    title:"Extending the Continuum Approach for Debris Evolution",\n    desc:"Presents ESA\'s DELTA model for long-term debris environment evolution using a continuum (density-based) approach rather than Monte Carlo object-by-object simulation. Provides a computationally tractable method for century-scale debris projections.",\n    url:"https://doi.org/10.1016/j.actaastro.2019.01.039" },\n\n  { cat:"papers", org:"Oltrogge & Alfano (2019)", free:true,\n    title:"The Universal Pc Algorithm",\n    desc:"Proposes a unified probability of collision calculation framework reconciling multiple prior Pc methods. Addresses numerical edge cases in near-miss geometries where the classical Alfriend formulation breaks down. Widely cited in recent conjunction analysis work.",\n    url:"https://doi.org/10.1007/s10569-019-9927-z" },\n\n  /* ── STANDARDS ──────────────────────────────────────────── */\n  { cat:"standards", org:"IADC", free:true,\n    title:"IADC Space Debris Mitigation Guidelines",\n    desc:"The Inter-Agency Space Debris Coordination Committee guidelines — the internationally agreed baseline for debris mitigation. Covers protected orbital regions, passivation requirements, and the 25-year deorbit rule for LEO. The reference standard for compliance.",\n    url:"https://www.iadc-home.org/documents_public/view/id/82" },\n\n  { cat:"standards", org:"ISO", free:false,\n    title:"ISO 24113 — Space Debris Mitigation",\n    desc:"The formal ISO standard codifying space debris mitigation requirements for space systems. Provides normative requirements for mission design, operations, and end-of-life disposal. Referenced in national space law frameworks across multiple jurisdictions.",\n    url:"https://www.iso.org/standard/72383.html" },\n\n  { cat:"standards", org:"CCSDS", free:true,\n    title:"Conjunction Data Message (CDM) Standard",\n    desc:"The CCSDS 508.0-B standard defines the format of Conjunction Data Messages used by 18 SDS, NASA CARA, and commercial screening services. Understanding the CDM format is essential for automated conjunction assessment pipelines.",\n    url:"https://public.ccsds.org/Pubs/508x0b1e2c2.pdf" },\n\n  { cat:"standards", org:"FCC / ITU", free:true,\n    title:"FCC Orbital Debris Mitigation Rules",\n    desc:"The US Federal Communications Commission\'s orbital debris mitigation rules (47 CFR Part 25), updated in 2022 to require a 5-year post-mission disposal rule for satellites below 2000 km. Required reading for any US-licensed satellite operator.",\n    url:"https://www.fcc.gov/document/fcc-updates-orbital-debris-mitigation-rules" },\n\n  { cat:"standards", org:"NASA", free:true,\n    title:"NASA-STD-8719.14B — Process for Limiting Orbital Debris",\n    desc:"NASA\'s internal standard for limiting orbital debris generation, used as a design requirement for all NASA missions. More stringent than IADC guidelines in several areas. Provides detailed requirements for mission planning, debris assessment, and reporting.",\n    url:"https://standards.nasa.gov/standard/nasa/nasa-std-871914" },\n\n  /* ── COURSES & LEARNING ─────────────────────────────────── */\n  { cat:"courses", org:"MIT OpenCourseWare", free:true,\n    title:"16.346 — Astrodynamics",\n    desc:"MIT\'s graduate astrodynamics course covering orbital mechanics, Lambert\'s problem, orbit determination, and spacecraft navigation. Lecture notes and problem sets freely available. One of the most rigorous freely accessible astrodynamics curricula online.",\n    url:"https://ocw.mit.edu/courses/16-346-astrodynamics-fall-2008/" },\n\n  { cat:"courses", org:"ESA Academy", free:true,\n    title:"ESA Space Debris Training Course",\n    desc:"ESA\'s dedicated training program on space debris — environment models, mitigation measures, debris removal technologies, and regulatory landscape. Offered periodically as in-person and online formats. Directly relevant to VectraSpace\'s domain.",\n    url:"https://www.esa.int/Enabling_Support/Space_Engineering_Technology/Space_Debris_Training_Course" },\n\n  { cat:"courses", org:"Coursera / University of Colorado", free:false,\n    title:"Spacecraft Dynamics and Control Specialization",\n    desc:"Four-course specialization covering attitude dynamics, kinematics, control systems, and mission simulation. Highly rated, mathematically rigorous, and directly applicable to satellite conjunction and maneuver planning contexts.",\n    url:"https://www.coursera.org/specializations/spacecraft-dynamics-control" },\n\n  { cat:"courses", org:"AGI / Ansys", free:true,\n    title:"STK Fundamentals Online Training",\n    desc:"Free self-paced online training for Systems Tool Kit (STK), the industry-standard orbital analysis platform. Covers satellite access analysis, coverage, conjunction analysis, and sensor modeling. Certification available upon completion.",\n    url:"https://training.ansys.com/odl/stk_fundamentals/" },\n\n  { cat:"courses", org:"Wertz & Larson (Textbook)", free:false,\n    title:"Space Mission Engineering: The New SMAD",\n    desc:"The reference textbook for space systems engineering — covers orbit design, propulsion, power, communications, and mission operations. Universally recommended as the first technical book for anyone entering the space industry.",\n    url:"https://www.smad.com" },\n\n];\n\nvar activeFilter = "all";\nvar searchQuery  = "";\n\nfunction tagClass(cat){ return "tag tag-" + cat; }\nfunction tagLabel(cat){\n  return {data:"Data & Catalogs", tools:"Tools", papers:"Papers",\n          standards:"Standards", courses:"Courses"}[cat] || cat;\n}\n\nfunction arrowSVG(){\n  return \'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>\';\n}\n\nfunction render(){\n  var q = searchQuery.toLowerCase();\n  var filtered = RESOURCES.filter(function(r){\n    if(activeFilter !== "all" && r.cat !== activeFilter) return false;\n    if(!q) return true;\n    return r.title.toLowerCase().indexOf(q) !== -1\n        || r.desc.toLowerCase().indexOf(q) !== -1\n        || r.org.toLowerCase().indexOf(q) !== -1;\n  });\n\n  var grid = document.getElementById("rs-grid");\n  var meta = document.getElementById("rs-meta");\n  meta.textContent = filtered.length + " resource" + (filtered.length !== 1 ? "s" : "");\n\n  if(filtered.length === 0){\n    grid.innerHTML = \'<div class="empty">No resources match your search.</div>\';\n    return;\n  }\n\n  /* Group by category in a defined order */\n  var ORDER = ["data","tools","papers","standards","courses"];\n  var groups = {};\n  ORDER.forEach(function(c){ groups[c] = []; });\n  filtered.forEach(function(r){ if(groups[r.cat]) groups[r.cat].push(r); });\n\n  var html = "";\n  ORDER.forEach(function(cat){\n    var items = groups[cat];\n    if(!items.length) return;\n    /* Section divider if showing all */\n    if(activeFilter === "all"){\n      html += \'<div class="section-label">\'\n            + \'<span class="section-label-text" style="color:var(--\' +\n              {data:"accent",tools:"green",papers:"amber",standards:"red",courses:"purple"}[cat]\n            + \')">\' + tagLabel(cat) + \'</span>\'\n            + \'<span class="section-label-line"></span>\'\n            + \'</div>\';\n    }\n    items.forEach(function(r){\n      html += \'<a class="card" href="\' + r.url + \'" target="_blank" rel="noopener">\'\n            + \'<div class="card-top">\'\n            + \'<div class="card-meta">\'\n            + \'<span class="\' + tagClass(r.cat) + \'">\' + tagLabel(r.cat) + \'</span>\'\n            + \'<span class="card-org">\' + r.org + \'</span>\'\n            + \'</div>\'\n            + \'<div class="card-title">\' + r.title + \'</div>\'\n            + \'<div class="card-desc">\' + r.desc + \'</div>\'\n            + \'</div>\'\n            + \'<div class="card-foot">\'\n            + \'<span class="card-link-label">Open resource \' + arrowSVG() + \'</span>\'\n            + (r.free ? \'<span class="card-free">Free</span>\' : \'<span style="font-family:var(--mono);font-size:7px;letter-spacing:1px;color:var(--faint);">Paid / Login</span>\')\n            + \'</div>\'\n            + \'</a>\';\n    });\n  });\n\n  grid.innerHTML = html;\n}\n\n/* Search */\ndocument.getElementById("rs-search").addEventListener("input", function(){\n  searchQuery = this.value.trim();\n  render();\n});\n\n/* Filters */\ndocument.querySelectorAll(".fbtn[data-cat]").forEach(function(btn){\n  btn.addEventListener("click", function(){\n    document.querySelectorAll(".fbtn[data-cat]").forEach(function(b){ b.classList.remove("on"); });\n    btn.classList.add("on");\n    activeFilter = btn.dataset.cat;\n    render();\n  });\n});\n\nrender();\n</script>\n</body>\n</html>'
-RESEARCH_HTML        = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>VectraSpace — Research Data Portal</title>\n<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">\n<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>\n<style>\n:root {\n  --bg:     #030508;\n  --panel:  #070f18;\n  --border: #0d2137;\n  --accent: #00d4ff;\n  --green:  #00ff88;\n  --red:    #ff4444;\n  --muted:  #3a5a75;\n  --text:   #c8dff0;\n}\n* { box-sizing: border-box; margin: 0; padding: 0; }\nbody { background: var(--bg); color: var(--text); font-family: \'Exo 2\', sans-serif; min-height: 100vh; }\na { color: var(--accent); }\n\n/* ── HEADER ── */\n#header {\n  background: var(--panel);\n  border-bottom: 1px solid var(--border);\n  padding: 20px 40px;\n  display: flex; align-items: center; justify-content: space-between;\n}\n.logo { font-family: \'Orbitron\', sans-serif; font-size: 11px; letter-spacing: 4px; color: var(--accent); }\n.header-links { display: flex; gap: 20px; font-family: \'Share Tech Mono\', monospace; font-size: 10px; letter-spacing: 1px; }\n.header-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; }\n.header-links a:hover { color: var(--accent); }\n\n/* ── HERO ── */\n#hero { padding: 48px 40px 32px; max-width: 1100px; margin: 0 auto; }\n#hero h1 { font-family: \'Orbitron\', sans-serif; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; }\n#hero p { color: var(--muted); font-size: 13px; line-height: 1.7; max-width: 680px; }\n.badge { display: inline-block; background: rgba(0,212,255,0.08); color: var(--accent);\n         border: 1px solid rgba(0,212,255,0.3); border-radius: 3px;\n         font-family: \'Share Tech Mono\', monospace; font-size: 9px;\n         letter-spacing: 2px; padding: 3px 8px; margin-right: 8px; }\n\n/* ── MAIN GRID ── */\n#main { max-width: 1100px; margin: 0 auto; padding: 0 40px 60px; }\n.section { margin-bottom: 40px; }\n.section-title {\n  font-family: \'Share Tech Mono\', monospace; font-size: 10px;\n  letter-spacing: 3px; color: var(--accent); text-transform: uppercase;\n  margin-bottom: 16px; padding-bottom: 8px;\n  border-bottom: 1px solid var(--border);\n  display: flex; align-items: center; justify-content: space-between;\n}\n.card {\n  background: var(--panel); border: 1px solid var(--border);\n  border-radius: 6px; padding: 24px;\n}\n.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }\n.chart-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }\n.chart-title { font-family: \'Share Tech Mono\', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; }\n\n/* ── STATS ROW ── */\n.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }\n.stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px; }\n.stat-val { font-family: \'Orbitron\', sans-serif; font-size: 26px; color: var(--accent); margin-bottom: 4px; }\n.stat-lbl { font-family: \'Share Tech Mono\', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }\n\n/* ── TABLE ── */\n.tbl-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid var(--border); }\ntable { width: 100%; border-collapse: collapse; font-family: \'Share Tech Mono\', monospace; font-size: 10px; }\nthead th { background: #060d16; color: var(--muted); letter-spacing: 1px; text-transform: uppercase;\n           padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }\ntbody tr { border-bottom: 1px solid rgba(13,33,55,0.6); transition: background 0.15s; }\ntbody tr:hover { background: rgba(0,212,255,0.04); }\ntbody td { padding: 9px 14px; color: var(--text); white-space: nowrap; }\n.pc-high { color: var(--red); } .pc-med { color: #ffaa44; } .pc-low { color: var(--green); }\n.empty-row td { text-align: center; color: var(--muted); padding: 32px; letter-spacing: 2px; }\n\n/* ── EXPORT BUTTONS ── */\n.export-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }\n.export-btn {\n  font-family: \'Share Tech Mono\', monospace; font-size: 9px; letter-spacing: 2px;\n  text-transform: uppercase; padding: 8px 16px;\n  border: 1px solid var(--accent); border-radius: 3px;\n  color: var(--accent); background: transparent; cursor: pointer;\n  text-decoration: none; display: inline-block; transition: all 0.2s;\n}\n.export-btn:hover { background: rgba(0,212,255,0.1); }\n.export-btn.green { border-color: var(--green); color: var(--green); }\n.export-btn.green:hover { background: rgba(0,255,136,0.08); }\n\n/* ── LOADING ── */\n.loading { color: var(--muted); font-family: \'Share Tech Mono\', monospace; font-size: 10px;\n           letter-spacing: 2px; padding: 32px; text-align: center; }\n\n@media (max-width: 700px) {\n  #header { padding: 16px 20px; }\n  #hero, #main { padding-left: 20px; padding-right: 20px; }\n  .charts-grid, .stats-row { grid-template-columns: 1fr; }\n}\n</style>\n\n<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>\n</head>\n<body>\n\n<div id="header">\n  <div>\n    <div class="logo">VectraSpace // Research Portal</div>\n    <div style="font-size:10px;color:var(--muted);margin-top:4px;font-family:\'Share Tech Mono\',monospace;">\n      Public Data Access — No Authentication Required\n    </div>\n  </div>\n  <div class="header-links">\n    <a href="/">← Landing</a>\n    <a href="/dashboard">Mission Control</a>\n  </div>\n</div>\n\n<div id="hero">\n  <div style="margin-bottom:12px;">\n    <span class="badge">OPEN DATA</span>\n    <span class="badge" style="color:var(--green);border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.05);">UTD CSS COLLABORATION</span>\n  </div>\n  <h1>Orbital Conjunction Research Portal</h1>\n  <p>Real-time and historical conjunction data from VectraSpace\'s SGP4 propagation engine. All data is derived from public TLE catalogs via CelesTrak. Probability of collision estimates use the Alfriend-Akella covariance model. For research inquiries contact <a href="mailto:trumanheaston@gmail.com">trumanheaston@gmail.com</a>.</p>\n</div>\n\n<div id="main">\n\n  <!-- Stats -->\n  <div class="stats-row" id="stats-row">\n    <div class="stat-card"><div class="stat-val" id="stat-total-conj">—</div><div class="stat-lbl">Total Conjunctions</div></div>\n    <div class="stat-card"><div class="stat-val" id="stat-high-risk">—</div><div class="stat-lbl">High Risk (Pc &gt; 1e-4)</div></div>\n    <div class="stat-card"><div class="stat-val" id="stat-sats">—</div><div class="stat-lbl">Satellites Tracked</div></div>\n    <div class="stat-card"><div class="stat-val" id="stat-last-scan">—</div><div class="stat-lbl">Last Scan</div></div>\n  </div>\n\n  <!-- Charts -->\n  <div class="section">\n    <div class="section-title">Orbital Analysis</div>\n    <div class="charts-grid">\n      <div class="chart-card">\n        <div class="chart-title">PROBABILITY OF COLLISION DISTRIBUTION</div>\n        <canvas id="chart-pc" height="200"></canvas>\n      </div>\n      <div class="chart-card">\n        <div class="chart-title">MISS DISTANCE DISTRIBUTION (KM)</div>\n        <canvas id="chart-dist" height="200"></canvas>\n      </div>\n      <div class="chart-card">\n        <div class="chart-title">CONJUNCTIONS OVER TIME</div>\n        <canvas id="chart-time" height="200"></canvas>\n      </div>\n      <div class="chart-card">\n        <div class="chart-title">RELATIVE VELOCITY AT TCA (KM/S)</div>\n        <canvas id="chart-vel" height="200"></canvas>\n      </div>\n    </div>\n  </div>\n\n  <!-- Conjunction Table -->\n  <div class="section">\n    <div class="section-title">\n      <span>Conjunction Events</span>\n      <div class="export-row" style="margin-top:0;">\n        <a class="export-btn" onclick="exportCSV()">↓ Export CSV</a>\n        <a class="export-btn green" onclick="exportJSON()">↓ Export JSON</a>\n      </div>\n    </div>\n    <div class="tbl-wrap">\n      <table>\n        <thead>\n          <tr>\n            <th>#</th>\n            <th>Object 1</th>\n            <th>Object 2</th>\n            <th>TCA (UTC)</th>\n            <th>Miss Distance (km)</th>\n            <th>Pc Estimate</th>\n            <th>Rel. Velocity (km/s)</th>\n            <th>CDM</th>\n          </tr>\n        </thead>\n        <tbody id="conj-tbody">\n          <tr class="empty-row"><td colspan="8"><div class="loading">LOADING CONJUNCTION DATA...</div></td></tr>\n        </tbody>\n      </table>\n    </div>\n    <div style="margin-top:10px;font-family:\'Share Tech Mono\',monospace;font-size:9px;color:var(--muted);">\n      Data refreshes on each scan execution. All times UTC. Pc values are estimates — not certified for operational use.\n    </div>\n  </div>\n\n  <!-- TLE Export -->\n  <div class="section">\n    <div class="section-title">TLE Data Export</div>\n    <div class="card">\n      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.7;">\n        Export the current TLE catalog used in the last scan. Data sourced from CelesTrak active satellite catalog.\n        Format conforms to NORAD two-line element set standard (BSTAR drag term, epoch, mean motion, eccentricity).\n      </div>\n      <div class="export-row">\n        <a class="export-btn" href="/research/tle.json" download>↓ TLE Export (JSON)</a>\n        <a class="export-btn green" href="/research/tle.csv" download>↓ TLE Export (CSV)</a>\n      </div>\n    </div>\n  </div>\n\n  <!-- Methodology -->\n  <div class="section">\n    <div class="section-title">Methodology</div>\n    <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">\n      <div>\n        <div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">PROPAGATION</div>\n        <div style="font-size:12px;color:var(--muted);line-height:1.8;">\n          SGP4/SDP4 orbital propagation via the <strong style="color:var(--text);">Skyfield</strong> library.\n          Positions computed at 1-minute intervals over a 24-hour window.\n          Vectorized chunk-based screening using NumPy for O(n²) pair comparisons.\n        </div>\n      </div>\n      <div>\n        <div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">COLLISION PROBABILITY</div>\n        <div style="font-size:12px;color:var(--muted);line-height:1.8;">\n          Pc estimates use the <strong style="color:var(--text);">Alfriend-Akella</strong> method with \n          combined error covariance ellipsoids (1σ along-track: 100m, cross-track: 20m, radial: 20m).\n          Refined via golden-section search for TCA.\n        </div>\n      </div>\n      <div>\n        <div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">DATA SOURCES</div>\n        <div style="font-size:12px;color:var(--muted);line-height:1.8;">\n          TLE data from <strong style="color:var(--text);">CelesTrak</strong> active satellite catalog.\n          Optional Space-Track.org integration for additional orbital elements.\n          Conjunction data messages (CDM) generated per CCSDS 508.0-B-1 standard.\n        </div>\n      </div>\n      <div>\n        <div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">LIMITATIONS</div>\n        <div style="font-size:12px;color:var(--muted);line-height:1.8;">\n          TLE accuracy degrades over time. Covariance values are assumed, not measured.\n          Pc values should be treated as <strong style="color:var(--text);">screening indicators</strong> only.\n          Not validated for operational conjunction assessment.\n        </div>\n      </div>\n    </div>\n  </div>\n\n</div>\n\n<script>\nlet conjData = [];\n\nconst CHART_DEFAULTS = {\n  color: \'#00d4ff\',\n  plugins: { legend: { display: false } },\n  scales: {\n    x: { ticks: { color: \'#3a5a75\', font: { family: \'Share Tech Mono\', size: 9 } }, grid: { color: \'#0d2137\' } },\n    y: { ticks: { color: \'#3a5a75\', font: { family: \'Share Tech Mono\', size: 9 } }, grid: { color: \'#0d2137\' } }\n  }\n};\n\nasync function loadData() {\n  try {\n    const res = await fetch(\'/conjunctions\');\n    if (!res.ok) throw new Error(res.status);\n    const data = await res.json();\n    conjData = data.conjunctions || data || [];\n    renderStats(conjData);\n    renderTable(conjData);\n    renderCharts(conjData);\n  } catch(e) {\n    document.getElementById(\'conj-tbody\').innerHTML =\n      \'<tr class="empty-row"><td colspan="8">No conjunction data available — run a scan first.</td></tr>\';\n  }\n}\n\nfunction renderStats(data) {\n  document.getElementById(\'stat-total-conj\').textContent = data.length;\n  const highRisk = data.filter(c => (c.pc_estimate || c.pc || 0) > 1e-4).length;\n  document.getElementById(\'stat-high-risk\').textContent = highRisk;\n  const sats = new Set();\n  data.forEach(c => { sats.add(c.sat1||c.name1||c.object1); sats.add(c.sat2||c.name2||c.object2); });\n  document.getElementById(\'stat-sats\').textContent = sats.size;\n  if (data.length > 0) {\n    const times = data.map(c => c.tca_utc || c.time || c.epoch).filter(Boolean);\n    if (times.length) document.getElementById(\'stat-last-scan\').textContent = times[0].slice(0,10);\n  }\n}\n\nfunction pcClass(pc) {\n  if (!pc || pc < 1e-6) return \'pc-low\';\n  if (pc < 1e-4) return \'pc-med\';\n  return \'pc-high\';\n}\n\nfunction fmtPc(pc) {\n  if (!pc || pc === 0) return \'<1e-8\';\n  return pc.toExponential(2);\n}\n\nfunction renderTable(data) {\n  const tbody = document.getElementById(\'conj-tbody\');\n  if (!data.length) {\n    tbody.innerHTML = \'<tr class="empty-row"><td colspan="8">No conjunctions recorded yet.</td></tr>\';\n    return;\n  }\n  tbody.innerHTML = data.slice(0,200).map((c,i) => {\n    const pc = c.pc_estimate ?? c.pc ?? 0;\n    const dist = (c.min_dist_km ?? c.miss_distance ?? 0).toFixed(3);\n    const vel = (c.v_rel ?? c.relative_velocity ?? 0).toFixed(2);\n    const tca = c.tca_utc ?? c.time ?? \'—\';\n    const s1 = c.sat1 ?? c.name1 ?? c.object1 ?? \'—\';\n    const s2 = c.sat2 ?? c.name2 ?? c.object2 ?? \'—\';\n    const cdmLink = c.cdm_index !== undefined\n      ? `<a href="/cdm/${c.cdm_index}" style="color:var(--accent);font-size:9px;">↓ CDM</a>`\n      : \'—\';\n    return `<tr>\n      <td style="color:var(--muted)">${i+1}</td>\n      <td>${s1}</td><td>${s2}</td>\n      <td style="color:var(--muted)">${tca}</td>\n      <td>${dist}</td>\n      <td class="${pcClass(pc)}">${fmtPc(pc)}</td>\n      <td>${vel}</td>\n      <td>${cdmLink}</td>\n    </tr>`;\n  }).join(\'\');\n}\n\nfunction renderCharts(data) {\n  if (!data.length) return;\n\n  // Pc distribution\n  const pcBins = [0,0,0,0,0]; // <1e-8, 1e-8..1e-6, 1e-6..1e-4, 1e-4..1e-2, >1e-2\n  const pcLabels = [\'<1e-8\',\'1e-8 to\n1e-6\',\'1e-6 to\n1e-4\',\'1e-4 to\n1e-2\',\'>1e-2\'];\n  data.forEach(c => {\n    const pc = c.pc_estimate ?? c.pc ?? 0;\n    if (pc < 1e-8) pcBins[0]++;\n    else if (pc < 1e-6) pcBins[1]++;\n    else if (pc < 1e-4) pcBins[2]++;\n    else if (pc < 1e-2) pcBins[3]++;\n    else pcBins[4]++;\n  });\n  new Chart(document.getElementById(\'chart-pc\'), {\n    type: \'bar\',\n    data: { labels: pcLabels, datasets: [{ data: pcBins,\n      backgroundColor: [\'#00ff8844\',\'#44aaff44\',\'#ffaa4444\',\'#ff666644\',\'#ff444444\'],\n      borderColor:      [\'#00ff88\',  \'#44aaff\',  \'#ffaa44\',  \'#ff6666\',  \'#ff4444\'],\n      borderWidth: 1 }]},\n    options: { ...CHART_DEFAULTS, responsive: true }\n  });\n\n  // Miss distance histogram\n  const distBins = new Array(10).fill(0);\n  const maxDist = Math.max(...data.map(c => c.min_dist_km ?? 0), 10);\n  data.forEach(c => {\n    const d = c.min_dist_km ?? 0;\n    const bin = Math.min(Math.floor(d / maxDist * 10), 9);\n    distBins[bin]++;\n  });\n  const distLabels = distBins.map((_,i) => `${(i*maxDist/10).toFixed(0)}-${((i+1)*maxDist/10).toFixed(0)}`);\n  new Chart(document.getElementById(\'chart-dist\'), {\n    type: \'bar\',\n    data: { labels: distLabels, datasets: [{ data: distBins,\n      backgroundColor: \'#00d4ff22\', borderColor: \'#00d4ff\', borderWidth: 1 }]},\n    options: { ...CHART_DEFAULTS, responsive: true }\n  });\n\n  // Conjunctions over time\n  const timeCounts = {};\n  data.forEach(c => {\n    const t = (c.tca_utc ?? c.time ?? \'\').slice(0,10);\n    if (t) timeCounts[t] = (timeCounts[t]||0)+1;\n  });\n  const timeKeys = Object.keys(timeCounts).sort();\n  new Chart(document.getElementById(\'chart-time\'), {\n    type: \'line\',\n    data: { labels: timeKeys, datasets: [{ data: timeKeys.map(k=>timeCounts[k]),\n      borderColor: \'#00ff88\', backgroundColor: \'#00ff8811\', fill: true,\n      tension: 0.3, pointRadius: 3 }]},\n    options: { ...CHART_DEFAULTS, responsive: true }\n  });\n\n  // Relative velocity histogram\n  const velBins = new Array(10).fill(0);\n  const maxVel = Math.max(...data.map(c => c.v_rel ?? 0), 15);\n  data.forEach(c => {\n    const v = c.v_rel ?? 0;\n    const bin = Math.min(Math.floor(v / maxVel * 10), 9);\n    velBins[bin]++;\n  });\n  const velLabels = velBins.map((_,i) => `${(i*maxVel/10).toFixed(1)}-${((i+1)*maxVel/10).toFixed(1)}`);\n  new Chart(document.getElementById(\'chart-vel\'), {\n    type: \'bar\',\n    data: { labels: velLabels, datasets: [{ data: velBins,\n      backgroundColor: \'#aa88ff22\', borderColor: \'#aa88ff\', borderWidth: 1 }]},\n    options: { ...CHART_DEFAULTS, responsive: true }\n  });\n}\n\nfunction exportCSV() {\n  if (!conjData.length) return;\n  const hdr = \'index,object1,object2,tca_utc,miss_dist_km,pc_estimate,rel_velocity_kms\n\';\n  const rows = conjData.map((c,i) => [\n    i+1,\n    c.sat1 ?? c.name1 ?? \'\', c.sat2 ?? c.name2 ?? \'\',\n    c.tca_utc ?? c.time ?? \'\',\n    (c.min_dist_km ?? 0).toFixed(4),\n    (c.pc_estimate ?? c.pc ?? 0).toExponential(4),\n    (c.v_rel ?? 0).toFixed(4)\n  ].join(\',\')).join(\'\n\');\n  const blob = new Blob([hdr+rows], {type:\'text/csv\'});\n  const a = document.createElement(\'a\');\n  a.href = URL.createObjectURL(blob);\n  a.download = `vectraspace_conjunctions_${new Date().toISOString().slice(0,10)}.csv`;\n  a.click();\n}\n\nfunction exportJSON() {\n  if (!conjData.length) return;\n  const blob = new Blob([JSON.stringify(conjData, null, 2)], {type:\'application/json\'});\n  const a = document.createElement(\'a\');\n  a.href = URL.createObjectURL(blob);\n  a.download = `vectraspace_conjunctions_${new Date().toISOString().slice(0,10)}.json`;\n  a.click();\n}\n\nloadData();\n</script>\n</body>\n</html>'
-EDU_ORBITAL_HTML     = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>Orbital Mechanics — VectraSpace Learn</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">\n<style>\n:root {\n  --ink:#0a0e14;--ink2:#111720;--ink3:#1a2333;--panel:#131b27;\n  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);\n  --text:#d4dde8;--muted:#8aaac5;--accent:#3b82f6;--accent-h:#60a5fa;\n  --amber:#f59e0b;--red:#ef4444;--green:#10b981;--teal:#14b8a6;--r:8px;\n}\n*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}\nhtml{scroll-behavior:smooth;}\nbody{background:var(--ink);color:var(--text);font-family:\'Space Grotesk\',sans-serif;line-height:1.6;overflow-x:hidden;}\n\n/* NAV */\nnav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}\n.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}\n.nav-brand-name{font-family:\'Instrument Serif\',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;}\n.nav-brand-name em{color:var(--accent);font-style:normal;}\n.nav-back{font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}\n.nav-back:hover{color:var(--text);border-color:var(--border2);}\n.nav-brand-name{font-family:\'Instrument Serif\',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;color:#fff;}\n.nav-brand-name em{color:var(--accent);font-style:normal;}\n.chapter-progress{flex:1;max-width:300px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:0 40px;overflow:hidden;}\n.chapter-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.1s;}\n\n/* HERO */\n.learn-hero{padding:100px 40px 60px;max-width:900px;margin:0 auto;}\n.learn-breadcrumb{font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:16px;}\n.learn-breadcrumb a{color:var(--muted);text-decoration:none;}\n.learn-breadcrumb a:hover{color:var(--accent);}\n.learn-chapter{font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}\n.learn-title{font-family:\'Syne\',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-1.5px;color:#fff;line-height:1.05;margin-bottom:20px;}\n.learn-intro{font-size:17px;color:var(--muted);line-height:1.8;max-width:680px;margin-bottom:36px;}\n.learn-meta{display:flex;gap:24px;font-family:\'Space Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}\n.meta-item{display:flex;align-items:center;gap:6px;}\n\n/* LAYOUT */\n.learn-layout{display:grid;grid-template-columns:220px 1fr;gap:0;max-width:1100px;margin:0 auto;padding:0 40px 80px;}\n.toc{position:sticky;top:80px;height:fit-content;padding-right:40px;}\n.toc-title{font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}\n.toc-list{list-style:none;display:flex;flex-direction:column;gap:2px;}\n.toc-list a{display:block;font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:0.5px;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:4px;border-left:2px solid transparent;transition:all 0.2s;}\n.toc-list a:hover,.toc-list a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(59,130,246,0.06);}\n.content{min-width:0;}\n\n/* CONTENT */\n.section-block{margin-bottom:64px;}\n.section-block h2{font-family:\'Syne\',sans-serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:16px;padding-top:16px;}\n.section-block h3{font-family:\'Syne\',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:28px 0 10px;}\n.section-block p{font-size:15px;color:var(--muted);line-height:1.85;margin-bottom:16px;}\n.section-block p strong{color:var(--text);font-weight:600;}\n.section-block p em{color:var(--accent-h);font-style:normal;}\n\n/* EQUATION BLOCK */\n.eq-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r);padding:24px 28px;margin:24px 0;}\n.eq-label{font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}\n.eq-main{font-family:\'STIX Two Math\',\'Latin Modern Math\',Georgia,serif;font-size:17px;color:#fff;letter-spacing:0;margin-bottom:10px;font-style:italic;}\n.eq-vars{font-size:13px;color:var(--muted);line-height:1.9;}\n.eq-vars code{font-family:\'Space Mono\',monospace;font-size:11px;color:var(--accent-h);}\n\n/* CALLOUT */\n.callout{background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:var(--r);padding:20px 24px;margin:24px 0;}\n.callout-title{font-family:\'Syne\',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;}\n.callout p{font-size:13px;color:var(--muted);line-height:1.75;margin:0;}\n.callout.amber{background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.2);}\n.callout.amber .callout-title{color:var(--amber);}\n.callout.red{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2);}\n.callout.red .callout-title{color:var(--red);}\n\n/* TABLE */\n.data-table-wrap{overflow-x:auto;margin:24px 0;border-radius:var(--r);border:1px solid var(--border);}\ntable{width:100%;border-collapse:collapse;}\nthead th{background:rgba(255,255,255,0.04);font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);}\ntbody td{font-size:13px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);}\ntbody tr:last-child td{border-bottom:none;}\ntbody td:first-child{font-family:\'Space Mono\',monospace;font-size:11px;color:var(--accent-h);}\n\n/* DIAGRAM */\n.diagram-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin:24px 0;text-align:center;}\n.diagram-caption{font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:12px;}\n\n/* NEXT/PREV */\n.chapter-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:80px;padding-top:40px;border-top:1px solid var(--border);}\n.chapter-nav-card{padding:20px 24px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);text-decoration:none;transition:all 0.2s;}\n.chapter-nav-card:hover{border-color:var(--border2);transform:translateY(-1px);}\n.cnc-dir{font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}\n.cnc-title{font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:#fff;}\n.chapter-nav-card.next{text-align:right;}\n\n@media(max-width:800px){\n  .learn-layout{grid-template-columns:1fr;padding:0 20px 60px;}\n  .toc{display:none;}\n  .learn-hero{padding:80px 20px 40px;}\n  nav{padding:0 20px;}\n}\n</style>\n</head>\n<body>\n\n<nav>\n  <a href="/" class="nav-brand">\n    <span class="nav-brand-name">Vectra<em>Space</em></span>\n  </a>\n  <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>\n  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>\n</nav>\n\n<div class="learn-hero">\n  <div class="learn-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Orbital Mechanics</div>\n  <div class="learn-chapter">Chapter 01 · Foundations</div>\n  <h1 class="learn-title">Orbital Mechanics</h1>\n  <p class="learn-intro">From Kepler\'s laws to <dfn data-term="SGP4">SGP4</dfn> propagation — the classical physics governing every object in Earth orbit. This is the mathematical foundation beneath VectraSpace\'s entire simulation engine.</p>\n  <div class="learn-meta">\n    <span class="meta-item">📖 ~15 min read</span>\n    <span class="meta-item">🧮 8 equations</span>\n    <span class="meta-item">🎯 Intermediate physics</span>\n  </div>\n</div>\n\n<div class="learn-layout">\n  <aside class="toc">\n    <div class="toc-title">On This Page</div>\n    <ul class="toc-list">\n      <li><a href="#two-body">Two-Body Problem</a></li>\n      <li><a href="#kepler">Kepler\'s Laws</a></li>\n      <li><a href="#vis-viva"><dfn data-term="vis-viva">Vis-Viva Equation</dfn></a></li>\n      <li><a href="#elements">Orbital Elements</a></li>\n      <li><a href="#tle">TLE Format</a></li>\n      <li><a href="#sgp4">SGP4 Propagation</a></li>\n      <li><a href="#frames">Reference Frames</a></li>\n      <li><a href="#velocity">Orbital Velocity</a></li>\n    </ul>\n  </aside>\n\n  <div class="content">\n\n    <div class="section-block" id="two-body">\n      <h2>The Two-Body Problem</h2>\n      <p>The foundation of orbital mechanics is the idealized <strong>two-body problem</strong>: a small object (satellite) in the gravitational field of a much larger body (Earth). Under this assumption, the only force acting on the satellite is Earth\'s gravity, and the motion can be described analytically.</p>\n      <p>Newton\'s law of gravitation gives us the equation of motion:</p>\n      <div class="eq-block">\n        <div class="eq-label">Newton\'s Gravitational Equation of Motion</div>\n        <div class="eq-main">r̈ = −(μ / r³) · r</div>\n        <div class="eq-vars">\n          <code>r</code> = position vector from Earth\'s center to satellite<br>\n          <code>r̈</code> = second time derivative (acceleration)<br>\n          <code>μ = GM</code> = gravitational parameter = 398,600.4418 km³/s²<br>\n          <code>r = |r|</code> = scalar distance from Earth\'s center\n        </div>\n      </div>\n      <p>This differential equation has analytical solutions that trace out <strong>conic sections</strong> — circles, ellipses, parabolas, or hyperbolas — depending on the satellite\'s total energy. Satellites in stable orbit follow ellipses.</p>\n      <div class="callout">\n        <div class="callout-title">Why "Two-Body"?</div>\n        <p>In reality, many forces act on a satellite (atmospheric drag, solar radiation, Moon\'s gravity). The two-body problem ignores all of these. It gives us a clean analytical solution — a perfect baseline that perturbation theory then corrects. See Chapter 03 for perturbations.</p>\n      </div>\n    </div>\n\n    <div class="section-block" id="kepler">\n      <h2>Kepler\'s Three Laws</h2>\n      <p>Johannes Kepler (1609–1619) empirically derived three laws from Tycho Brahe\'s planetary observations. These laws emerge naturally from the two-body problem and remain central to modern astrodynamics.</p>\n\n      <h3>First Law — Elliptical Orbits</h3>\n      <p>The orbit of a satellite around Earth is an <strong>ellipse</strong> with Earth\'s center at one focus. This means the distance between the satellite and Earth varies continuously — minimum at <em>perigee</em>, maximum at <em>apogee</em>.</p>\n\n      <div class="eq-block">\n        <div class="eq-label">Orbit Equation (Polar Form)</div>\n        <div class="eq-main">r = p / (1 + e·cos θ)</div>\n        <div class="eq-vars">\n          <code>r</code> = orbital radius at true anomaly θ<br>\n          <code>p = a(1 − e²)</code> = semi-latus rectum<br>\n          <code>a</code> = semi-major axis<br>\n          <code>e</code> = eccentricity (0 = circle, 0–1 = ellipse)<br>\n          <code>θ</code> = true anomaly (angle from perigee)\n        </div>\n      </div>\n\n      <h3>Second Law — Equal Areas</h3>\n      <p>A satellite sweeps out <strong>equal areas in equal times</strong>. This is conservation of angular momentum in disguise: a satellite moves faster near perigee (lower altitude) and slower near apogee (higher altitude).</p>\n\n      <div class="eq-block">\n        <div class="eq-label">Conservation of Angular Momentum</div>\n        <div class="eq-main">h = r × ṙ = √(μ · p) = const</div>\n        <div class="eq-vars"><code>h</code> = specific angular momentum vector (constant throughout orbit)</div>\n      </div>\n\n      <h3>Third Law — Period Relation</h3>\n      <p>The square of the orbital period is proportional to the cube of the semi-major axis. This is why GPS satellites at ~20,200 km orbit once per ~12 hours, while the ISS at ~420 km orbits once per ~92 minutes.</p>\n\n      <div class="eq-block">\n        <div class="eq-label">Kepler\'s Third Law</div>\n        <div class="eq-main">T = 2π · √(a³ / μ)</div>\n        <div class="eq-vars">\n          <code>T</code> = orbital period (seconds)<br>\n          <code>a</code> = semi-major axis (km)<br>\n          <code>μ</code> = 398,600.4418 km³/s²\n        </div>\n      </div>\n\n      <div class="data-table-wrap">\n        <table>\n          <thead><tr><th>Object</th><th>Altitude (km)</th><th>Semi-major axis (km)</th><th>Period</th><th>Velocity (km/s)</th></tr></thead>\n          <tbody>\n            <tr><td>ISS</td><td>~420</td><td>6,791</td><td>92 min</td><td>7.66</td></tr>\n            <tr><td>Starlink</td><td>~550</td><td>6,921</td><td>95.5 min</td><td>7.60</td></tr>\n            <tr><td>GPS</td><td>~20,200</td><td>26,571</td><td>11h 58m</td><td>3.87</td></tr>\n            <tr><td>GEO (Clarke Belt)</td><td>35,786</td><td>42,164</td><td>23h 56m</td><td>3.07</td></tr>\n          </tbody>\n        </table>\n      </div>\n    </div>\n\n    <div class="section-block" id="vis-viva">\n      <h2>The Vis-Viva Equation</h2>\n      <p>The <dfn data-term="vis-viva">vis-viva equation</dfn> is perhaps the single most useful result in orbital mechanics. It relates a satellite\'s speed at any point in its orbit to its distance from Earth and the orbit\'s semi-major axis — through conservation of energy.</p>\n      <div class="eq-block">\n        <div class="eq-label">Vis-Viva Equation</div>\n        <div class="eq-main">v² = μ · (2/r − 1/a)</div>\n        <div class="eq-vars">\n          <code>v</code> = orbital speed at radius r (km/s)<br>\n          <code>μ</code> = gravitational parameter (km³/s²)<br>\n          <code>r</code> = current distance from Earth\'s center (km)<br>\n          <code>a</code> = semi-major axis of the orbit (km)\n        </div>\n      </div>\n      <p>For a <strong>circular orbit</strong>, <code>r = a</code> everywhere, giving <code>v = √(μ/r)</code>. This is why lower satellites move faster — they\'re in a deeper gravitational well. A 1 m/s increase in speed at ISS altitude raises the opposite side of the orbit by ~1.75 km.</p>\n      <div class="callout amber">\n        <div class="callout-title">VectraSpace Application</div>\n        <p>The vis-viva equation underlies all delta-v calculations in the maneuver planning module. When a conjunction is detected, the Clohessy-Wiltshire model computes the minimum Δv needed — and vis-viva tells us how that translates to an altitude change.</p>\n      </div>\n    </div>\n\n    <div class="section-block" id="elements">\n      <h2>Classical Orbital Elements</h2>\n      <p>Six numbers fully describe any Keplerian orbit. These are the <strong>Classical Orbital Elements (COEs)</strong> — a compact parameterization used in TLE sets and almost every orbital database.</p>\n      <div class="data-table-wrap">\n        <table>\n          <thead><tr><th>Symbol</th><th>Element</th><th>Description</th><th>Range</th></tr></thead>\n          <tbody>\n            <tr><td>a</td><td>Semi-major axis</td><td>Half the long axis of the ellipse. Determines orbit size and period.</td><td>0 → ∞ km</td></tr>\n            <tr><td>e</td><td>Eccentricity</td><td>Shape of orbit. 0 = circle, 0–1 = ellipse, 1 = parabola (escape).</td><td>0 → &lt;1</td></tr>\n            <tr><td>i</td><td>Inclination</td><td>Tilt of orbit plane relative to Earth\'s equatorial plane.</td><td>0° – 180°</td></tr>\n            <tr><td>Ω</td><td>RAAN</td><td>Right Ascension of Ascending Node. Rotates orbit plane around polar axis.</td><td>0° – 360°</td></tr>\n            <tr><td>ω</td><td>Argument of perigee</td><td>Angle from ascending node to closest approach point.</td><td>0° – 360°</td></tr>\n            <tr><td>ν or M</td><td>True / Mean anomaly</td><td>Current position in orbit. True = actual angle; Mean = time-averaged.</td><td>0° – 360°</td></tr>\n          </tbody>\n        </table>\n      </div>\n      <p>Converting between mean anomaly M and true anomaly ν requires solving <em>Kepler\'s Equation</em> — a transcendental equation typically solved iteratively:</p>\n      <div class="eq-block">\n        <div class="eq-label">Kepler\'s Equation</div>\n        <div class="eq-main">M = E − e · sin(E)</div>\n        <div class="eq-vars">\n          <code>M</code> = mean anomaly (linear in time: M = n·t, n = mean motion)<br>\n          <code>E</code> = eccentric anomaly (solved iteratively via Newton-Raphson)<br>\n          <code>e</code> = eccentricity\n        </div>\n      </div>\n    </div>\n\n    <div class="section-block" id="tle">\n      <h2>Two-Line Element Sets (TLEs)</h2>\n      <p>A TLE is the standard format used by NORAD and CelesTrak to distribute orbital data for tracked space objects. Each TLE encodes the six orbital elements plus perturbation coefficients in exactly 69 characters per line.</p>\n      <div class="eq-block" style="font-size:11px;">\n        <div class="eq-label">Example TLE — ISS</div>\n        <div class="eq-main" style="font-size:12px;line-height:1.8">\n          ISS (ZARYA)<br>\n          1 25544U 98067A   24001.50000000  .00003456  00000-0  63041-4 0  9992<br>\n          2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.50377579431937\n        </div>\n        <div class="eq-vars">\n          Line 1: Satellite number · Classification · Launch year/number · Epoch · Drag term (B*) · Element set number<br>\n          Line 2: Inclination · RAAN · Eccentricity (assumed decimal) · Arg of Perigee · Mean Anomaly · Mean Motion (rev/day) · Rev number\n        </div>\n      </div>\n      <p>TLE accuracy degrades over time as unmodeled perturbations accumulate. A fresh LEO TLE is typically accurate to ~1 km; after 7 days it may be off by 10+ km. This is why <strong>VectraSpace refreshes TLEs every 6 hours</strong> from CelesTrak and Space-Track.</p>\n    </div>\n\n    <div class="section-block" id="sgp4">\n      <h2>SGP4 / SDP4 Propagation</h2>\n      <p>The <strong>Simplified General Perturbations 4 (SGP4)</strong> model is the standard algorithm for propagating TLE sets forward in time. It analytically approximates the most significant orbital perturbations — Earth\'s oblateness (J₂, J₃, J₄), atmospheric drag, and solar/lunar effects (SDP4 for deep-space orbits).</p>\n      <p>SGP4 takes a TLE and a time offset Δt, and returns an ECI position and velocity vector. The computation is fast — thousands of satellites can be propagated per second on modern hardware — making it ideal for VectraSpace\'s vectorized batch processing.</p>\n      <div class="callout">\n        <div class="callout-title">SGP4 in VectraSpace</div>\n        <p>VectraSpace uses the Skyfield Python library\'s SGP4 implementation, propagating position arrays over 12–72 hour windows at 1-minute resolution. NumPy batching allows all satellites in a regime to be processed simultaneously, achieving 50× speedup over sequential loops.</p>\n      </div>\n      <div class="callout red">\n        <div class="callout-title">Important Limitation</div>\n        <p>SGP4 is a <em>mean element</em> theory — it models average perturbations, not instantaneous forces. For high-precision conjunction analysis (Pc &lt; 10⁻⁶), higher-fidelity numerical propagators with real atmospheric density models are required. VectraSpace\'s results should be treated as <strong>screening-level estimates</strong>, not operationally certified predictions.</p>\n      </div>\n    </div>\n\n    <div class="section-block" id="frames">\n      <h2>Reference Frames</h2>\n      <p>Orbital calculations require a clear choice of coordinate system. VectraSpace uses two primary frames:</p>\n      <h3>ECI — Earth-Centered Inertial</h3>\n      <p>Origin at Earth\'s center. X-axis points to the vernal equinox; Z-axis to the celestial north pole. <strong>Does not rotate with Earth</strong>. Satellite positions and velocities are expressed in ECI for propagation calculations.</p>\n      <h3>RTN — Radial-Transverse-Normal (Hill Frame)</h3>\n      <p>A local coordinate frame co-moving with the reference satellite: <em>R</em> (radial, toward/away from Earth), <em>T</em> (transverse, along-track), <em>N</em> (normal, out-of-plane). Delta-v maneuver vectors are expressed in RTN.</p>\n      <div class="eq-block">\n        <div class="eq-label">RTN Unit Vectors</div>\n        <div class="eq-main">R̂ = r/|r|,  N̂ = (r×ṙ)/|r×ṙ|,  T̂ = N̂×R̂</div>\n      </div>\n    </div>\n\n    <div class="section-block" id="velocity">\n      <h2>Circular Orbital Velocity</h2>\n      <p>For a circular orbit, the satellite\'s speed is constant and determined entirely by altitude. This is the regime most LEO satellites operate in:</p>\n      <div class="eq-block">\n        <div class="eq-label">Circular Orbital Velocity</div>\n        <div class="eq-main">v_c = √(μ / r) = √(μ / (R_E + h))</div>\n        <div class="eq-vars">\n          <code>v_c</code> = circular velocity (km/s)<br>\n          <code>R_E</code> = Earth\'s mean radius = 6,371 km<br>\n          <code>h</code> = altitude above surface (km)\n        </div>\n      </div>\n      <p>At ISS altitude (420 km): v ≈ 7.66 km/s. At GEO (35,786 km): v ≈ 3.07 km/s. Two LEO satellites in crossing orbits can have a <strong>relative velocity of up to 15+ km/s</strong> — equivalent to a small car moving 54,000 km/h. A 1 cm aluminum sphere at this speed carries the kinetic energy of a hand grenade.</p>\n    </div>\n\n</script>\n\n    <div class="chapter-nav">\n      <div></div>\n      <a href="/education/collision-prediction" class="chapter-nav-card next">\n        <div class="cnc-dir">Next Chapter →</div>\n        <div class="cnc-title">Collision Prediction</div>\n      </a>\n    </div>\n\n  </div>\n</div>\n\n<script>\n// Reading progress bar\nconst fill = document.getElementById(\'progress-fill\');\nwindow.addEventListener(\'scroll\', () => {\n  const h = document.documentElement;\n  const pct = (window.scrollY / (h.scrollHeight - h.clientHeight)) * 100;\n  fill.style.width = pct + \'%\';\n});\n\n// TOC active highlight\nconst sections = document.querySelectorAll(\'.section-block\');\nconst links = document.querySelectorAll(\'.toc-list a\');\nconst obs = new IntersectionObserver(entries => {\n  entries.forEach(e => {\n    if(e.isIntersecting) {\n      links.forEach(l => l.classList.remove(\'active\'));\n      const active = document.querySelector(`.toc-list a[href="#${e.target.id}"]`);\n      if(active) active.classList.add(\'active\');\n    }\n  });\n}, { threshold: 0.3 });\nsections.forEach(s => obs.observe(s));\n\n</script>\n</body>\n</html>\n\n'
-EDU_COLLISION_HTML   = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>Collision Prediction — VectraSpace Learn</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">\n<style>\n:root{--ink:#0a0e14;--ink2:#111720;--panel:#131b27;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#d4dde8;--muted:#8aaac5;--accent:#f59e0b;--accent-h:#fbbf24;--blue:#3b82f6;--red:#ef4444;--green:#10b981;--r:8px;}\n*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}\nhtml{scroll-behavior:smooth;}\nbody{background:var(--ink);color:var(--text);font-family:\'Space Grotesk\',sans-serif;line-height:1.6;overflow-x:hidden;}\nnav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}\n.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}\n.nav-brand-name{font-family:\'Instrument Serif\',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;}\n.nav-brand-name em{color:var(--accent);font-style:normal;}\n.nav-back{font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}\n.nav-back:hover{color:var(--text);border-color:var(--border2);}\n.chapter-progress{flex:1;max-width:300px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:0 40px;overflow:hidden;}\n.chapter-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.1s;}\n.learn-hero{padding:100px 40px 60px;max-width:900px;margin:0 auto;}\n.learn-breadcrumb{font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:16px;}\n.learn-breadcrumb a{color:var(--muted);text-decoration:none;}\n.learn-breadcrumb a:hover{color:var(--blue);}\n.learn-chapter{font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}\n.learn-title{font-family:\'Syne\',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-1.5px;color:#fff;line-height:1.05;margin-bottom:20px;}\n.learn-intro{font-size:17px;color:var(--muted);line-height:1.8;max-width:680px;margin-bottom:36px;}\n.learn-meta{display:flex;gap:24px;font-family:\'Space Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}\n.learn-layout{display:grid;grid-template-columns:220px 1fr;gap:0;max-width:1100px;margin:0 auto;padding:0 40px 80px;}\n.toc{position:sticky;top:80px;height:fit-content;padding-right:40px;}\n.toc-title{font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}\n.toc-list{list-style:none;display:flex;flex-direction:column;gap:2px;}\n.toc-list a{display:block;font-family:\'Space Mono\',monospace;font-size:10px;letter-spacing:0.5px;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:4px;border-left:2px solid transparent;transition:all 0.2s;}\n.toc-list a:hover,.toc-list a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(245,158,11,0.06);}\n.content{min-width:0;}\n.section-block{margin-bottom:64px;}\n.section-block h2{font-family:\'Syne\',sans-serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:16px;padding-top:16px;}\n.section-block h3{font-family:\'Syne\',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:28px 0 10px;}\n.section-block p{font-size:15px;color:var(--muted);line-height:1.85;margin-bottom:16px;}\n.section-block p strong{color:var(--text);font-weight:600;}\n.section-block p em{color:var(--accent-h);font-style:normal;}\n.eq-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r);padding:24px 28px;margin:24px 0;}\n.eq-label{font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}\n.eq-main{font-family:\'STIX Two Math\',\'Latin Modern Math\',Georgia,serif;font-size:17px;color:#fff;letter-spacing:0;margin-bottom:10px;font-style:italic;}\n.eq-vars{font-size:13px;color:var(--muted);line-height:1.9;}\n.eq-vars code{font-family:\'Space Mono\',monospace;font-size:11px;color:var(--accent-h);}\n.callout{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:var(--r);padding:20px 24px;margin:24px 0;}\n.callout-title{font-family:\'Syne\',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;}\n.callout p{font-size:13px;color:var(--muted);line-height:1.75;margin:0;}\n.callout.blue{background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.2);}\n.callout.blue .callout-title{color:var(--blue);}\n.callout.red{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2);}\n.callout.red .callout-title{color:var(--red);}\n.callout.green{background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.2);}\n.callout.green .callout-title{color:var(--green);}\n.data-table-wrap{overflow-x:auto;margin:24px 0;border-radius:var(--r);border:1px solid var(--border);}\ntable{width:100%;border-collapse:collapse;}\nthead th{background:rgba(255,255,255,0.04);font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);}\ntbody td{font-size:13px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);}\ntbody tr:last-child td{border-bottom:none;}\ntbody td:first-child{font-family:\'Space Mono\',monospace;font-size:11px;color:var(--accent-h);}\n.risk-scale{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:16px 0;gap:2px;}\n.rs-seg{flex:1;border-radius:2px;}\n.pc-table{width:100%;}\n.chapter-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:80px;padding-top:40px;border-top:1px solid var(--border);}\n.chapter-nav-card{padding:20px 24px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);text-decoration:none;transition:all 0.2s;}\n.chapter-nav-card:hover{border-color:var(--border2);transform:translateY(-1px);}\n.cnc-dir{font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}\n.cnc-title{font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:#fff;}\n.chapter-nav-card.next{text-align:right;}\n@media(max-width:800px){\n  .learn-layout{grid-template-columns:1fr;padding:0 20px 60px;}\n  .toc{display:none;}\n  .learn-hero{padding:80px 20px 40px;}\n  nav{padding:0 20px;}\n  .content-block{padding:24px 0;}\n  .equation-box{padding:16px 14px;overflow-x:auto;}\n  .quiz-wrap{padding:24px 20px;}\n  .quiz-option{padding:12px 14px;font-size:13px;}\n  .learn-hero h1{font-size:clamp(26px,7vw,42px);}\n}\n</style>\n</head>\n<body>\n\n<nav>\n  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>\n  <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>\n  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>\n</nav>\n\n<div class="learn-hero">\n  <div class="learn-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Collision Prediction</div>\n  <div class="learn-chapter">Chapter 02 · Risk Analysis</div>\n  <h1 class="learn-title">Collision Prediction</h1>\n  <p class="learn-intro">How do we calculate the probability that two objects will collide? This chapter covers the mathematics of conjunction analysis — from identifying close approaches to computing Pc and planning avoidance maneuvers.</p>\n  <div class="learn-meta">\n    <span>📖 ~18 min read</span>\n    <span>🧮 10 equations</span>\n    <span>🎯 Intermediate–Advanced</span>\n  </div>\n</div>\n\n<div class="learn-layout">\n  <aside class="toc">\n    <div class="toc-title">On This Page</div>\n    <ul class="toc-list">\n      <li><a href="#screening">Conjunction Screening</a></li>\n      <li><a href="#tca"><dfn data-term="TCA">Time of Closest Approach</dfn></a></li>\n      <li><a href="#covariance">Uncertainty & Covariance</a></li>\n      <li><a href="#pc-method">Pc Calculation</a></li>\n      <li><a href="#pc-levels">Risk Thresholds</a></li>\n      <li><a href="#cdm">CDM Standard</a></li>\n      <li><a href="#maneuver">Avoidance Maneuvers</a></li>\n      <li><a href="#cw">Clohessy-Wiltshire</a></li>\n    </ul>\n  </aside>\n\n  <div class="content">\n\n    <div class="section-block" id="screening">\n      <h2>Conjunction Screening</h2>\n      <p>With 27,000+ tracked objects in orbit, checking every possible pair at every time step would be computationally prohibitive. Conjunction screening uses a <strong>filter cascade</strong> to rapidly eliminate low-risk pairs before expensive calculations.</p>\n      <h3>Step 1: Perigee-Apogee Filter</h3>\n      <p>Two objects can only collide if their orbits can geometrically intersect. Objects whose apogee-perigee altitude ranges don\'t overlap are immediately eliminated.</p>\n      <h3>Step 2: Ellipsoidal Pre-filter</h3>\n      <p>For remaining pairs, compute the minimum distance over the propagation window. Only pairs where this coarse minimum falls within <em>n·σ</em> of the combined position uncertainty are retained for refinement:</p>\n      <div class="eq-block">\n        <div class="eq-label">Ellipsoidal Overlap Condition</div>\n        <div class="eq-main">d_miss ≤ n · √2 · max(σ_a, σ_c, σ_r)</div>\n        <div class="eq-vars">\n          <code>d_miss</code> = coarse minimum miss distance<br>\n          <code>n</code> = sigma multiplier (typically 5σ)<br>\n          <code>σ_a, σ_c, σ_r</code> = position uncertainty: along-track, cross-track, radial\n        </div>\n      </div>\n      <p>VectraSpace uses <strong>NumPy-batched distance matrix computation</strong> — all satellite pairs computed simultaneously in chunks, achieving ~50× speedup over sequential iteration. Typically 85–95% of pairs are eliminated at this stage.</p>\n    </div>\n\n    <div class="section-block" id="tca">\n      <h2>Time of Closest Approach (TCA)</h2>\n      <p>After coarse screening, the exact <strong>Time of Closest Approach (TCA)</strong> is found by minimizing the inter-satellite distance as a function of time. VectraSpace uses a bounded golden-section search (Brent\'s method) within a ±1 minute window around the coarse minimum.</p>\n      <div class="eq-block">\n        <div class="eq-label">Miss Distance at TCA</div>\n        <div class="eq-main">d(t) = |r₁(t) − r₂(t)|<br>TCA = argmin_t d(t)</div>\n        <div class="eq-vars">\n          <code>r₁(t), r₂(t)</code> = propagated positions of objects 1 and 2 at time t<br>\n          Time interpolation uses Hermite polynomials for smooth derivatives\n        </div>\n      </div>\n      <p>Relative velocity at TCA determines collision energy. For LEO-crossing conjunctions, relative speeds of <strong>0–15 km/s</strong> are possible — even a 10 cm fragment at 10 km/s carries 500+ kJ of kinetic energy, catastrophic for any spacecraft.</p>\n    </div>\n\n    <div class="section-block" id="covariance">\n      <h2>Uncertainty & Covariance</h2>\n      <p>We never know a satellite\'s position exactly. Every TLE has errors — from unmodeled forces, tracking gaps, and atmospheric variability. This uncertainty is quantified by a <strong><dfn data-term="covariance">covariance matrix</dfn></strong> in the RTN frame.</p>\n      <div class="eq-block">\n        <div class="eq-label">3×3 RTN Covariance Matrix</div>\n        <div class="eq-main">\nP = [CR_R   CT_R   CN_R]<br>\n    [CT_R   CT_T   CN_T]<br>\n    [CN_R   CN_T   CN_N]\n        </div>\n        <div class="eq-vars">\n          Diagonal elements: variance in radial (R), transverse (T), normal (N) directions<br>\n          Off-diagonal elements: cross-correlations (usually large CT_R for LEO drag errors)<br>\n          Position uncertainty ellipsoid: principal axes from eigendecomposition of P\n        </div>\n      </div>\n      <p>When real CDM covariance data is available from Space-Track, VectraSpace uses it. When not, it falls back to <strong>assumed sigma values</strong> — typically σ_along = 500m, σ_cross = 200m, σ_radial = 100m for LEO. The covariance source is flagged in every conjunction report.</p>\n      <div class="callout blue">\n        <div class="callout-title">Why Covariance Matters</div>\n        <p>Two conjunctions with the same 5 km miss distance can have wildly different Pc values — depending on the uncertainty. If position uncertainty is only 100 m (very certain), Pc is near zero. If uncertainty is 10 km (very uncertain), the 5 km miss could represent a high-risk event. Pc collapses miss distance and uncertainty into a single risk metric.</p>\n      </div>\n    </div>\n\n    <div class="section-block" id="pc-method">\n      <h2><dfn data-term="Pc">Probability of Collision</dfn> — Foster-Alfano Method</h2>\n      <p>VectraSpace uses the <strong>Foster (1992) / Alfano (1995)</strong> conjunction probability method, which projects the 3D problem onto the 2D collision plane (the plane perpendicular to relative velocity at TCA).</p>\n      <p>The combined position PDF (assuming Gaussian) is integrated over a disk of radius <em>R_c</em> — the "hard-body radius," or sum of the two object radii:</p>\n      <div class="eq-block">\n        <div class="eq-label">2D Collision Probability (Foster-Alfano)</div>\n        <div class="eq-main">Pc = (1/2π·σ_x·σ_y) · ∬_D exp[−½·(x²/σ_x² + y²/σ_y²)] dx dy</div>\n        <div class="eq-vars">\n          Integration domain D: disk of radius R_c centered on predicted miss vector<br>\n          <code>σ_x, σ_y</code> = combined 1σ position uncertainty in collision plane<br>\n          <code>R_c = r₁ + r₂</code> = combined hard-body radius (typically 5–15 m for intact satellites)<br>\n          Numerically evaluated using chi-squared CDF: Pc ≈ 1 − χ²_CDF(x², df=2)\n        </div>\n      </div>\n      <p>This integral has no closed form for arbitrary offset — it is computed numerically in VectraSpace using SciPy\'s chi-squared CDF as an approximation valid for the typical range of operational Pc values.</p>\n      <div class="eq-block">\n        <div class="eq-label">VectraSpace Implementation (Simplified)</div>\n        <div class="eq-main">σ_c = √[(σ_a² + σ_c² + σ_r²)/3] · √2<br>x = ((d_miss − R_c) / σ_c)²<br>Pc = 1 − χ²_CDF(x, df=3)</div>\n      </div>\n    </div>\n\n    <div class="section-block" id="pc-levels">\n      <h2>Risk Thresholds & Decision Framework</h2>\n      <p>Pc alone does not tell an operator what to do. Different organizations apply different thresholds based on risk tolerance, available propellant, and operational context.</p>\n      <div class="risk-scale">\n        <div class="rs-seg" style="background:#10b981;flex:3"></div>\n        <div class="rs-seg" style="background:#f59e0b;flex:2"></div>\n        <div class="rs-seg" style="background:#ef4444;flex:1.5"></div>\n        <div class="rs-seg" style="background:#7f1d1d;flex:0.5"></div>\n      </div>\n      <div class="data-table-wrap">\n        <table>\n          <thead><tr><th>Pc Range</th><th>Risk Level</th><th>Typical Response</th><th>VectraSpace Alert</th></tr></thead>\n          <tbody>\n            <tr><td>&lt; 1×10⁻⁶</td><td style="color:#10b981">Negligible</td><td>No action required</td><td>No alert</td></tr>\n            <tr><td>1×10⁻⁶ – 1×10⁻⁴</td><td style="color:#fbbf24">Low / Watch</td><td>Monitor; gather more data</td><td>Optional</td></tr>\n            <tr><td>1×10⁻⁴ – 1×10⁻³</td><td style="color:#f59e0b">Elevated</td><td>Maneuver analysis; prepare burn</td><td>Default threshold</td></tr>\n            <tr><td>1×10⁻³ – 1×10⁻²</td><td style="color:#ef4444">High</td><td>Maneuver strongly recommended</td><td>High priority alert</td></tr>\n            <tr><td>&gt; 1×10⁻²</td><td style="color:#7f1d1d">Critical</td><td>Emergency maneuver required</td><td>Critical alert</td></tr>\n          </tbody>\n        </table>\n      </div>\n      <p>The default VectraSpace alert threshold is <strong>Pc ≥ 1×10⁻⁴</strong> (1 in 10,000) — consistent with NASA and ESA operational screening. Users can adjust this in their preferences down to 1×10⁻⁶ for higher sensitivity or up to 1×10⁻² for reduced noise.</p>\n      <div class="callout red">\n        <div class="callout-title">The False Alarm Problem</div>\n        <p>Most conjunction alerts do not lead to actual collisions. The false positive rate at 1×10⁻⁴ is very high — operators must balance the cost of unnecessary maneuvers (fuel, operational complexity) against the risk of inaction. This is fundamentally a decision theory problem, not just a physics problem.</p>\n      </div>\n    </div>\n\n    <div class="section-block" id="cdm">\n      <h2><dfn data-term="CDM">Conjunction Data Message</dfn>s (CDM)</h2>\n      <p>The <strong>CCSDS Conjunction Data Message (CDM)</strong> standard (CCSDS 508.0-B-1) is the international format for communicating conjunction events between agencies, operators, and databases. VectraSpace generates a CDM for every detected conjunction.</p>\n      <p>A CDM contains: time of closest approach, miss distance, Pc estimate, Pc method identifier, and full covariance matrices for both objects. It is the interoperability standard for space traffic management worldwide.</p>\n      <div class="callout green">\n        <div class="callout-title">Download CDMs from VectraSpace</div>\n        <p>Every conjunction detected in a VectraSpace scan generates a downloadable CDM file. Individual events can be downloaded from the results panel; the full run can be exported as a ZIP archive. These files follow the CCSDS format and can be imported into other SSA tools.</p>\n      </div>\n    </div>\n\n    <div class="section-block" id="maneuver">\n      <h2>Avoidance Maneuver Planning</h2>\n      <p>When Pc exceeds the action threshold, the satellite operator must decide whether and how to maneuver. The goal is to <strong>increase miss distance</strong> sufficiently to bring Pc below threshold, using the minimum propellant (Δv).</p>\n      <p>Maneuver planning is complicated by uncertainty in both orbits — a maneuver may be necessary even with low initial Pc if subsequent TLE updates reveal the true trajectory is closer. Conversely, updates may show a previously alarming event was benign.</p>\n      <h3>Maneuver Geometry</h3>\n      <p>The most efficient avoidance burns are typically in the <strong>transverse (along-track) direction</strong>. An along-track burn changes the orbital period, causing the satellite to arrive at the conjunction point earlier or later — spatially shifting the pass without a large altitude change.</p>\n    </div>\n\n    <div class="section-block" id="cw">\n      <h2>Clohessy-Wiltshire (Hill\'s) Equations</h2>\n      <p>For satellites in nearby orbits, the <strong>Clohessy-Wiltshire (CW) equations</strong> (also called Hill\'s equations) describe relative motion in the co-rotating RTN frame. They linearize orbital mechanics around a reference circular orbit, making analytical maneuver solutions tractable.</p>\n      <div class="eq-block">\n        <div class="eq-label">Clohessy-Wiltshire Equations (Linearized Relative Motion)</div>\n        <div class="eq-main">\nẍ − 2n·ẏ − 3n²·x = f_x<br>\nÿ + 2n·ẋ = f_y<br>\nz̈ + n²·z = f_z\n        </div>\n        <div class="eq-vars">\n          <code>x, y, z</code> = relative position in radial (x), transverse (y), normal (z)<br>\n          <code>n = √(μ/a³)</code> = mean motion of reference orbit<br>\n          <code>f_x, f_y, f_z</code> = applied accelerations (thrust)<br>\n          Coriolis terms (−2n·ẏ, +2n·ẋ) couple radial and transverse motion\n        </div>\n      </div>\n      <p>VectraSpace uses a simplified CW solution to estimate minimum Δv for each conjunction. The advisory assumes an impulsive burn and linear dynamics — appropriate for initial screening. <strong>All maneuver recommendations require verification with a high-fidelity propagator before execution.</strong></p>\n      <div class="eq-block">\n        <div class="eq-label">VectraSpace Minimum Δv Estimate</div>\n        <div class="eq-main">Δv_T ≈ (d_safe − d_current) / (2 · t_TCA)<br>Δv_R ≈ −(v_rel · r̂) · 0.1</div>\n        <div class="eq-vars">\n          <code>d_safe</code> = target safe separation distance (default: 50 km)<br>\n          <code>d_current</code> = current predicted miss distance<br>\n          <code>t_TCA</code> = time until closest approach (seconds)<br>\n          Output: [Δv_R, Δv_T, Δv_N] vector in m/s (RTN frame)\n        </div>\n      </div>\n    </div>\n\n</script>\n\n    <div class="chapter-nav">\n      <a href="/education/orbital-mechanics" class="chapter-nav-card">\n        <div class="cnc-dir">← Previous Chapter</div>\n        <div class="cnc-title">Orbital Mechanics</div>\n      </a>\n      <a href="/education/perturbations" class="chapter-nav-card next">\n        <div class="cnc-dir">Next Chapter →</div>\n        <div class="cnc-title">Orbital Perturbations</div>\n      </a>\n    </div>\n\n  </div>\n</div>\n\n<script>\nconst fill = document.getElementById(\'progress-fill\');\nwindow.addEventListener(\'scroll\', () => {\n  const h = document.documentElement;\n  fill.style.width = ((window.scrollY / (h.scrollHeight - h.clientHeight)) * 100) + \'%\';\n});\nconst sections = document.querySelectorAll(\'.section-block\');\nconst links = document.querySelectorAll(\'.toc-list a\');\nconst obs = new IntersectionObserver(e => {\n  e.forEach(en => {\n    if(en.isIntersecting){\n      links.forEach(l => l.classList.remove(\'active\'));\n      const a = document.querySelector(`.toc-list a[href="#${en.target.id}"]`);\n      if(a) a.classList.add(\'active\');\n    }\n  });\n}, { threshold: 0.3 });\nsections.forEach(s => obs.observe(s));\n</script>\n</body>\n</html>\n\n'
-EDU_PERTURBATIONS_HTML = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>Orbital Perturbations — VectraSpace Deep Dive</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">\n<style>\n:root {\n  --ink:        #070c14;\n  --ink-2:      #0d1520;\n  --ink-3:      #111d2b;\n  --border:     #1a2e42;\n  --border-2:   #243d54;\n  --accent:     #3b82f6;\n  --accent-glow:rgba(59,130,246,0.18);\n  --amber:      #f59e0b;\n  --amber-dim:  rgba(245,158,11,0.12);\n  --green:      #10b981;\n  --green-dim:  rgba(16,185,129,0.10);\n  --red:        #ef4444;\n  --red-dim:    rgba(239,68,68,0.10);\n  --text:       #c9ddef;\n  --text-2:     #9dbbd4;\n  --text-3:     #6d92ad;\n  --mono:       \'Space Mono\', monospace;\n  --math:       \'STIX Two Math\',\'Latin Modern Math\',Georgia,serif;\n  --sans:       \'Space Grotesk\', sans-serif;\n  --display:    \'Syne\', sans-serif;\n  --toc-w:      230px;\n}\n\n*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\nhtml { scroll-behavior: smooth; font-size: 16px; }\nbody {\n  background: var(--ink);\n  color: var(--text);\n  font-family: var(--sans);\n  line-height: 1.7;\n  overflow-x: hidden;\n}\n\n/* ── PROGRESS BAR ── */\n#progress-bar {\n  position: fixed; top: 0; left: 0; height: 2px; width: 0%;\n  background: linear-gradient(90deg, var(--accent), var(--amber));\n  z-index: 200; transition: width 0.1s linear;\n}\n\n/* ── NAV ── */\nnav {\n  position: fixed; top: 0; left: 0; right: 0; z-index: 100;\n  height: 56px; padding: 0 32px;\n  display: flex; align-items: center; justify-content: space-between;\n  background: rgba(7,12,20,0.92);\n  border-bottom: 1px solid var(--border);\n  backdrop-filter: blur(12px);\n}\n.nav-brand {\n  font-family: var(--mono); font-size: 11px; letter-spacing: 3px;\n  color: var(--accent); text-transform: uppercase; text-decoration: none;\n}\n.nav-back {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 2px;\n  color: var(--text-3); text-decoration: none; text-transform: uppercase;\n  transition: color 0.2s;\n}\n.nav-back:hover { color: var(--accent); }\n\n/* ── HERO ── */\n.hero {\n  padding: 120px 48px 64px;\n  max-width: 900px; margin: 0 auto;\n  position: relative;\n}\n.hero-breadcrumb {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;\n  color: var(--text-3); text-transform: uppercase; margin-bottom: 16px;\n}\n.hero-breadcrumb a { color: var(--text-3); text-decoration: none; }\n.hero-breadcrumb a:hover { color: var(--accent); }\n.chapter-label {\n  display: inline-block; font-family: var(--mono); font-size: 9px;\n  letter-spacing: 3px; color: var(--amber); text-transform: uppercase;\n  background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.25);\n  padding: 4px 10px; border-radius: 2px; margin-bottom: 20px;\n}\n.hero h1 {\n  font-family: var(--display); font-size: clamp(36px,5vw,58px);\n  font-weight: 800; line-height: 1.1; color: #fff; margin-bottom: 16px;\n}\n.hero-accent { color: var(--accent); }\n.hero-intro {\n  font-size: 17px; font-weight: 300; color: var(--text-2); line-height: 1.8;\n  max-width: 680px; margin-bottom: 32px;\n}\n.hero-meta {\n  display: flex; gap: 24px; flex-wrap: wrap;\n  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;\n  color: var(--text-3); text-transform: uppercase;\n}\n.hero-meta span { display: flex; align-items: center; gap: 6px; }\n.hero-meta-dot { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }\n\n/* ── LAYOUT ── */\n.page-wrap {\n  max-width: 1140px; margin: 0 auto;\n  padding: 48px 48px 120px;\n  display: grid;\n  grid-template-columns: var(--toc-w) 1fr;\n  gap: 64px;\n  align-items: start;\n}\n\n/* ── TOC ── */\n.toc {\n  position: sticky; top: 72px;\n  background: var(--ink-2);\n  border: 1px solid var(--border);\n  border-radius: 8px;\n  padding: 20px;\n  max-height: calc(100vh - 88px);\n  overflow-y: auto;\n}\n.toc::-webkit-scrollbar { width: 3px; }\n.toc::-webkit-scrollbar-thumb { background: var(--border); }\n.toc-label {\n  font-family: var(--mono); font-size: 8px; letter-spacing: 3px;\n  color: var(--text-3); text-transform: uppercase; margin-bottom: 14px;\n  padding-bottom: 8px; border-bottom: 1px solid var(--border);\n}\n.toc-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }\n.toc-list a {\n  display: block; font-size: 12px; color: var(--text-3);\n  text-decoration: none; padding: 5px 8px; border-radius: 4px;\n  transition: all 0.2s; border-left: 2px solid transparent;\n}\n.toc-list a:hover { color: var(--text); background: var(--ink-3); }\n.toc-list a.active {\n  color: var(--accent); background: var(--accent-glow);\n  border-left-color: var(--accent);\n}\n\n/* ── CONTENT ── */\n.content { min-width: 0; }\n.content-section { margin-bottom: 72px; scroll-margin-top: 80px; }\n.section-number {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;\n  color: var(--accent); text-transform: uppercase; margin-bottom: 12px;\n}\n.content h2 {\n  font-family: var(--display); font-size: clamp(22px,3vw,30px);\n  font-weight: 700; color: #fff; margin-bottom: 20px; line-height: 1.2;\n}\n.content h3 {\n  font-family: var(--sans); font-size: 16px; font-weight: 600;\n  color: var(--text); margin: 28px 0 12px;\n}\n.content p { margin-bottom: 16px; color: var(--text-2); font-size: 15px; }\n.content strong { color: var(--text); font-weight: 600; }\n\n/* ── EQUATION BLOCKS ── */\n.eq-block {\n  background: var(--ink-2); border: 1px solid var(--border);\n  border-left: 3px solid var(--accent);\n  border-radius: 6px; padding: 20px 24px; margin: 24px 0;\n  font-family: var(--mono); font-size: 13px; color: var(--text);\n  overflow-x: auto;\n}\n.eq-block .eq-label {\n  font-size: 8px; letter-spacing: 3px; color: var(--text-3);\n  text-transform: uppercase; margin-bottom: 10px;\n}\n.eq-block .eq-main { font-family:var(--math,\'STIX Two Math\',Georgia,serif); font-size: 17px; color: #fff; margin-bottom: 8px; font-style:italic; }\n.eq-block .eq-vars { font-size: 12px; color: var(--text-2); line-height: 1.9; }\n.eq-block .eq-var-name { color: var(--amber); }\n\n/* ── CALLOUT BOXES ── */\n.callout {\n  border-radius: 6px; padding: 16px 20px; margin: 24px 0;\n  border-left: 3px solid; font-size: 14px;\n}\n.callout.info {\n  background: rgba(59,130,246,0.07); border-color: var(--accent); color: var(--text);\n}\n.callout.warning {\n  background: var(--amber-dim); border-color: var(--amber); color: var(--text);\n}\n.callout.danger {\n  background: var(--red-dim); border-color: var(--red); color: var(--text);\n}\n.callout.success {\n  background: var(--green-dim); border-color: var(--green); color: var(--text);\n}\n.callout-label {\n  font-family: var(--mono); font-size: 8px; letter-spacing: 3px;\n  text-transform: uppercase; margin-bottom: 6px;\n  display: block;\n}\n.callout.info .callout-label { color: var(--accent); }\n.callout.warning .callout-label { color: var(--amber); }\n.callout.danger .callout-label { color: var(--red); }\n.callout.success .callout-label { color: var(--green); }\n\n/* ── DATA TABLE ── */\n.data-table-wrap { overflow-x: auto; margin: 24px 0; }\ntable {\n  width: 100%; border-collapse: collapse;\n  font-size: 13px; font-family: var(--mono);\n}\nthead th {\n  background: var(--ink-3); color: var(--text-3); font-size: 9px;\n  letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px;\n  text-align: left; border-bottom: 1px solid var(--border);\n}\ntbody td { padding: 10px 14px; border-bottom: 1px solid rgba(26,46,66,0.5); color: var(--text-2); }\ntbody tr:hover td { background: var(--ink-2); }\n.td-accent { color: var(--accent); }\n.td-amber  { color: var(--amber); }\n.td-green  { color: var(--green); }\n.td-red    { color: var(--red); }\n.td-white  { color: #fff; font-weight: 600; }\n\n/* ── PERTURBATION DIAGRAM ── */\n.pert-diagram {\n  background: var(--ink-2); border: 1px solid var(--border);\n  border-radius: 8px; padding: 32px; margin: 24px 0; overflow: hidden;\n}\n.pert-grid {\n  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;\n}\n.pert-card {\n  background: var(--ink-3); border: 1px solid var(--border);\n  border-radius: 6px; padding: 18px; transition: border-color 0.2s;\n}\n.pert-card:hover { border-color: var(--accent); }\n.pert-card-icon { font-size: 24px; margin-bottom: 10px; }\n.pert-card-title {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 2px;\n  color: var(--accent); text-transform: uppercase; margin-bottom: 6px;\n}\n.pert-card-desc { font-size: 13px; color: var(--text-2); line-height: 1.6; }\n.pert-card-mag {\n  margin-top: 10px; padding: 6px 8px;\n  background: var(--ink); border-radius: 4px;\n  font-family: var(--mono); font-size: 11px; color: var(--amber);\n}\n\n/* ── J2 VISUALIZER ── */\n.j2-vis {\n  background: var(--ink-2); border: 1px solid var(--border);\n  border-radius: 8px; padding: 24px; margin: 24px 0;\n  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;\n}\n.j2-canvas-wrap { position: relative; height: 200px; }\n.j2-canvas-wrap canvas { width: 100%; height: 100%; }\n.j2-data { display: flex; flex-direction: column; gap: 12px; }\n.j2-row {\n  display: flex; justify-content: space-between; align-items: center;\n  padding: 8px 12px; background: var(--ink-3); border-radius: 4px;\n  border-left: 2px solid var(--border);\n  font-family: var(--mono); font-size: 11px;\n}\n.j2-row.active { border-left-color: var(--accent); }\n.j2-key { color: var(--text-3); }\n.j2-val { color: var(--accent); }\n\n/* ── DRAG CHART ── */\n.drag-chart-wrap {\n  background: var(--ink-2); border: 1px solid var(--border);\n  border-radius: 8px; padding: 24px; margin: 24px 0;\n}\n.drag-chart-title {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;\n  color: var(--text-3); text-transform: uppercase; margin-bottom: 16px;\n}\n.drag-bars { display: flex; flex-direction: column; gap: 10px; }\n.drag-bar-row { display: flex; align-items: center; gap: 12px; }\n.drag-bar-label { font-family: var(--mono); font-size: 10px; color: var(--text-2); width: 100px; flex-shrink: 0; }\n.drag-bar-track { flex: 1; background: var(--ink-3); border-radius: 2px; height: 8px; position: relative; }\n.drag-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.8s ease; }\n.drag-bar-val { font-family: var(--mono); font-size: 10px; color: var(--amber); width: 80px; text-align: right; flex-shrink: 0; }\n\n/* ── TLE ACCURACY CHART ── */\n.accuracy-chart {\n  background: var(--ink-2); border: 1px solid var(--border);\n  border-radius: 8px; padding: 24px; margin: 24px 0;\n}\n.accuracy-chart canvas { width: 100%; height: 180px; }\n\n/* ── CHAPTER NAV ── */\n.chapter-nav {\n  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;\n  margin-top: 80px; padding-top: 40px;\n  border-top: 1px solid var(--border);\n}\n.chapter-nav-card {\n  background: var(--ink-2); border: 1px solid var(--border);\n  border-radius: 8px; padding: 20px 24px; text-decoration: none;\n  transition: all 0.2s; display: block;\n}\n.chapter-nav-card:hover { border-color: var(--accent); background: var(--ink-3); }\n.cnc-dir {\n  font-family: var(--mono); font-size: 8px; letter-spacing: 3px;\n  color: var(--text-3); text-transform: uppercase; margin-bottom: 6px;\n}\n.cnc-title { font-family: var(--display); font-size: 16px; font-weight: 700; color: #fff; }\n.cnc-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }\n.chapter-nav-card.next { text-align: right; }\n\n/* ── SCROLL REVEAL ── */\n.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }\n.reveal.visible { opacity: 1; transform: none; }\n\n@media (max-width: 900px) {\n  .page-wrap { grid-template-columns: 1fr; }\n  .toc { display: none; }\n  .hero { padding: 100px 24px 48px; }\n  .page-wrap { padding: 32px 24px 80px; }\n  .pert-grid, .j2-vis { grid-template-columns: 1fr; }\n  \n\n/* ── GLOSSARY TOOLTIPS ── */\ndfn {\n  font-style: normal;\n  border-bottom: 1px dashed rgba(74,158,255,0.4);\n  cursor: help;\n  color: inherit;\n  transition: color 0.15s, border-color 0.15s;\n}\ndfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }\n.gtooltip {\n  position: fixed; z-index: 9999;\n  max-width: 300px; pointer-events: none;\n  background: #0d1320; border: 1px solid rgba(74,158,255,0.3);\n  border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);\n  padding: 14px 16px; opacity: 0; transform: translateY(4px);\n  transition: opacity 0.15s, transform 0.15s;\n}\n.gtooltip.show { opacity: 1; transform: translateY(0); }\n.gtooltip-term { font-family: \'DM Mono\',\'Space Mono\',monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #4a9eff; margin-bottom: 6px; }\n.gtooltip-def  { font-size: 12px; color: #8aaac5; line-height: 1.6; }\n.gtooltip-link { display: block; margin-top: 8px; font-family: \'DM Mono\',\'Space Mono\',monospace; font-size: 9px; color: #4a9eff; letter-spacing: 1px; opacity: 0.7; }\n\n/* ── GLOSSARY TOOLTIPS ── */\ndfn {\n  font-style: normal;\n  border-bottom: 1px dashed rgba(74,158,255,0.4);\n  cursor: help;\n  color: inherit;\n  transition: color 0.15s, border-color 0.15s;\n}\ndfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }\n.gtooltip {\n  position: fixed; z-index: 9999;\n  max-width: 300px; pointer-events: none;\n  background: #0d1320; border: 1px solid rgba(74,158,255,0.3);\n  border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);\n  padding: 14px 16px; opacity: 0; transform: translateY(4px);\n  transition: opacity 0.15s, transform 0.15s;\n}\n.gtooltip.show { opacity: 1; transform: translateY(0); }\n.gtooltip-term { font-family: \'DM Mono\',\'Space Mono\',monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #4a9eff; margin-bottom: 6px; }\n.gtooltip-def  { font-size: 12px; color: #8aaac5; line-height: 1.6; }\n.gtooltip-link { display: block; margin-top: 8px; font-family: \'DM Mono\',\'Space Mono\',monospace; font-size: 9px; color: #4a9eff; letter-spacing: 1px; opacity: 0.7; }\n\n.chapter-nav { grid-template-columns: 1fr; }\n}\n</style>\n</head>\n<body>\n\n<div id="progress-bar"></div>\n\n<nav>\n  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>\n  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>\n</nav>\n\n<div class="hero">\n  <div class="hero-breadcrumb">\n    <a href="/">VectraSpace</a> / <a href="/#learn">Chapters</a> / Chapter 03\n  </div>\n  <span class="chapter-label">Chapter 03</span>\n  <h1>Orbital <span class="hero-accent">Perturbations</span></h1>\n  <p class="hero-intro">\n    Real orbits are never perfect ellipses. Atmospheric drag, Earth\'s oblate shape, solar radiation pressure,\n    and gravitational pulls from the Moon and Sun continuously nudge every satellite off its Keplerian path —\n    with consequences ranging from millisecond timing errors to catastrophic reentry.\n  </p>\n  <div class="hero-meta">\n    <span><span class="hero-meta-dot"></span>30 min read</span>\n    <span><span class="hero-meta-dot"></span>Intermediate · Advanced</span>\n    <span><span class="hero-meta-dot"></span>Physics · Astrodynamics</span>\n  </div>\n</div>\n\n<div class="page-wrap">\n\n  <!-- TOC -->\n  <aside>\n    <nav class="toc">\n      <div class="toc-label">Contents</div>\n      <ul class="toc-list">\n        <li><a href="#why-matter">Why Perturbations Matter</a></li>\n        <li><a href="#j2-oblateness">J₂ Oblateness</a></li>\n        <li><a href="#nodal-regression">Nodal Regression</a></li>\n        <li><a href="#apsidal-precession">Apsidal Precession</a></li>\n        <li><a href="#atmospheric-drag">Atmospheric Drag</a></li>\n        <li><a href="#ballistic-coeff">Ballistic Coefficient</a></li>\n        <li><a href="#solar-radiation">Solar Radiation Pressure</a></li>\n        <li><a href="#luni-solar">Luni-Solar Gravity</a></li>\n        <li><a href="#tle-accuracy">TLE Accuracy & Decay</a></li>\n        <li><a href="#sgp4-model">SGP4 Perturbation Model</a></li>\n        <li><a href="#ops-consequences">Operational Consequences</a></li>\n      </ul>\n    </nav>\n  </aside>\n\n  <!-- Content -->\n  <article class="content">\n\n    <!-- WHY PERTURBATIONS MATTER -->\n    <section id="why-matter" class="content-section reveal">\n      <div class="section-number">// 01</div>\n      <h2>Why Perturbations Matter for SSA</h2>\n      <p>\n        In introductory orbital mechanics, we solve the <strong>two-body problem</strong>: a point mass orbiting another\n        under pure Newtonian gravity. The solution — a perfect conic section — holds forever. Real satellites\n        inhabit a messier universe.\n      </p>\n      <p>\n        Earth is not a perfect sphere. It has mass concentrations, an atmosphere that extends hundreds of kilometers,\n        and sits in a solar system full of other gravitating bodies. Each effect introduces small accelerations\n        that, over hours and days, accumulate into position errors measured in kilometers.\n      </p>\n\n      <div class="pert-diagram">\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:20px;">Four Major Perturbation Sources</div>\n        <div class="pert-grid">\n          <div class="pert-card">\n            <div class="pert-card-icon">🌍</div>\n            <div class="pert-card-title">J₂ Oblateness</div>\n            <div class="pert-card-desc">Earth\'s equatorial bulge exerts a stronger gravitational pull on low-inclination orbits, causing the orbital plane to precess.</div>\n            <div class="pert-card-mag">LEO: ~7°/day RAAN drift</div>\n          </div>\n          <div class="pert-card">\n            <div class="pert-card-icon">🌬️</div>\n            <div class="pert-card-title">Atmospheric Drag</div>\n            <div class="pert-card-desc">Residual air molecules below ~1000 km exert a retarding force, bleeding orbital energy and lowering the orbit over time.</div>\n            <div class="pert-card-mag">ISS: ~2 km/day altitude loss</div>\n          </div>\n          <div class="pert-card">\n            <div class="pert-card-icon">☀️</div>\n            <div class="pert-card-title">Solar Radiation Pressure</div>\n            <div class="pert-card-desc">Photons carry momentum. Large, lightweight satellites (solar panels, balloon payloads) feel significant radiation pressure perturbations.</div>\n            <div class="pert-card-mag">4.56 μN/m² at 1 AU</div>\n          </div>\n          <div class="pert-card">\n            <div class="pert-card-icon">🌙</div>\n            <div class="pert-card-title">Luni-Solar Gravity</div>\n            <div class="pert-card-desc">Moon and Sun third-body perturbations dominate at GEO and HEO where Earth\'s gravity weakens relative to their influence.</div>\n            <div class="pert-card-mag">GEO: ~0.75°/yr inclination growth</div>\n          </div>\n        </div>\n      </div>\n\n      <p>\n        For Space Situational Awareness, perturbations drive two critical concerns. First, they mean that\n        a TLE propagated forward in time becomes less accurate every hour — the longer the prediction horizon,\n        the larger the position uncertainty. Second, some perturbations accumulate secularly, permanently\n        changing orbital elements rather than oscillating around a mean value.\n      </p>\n    </section>\n\n    <!-- J2 OBLATENESS -->\n    <section id="j2-oblateness" class="content-section reveal">\n      <div class="section-number">// 02</div>\n      <h2>J₂: Earth\'s Equatorial Bulge</h2>\n      <p>\n        The dominant non-spherical gravitational term is the <strong>J₂ coefficient</strong>, which captures\n        Earth\'s oblateness: the equatorial radius (6,378 km) exceeds the polar radius (6,357 km) by about 21 km.\n        This equatorial bulge creates a gravitational potential that varies with latitude.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Gravitational Potential with J₂</div>\n        <div class="eq-main">U = −(μ/r)·[1 − J₂·(R⊕/r)²·(3sin²φ − 1)/2]</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">J₂</span> = 1.08263 × 10⁻³ (dimensionless oblateness coefficient)<br>\n          <span class="eq-var-name">R⊕</span> = 6,378.137 km (Earth equatorial radius)<br>\n          <span class="eq-var-name">φ</span> = geocentric latitude<br>\n          <span class="eq-var-name">r</span> = radial distance from Earth center\n        </div>\n      </div>\n\n      <p>\n        The J₂ term produces three distinct effects on Keplerian orbital elements. Two are <strong>secular</strong>\n        (they grow linearly with time, never reversing). One is <strong>periodic</strong> (it oscillates with the\n        orbital period and averages to zero over many revolutions).\n      </p>\n\n      <div class="j2-vis">\n        <div>\n          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);margin-bottom:14px;">J₂ SECULAR EFFECTS</div>\n          <div class="j2-data">\n            <div class="j2-row active">\n              <span class="j2-key">RAAN Regression (Ω̇)</span>\n              <span class="j2-val">Secular ↓</span>\n            </div>\n            <div class="j2-row active">\n              <span class="j2-key">Apsidal Precession (ω̇)</span>\n              <span class="j2-val">Secular ↑/↓</span>\n            </div>\n            <div class="j2-row">\n              <span class="j2-key">Semi-major axis (ȧ)</span>\n              <span class="j2-val">Periodic only</span>\n            </div>\n            <div class="j2-row">\n              <span class="j2-key">Eccentricity (ė)</span>\n              <span class="j2-val">Periodic only</span>\n            </div>\n            <div class="j2-row">\n              <span class="j2-key">Inclination (i̇)</span>\n              <span class="j2-val">Periodic only</span>\n            </div>\n          </div>\n        </div>\n        <div>\n          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);margin-bottom:14px;">RAAN DRIFT RATE (°/day)</div>\n          <canvas id="j2-canvas" height="200"></canvas>\n        </div>\n      </div>\n    </section>\n\n    <!-- NODAL REGRESSION -->\n    <section id="nodal-regression" class="content-section reveal">\n      <div class="section-number">// 03</div>\n      <h2>Nodal Regression: The Drifting Orbital Plane</h2>\n      <p>\n        The most practically significant J₂ effect is <strong>right ascension of the ascending node (RAAN)\n        regression</strong>. The orbital plane slowly rotates around Earth\'s polar axis like a spinning top:\n        prograde for low-inclination orbits, retrograde for high-inclination orbits.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">RAAN Secular Drift Rate</div>\n        <div class="eq-main">dΩ/dt = −(3/2)·n·J₂·(R⊕/p)²·cos(i)</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">n</span> = mean motion (rad/s)<br>\n          <span class="eq-var-name">p</span> = semi-latus rectum = a(1 − e²)<br>\n          <span class="eq-var-name">i</span> = orbital inclination<br>\n          <span class="eq-var-name">cos(i) = 0</span> → zero drift at i = 90° (polar orbit)<br>\n          <span class="eq-var-name">cos(i) &lt; 0</span> → prograde drift at i &gt; 90° (retrograde orbits)\n        </div>\n      </div>\n\n      <div class="data-table-wrap">\n        <table>\n          <thead>\n            <tr>\n              <th>Satellite / Orbit</th>\n              <th>Altitude</th>\n              <th>Inclination</th>\n              <th>RAAN Drift</th>\n              <th>Application</th>\n            </tr>\n          </thead>\n          <tbody>\n            <tr><td class="td-white">ISS</td><td>~420 km</td><td>51.6°</td><td class="td-amber">−6.0°/day</td><td class="td-accent">Human spaceflight</td></tr>\n            <tr><td class="td-white">Starlink LEO</td><td>~550 km</td><td>53°</td><td class="td-amber">−6.4°/day</td><td class="td-accent">Broadband internet</td></tr>\n            <tr><td class="td-white">Sun-Sync (SSO)</td><td>~600 km</td><td>97.8°</td><td class="td-green">+0.9856°/day</td><td class="td-accent">Earth observation</td></tr>\n            <tr><td class="td-white">GPS (MEO)</td><td>~20,200 km</td><td>55°</td><td class="td-amber">−0.04°/day</td><td class="td-accent">Navigation</td></tr>\n            <tr><td class="td-white">GEO</td><td>35,786 km</td><td>0.1°</td><td class="td-red">−0.013°/day</td><td class="td-accent">Communications</td></tr>\n          </tbody>\n        </table>\n      </div>\n\n      <div class="callout success">\n        <span class="callout-label">Sun-Synchronous Orbits</span>\n        At inclination ≈ 97–98°, the J₂-driven RAAN drift rate of +0.9856°/day exactly matches\n        Earth\'s orbital rate around the Sun. This keeps the orbital plane fixed relative to the Sun,\n        ensuring consistent lighting for Earth observation — a critical engineering feature exploited\n        by Landsat, Sentinel, and hundreds of optical imaging satellites.\n      </div>\n    </section>\n\n    <!-- APSIDAL PRECESSION -->\n    <section id="apsidal-precession" class="content-section reveal">\n      <div class="section-number">// 04</div>\n      <h2>Apsidal Precession: The Rotating Ellipse</h2>\n      <p>\n        J₂ also causes the argument of perigee ω to drift — the ellipse slowly rotates within its\n        orbital plane. The rate depends strongly on inclination, and at two <strong>critical inclinations</strong>\n        the drift stops entirely.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Apsidal Precession Rate</div>\n        <div class="eq-main">dω/dt = (3/4)·n·J₂·(R⊕/p)²·(5cos²i − 1)</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">5cos²i − 1 = 0</span> when cos(i) = 1/√5<br>\n          <span class="eq-var-name">i = 63.43°</span> or <span class="eq-var-name">i = 116.57°</span> → zero apsidal drift<br>\n          These are the <strong>Molniya critical inclinations</strong>\n        </div>\n      </div>\n\n      <div class="callout warning">\n        <span class="callout-label">Molniya & Tundra Orbits</span>\n        Russian engineers discovered that highly elliptical orbits (HEO) at exactly 63.43° inclination\n        keep their apogee fixed over the northern hemisphere indefinitely — J₂ apsidal precession is\n        exactly zero. Molniya communication satellites exploit this to provide 6–8 hours of high-elevation\n        coverage over Russia per orbit, where geostationary geometry is poor.\n      </div>\n    </section>\n\n    <!-- ATMOSPHERIC DRAG -->\n    <section id="atmospheric-drag" class="content-section reveal">\n      <div class="section-number">// 05</div>\n      <h2>Atmospheric Drag: The Orbit Killer</h2>\n      <p>\n        Below approximately 1,000 km, residual atmospheric molecules collide with satellites, removing\n        kinetic energy. Counterintuitively, this energy loss causes the satellite to <strong>speed up</strong>:\n        losing energy causes it to drop to a lower orbit with higher velocity per vis-viva. The orbit\n        spirals inward, shrinking both apogee and perigee.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Drag Acceleration</div>\n        <div class="eq-main">a_drag = −(1/2)·(C_D · A / m)·ρ·v²</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">C_D</span> = drag coefficient (~2.2 for satellites in free molecular flow)<br>\n          <span class="eq-var-name">A/m</span> = area-to-mass ratio (m²/kg) — critical parameter<br>\n          <span class="eq-var-name">ρ(h)</span> = atmospheric density at altitude h (kg/m³)<br>\n          <span class="eq-var-name">v</span> = orbital velocity relative to atmosphere (~7.7 km/s at 400 km)\n        </div>\n      </div>\n\n      <div class="drag-chart-wrap">\n        <div class="drag-chart-title">Atmospheric Density by Altitude (Exponential Scale)</div>\n        <div class="drag-bars">\n          <div class="drag-bar-row">\n            <div class="drag-bar-label">200 km</div>\n            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:100%;background:#ef4444;"></div></div>\n            <div class="drag-bar-val">2.5 × 10⁻¹⁰</div>\n          </div>\n          <div class="drag-bar-row">\n            <div class="drag-bar-label">400 km (ISS)</div>\n            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:58%;background:#f59e0b;"></div></div>\n            <div class="drag-bar-val">3.7 × 10⁻¹²</div>\n          </div>\n          <div class="drag-bar-row">\n            <div class="drag-bar-label">550 km (SL)</div>\n            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:35%;background:#3b82f6;"></div></div>\n            <div class="drag-bar-val">7.9 × 10⁻¹³</div>\n          </div>\n          <div class="drag-bar-row">\n            <div class="drag-bar-label">800 km</div>\n            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:18%;background:#3b82f6;"></div></div>\n            <div class="drag-bar-val">4.5 × 10⁻¹⁴</div>\n          </div>\n          <div class="drag-bar-row">\n            <div class="drag-bar-label">1,000 km</div>\n            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:8%;background:#10b981;"></div></div>\n            <div class="drag-bar-val">3.6 × 10⁻¹⁵</div>\n          </div>\n        </div>\n        <div style="margin-top:12px;font-family:var(--mono);font-size:9px;color:var(--text-3);">\n          * kg/m³ — density varies by factor ~2–4× with solar activity (F10.7 solar flux index)\n        </div>\n      </div>\n\n      <h3>Solar Cycle Effects</h3>\n      <p>\n        Atmospheric density is not constant. During solar maximum, extreme ultraviolet radiation heats\n        and expands the upper atmosphere, increasing density at a given altitude by up to <strong>4×</strong>\n        compared to solar minimum. This variability is parameterized by the <strong>F10.7 solar flux index</strong>\n        (measured in solar flux units, SFU) and the geomagnetic Kp index.\n      </p>\n\n      <div class="callout danger">\n        <span class="callout-label">Solar Activity Impact on Starlink</span>\n        In February 2022, a geomagnetic storm following a solar event increased atmospheric density\n        at 210 km by 20–50%. Forty-nine of the 49 newly-launched Starlink satellites, still in their\n        low parking orbit, experienced drag levels 50% higher than predicted and re-entered\n        within days. This event highlighted how space weather directly determines satellite lifetimes.\n      </div>\n    </section>\n\n    <!-- BALLISTIC COEFFICIENT -->\n    <section id="ballistic-coeff" class="content-section reveal">\n      <div class="section-number">// 06</div>\n      <h2>Ballistic Coefficient &amp; the BSTAR Term</h2>\n      <p>\n        The <strong>ballistic coefficient</strong> β = m/(C_D · A) (kg/m²) summarizes how strongly a satellite\n        resists atmospheric drag. A high ballistic coefficient — dense, compact objects — experiences\n        less drag per unit mass than large, lightweight ones.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Orbital Decay Rate (Circular Orbit Approximation)</div>\n        <div class="eq-main">da/dt ≈ −(C_D · A / m)·ρ·v·a = −ρ·v·a/β</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">β = m/(C_D·A)</span> = ballistic coefficient (kg/m²)<br>\n          Higher β → slower orbital decay<br>\n          <span class="eq-var-name">ISS β</span> ≈ 120 kg/m² | <span class="eq-var-name">CubeSat β</span> ≈ 10–30 kg/m²\n        </div>\n      </div>\n\n      <p>\n        In the TLE format, atmospheric drag is encoded in the <strong>BSTAR drag term</strong> (units of 1/Earth radii).\n        SGP4 uses this value to propagate the secular decay of mean motion over time. When BSTAR is unavailable\n        or unreliable, VectraSpace falls back to a standard assumed value based on orbital regime and estimated\n        satellite type.\n      </p>\n\n      <div class="callout info">\n        <span class="callout-label">VectraSpace Implementation</span>\n        VectraSpace uses the BSTAR value from each satellite\'s TLE when computing 12-hour propagation\n        windows. For debris objects — which often have poorly-determined BSTAR values — position\n        uncertainty grows fastest in the along-track direction. The covariance matrix assigned to debris\n        objects uses σ_along = 500 m vs. σ_along = 100 m for well-tracked active satellites.\n      </div>\n    </section>\n\n    <!-- SOLAR RADIATION PRESSURE -->\n    <section id="solar-radiation" class="content-section reveal">\n      <div class="section-number">// 07</div>\n      <h2>Solar Radiation Pressure</h2>\n      <p>\n        Photons carry momentum: p = E/c. When sunlight strikes a satellite surface, radiation pressure\n        imparts a small but continuous force. At Earth\'s distance of 1 AU, the solar radiation flux is\n        approximately 1,361 W/m², producing a radiation pressure of <strong>4.56 μN/m²</strong>.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Solar Radiation Acceleration</div>\n        <div class="eq-main">a_SRP = −ν · (P_⊙ / c) · (A/m) · C_r · (r_⊙/|r_⊙|)</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">ν</span> = shadow function (0 in eclipse, 1 in sunlight)<br>\n          <span class="eq-var-name">P_⊙</span> = solar radiation flux ≈ 1361 W/m² at 1 AU<br>\n          <span class="eq-var-name">C_r</span> = radiation pressure coefficient (1 for absorption, 2 for perfect reflection)<br>\n          <span class="eq-var-name">A/m</span> = area-to-mass ratio (m²/kg) — same parameter as drag!\n        </div>\n      </div>\n\n      <p>\n        SRP is negligible for dense LEO satellites (few mm/s² per year) but becomes significant for\n        objects with high area-to-mass ratios: <strong>solar sail technology demonstrators</strong>,\n        balloon payloads, and large solar-panel-dominated GEO satellites. At GEO where drag is absent,\n        SRP is the dominant non-gravitational perturbation, responsible for the characteristic\n        "resonant eccentricity pumping" that slowly increases GEO eccentricity.\n      </p>\n\n      <div class="callout warning">\n        <span class="callout-label">Debris SRP Complication</span>\n        Tumbling debris objects present a varying cross-section to the Sun with unknown orientation.\n        The effective A/m ratio changes as the object rotates. This makes long-term SRP modeling\n        highly uncertain for defunct satellites and rocket bodies, contributing to the rapid\n        growth of position uncertainty in their TLE propagations.\n      </div>\n    </section>\n\n    <!-- LUNI-SOLAR -->\n    <section id="luni-solar" class="content-section reveal">\n      <div class="section-number">// 08</div>\n      <h2>Luni-Solar Third-Body Perturbations</h2>\n      <p>\n        The Moon and Sun exert gravitational forces on every Earth-orbiting satellite. The <strong>differential\n        force</strong> across the satellite\'s orbit — the deviation from perfect parallel attraction — is\n        the perturbation. For a satellite at radius r orbiting Earth, the third-body acceleration varies\n        as (m_3 / r_3³) · r, where r_3 is the distance to the perturbing body.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Third-Body Perturbation (Simplified)</div>\n        <div class="eq-main">a_3b = μ₃ · [(r_3 − r)/|r_3 − r|³ − r_3/|r_3|³]</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">μ_Moon</span> = 4,902.8 km³/s² (Moon\'s gravitational parameter)<br>\n          <span class="eq-var-name">μ_Sun</span> = 1.327 × 10¹¹ km³/s² (Sun\'s gravitational parameter)<br>\n          For GEO (~42,000 km radius): luni-solar effects produce ~0.75°/year inclination oscillation\n        </div>\n      </div>\n\n      <div class="data-table-wrap">\n        <table>\n          <thead>\n            <tr>\n              <th>Orbit Regime</th>\n              <th>Dominant Perturbation</th>\n              <th>Effect on TLE Age</th>\n              <th>Typical Position Error at 24h</th>\n            </tr>\n          </thead>\n          <tbody>\n            <tr><td class="td-white">LEO &lt; 500 km</td><td class="td-red">Atmospheric Drag</td><td class="td-amber">Hours–days</td><td class="td-red">&gt;10 km</td></tr>\n            <tr><td class="td-white">LEO 500–800 km</td><td class="td-amber">J₂ + Drag</td><td class="td-amber">1–3 days</td><td class="td-amber">1–5 km</td></tr>\n            <tr><td class="td-white">MEO (GPS ~20k km)</td><td class="td-accent">J₂ + Luni-Solar</td><td>Days–weeks</td><td class="td-green">&lt;1 km</td></tr>\n            <tr><td class="td-white">GEO (36k km)</td><td class="td-accent">Luni-Solar + SRP</td><td>Weeks</td><td class="td-green">100–500 m</td></tr>\n          </tbody>\n        </table>\n      </div>\n\n      <p>\n        The luni-solar perturbations at GEO are strong enough to require active station-keeping to maintain\n        geostationary position. Without north-south station-keeping burns, GEO satellites develop inclinations\n        of up to 15° over a 26-year period. "Graveyard" GEO orbits for retired satellites slowly develop\n        inclined, eccentric paths that create conjunction risk with operational satellites.\n      </p>\n    </section>\n\n    <!-- TLE ACCURACY -->\n    <section id="tle-accuracy" class="content-section reveal">\n      <div class="section-number">// 09</div>\n      <h2>TLE Accuracy &amp; Prediction Horizon</h2>\n      <p>\n        A Two-Line Element set is a snapshot of mean orbital elements at a specific epoch. As time passes,\n        perturbations accumulate and the TLE prediction diverges from the true position. The rate of\n        divergence defines the <strong>effective TLE age</strong> beyond which the element set is unreliable\n        for conjunction screening.\n      </p>\n\n      <div class="accuracy-chart">\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);margin-bottom:16px;">TLE POSITION ERROR GROWTH (REPRESENTATIVE)</div>\n        <canvas id="accuracy-canvas"></canvas>\n        <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-3);">\n          * LEO object at 400 km · Standard deviation grows roughly as σ ≈ σ₀ + k·t (along-track dominates)\n        </div>\n      </div>\n\n      <p>\n        Error growth is fastest in the <strong>along-track direction</strong> because perturbations that\n        change orbital period — drag, J₂ — create systematic timing errors that accumulate indefinitely.\n        Cross-track and radial errors grow more slowly and are dominated by J₂ periodic effects.\n        This asymmetry is reflected in the elongated covariance ellipsoids used in Pc calculation.\n      </p>\n\n      <div class="callout info">\n        <span class="callout-label">VectraSpace TLE Management</span>\n        VectraSpace caches TLEs for up to 6 hours (configurable). Beyond this, a fresh fetch\n        is triggered before each scan. For conjunction prediction requiring high accuracy,\n        operator-uploaded custom element sets can override the cached TLEs for specific objects\n        of interest. Fresh element sets reduce screening false-alarm rates significantly.\n      </div>\n    </section>\n\n    <!-- SGP4 MODEL -->\n    <section id="sgp4-model" class="content-section reveal">\n      <div class="section-number">// 10</div>\n      <h2>SGP4: The Perturbation Propagator</h2>\n      <p>\n        The <strong>Simplified General Perturbations 4 (SGP4)</strong> model, developed at NORAD in the 1970s\n        and refined since, is the standard analytic propagator for TLE-based orbit determination.\n        It captures the dominant perturbation effects through closed-form algebraic equations rather\n        than numerical integration, enabling fast propagation of thousands of objects.\n      </p>\n\n      <h3>Physical Effects in SGP4</h3>\n      <p>SGP4 models the following perturbations analytically:</p>\n\n      <div class="data-table-wrap">\n        <table>\n          <thead>\n            <tr>\n              <th>Effect</th>\n              <th>Modeling Approach</th>\n              <th>Accuracy</th>\n            </tr>\n          </thead>\n          <tbody>\n            <tr><td class="td-white">J₂, J₃, J₄ geopotential</td><td>Secular + short-period terms</td><td class="td-green">Good</td></tr>\n            <tr><td class="td-white">Atmospheric drag (BSTAR)</td><td>Power-law density model, secular ṅ</td><td class="td-amber">Moderate (solar-cycle dependent)</td></tr>\n            <tr><td class="td-white">SRP</td><td>Not modeled in basic SGP4</td><td class="td-red">Absent (use SDP4 for deep space)</td></tr>\n            <tr><td class="td-white">Luni-solar (SDP4)</td><td>Simplified lunisolar terms for T > 225 min</td><td class="td-amber">Approximate</td></tr>\n            <tr><td class="td-white">Higher harmonics (J₅+)</td><td>Not modeled</td><td class="td-red">Absent</td></tr>\n          </tbody>\n        </table>\n      </div>\n\n      <p>\n        SGP4 achieves position accuracies of roughly <strong>1–3 km at epoch</strong>, degrading to\n        tens of kilometers over days for LEO objects. For precise applications — rendezvous, precise\n        reentry prediction, high-accuracy conjunction assessment — numerical integrators (like\n        <strong>RK4/RK89</strong> with a full force model including up to J₇₀ harmonics and atmospheric\n        density tables) are required.\n      </p>\n\n      <div class="callout info">\n        <span class="callout-label">VectraSpace uses Skyfield\'s SGP4</span>\n        VectraSpace propagates all satellites using the Skyfield Python library\'s SGP4/SDP4\n        implementation, which conforms to the 2006 Vallado/Crawford/Hujsak revision of the\n        model. The SDP4 extension is automatically applied for satellites with orbital periods\n        greater than 225 minutes (semi-synchronous and higher orbits). All propagation results\n        are expressed in the ECI (Earth-Centered Inertial) J2000 frame.\n      </div>\n    </section>\n\n    <!-- OPERATIONAL CONSEQUENCES -->\n    <section id="ops-consequences" class="content-section reveal">\n      <div class="section-number">// 11</div>\n      <h2>Operational Consequences for SSA</h2>\n      <p>\n        Understanding perturbations is not merely academic for Space Situational Awareness — it directly\n        determines how far ahead conjunction screens are meaningful, how wide safety margins must be,\n        and which objects pose the highest long-term risk.\n      </p>\n\n      <h3>The 5σ Screening Challenge</h3>\n      <p>\n        Conjunction screening typically evaluates pairs whose miss distance falls within 5σ of the combined\n        position uncertainty ellipsoid. As TLE age increases, σ grows, meaning the 5σ envelope balloons\n        until nearly every object pair triggers a candidate event — swamping operators with false alarms.\n        This drives the requirement for frequent TLE updates (daily or better) for active conjunction\n        assessment.\n      </p>\n\n      <h3>Debris Population Growth</h3>\n      <p>\n        Perturbations also shape long-term debris population dynamics. Atmospheric drag naturally removes\n        debris below ~600 km within years to decades — a self-cleaning mechanism. Above 800 km, the\n        clearing timescale exceeds centuries. J₂ RAAN regression spreads debris clouds around orbital\n        shells, while luni-solar perturbations slowly perturb debris orbits at higher altitudes, sometimes\n        pumping eccentricity enough to force objects through crowded lower shells.\n      </p>\n\n      <div class="callout danger">\n        <span class="callout-label">The Reentry Timing Problem</span>\n        Predicting exactly when and where a decaying satellite will reenter is extremely difficult.\n        The primary uncertainty is atmospheric density, which varies with solar activity on timescales\n        from minutes to years. Even 24 hours before reentry, the predicted landing ellipse spans\n        thousands of kilometers along-track. Only within the final orbit can reentry location be\n        predicted to within ~500 km — and most objects survive only minutes of atmospheric passage.\n      </div>\n\n</script>\n\n      <!-- Chapter nav -->\n      <div class="chapter-nav">\n        <a href="/education/collision-prediction" class="chapter-nav-card">\n          <div class="cnc-dir">← Previous</div>\n          <div class="cnc-title">Chapter 02</div>\n          <div class="cnc-sub">Collision Prediction &amp; Pc Methods</div>\n        </a>\n        <a href="/education/debris-modeling" class="chapter-nav-card next">\n          <div class="cnc-dir">Next →</div>\n          <div class="cnc-title">Chapter 04</div>\n          <div class="cnc-sub">Debris Modeling &amp; Kessler Cascade</div>\n        </a>\n      </div>\n    </section>\n\n  </article>\n</div>\n\n<script>\n// Progress bar\nconst bar = document.getElementById(\'progress-bar\');\nwindow.addEventListener(\'scroll\', () => {\n  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;\n  bar.style.width = pct + \'%\';\n});\n\n// Scroll reveal\nconst observer = new IntersectionObserver(entries => {\n  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add(\'visible\'); });\n}, { threshold: 0.1 });\ndocument.querySelectorAll(\'.reveal\').forEach(el => observer.observe(el));\n\n// TOC active highlight\nconst sections = document.querySelectorAll(\'.content-section\');\nconst tocLinks = document.querySelectorAll(\'.toc-list a\');\nconst tocObserver = new IntersectionObserver(entries => {\n  entries.forEach(e => {\n    if (e.isIntersecting) {\n      const id = e.target.id;\n      tocLinks.forEach(a => {\n        a.classList.toggle(\'active\', a.getAttribute(\'href\') === \'#\' + id);\n      });\n    }\n  });\n}, { threshold: 0.3 });\nsections.forEach(s => tocObserver.observe(s));\n\n// J2 canvas — RAAN drift by inclination\nconst j2Canvas = document.getElementById(\'j2-canvas\');\nif (j2Canvas) {\n  const ctx = j2Canvas.getContext(\'2d\');\n  const W = j2Canvas.parentElement.offsetWidth || 300;\n  const H = 200;\n  j2Canvas.width = W; j2Canvas.height = H;\n  const pad = { top: 16, right: 16, bottom: 32, left: 48 };\n  const incs = [];\n  const rates = [];\n  for (let i = 0; i <= 180; i += 2) {\n    incs.push(i);\n    const n = 0.001078; // ~LEO mean motion rad/s\n    const J2 = 1.08263e-3;\n    const Re = 6378.137;\n    const p = 6928 * (1 - 0.001**2); // ~500km LEO\n    const rate = -(3/2) * n * J2 * (Re/p)**2 * Math.cos(i * Math.PI/180);\n    rates.push(rate * (180/Math.PI) * 86400); // deg/day\n  }\n  const minR = Math.min(...rates); const maxR = Math.max(...rates);\n  const scaleX = (inc) => pad.left + (inc / 180) * (W - pad.left - pad.right);\n  const scaleY = (r) => pad.top + ((maxR - r) / (maxR - minR)) * (H - pad.top - pad.bottom);\n\n  ctx.strokeStyle = \'#1a2e42\'; ctx.lineWidth = 1;\n  for (let g = -7; g <= 7; g += 3.5) {\n    ctx.beginPath();\n    ctx.moveTo(pad.left, scaleY(g)); ctx.lineTo(W - pad.right, scaleY(g));\n    ctx.stroke();\n    ctx.fillStyle = \'#4a6a85\'; ctx.font = \'9px Space Mono\';\n    ctx.fillText(g.toFixed(1), 2, scaleY(g) + 3);\n  }\n  // Zero line\n  ctx.strokeStyle = \'#243d54\'; ctx.lineWidth = 1;\n  ctx.beginPath(); ctx.moveTo(pad.left, scaleY(0)); ctx.lineTo(W-pad.right, scaleY(0)); ctx.stroke();\n\n  // 90° vertical\n  ctx.strokeStyle = \'#10b981\'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);\n  ctx.beginPath(); ctx.moveTo(scaleX(90), pad.top); ctx.lineTo(scaleX(90), H-pad.bottom); ctx.stroke();\n  ctx.setLineDash([]);\n  ctx.fillStyle = \'#10b981\'; ctx.font = \'8px Space Mono\';\n  ctx.fillText(\'90°\', scaleX(90)+3, pad.top+10);\n\n  // Curve\n  ctx.strokeStyle = \'#3b82f6\'; ctx.lineWidth = 2;\n  ctx.beginPath();\n  incs.forEach((inc, i) => {\n    i === 0 ? ctx.moveTo(scaleX(inc), scaleY(rates[i])) : ctx.lineTo(scaleX(inc), scaleY(rates[i]));\n  });\n  ctx.stroke();\n\n  // X axis labels\n  ctx.fillStyle = \'#4a6a85\'; ctx.font = \'8px Space Mono\';\n  [0,30,60,90,120,150,180].forEach(inc => {\n    ctx.fillText(inc+\'°\', scaleX(inc)-6, H-6);\n  });\n}\n\n// TLE Accuracy canvas\nconst accCanvas = document.getElementById(\'accuracy-canvas\');\nif (accCanvas) {\n  const ctx = accCanvas.getContext(\'2d\');\n  const W = accCanvas.parentElement.offsetWidth || 600;\n  const H = 180;\n  accCanvas.width = W; accCanvas.height = H;\n  const pad = { top: 12, right: 16, bottom: 32, left: 56 };\n\n  const days = Array.from({length: 21}, (_, i) => i);\n  const along = days.map(d => 0.5 + 1.2 * d);      // km\n  const cross  = days.map(d => 0.1 + 0.08 * d);\n  const radial = days.map(d => 0.05 + 0.04 * d);\n  const maxV = Math.max(...along);\n  const scaleX = d => pad.left + (d / 20) * (W - pad.left - pad.right);\n  const scaleY = v => pad.top + ((maxV - v) / maxV) * (H - pad.top - pad.bottom);\n\n  ctx.strokeStyle = \'#1a2e42\'; ctx.lineWidth = 1;\n  [0, 6, 12, 18, 24].forEach(km => {\n    if (km > maxV) return;\n    ctx.beginPath(); ctx.moveTo(pad.left, scaleY(km)); ctx.lineTo(W-pad.right, scaleY(km)); ctx.stroke();\n    ctx.fillStyle = \'#4a6a85\'; ctx.font = \'9px Space Mono\';\n    ctx.fillText(km+\'km\', 2, scaleY(km)+3);\n  });\n\n  const drawLine = (data, color, label) => {\n    ctx.strokeStyle = color; ctx.lineWidth = 2;\n    ctx.beginPath();\n    days.forEach((d, i) => {\n      i === 0 ? ctx.moveTo(scaleX(d), scaleY(data[i])) : ctx.lineTo(scaleX(d), scaleY(data[i]));\n    });\n    ctx.stroke();\n  };\n\n  drawLine(along, \'#ef4444\', \'Along-track\');\n  drawLine(cross, \'#3b82f6\', \'Cross-track\');\n  drawLine(radial, \'#10b981\', \'Radial\');\n\n  // Legend\n  [[along,\'#ef4444\',\'Along-track\'],[cross,\'#3b82f6\',\'Cross-track\'],[radial,\'#10b981\',\'Radial\']].forEach(([,c,l],i) => {\n    ctx.fillStyle = c; ctx.fillRect(pad.left + i*120, H-10, 14, 3);\n    ctx.fillStyle = \'#7a9bb5\'; ctx.font = \'9px Space Mono\';\n    ctx.fillText(l, pad.left + i*120 + 18, H-6);\n  });\n\n  // X axis\n  ctx.fillStyle = \'#4a6a85\'; ctx.font = \'9px Space Mono\';\n  [0,5,10,15,20].forEach(d => ctx.fillText(d+\'d\', scaleX(d)-8, H-4));\n}\n</script>\n</body>\n</html>\n\n'
-EDU_DEBRIS_HTML      = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>Debris Modeling &amp; Kessler Cascade — VectraSpace Deep Dive</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">\n<style>\n:root {\n  --ink:        #070c14;\n  --ink-2:      #0d1520;\n  --ink-3:      #111d2b;\n  --border:     #1a2e42;\n  --border-2:   #243d54;\n  --accent:     #3b82f6;\n  --accent-glow:rgba(59,130,246,0.18);\n  --amber:      #f59e0b;\n  --amber-dim:  rgba(245,158,11,0.12);\n  --green:      #10b981;\n  --green-dim:  rgba(16,185,129,0.10);\n  --red:        #ef4444;\n  --red-dim:    rgba(239,68,68,0.10);\n  --text:       #c9ddef;\n  --text-2:     #9dbbd4;\n  --text-3:     #6d92ad;\n  --mono:       \'Space Mono\', monospace;\n  --math:       \'STIX Two Math\',\'Latin Modern Math\',Georgia,serif;\n  --sans:       \'Space Grotesk\', sans-serif;\n  --display:    \'Syne\', sans-serif;\n  --toc-w:      230px;\n}\n*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\nhtml { scroll-behavior: smooth; }\nbody { background: var(--ink); color: var(--text); font-family: var(--sans); line-height: 1.7; overflow-x: hidden; }\n#progress-bar { position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,var(--red),var(--amber));z-index:200;transition:width 0.1s linear; }\nnav { position:fixed;top:0;left:0;right:0;z-index:100;height:56px;padding:0 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(7,12,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(12px); }\n.nav-brand { text-decoration:none; display:flex; align-items:center; }\n.nav-brand-name { font-family:\'Instrument Serif\',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;color:#fff; }\n.nav-brand-name em { color:var(--accent);font-style:normal; }\n.nav-back { font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--text-3);text-decoration:none;text-transform:uppercase;transition:color 0.2s; }\n.nav-back:hover { color:var(--accent); }\n.hero { padding:120px 48px 64px;max-width:900px;margin:0 auto; }\n.hero-breadcrumb { font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:16px; }\n.hero-breadcrumb a { color:var(--text-3);text-decoration:none; }\n.hero-breadcrumb a:hover { color:var(--accent); }\n.chapter-label { display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--red);text-transform:uppercase;background:var(--red-dim);border:1px solid rgba(239,68,68,0.25);padding:4px 10px;border-radius:2px;margin-bottom:20px; }\n.hero h1 { font-family:var(--display);font-size:clamp(36px,5vw,58px);font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px; }\n.hero-accent { color:var(--red); }\n.hero-intro { font-size:17px;font-weight:300;color:var(--text-2);line-height:1.8;max-width:680px;margin-bottom:32px; }\n.hero-meta { display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);text-transform:uppercase; }\n.hero-meta span { display:flex;align-items:center;gap:6px; }\n.hero-meta-dot { width:4px;height:4px;background:var(--red);border-radius:50%; }\n.page-wrap { max-width:1140px;margin:0 auto;padding:48px 48px 120px;display:grid;grid-template-columns:var(--toc-w) 1fr;gap:64px;align-items:start; }\n.toc { position:sticky;top:72px;background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:20px;max-height:calc(100vh - 88px);overflow-y:auto; }\n.toc::-webkit-scrollbar { width:3px; }\n.toc::-webkit-scrollbar-thumb { background:var(--border); }\n.toc-label { font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border); }\n.toc-list { list-style:none;display:flex;flex-direction:column;gap:2px; }\n.toc-list a { display:block;font-size:12px;color:var(--text-3);text-decoration:none;padding:5px 8px;border-radius:4px;transition:all 0.2s;border-left:2px solid transparent; }\n.toc-list a:hover { color:var(--text);background:var(--ink-3); }\n.toc-list a.active { color:var(--accent);background:var(--accent-glow);border-left-color:var(--accent); }\n.content { min-width:0; }\n.content-section { margin-bottom:72px;scroll-margin-top:80px; }\n.section-number { font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:12px; }\n.content h2 { font-family:var(--display);font-size:clamp(22px,3vw,30px);font-weight:700;color:#fff;margin-bottom:20px;line-height:1.2; }\n.content h3 { font-family:var(--sans);font-size:16px;font-weight:600;color:var(--text);margin:28px 0 12px; }\n.content p { margin-bottom:16px;color:var(--text-2);font-size:15px; }\n.content strong { color:var(--text);font-weight:600; }\n.eq-block { background:var(--ink-2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:20px 24px;margin:24px 0;font-size:13px;color:var(--text);overflow-x:auto; }\n.eq-block .eq-label { font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:10px; }\n.eq-block .eq-main { font-family:var(--math,\'STIX Two Math\',Georgia,serif);font-size:17px;color:#fff;margin-bottom:8px;font-style:italic; }\n.eq-block .eq-vars { font-size:12px;color:var(--text-2);line-height:1.9; }\n.eq-block .eq-var-name { color:var(--amber); }\n.callout { border-radius:6px;padding:16px 20px;margin:24px 0;border-left:3px solid;font-size:14px; }\n.callout.info { background:rgba(59,130,246,0.07);border-color:var(--accent);color:var(--text); }\n.callout.warning { background:var(--amber-dim);border-color:var(--amber);color:var(--text); }\n.callout.danger { background:var(--red-dim);border-color:var(--red);color:var(--text); }\n.callout.success { background:var(--green-dim);border-color:var(--green);color:var(--text); }\n.callout-label { font-family:var(--mono);font-size:8px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;display:block; }\n.callout.info .callout-label { color:var(--accent); }\n.callout.warning .callout-label { color:var(--amber); }\n.callout.danger .callout-label { color:var(--red); }\n.callout.success .callout-label { color:var(--green); }\n.data-table-wrap { overflow-x:auto;margin:24px 0; }\ntable { width:100%;border-collapse:collapse;font-size:13px;font-family:var(--mono); }\nthead th { background:var(--ink-3);color:var(--text-3);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border); }\ntbody td { padding:10px 14px;border-bottom:1px solid rgba(26,46,66,0.5);color:var(--text-2); }\ntbody tr:hover td { background:var(--ink-2); }\n.td-accent{color:var(--accent);} .td-amber{color:var(--amber);} .td-green{color:var(--green);} .td-red{color:var(--red);} .td-white{color:#fff;font-weight:600;}\n\n/* CASCADE DIAGRAM */\n.cascade-diagram { margin:24px 0; }\n.cascade-steps { display:flex;flex-direction:column;gap:0; }\n.cascade-step { display:grid;grid-template-columns:60px 1fr;gap:0;position:relative; }\n.cascade-step::before { content:\'\';position:absolute;left:29px;top:60px;bottom:-4px;width:2px;background:linear-gradient(180deg,var(--red),var(--amber));z-index:0; }\n.cascade-step:last-child::before { display:none; }\n.cascade-num { display:flex;align-items:flex-start;padding-top:16px;justify-content:center;position:relative;z-index:1; }\n.cascade-num-inner { width:40px;height:40px;border-radius:50%;background:var(--red-dim);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--red); }\n.cascade-body { padding:14px 16px 32px; }\n.cascade-title { font-family:var(--sans);font-size:15px;font-weight:600;color:#fff;margin-bottom:6px; }\n.cascade-text { font-size:13px;color:var(--text-2);line-height:1.7; }\n.cascade-stat { display:inline-block;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--amber);background:var(--amber-dim);padding:3px 8px;border-radius:2px; }\n\n/* POPULATION CHART */\n.pop-chart-wrap { background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0; }\n.pop-chart-title { font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:16px; }\n.pop-chart-wrap canvas { width:100%; }\n\n/* FRAGMENT SIZE DIST */\n.frag-chart-wrap { background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0; }\n\n/* HISTORICAL EVENTS TIMELINE */\n.timeline { margin:24px 0;display:flex;flex-direction:column;gap:0; }\n.timeline-item { display:grid;grid-template-columns:100px 1fr;gap:20px;padding:20px 0;border-bottom:1px solid var(--border); }\n.timeline-item:last-child { border-bottom:none; }\n.timeline-year { font-family:var(--mono);font-size:22px;font-weight:700;color:var(--red);line-height:1; padding-top:2px; }\n.timeline-content-title { font-family:var(--sans);font-size:14px;font-weight:600;color:#fff;margin-bottom:4px; }\n.timeline-content-body { font-size:13px;color:var(--text-2);line-height:1.6; }\n.timeline-content-badge { display:inline-block;margin-top:6px;font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 8px;border-radius:2px; }\n.badge-red { background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.25); }\n.badge-amber { background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.25); }\n.badge-accent { background:rgba(59,130,246,0.1);color:var(--accent);border:1px solid rgba(59,130,246,0.25); }\n\n/* ADR CARDS */\n.adr-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:24px 0; }\n.adr-card { background:var(--ink-2);border:1px solid var(--border);border-radius:6px;padding:20px;transition:border-color 0.2s; }\n.adr-card:hover { border-color:var(--green); }\n.adr-icon { font-size:22px;margin-bottom:10px; }\n.adr-title { font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--green);text-transform:uppercase;margin-bottom:6px; }\n.adr-desc { font-size:13px;color:var(--text-2);line-height:1.6; }\n.adr-status { margin-top:10px;font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:2px;display:inline-block; }\n\n/* CHAPTER NAV */\n.chapter-nav { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:80px;padding-top:40px;border-top:1px solid var(--border); }\n.chapter-nav-card { background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:20px 24px;text-decoration:none;transition:all 0.2s;display:block; }\n.chapter-nav-card:hover { border-color:var(--accent);background:var(--ink-3); }\n.cnc-dir { font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px; }\n.cnc-title { font-family:var(--display);font-size:16px;font-weight:700;color:#fff; }\n.cnc-sub { font-size:12px;color:var(--text-3);margin-top:4px; }\n.chapter-nav-card.next { text-align:right; }\n.reveal { opacity:0;transform:translateY(16px);transition:opacity 0.6s ease,transform 0.6s ease; }\n.reveal.visible { opacity:1;transform:none; }\n@media (max-width:900px) {\n  .page-wrap { grid-template-columns:1fr; }\n  .toc { display:none; }\n  .hero { padding:100px 24px 48px; }\n  .page-wrap { padding:32px 24px 80px; }\n  .adr-grid { grid-template-columns:1fr; }\n  \n.chapter-nav { grid-template-columns:1fr; }\n}\n</style>\n</head>\n<body>\n\n<div id="progress-bar"></div>\n\n<nav>\n  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>\n  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>\n</nav>\n\n<div class="hero">\n  <div class="hero-breadcrumb">\n    <a href="/">VectraSpace</a> / <a href="/#learn">Chapters</a> / Chapter 04\n  </div>\n  <span class="chapter-label">Chapter 04</span>\n  <h1>Debris Modeling &amp; <span class="hero-accent">Kessler Cascade</span></h1>\n  <p class="hero-intro">\n    Every collision in orbit creates thousands of new fragments, each capable of causing further collisions.\n    The runaway chain reaction known as <dfn data-term="Kessler">Kessler Syndrome</dfn> could render entire orbital shells\n    permanently inaccessible. Understanding its physics — and how to model, predict, and prevent it — is\n    the defining challenge of 21st century spaceflight.\n  </p>\n  <div class="hero-meta">\n    <span><span class="hero-meta-dot"></span>35 min read</span>\n    <span><span class="hero-meta-dot"></span>Intermediate · Policy</span>\n    <span><span class="hero-meta-dot"></span>Orbital Mechanics · Risk</span>\n  </div>\n</div>\n\n<div class="page-wrap">\n  <aside>\n    <nav class="toc">\n      <div class="toc-label">Contents</div>\n      <ul class="toc-list">\n        <li><a href="#kessler-defined">Kessler Syndrome Defined</a></li>\n        <li><a href="#cascade-physics">Cascade Physics</a></li>\n        <li><a href="#population-history">Population History</a></li>\n        <li><a href="#critical-density">Critical Density</a></li>\n        <li><a href="#sbm-model">NASA Breakup Model (SBM)</a></li>\n        <li><a href="#fragment-distribution">Fragment Distributions</a></li>\n        <li><a href="#historical-events">Historical Events</a></li>\n        <li><a href="#collision-probability">Collision Rate Models</a></li>\n        <li><a href="#adr-remediation">Active Debris Removal</a></li>\n        <li><a href="#mitigation-guidelines">Mitigation Guidelines</a></li>\n        <li><a href="#vectraspace-sim">VectraSpace Simulation</a></li>\n      </ul>\n    </nav>\n  </aside>\n\n  <article class="content">\n\n    <!-- KESSLER DEFINED -->\n    <section id="kessler-defined" class="content-section reveal">\n      <div class="section-number">// 01</div>\n      <h2>Kessler Syndrome: The Runaway Cascade</h2>\n      <p>\n        In 1978, NASA scientist Donald Kessler and Burton Cour-Palais published a paper describing a\n        concerning possibility: if the density of objects in low Earth orbit exceeded a critical threshold,\n        collisions would generate debris faster than atmospheric drag could remove it. Each collision\n        creates new objects that cause more collisions — a <strong>self-sustaining cascade</strong>\n        with no natural end state.\n      </p>\n      <p>\n        The Kessler paper did not predict imminent danger. It projected that this critical density\n        might be reached in the early 21st century if debris generation continued unchecked.\n        With over 27,000 tracked objects and an estimated 130 million fragments larger than 1 mm,\n        many researchers believe we may already be in the early stages of a Kessler cascade\n        in certain orbital bands.\n      </p>\n\n      <div class="cascade-diagram">\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:20px;">The Cascade Mechanism</div>\n        <div class="cascade-steps">\n          <div class="cascade-step">\n            <div class="cascade-num"><div class="cascade-num-inner">01</div></div>\n            <div class="cascade-body">\n              <div class="cascade-title">Initial Collision or Fragmentation Event</div>\n              <div class="cascade-text">Two objects in the same orbital shell collide at hypervelocity (typically 10–15 km/s relative velocity). Even a 10 cm fragment carries kinetic energy equivalent to a hand grenade — enough to destroy a satellite.</div>\n              <span class="cascade-stat">Impact energy: ~500 kJ for 10 cm fragment at 10 km/s</span>\n            </div>\n          </div>\n          <div class="cascade-step">\n            <div class="cascade-num"><div class="cascade-num-inner">02</div></div>\n            <div class="cascade-body">\n              <div class="cascade-title">Debris Cloud Generation</div>\n              <div class="cascade-text">The collision produces thousands to millions of fragments ranging from mm-scale dust to multi-meter panels. These fragments distribute themselves across a band of inclinations and altitudes centered on the collision point, based on their ejection velocity.</div>\n              <span class="cascade-stat">A 1-tonne collision: ~thousands of &gt;1 cm fragments</span>\n            </div>\n          </div>\n          <div class="cascade-step">\n            <div class="cascade-num"><div class="cascade-num-inner">03</div></div>\n            <div class="cascade-body">\n              <div class="cascade-title">Density Increase in the Shell</div>\n              <div class="cascade-text">The new fragments spread around their orbital altitude band through J₂ RAAN regression and apsidal precession. Within weeks to months, they are distributed uniformly through the orbital shell, increasing the local object density.</div>\n              <span class="cascade-stat">~weeks to full shell distribution via RAAN spreading</span>\n            </div>\n          </div>\n          <div class="cascade-step">\n            <div class="cascade-num"><div class="cascade-num-inner">04</div></div>\n            <div class="cascade-body">\n              <div class="cascade-title">Elevated Collision Rate</div>\n              <div class="cascade-text">Higher object density means higher probability of subsequent collisions. If the density exceeds the critical value, new collisions produce more fragments than atmospheric drag removes. The collision rate accelerates, not decelerates — a runaway cascade.</div>\n              <span class="cascade-stat">Critical: generation rate &gt; removal rate by drag</span>\n            </div>\n          </div>\n        </div>\n      </div>\n    </section>\n\n    <!-- CASCADE PHYSICS -->\n    <section id="cascade-physics" class="content-section reveal">\n      <div class="section-number">// 02</div>\n      <h2>Cascade Physics: Kinetic Theory in Orbit</h2>\n      <p>\n        The mathematical treatment of orbital debris population dynamics borrows from\n        <strong>kinetic gas theory</strong>. Objects in a given orbital shell can be modeled as\n        particles in a box, with their collision rate determined by their number density and\n        cross-section-weighted relative velocity — a quantity called the <strong>spatial density</strong>.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Collision Rate per Object</div>\n        <div class="eq-main">dN_c/dt = n_d · A_c · v_rel</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">n_d</span> = number density of debris (objects/km³)<br>\n          <span class="eq-var-name">A_c</span> = combined cross-sectional area (m²)<br>\n          <span class="eq-var-name">v_rel</span> = mean relative collision velocity (~10–15 km/s at 400–800 km)<br>\n          <span class="eq-var-name">n_d · A_c · v_rel</span> has units of collisions/year per object\n        </div>\n      </div>\n\n      <p>\n        The <strong>critical density</strong> is reached when the debris fragments produced by a\n        single collision (which then add to n_d) eventually cause more collisions than the original\n        collision itself replaced. This depends on both the number density and the mass\n        distribution of the debris population.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Population Evolution (Simplified Two-Species Model)</div>\n        <div class="eq-main">dN/dt = S + G(N,D) − L(N) − R(N)</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">N</span> = number of lethal (≥10 cm) objects in shell<br>\n          <span class="eq-var-name">S</span> = launch rate (new satellites added)<br>\n          <span class="eq-var-name">G(N,D)</span> = collision-generated fragments from N objects and D debris<br>\n          <span class="eq-var-name">L(N)</span> = orbital decay (atmospheric drag removal rate)<br>\n          <span class="eq-var-name">R(N)</span> = active remediation removal rate\n        </div>\n      </div>\n    </section>\n\n    <!-- POPULATION HISTORY -->\n    <section id="population-history" class="content-section reveal">\n      <div class="section-number">// 03</div>\n      <h2>Population History: How We Got Here</h2>\n\n      <div class="pop-chart-wrap">\n        <div class="pop-chart-title">Tracked Object Count in Earth Orbit (1957–2024)</div>\n        <canvas id="pop-canvas" height="200"></canvas>\n        <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-3);">\n          * USSPACECOM catalog data — objects ≥10 cm in LEO, ≥1 m in GEO · Events marked: ↑ Chinese ASAT test 2007, ↑ Iridium-Cosmos 2009\n        </div>\n      </div>\n\n      <div class="data-table-wrap">\n        <table>\n          <thead>\n            <tr>\n              <th>Object Category</th>\n              <th>Tracked (&gt;10 cm)</th>\n              <th>Estimated Total (&gt;1 cm)</th>\n              <th>Estimated Total (&gt;1 mm)</th>\n            </tr>\n          </thead>\n          <tbody>\n            <tr><td class="td-white">Active Satellites</td><td class="td-green">~9,000</td><td class="td-green">~9,000</td><td class="td-green">~9,000</td></tr>\n            <tr><td class="td-white">Inactive Satellites</td><td class="td-amber">~5,000</td><td class="td-amber">~5,000</td><td class="td-amber">~5,000</td></tr>\n            <tr><td class="td-white">Rocket Bodies</td><td class="td-amber">~2,000</td><td class="td-amber">~2,000</td><td class="td-amber">~2,000</td></tr>\n            <tr><td class="td-white">Fragmentation Debris</td><td class="td-red">~14,000</td><td class="td-red">~500,000</td><td class="td-red">~130,000,000</td></tr>\n            <tr><td class="td-white">Total</td><td class="td-accent">~30,000</td><td class="td-accent">~516,000</td><td class="td-accent">&gt;130,000,000</td></tr>\n          </tbody>\n        </table>\n      </div>\n\n      <p>\n        The vast majority of the hazard comes from debris objects too small to track but large enough\n        to be lethal. A 1 cm aluminum sphere at 7.7 km/s carries the kinetic energy of a bowling ball\n        dropped from 7 km. A 1 mm particle can damage solar panels and optics. <strong>None of these\n        objects appear in the TLE catalog</strong> — their existence is inferred from statistical models\n        and in-situ measurements on returned hardware (Space Shuttle windows, Hubble solar panels).\n      </p>\n    </section>\n\n    <!-- CRITICAL DENSITY -->\n    <section id="critical-density" class="content-section reveal">\n      <div class="section-number">// 04</div>\n      <h2>Critical Density: The Tipping Point</h2>\n      <p>\n        The critical debris density is not a single number — it depends on altitude (through drag removal\n        timescales), the mass distribution of debris, and the assumed breakup model. The classic\n        Kessler–Cour-Palais formulation gives a critical spatial density where the collision rate\n        equals the drag removal rate.\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Critical Spatial Density (Kessler 1978)</div>\n        <div class="eq-main">n_c = 1 / (A_c · v_rel · τ_d · φ_f)</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">n_c</span> = critical number density (objects/km³)<br>\n          <span class="eq-var-name">τ_d</span> = atmospheric drag decay timescale (years)<br>\n          <span class="eq-var-name">φ_f</span> = average number of new lethal fragments per collision<br>\n          At 800 km: τ_d ≈ 100 years → <strong>n_c is already exceeded in some shells</strong>\n        </div>\n      </div>\n\n      <div class="callout danger">\n        <span class="callout-label">We May Already Be Past the Threshold</span>\n        Multiple independent modeling studies (Liou &amp; Johnson 2006, ESA DRAMA, NASA LEGEND) find that\n        even if all launches stopped today, the debris population in the 750–900 km shell would continue\n        to grow due to collisions among existing objects. The shell is self-sustaining. This does not\n        mean access is immediately impossible — but it does mean active remediation is required to\n        prevent long-term collapse of this orbital band.\n      </div>\n    </section>\n\n    <!-- NASA SBM -->\n    <section id="sbm-model" class="content-section reveal">\n      <div class="section-number">// 05</div>\n      <h2><dfn data-term="NASA SBM">NASA Standard Breakup Model</dfn> (SBM)</h2>\n      <p>\n        When a collision or explosion occurs in orbit, how many fragments does it create, and what are\n        their sizes and velocities? The answer comes from the <strong>NASA Standard Breakup Model</strong>\n        (SBM), developed from analysis of on-orbit fragmentations, ground hypervelocity impact tests,\n        and recovered debris.\n      </p>\n\n      <h3>Fragment Number Distribution</h3>\n      <p>\n        The SBM predicts that the number of fragments larger than characteristic length L_c follows\n        a power-law distribution — a hallmark of fracture mechanics:\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Fragment Count Distribution (SBM)</div>\n        <div class="eq-main">N(L_c) = 6 · d^(0.5) · L_c^(−1.6)</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">N(L_c)</span> = number of fragments larger than L_c<br>\n          <span class="eq-var-name">d</span> = effective diameter of the larger body (m)<br>\n          <span class="eq-var-name">L_c</span> = characteristic length (m) — roughly max dimension<br>\n          A 1 m × 1 m collision: ~6,000 fragments &gt;10 cm, ~600,000 fragments &gt;1 cm\n        </div>\n      </div>\n\n      <h3>Fragment Velocity Distribution</h3>\n      <p>\n        Fragment velocities relative to the parent orbit follow a <strong>lognormal distribution</strong>\n        whose parameters depend on the area-to-mass ratio (a surrogate for fragment size and shape):\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Fragment Velocity Distribution (SBM)</div>\n        <div class="eq-main">log₁₀(v) ~ N(μ_v, σ_v)</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">μ_v</span> = 0.2 · χ + 1.85 (for collision fragments)<br>\n          <span class="eq-var-name">σ_v</span> = 0.4 (approximately)<br>\n          <span class="eq-var-name">χ</span> = log₁₀(A/m) — log of area-to-mass ratio<br>\n          Small high-A/m fragments receive the highest ejection velocities (~hundreds m/s)\n        </div>\n      </div>\n    </section>\n\n    <!-- FRAGMENT DISTRIBUTIONS -->\n    <section id="fragment-distribution" class="content-section reveal">\n      <div class="section-number">// 06</div>\n      <h2>Fragment Size &amp; Velocity Distributions</h2>\n\n      <div class="frag-chart-wrap">\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:16px;">Fragment Count vs. Size (SBM Power Law) — Hypothetical 1-Tonne Collision</div>\n        <canvas id="frag-canvas" height="200"></canvas>\n        <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-3);">\n          * Log-log scale · Dashed lines: tracking threshold (10 cm) and lethal threshold (1 cm)\n        </div>\n      </div>\n\n      <p>\n        The power-law distribution means that <strong>vastly more small fragments are created than large ones</strong>:\n        roughly 1,000× more 1 cm fragments than 10 cm fragments. This is the core of the problem —\n        surveillance systems can track objects down to about 10 cm in LEO, but the most numerous\n        hazardous fragments fall below the detection threshold.\n      </p>\n\n      <h3>Velocity Spreading and Shell Distribution</h3>\n      <p>\n        Fragments ejected with velocities of 10–100 m/s from a circular orbit will shift their\n        semi-major axis by Δa ≈ ±(2/n) · Δv, where n is mean motion. For LEO at 400 km,\n        a 100 m/s ejection velocity shifts altitude by approximately ±340 km, spreading the\n        debris cloud through a thick altitude band rather than concentrating it at the parent orbit.\n        High-velocity fragments (200+ m/s) may be ejected to orbits that cross multiple\n        occupied altitude bands.\n      </p>\n\n      <div class="callout warning">\n        <span class="callout-label">VectraSpace Debris Simulation</span>\n        The VectraSpace debris simulation module implements a simplified version of the SBM lognormal\n        fragment velocity distribution. When a fragmentation event is triggered, N_debris synthetic\n        fragment objects are generated with ejection velocities sampled from the lognormal model,\n        with characteristic length L_c randomly drawn between 1 cm and 50 cm. Their trajectories\n        are then propagated using the same SGP4 engine as primary catalog objects, and the resulting\n        debris cloud is screened for conjunctions with the existing catalog.\n      </div>\n    </section>\n\n    <!-- HISTORICAL EVENTS -->\n    <section id="historical-events" class="content-section reveal">\n      <div class="section-number">// 07</div>\n      <h2>Historical Fragmentation Events</h2>\n      <p>\n        The current debris environment has been shaped by a small number of high-mass fragmentation\n        events that together account for a disproportionate share of the hazard.\n      </p>\n\n      <div class="timeline">\n        <div class="timeline-item">\n          <div class="timeline-year">1965–</div>\n          <div>\n            <div class="timeline-content-title">Propellant Tank Explosions</div>\n            <div class="timeline-content-body">Residual propellant in rocket upper stages causes pressure-driven explosions years after launch. Over 200 fragmentation events attributed to this source. The US Delta and Soviet SL-12 families were particularly prolific. Modern mitigation: passivation — venting all remaining propellants and pressurized gases before abandonment.</div>\n            <span class="timeline-content-badge badge-amber">Ongoing</span>\n          </div>\n        </div>\n        <div class="timeline-item">\n          <div class="timeline-year">2007</div>\n          <div>\n            <div class="timeline-content-title">Chinese ASAT Test — Fengyun-1C</div>\n            <div class="timeline-content-body">China destroyed its own 758 kg weather satellite Fengyun-1C using a direct-ascent kinetic kill vehicle, in a deliberate anti-satellite weapons test. The 865 km altitude generated the largest single debris-generating event in history, producing over 3,000 tracked fragments and an estimated 35,000+ objects ≥1 cm — nearly all above the ISS orbit with decay times of centuries to decades.</div>\n            <span class="timeline-content-badge badge-red">~3,500+ tracked fragments</span>\n          </div>\n        </div>\n        <div class="timeline-item">\n          <div class="timeline-year">2009</div>\n          <div>\n            <div class="timeline-content-title">Iridium 33 / Cosmos 2251 Collision</div>\n            <div class="timeline-content-body">The first accidental collision between two intact cataloged satellites. The active 560 kg Iridium-33 communications satellite collided with the defunct 950 kg Cosmos-2251 at 789 km altitude, 11.7 km/s relative velocity. Both were completely destroyed, generating ~2,000 tracked fragments and an estimated 100,000+ hazardous objects. The event demonstrated that uncontrolled satellites in crowded orbits are a systemic risk.</div>\n            <span class="timeline-content-badge badge-red">First-ever intact satellite collision</span>\n          </div>\n        </div>\n        <div class="timeline-item">\n          <div class="timeline-year">2021</div>\n          <div>\n            <div class="timeline-content-title">Russian ASAT Test — Kosmos 1408</div>\n            <div class="timeline-content-body">Russia destroyed its defunct 1,750 kg reconnaissance satellite Kosmos-1408 at 480 km altitude using a direct-ascent weapon, generating over 1,500 tracked fragments. The ISS crew sheltered in their return vehicles as the debris cloud passed through the station\'s orbital altitude. The event drew international condemnation and prompted US, Japan, and UK unilateral bans on destructive ASAT testing.</div>\n            <span class="timeline-content-badge badge-red">ISS crew emergency</span>\n            <span class="timeline-content-badge badge-amber" style="margin-left:6px;">International condemnation</span>\n          </div>\n        </div>\n        <div class="timeline-item">\n          <div class="timeline-year">2022–</div>\n          <div>\n            <div class="timeline-content-title">Mega-Constellation Launch Wave</div>\n            <div class="timeline-content-body">SpaceX Starlink, OneWeb, and Amazon Kuiper are deploying tens of thousands of satellites into LEO. While each individual satellite poses lower risk (designed for deorbit), the cumulative conjunction rate with existing objects is unprecedented. Close approach frequency between Starlink and other operators has increased dramatically, raising concerns about both collision risk and operator coordination.</div>\n            <span class="timeline-content-badge badge-accent">Active monitoring required</span>\n          </div>\n        </div>\n      </div>\n    </section>\n\n    <!-- COLLISION PROBABILITY -->\n    <section id="collision-probability" class="content-section reveal">\n      <div class="section-number">// 08</div>\n      <h2>Collision Rate Models: From Fragment to Fleet</h2>\n      <p>\n        Beyond individual Pc calculations for specific conjunctions, long-term debris environment\n        modeling requires predicting the <strong>fleet-wide collision rate</strong> — how many\n        collisions per year are expected in a given orbital shell?\n      </p>\n\n      <div class="eq-block">\n        <div class="eq-label">Flux-Based Collision Rate (Kessler Model)</div>\n        <div class="eq-main">F_c = (1/2) · n² · ⟨σ_c · v_rel⟩ · V_shell</div>\n        <div class="eq-vars">\n          <span class="eq-var-name">n</span> = object spatial density (objects/km³)<br>\n          <span class="eq-var-name">⟨σ_c · v_rel⟩</span> = cross-section × velocity, averaged over distribution<br>\n          <span class="eq-var-name">V_shell</span> = volume of the orbital shell (km³)<br>\n          The n² dependence means doubling the population → quadrupling the collision rate\n        </div>\n      </div>\n\n      <p>\n        The <strong>n² scaling</strong> is the key driver of Kessler Syndrome: a doubling of the\n        debris population quadruples the collision rate and therefore quadruples the fragment generation\n        rate from those collisions. Below the critical density, the drag removal rate grows only\n        linearly with n, so the population remains stable. Above it, generation outpaces removal\n        and growth accelerates.\n      </p>\n\n      <div class="data-table-wrap">\n        <table>\n          <thead>\n            <tr>\n              <th>Altitude Band</th>\n              <th>Object Density (obj/km³)</th>\n              <th>Drag Decay Time</th>\n              <th>Cascade Status</th>\n            </tr>\n          </thead>\n          <tbody>\n            <tr><td class="td-white">350–500 km</td><td>~0.0008</td><td>1–5 years</td><td class="td-green">Self-clearing</td></tr>\n            <tr><td class="td-white">500–700 km</td><td>~0.003</td><td>10–50 years</td><td class="td-amber">Marginal</td></tr>\n            <tr><td class="td-white">750–900 km</td><td>~0.006</td><td>50–200 years</td><td class="td-red">Likely unstable</td></tr>\n            <tr><td class="td-white">900–1,200 km</td><td>~0.002</td><td>100–500 years</td><td class="td-amber">Borderline</td></tr>\n            <tr><td class="td-white">&gt;1,200 km</td><td>&lt;0.0005</td><td>&gt;500 years</td><td class="td-accent">Low density but permanent</td></tr>\n          </tbody>\n        </table>\n      </div>\n    </section>\n\n    <!-- ADR -->\n    <section id="adr-remediation" class="content-section reveal">\n      <div class="section-number">// 09</div>\n      <h2>Active Debris Removal: The Engineering Challenge</h2>\n      <p>\n        Passive mitigation (deorbiting satellites within 25 years) slows the growth rate but cannot\n        reverse an ongoing cascade. Only <strong>Active Debris Removal (ADR)</strong> — physically\n        capturing and deorbiting existing dead objects — can reduce population density in critical\n        shells.\n      </p>\n\n      <p>\n        Studies by ESA, NASA, and JAXA consistently find that removing approximately <strong>5–10\n        large intact objects per year</strong> (>1 tonne rocket bodies in 750–900 km altitude) would\n        stabilize the debris population. Each large object removed prevents dozens to hundreds of\n        future fragmentation fragments.\n      </p>\n\n      <div class="adr-grid">\n        <div class="adr-card">\n          <div class="adr-icon">🦾</div>\n          <div class="adr-title">Robotic Grappling</div>\n          <div class="adr-desc">A chaser spacecraft matches the rotation rate of the tumbling target and mechanically grasps it, then fires to deorbit. The primary challenge: most targets are not designed to be captured.</div>\n          <div class="adr-status" style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);">ClearSpace-1 planned 2026</div>\n        </div>\n        <div class="adr-card">\n          <div class="adr-icon">🕸️</div>\n          <div class="adr-title">Harpoon &amp; Net Capture</div>\n          <div class="adr-desc">A harpoon or net is fired at the target to entangle it. Demonstrated on RemoveDEBRIS mission (2018). Lower precision required but harder to control the resulting motion.</div>\n          <div class="adr-status" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.25);">Demonstrated in LEO</div>\n        </div>\n        <div class="adr-card">\n          <div class="adr-icon">⚡</div>\n          <div class="adr-title">Electrodynamic Tether</div>\n          <div class="adr-desc">A conductive tether deployed from the debris object interacts with Earth\'s magnetic field to generate drag, deorbiting the object over months without a propulsive maneuver.</div>\n          <div class="adr-status" style="background:rgba(59,130,246,0.1);color:var(--accent);border:1px solid rgba(59,130,246,0.25);">Research phase</div>\n        </div>\n        <div class="adr-card">\n          <div class="adr-icon">🔆</div>\n          <div class="adr-title">Ground-Based Laser</div>\n          <div class="adr-desc">A high-power pulsed laser ablates material from the debris surface, imparting a small thrust impulse. Effective for small debris (1–10 cm) but raises dual-use weapons concerns internationally.</div>\n          <div class="adr-status" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.25);">Politically sensitive</div>\n        </div>\n      </div>\n\n      <div class="callout warning">\n        <span class="callout-label">The ADR Economics Problem</span>\n        Each ADR mission to capture a single defunct rocket body costs an estimated $50–200 million.\n        To stabilize the 750–900 km shell, 5–10 removals per year over decades are required —\n        a $500 million–$2 billion annual commitment with no commercial return. This is why\n        international policy frameworks, liability attribution, and government funding mechanisms\n        are as important as the engineering solutions.\n      </div>\n    </section>\n\n    <!-- MITIGATION GUIDELINES -->\n    <section id="mitigation-guidelines" class="content-section reveal">\n      <div class="section-number">// 10</div>\n      <h2>Mitigation Guidelines: Current Norms</h2>\n      <p>\n        In 2002, the Inter-Agency Space Debris Coordination Committee (IADC) published debris mitigation\n        guidelines, which have since been adopted by the UN Committee on the Peaceful Uses of Outer Space\n        (COPUOS). The key provisions:\n      </p>\n\n      <div class="data-table-wrap">\n        <table>\n          <thead>\n            <tr>\n              <th>Guideline</th>\n              <th>Requirement</th>\n              <th>Compliance Rate</th>\n            </tr>\n          </thead>\n          <tbody>\n            <tr><td class="td-white">LEO post-mission disposal</td><td>Deorbit within 25 years</td><td class="td-amber">~70–80% (improving)</td></tr>\n            <tr><td class="td-white">GEO graveyard orbit</td><td>Raise ≥300 km above GEO</td><td class="td-green">~75%</td></tr>\n            <tr><td class="td-white">Passivation</td><td>Vent propellants and batteries</td><td class="td-amber">Improving</td></tr>\n            <tr><td class="td-white">Protected regions</td><td>Minimize time in LEO/GEO</td><td class="td-accent">Varies by mission</td></tr>\n            <tr><td class="td-white">Intentional fragmentation</td><td>Prohibited in protected regions</td><td class="td-red">Violated by ASAT tests</td></tr>\n          </tbody>\n        </table>\n      </div>\n\n      <p>\n        The 25-year rule is increasingly seen as insufficient. The FCC in 2022 mandated 5-year\n        deorbit timelines for new US-licensed LEO satellites. SpaceX Starlink satellites are\n        designed to deorbit within 1–3 years. Some researchers advocate for mandatory\n        deorbit within 1 orbital cycle — a position not yet reflected in any binding treaty.\n      </p>\n    </section>\n\n    <!-- VECTRASPACE SIM -->\n    <section id="vectraspace-sim" class="content-section reveal">\n      <div class="section-number">// 11</div>\n      <h2>VectraSpace Debris Simulation Engine</h2>\n      <p>\n        VectraSpace includes an interactive debris simulation module that lets users explore\n        fragmentation dynamics in real time. When a fragmentation event is triggered, the engine:\n      </p>\n\n      <div class="data-table-wrap">\n        <table>\n          <thead>\n            <tr>\n              <th>Step</th>\n              <th>Method</th>\n              <th>Parameters</th>\n            </tr>\n          </thead>\n          <tbody>\n            <tr><td class="td-white">1. Select parent</td><td>Any tracked satellite from current scan</td><td>Position, velocity, regime</td></tr>\n            <tr><td class="td-white">2. Fragment count</td><td>User-specified (10–200)</td><td>Capped for performance</td></tr>\n            <tr><td class="td-white">3. Lc distribution</td><td>Uniform(1 cm, 50 cm)</td><td>Simplified SBM</td></tr>\n            <tr><td class="td-white">4. Δv sampling</td><td>Log-normal N(μ_v, σ_v = 0.4)</td><td>μ_v from SBM A/m relation</td></tr>\n            <tr><td class="td-white">5. Direction</td><td>Uniform on unit sphere</td><td>Isotropic ejection</td></tr>\n            <tr><td class="td-white">6. Propagation</td><td>Linear position offset (dt in seconds)</td><td>Simplified (not SGP4 for debris)</td></tr>\n            <tr><td class="td-white">7. Conjunction screen</td><td>Same chunked screener as primary scan</td><td>Debris-aware Pc flags</td></tr>\n          </tbody>\n        </table>\n      </div>\n\n      <div class="callout info">\n        <span class="callout-label">Educational Accuracy Note</span>\n        The VectraSpace debris simulation is designed for educational illustration, not operational\n        conjunction prediction. The linearized trajectory model diverges from true SGP4 propagation\n        within minutes for realistic ejection velocities. For operational debris cloud analysis,\n        agencies use full numerical integration with the complete SBM fragment distribution,\n        shape estimation, and individual BSTAR fitting for each fragment as tracking data becomes\n        available. The 2009 Iridium-Cosmos cloud took weeks to characterize adequately.\n      </div>\n\n      <div class="callout success">\n        <span class="callout-label">Try It Live</span>\n        The VectraSpace dashboard lets you run a real conjunction scan, select any tracked satellite\n        as a parent object, choose COLLISION or EXPLOSION event type, and generate up to 200 synthetic\n        debris fragments displayed in real time on the Cesium globe with instant conjunction screening.\n        <br><br>\n        <strong>→ Access the live platform at the VectraSpace dashboard to explore these models in action.</strong>\n      </div>\n\n</script>\n\n      <!-- Chapter nav -->\n      <div class="chapter-nav">\n        <a href="/education/perturbations" class="chapter-nav-card">\n          <div class="cnc-dir">← Previous</div>\n          <div class="cnc-title">Chapter 03</div>\n          <div class="cnc-sub">Orbital Perturbations</div>\n        </a>\n        <a href="/" class="chapter-nav-card next">\n          <div class="cnc-dir">↑ Back to Top</div>\n          <div class="cnc-title">Learning Hub</div>\n          <div class="cnc-sub">VectraSpace Educational Home</div>\n        </a>\n      </div>\n    </section>\n\n  </article>\n</div>\n\n<script>\nconst bar = document.getElementById(\'progress-bar\');\nwindow.addEventListener(\'scroll\', () => {\n  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;\n  bar.style.width = pct + \'%\';\n});\nconst observer = new IntersectionObserver(entries => {\n  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add(\'visible\'); });\n}, { threshold: 0.1 });\ndocument.querySelectorAll(\'.reveal\').forEach(el => observer.observe(el));\nconst sections = document.querySelectorAll(\'.content-section\');\nconst tocLinks = document.querySelectorAll(\'.toc-list a\');\nconst tocObs = new IntersectionObserver(entries => {\n  entries.forEach(e => {\n    if (e.isIntersecting) {\n      const id = e.target.id;\n      tocLinks.forEach(a => a.classList.toggle(\'active\', a.getAttribute(\'href\') === \'#\'+id));\n    }\n  });\n}, { threshold: 0.3 });\nsections.forEach(s => tocObs.observe(s));\n\n// Population history chart\nconst popCanvas = document.getElementById(\'pop-canvas\');\nif (popCanvas) {\n  const ctx = popCanvas.getContext(\'2d\');\n  const W = popCanvas.parentElement.offsetWidth || 600;\n  const H = 200;\n  popCanvas.width = W; popCanvas.height = H;\n  const pad = { top:12, right:16, bottom:32, left:56 };\n  // Approximate data points\n  const data = [\n    [1957,1],[1960,50],[1965,400],[1970,900],[1975,2000],[1980,4000],\n    [1985,6000],[1990,7500],[1995,8500],[2000,9500],[2005,10500],\n    [2007,13000],[2008,13500],[2009,16000],[2010,16200],[2015,17000],\n    [2019,19000],[2021,21000],[2022,23000],[2024,28000]\n  ];\n  const years = data.map(d=>d[0]); const counts = data.map(d=>d[1]);\n  const minY=1957, maxY=2024, maxC=30000;\n  const sX = y => pad.left + ((y-minY)/(maxY-minY)) * (W-pad.left-pad.right);\n  const sY = c => pad.top + ((maxC-c)/maxC) * (H-pad.top-pad.bottom);\n  // Grid\n  ctx.strokeStyle=\'#1a2e42\'; ctx.lineWidth=1;\n  [0,10000,20000,30000].forEach(c => {\n    ctx.beginPath(); ctx.moveTo(pad.left,sY(c)); ctx.lineTo(W-pad.right,sY(c)); ctx.stroke();\n    ctx.fillStyle=\'#4a6a85\'; ctx.font=\'9px Space Mono\';\n    ctx.fillText(c === 0 ? \'0\' : (c/1000)+\'k\', 2, sY(c)+3);\n  });\n  // Event markers\n  [[2007,\'Fengyun\'],[2009,\'Iridium\']].forEach(([yr,lbl]) => {\n    ctx.strokeStyle=\'rgba(239,68,68,0.4)\'; ctx.lineWidth=1; ctx.setLineDash([3,3]);\n    ctx.beginPath(); ctx.moveTo(sX(yr),pad.top); ctx.lineTo(sX(yr),H-pad.bottom); ctx.stroke();\n    ctx.setLineDash([]);\n    ctx.fillStyle=\'#ef4444\'; ctx.font=\'8px Space Mono\';\n    ctx.fillText(lbl, sX(yr)+3, pad.top+12);\n  });\n  // Curve\n  const grad = ctx.createLinearGradient(pad.left, 0, W-pad.right, 0);\n  grad.addColorStop(0,\'#3b82f6\'); grad.addColorStop(0.7,\'#f59e0b\'); grad.addColorStop(1,\'#ef4444\');\n  ctx.strokeStyle=grad; ctx.lineWidth=2;\n  ctx.beginPath();\n  data.forEach(([y,c],i) => i===0 ? ctx.moveTo(sX(y),sY(c)) : ctx.lineTo(sX(y),sY(c)));\n  ctx.stroke();\n  // X labels\n  ctx.fillStyle=\'#4a6a85\'; ctx.font=\'9px Space Mono\';\n  [1960,1970,1980,1990,2000,2010,2020].forEach(y => ctx.fillText(y, sX(y)-12, H-5));\n}\n\n// Fragment count chart\nconst fragCanvas = document.getElementById(\'frag-canvas\');\nif (fragCanvas) {\n  const ctx = fragCanvas.getContext(\'2d\');\n  const W = fragCanvas.parentElement.offsetWidth || 600;\n  const H = 200;\n  fragCanvas.width = W; fragCanvas.height = H;\n  const pad = { top:12, right:16, bottom:32, left:64 };\n  // Log-log: size from 0.1 cm to 100 cm, N from SBM\n  const sizes = []; const counts = [];\n  for (let lx = -1; lx <= 2; lx += 0.15) {\n    const Lc = Math.pow(10, lx) / 100; // meters\n    const N = 6 * Math.pow(1.0, 0.5) * Math.pow(Lc, -1.6);\n    sizes.push(lx);\n    counts.push(Math.log10(Math.max(1, N)));\n  }\n  const maxC = Math.max(...counts);\n  const sX = lx => pad.left + ((lx - (-1)) / 3) * (W-pad.left-pad.right);\n  const sY = c => pad.top + ((maxC-c)/maxC) * (H-pad.top-pad.bottom);\n  // Grid\n  ctx.strokeStyle=\'#1a2e42\'; ctx.lineWidth=1;\n  [0,2,4,6,8].forEach(c => {\n    ctx.beginPath(); ctx.moveTo(pad.left,sY(c)); ctx.lineTo(W-pad.right,sY(c)); ctx.stroke();\n    ctx.fillStyle=\'#4a6a85\'; ctx.font=\'9px Space Mono\';\n    ctx.fillText(\'10^\'+c, 2, sY(c)+3);\n  });\n  // Threshold lines\n  [[Math.log10(0.01),\'#ef4444\',\'1 cm\'],[Math.log10(0.1),\'#f59e0b\',\'10 cm\']].forEach(([lx,color,lbl]) => {\n    ctx.strokeStyle=color+\'77\'; ctx.lineWidth=1; ctx.setLineDash([4,4]);\n    ctx.beginPath(); ctx.moveTo(sX(lx),pad.top); ctx.lineTo(sX(lx),H-pad.bottom); ctx.stroke();\n    ctx.setLineDash([]);\n    ctx.fillStyle=color; ctx.font=\'8px Space Mono\';\n    ctx.fillText(lbl, sX(lx)+3, pad.top+10);\n  });\n  // Curve\n  ctx.strokeStyle=\'#3b82f6\'; ctx.lineWidth=2;\n  ctx.beginPath();\n  sizes.forEach((lx,i) => i===0 ? ctx.moveTo(sX(lx),sY(counts[i])) : ctx.lineTo(sX(lx),sY(counts[i])));\n  ctx.stroke();\n  // X labels\n  ctx.fillStyle=\'#4a6a85\'; ctx.font=\'9px Space Mono\';\n  [[Math.log10(0.1),\'0.1 cm\'],[0,\'1 cm\'],[1,\'10 cm\'],[2,\'100 cm\']].forEach(([lx,lbl]) => {\n    ctx.fillText(lbl, sX(lx)-14, H-5);\n  });\n}\n</script>\n</body>\n</html>\n\n'
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .field input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .field .hint {
+    font-size: 9px;
+    color: var(--faint);
+    margin-top: 4px;
+    font-family: var(--mono);
+    letter-spacing: 0.5px;
+  }
 
-# ── ADMIN_HTML ────────────────────────────────────────────────────────────────
-ADMIN_HTML = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>VectraSpace — Admin</title>\n<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">\n<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>\n<style>\n  :root {\n    --bg: #030508; --panel: #07101a; --border: #0d2137;\n    --accent: #00d4ff; --accent2: #ff4444; --accent3: #00ff88;\n    --text: #c8dff0; --muted: #3a5a75;\n  }\n  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\n  body { background: var(--bg); color: var(--text); font-family: \'DM Sans\', sans-serif;\n         min-height: 100vh; }\n\n  /* ── NAV ── */\n  .admin-nav {\n    background: var(--panel); border-bottom: 1px solid var(--border);\n    padding: 0 32px; height: 56px; display: flex; align-items: center;\n    justify-content: space-between; position: sticky; top: 0; z-index: 10;\n  }\n  .admin-nav-logo { font-family: \'Orbitron\', sans-serif; font-size: 13px;\n    font-weight: 700; color: #fff; letter-spacing: 2px; text-decoration: none; }\n  .admin-nav-logo span { color: var(--accent); }\n  .admin-nav-badge { font-family: \'Share Tech Mono\', monospace; font-size: 9px;\n    letter-spacing: 3px; color: var(--accent2); background: rgba(255,68,68,0.1);\n    border: 1px solid rgba(255,68,68,0.3); padding: 3px 10px; border-radius: 2px;\n    text-transform: uppercase; }\n  .admin-nav-links { display: flex; gap: 20px; align-items: center; }\n  .admin-nav-links a { font-family: \'Share Tech Mono\', monospace; font-size: 10px;\n    letter-spacing: 1px; color: var(--muted); text-decoration: none;\n    text-transform: uppercase; transition: color 0.2s; }\n  .admin-nav-links a:hover { color: var(--accent); }\n\n  /* ── LAYOUT ── */\n  .admin-wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }\n\n  /* ── STAT CARDS ── */\n  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;\n    margin-bottom: 32px; }\n  .stat-card { background: var(--panel); border: 1px solid var(--border);\n    border-radius: 6px; padding: 24px 20px; position: relative; overflow: hidden;\n    transition: border-color 0.2s; }\n  .stat-card:hover { border-color: var(--accent); }\n  .stat-card::before { content: \'\'; position: absolute; top: 0; left: 0; right: 0;\n    height: 2px; background: var(--accent); transform: scaleX(0);\n    transition: transform 0.3s; }\n  .stat-card:hover::before { transform: scaleX(1); }\n  .stat-card.c2::before { background: var(--accent3); }\n  .stat-card.c3::before { background: #ffaa44; }\n  .stat-card.c4::before { background: #aa66ff; }\n  .stat-label { font-family: \'Share Tech Mono\', monospace; font-size: 8px;\n    letter-spacing: 3px; color: var(--muted); text-transform: uppercase;\n    margin-bottom: 10px; }\n  .stat-num { font-family: \'Orbitron\', sans-serif; font-size: 36px; font-weight: 900;\n    color: var(--accent); line-height: 1; margin-bottom: 4px; }\n  .stat-card.c2 .stat-num { color: var(--accent3); }\n  .stat-card.c3 .stat-num { color: #ffaa44; }\n  .stat-card.c4 .stat-num { color: #aa66ff; }\n  .stat-sub { font-size: 11px; color: var(--muted); }\n\n  /* ── SECTION HEADERS ── */\n  .section-hdr { display: flex; align-items: center; justify-content: space-between;\n    margin-bottom: 14px; margin-top: 32px; }\n  .section-hdr h2 { font-family: \'Share Tech Mono\', monospace; font-size: 10px;\n    letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }\n  .section-hdr .refresh-btn { background: transparent; border: 1px solid var(--border);\n    border-radius: 3px; color: var(--muted); font-family: \'Share Tech Mono\', monospace;\n    font-size: 9px; padding: 4px 10px; cursor: pointer; letter-spacing: 1px;\n    transition: all 0.2s; }\n  .section-hdr .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }\n\n  /* ── CHARTS ROW ── */\n  .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px;\n    margin-bottom: 12px; }\n  .chart-card { background: var(--panel); border: 1px solid var(--border);\n    border-radius: 6px; padding: 20px; }\n  .chart-title { font-family: \'Share Tech Mono\', monospace; font-size: 9px;\n    letter-spacing: 2px; color: var(--muted); text-transform: uppercase;\n    margin-bottom: 16px; }\n  .chart-wrap { position: relative; height: 180px; }\n\n  /* ── USERS TABLE ── */\n  .table-wrap { background: var(--panel); border: 1px solid var(--border);\n    border-radius: 6px; overflow: hidden; margin-bottom: 12px; }\n  .data-table { width: 100%; border-collapse: collapse; }\n  .data-table th { background: #040a10; font-family: \'Share Tech Mono\', monospace;\n    font-size: 8px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;\n    padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }\n  .data-table td { padding: 10px 16px; font-size: 12px; border-bottom: 1px solid #0a1520;\n    color: var(--text); transition: background 0.15s; }\n  .data-table tr:last-child td { border-bottom: none; }\n  .data-table tr:hover td { background: #0a1520; }\n  .data-table .td-mono { font-family: \'Share Tech Mono\', monospace; font-size: 11px; }\n  .role-badge { font-family: \'Share Tech Mono\', monospace; font-size: 8px;\n    letter-spacing: 1px; padding: 2px 8px; border-radius: 2px; text-transform: uppercase; }\n  .role-admin { background: rgba(255,68,68,0.12); color: var(--accent2);\n    border: 1px solid rgba(255,68,68,0.3); }\n  .role-operator { background: rgba(0,212,255,0.08); color: var(--accent);\n    border: 1px solid rgba(0,212,255,0.25); }\n  .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%;\n    margin-right: 6px; }\n  .status-ok { background: var(--accent3); box-shadow: 0 0 4px var(--accent3); }\n  .status-pending { background: #ffaa44; }\n\n  /* ── SCANS TABLE ── */\n  .dist-crit { color: var(--accent2); font-weight: 700; }\n  .dist-warn { color: #ffaa44; }\n  .dist-ok   { color: var(--accent3); }\n\n  /* ── ANALYTICS EMBED ── */\n  .analytics-card { background: var(--panel); border: 1px solid var(--border);\n    border-radius: 6px; padding: 24px; margin-bottom: 12px; }\n  .analytics-placeholder { text-align: center; padding: 40px 20px; }\n  .analytics-placeholder .icon { font-size: 32px; margin-bottom: 12px; }\n  .analytics-placeholder p { font-family: \'Share Tech Mono\', monospace; font-size: 10px;\n    letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }\n  .analytics-placeholder a { color: var(--accent); font-size: 11px; }\n  .umami-script-box { background: #040a10; border: 1px solid var(--border);\n    border-radius: 4px; padding: 12px 16px; margin-top: 16px; font-family: \'Share Tech Mono\', monospace;\n    font-size: 10px; color: var(--accent3); word-break: break-all; text-align: left;\n    cursor: pointer; transition: border-color 0.2s; }\n  .umami-script-box:hover { border-color: var(--accent); }\n  .umami-script-box::before { content: \'// Click to copy\'; display: block;\n    font-size: 8px; color: var(--muted); letter-spacing: 2px; margin-bottom: 6px; }\n\n  /* ── EMPTY STATE ── */\n  .empty { text-align: center; padding: 32px; font-family: \'Share Tech Mono\', monospace;\n    font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }\n\n  /* ── RESPONSIVE ── */\n  @media (max-width: 900px) {\n    .stat-grid { grid-template-columns: repeat(2, 1fr); }\n    .charts-row { grid-template-columns: 1fr; }\n    .admin-wrap { padding: 20px 16px; }\n    .data-table td, .data-table th { padding: 8px 12px; }\n  }\n  @media (max-width: 480px) {\n    .stat-grid { grid-template-columns: repeat(2, 1fr); }\n    .admin-nav { padding: 0 16px; }\n    .admin-nav-logo { font-size: 11px; }\n  }\n</style>\n\n<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>\n</head>\n<body>\n\n<nav class="admin-nav">\n  <a href="/" class="admin-nav-logo">VECTRA<span>SPACE</span></a>\n  <span class="admin-nav-badge">⬡ Admin Console</span>\n  <div class="admin-nav-links">\n    <a href="/dashboard">Dashboard</a>\n    </div>\n</nav>\n\n<div class="admin-wrap">\n\n  <!-- ── STAT CARDS ── -->\n  <div class="stat-grid" id="stat-grid">\n    <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-num" id="stat-users">—</div><div class="stat-sub">registered accounts</div></div>\n    <div class="stat-card c2"><div class="stat-label">Total Scans</div><div class="stat-num" id="stat-scans">—</div><div class="stat-sub">pipeline runs</div></div>\n    <div class="stat-card c3"><div class="stat-label">Conjunctions Found</div><div class="stat-num" id="stat-conj">—</div><div class="stat-sub">all time</div></div>\n    <div class="stat-card c4"><div class="stat-label">New Users (7d)</div><div class="stat-num" id="stat-new">—</div><div class="stat-sub">last 7 days</div></div>\n  </div>\n\n  <!-- ── CHARTS ── -->\n  <div class="section-hdr">\n    <h2>Activity</h2>\n    <button class="refresh-btn" onclick="loadAdmin()">↺ Refresh</button>\n  </div>\n  <div class="charts-row">\n    <div class="chart-card">\n      <div class="chart-title">Scans per Day (30d)</div>\n      <div class="chart-wrap"><canvas id="chart-scans"></canvas></div>\n    </div>\n    <div class="chart-card">\n      <div class="chart-title">Conjunctions by Regime</div>\n      <div class="chart-wrap"><canvas id="chart-regimes"></canvas></div>\n    </div>\n  </div>\n\n  <!-- ── USERS TABLE ── -->\n  <div class="section-hdr" style="margin-top:28px;">\n    <h2>Registered Users</h2>\n    <span id="users-count" style="font-family:\'Share Tech Mono\',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;"></span>\n  </div>\n  <div class="table-wrap">\n    <table class="data-table">\n      <thead>\n        <tr>\n          <th>Username</th>\n          <th>Email</th>\n          <th>Role</th>\n          <th>Status</th>\n          <th>Joined</th>\n          <th>Scans</th>\n        </tr>\n      </thead>\n      <tbody id="users-tbody">\n        <tr><td colspan="6" class="empty">Loading...</td></tr>\n      </tbody>\n    </table>\n  </div>\n\n  <!-- ── RECENT SCANS TABLE ── -->\n  <div class="section-hdr">\n    <h2>Recent Conjunction Events</h2>\n    <span id="scans-count" style="font-family:\'Share Tech Mono\',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;"></span>\n  </div>\n  <div class="table-wrap">\n    <table class="data-table">\n      <thead>\n        <tr>\n          <th>Time (UTC)</th>\n          <th>User</th>\n          <th>Sat 1</th>\n          <th>Sat 2</th>\n          <th>Regimes</th>\n          <th>Miss Dist</th>\n          <th>Pc</th>\n        </tr>\n      </thead>\n      <tbody id="scans-tbody">\n        <tr><td colspan="7" class="empty">Loading...</td></tr>\n      </tbody>\n    </table>\n  </div>\n\n  <!-- ── ANALYTICS ── -->\n  <div class="section-hdr">\n    <h2>Website Analytics</h2>\n  </div>\n  <div class="analytics-card">\n    <div id="analytics-section">\n      <!-- renderAnalytics() populates this -->\n      <div style="padding:40px;text-align:center;font-family:Share Tech Mono,monospace;font-size:9px;color:#3a5a75;letter-spacing:2px;">LOADING ANALYTICS...</div>\n    </div>\n  </div>\n\n</div><!-- /admin-wrap -->\n\n<script>\nlet chartScans = null;\nlet chartRegimes = null;\n\nasync function loadAdmin() {\n  try {\n    const res = await fetch(\'/admin/data\');\n    if (res.status === 403) {\n      document.body.innerHTML = \'<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Share Tech Mono,monospace;color:#ff4444;letter-spacing:3px;">ACCESS DENIED — ADMIN ONLY</div>\';\n      return;\n    }\n    const d = await res.json();\n\n    // Stat cards\n    document.getElementById(\'stat-users\').textContent  = d.total_users;\n    document.getElementById(\'stat-scans\').textContent  = d.total_scan_runs;\n    document.getElementById(\'stat-conj\').textContent   = d.total_conjunctions;\n    document.getElementById(\'stat-new\').textContent    = d.new_users_7d;\n\n    // Users table\n    document.getElementById(\'users-count\').textContent = d.users.length + \' TOTAL\';\n    const tbody = document.getElementById(\'users-tbody\');\n    if (!d.users.length) {\n      tbody.innerHTML = \'<tr><td colspan="6" class="empty">No users yet</td></tr>\';\n    } else {\n      tbody.innerHTML = d.users.map(u => {\n        const joined = u.created_at ? u.created_at.slice(0,10) : \'—\';\n        const roleClass = u.role === \'admin\' ? \'role-admin\' : \'role-operator\';\n        const statusDot = u.approved !== false\n          ? \'<span class="status-dot status-ok"></span>Active\'\n          : \'<span class="status-dot status-pending"></span>Pending\';\n        return `<tr>\n          <td class="td-mono">${u.username}</td>\n          <td style="color:var(--muted);font-size:11px;">${u.email || \'—\'}</td>\n          <td><span class="role-badge ${roleClass}">${u.role}</span></td>\n          <td style="font-size:11px;">${statusDot}</td>\n          <td class="td-mono" style="color:var(--muted);">${joined}</td>\n          <td class="td-mono" style="color:var(--accent);">${u.scan_count || 0}</td>\n        </tr>`;\n      }).join(\'\');\n    }\n\n    // Recent conjunctions table\n    document.getElementById(\'scans-count\').textContent = d.recent_conjunctions.length + \' RECENT\';\n    const stbody = document.getElementById(\'scans-tbody\');\n    if (!d.recent_conjunctions.length) {\n      stbody.innerHTML = \'<tr><td colspan="7" class="empty">No scans yet</td></tr>\';\n    } else {\n      stbody.innerHTML = d.recent_conjunctions.map(c => {\n        const distClass = c.min_dist_km < 1 ? \'dist-crit\' : c.min_dist_km < 5 ? \'dist-warn\' : \'dist-ok\';\n        const t = (c.run_time || \'\').slice(0,16).replace(\'T\',\' \');\n        return `<tr>\n          <td class="td-mono" style="color:var(--muted);font-size:10px;">${t}</td>\n          <td class="td-mono" style="color:var(--accent);">${c.user_id || \'anon\'}</td>\n          <td class="td-mono">${c.sat1}</td>\n          <td class="td-mono">${c.sat2}</td>\n          <td style="font-size:10px;color:var(--muted);">${c.regime1}/${c.regime2}</td>\n          <td class="td-mono ${distClass}">${Number(c.min_dist_km).toFixed(2)} km</td>\n          <td class="td-mono" style="color:#ffaa44;">${Number(c.pc_estimate).toExponential(1)}</td>\n        </tr>`;\n      }).join(\'\');\n    }\n\n    // Charts\n    const scanCtx = document.getElementById(\'chart-scans\').getContext(\'2d\');\n    if (chartScans) chartScans.destroy();\n    chartScans = new Chart(scanCtx, {\n      type: \'bar\',\n      data: {\n        labels: d.daily_scans.map(x => x.day).reverse(),\n        datasets: [{\n          label: \'Scan Runs\',\n          data: d.daily_scans.map(x => x.count).reverse(),\n          backgroundColor: \'rgba(0,212,255,0.25)\',\n          borderColor: \'#00d4ff\',\n          borderWidth: 1,\n          borderRadius: 2,\n        }]\n      },\n      options: {\n        responsive: true, maintainAspectRatio: false,\n        plugins: { legend: { display: false } },\n        scales: {\n          x: { ticks: { color: \'#3a5a75\', font: { size: 8, family: \'Share Tech Mono\' }, maxTicksLimit: 10 }, grid: { color: \'#0d2137\' } },\n          y: { ticks: { color: \'#3a5a75\', font: { size: 8 } }, grid: { color: \'#0d2137\' }, beginAtZero: true }\n        }\n      }\n    });\n\n    const regCtx = document.getElementById(\'chart-regimes\').getContext(\'2d\');\n    if (chartRegimes) chartRegimes.destroy();\n    chartRegimes = new Chart(regCtx, {\n      type: \'doughnut\',\n      data: {\n        labels: d.regime_breakdown.map(x => x.pair),\n        datasets: [{\n          data: d.regime_breakdown.map(x => x.count),\n          backgroundColor: [\'#4da6ff\',\'#ff6b6b\',\'#00ff88\',\'#ffaa44\',\'#aa66ff\',\'#00d4ff\'],\n          borderColor: \'#07101a\', borderWidth: 2,\n        }]\n      },\n      options: {\n        responsive: true, maintainAspectRatio: false,\n        plugins: { legend: { position: \'bottom\', labels: { color: \'#3a5a75\', font: { family: \'Share Tech Mono\', size: 8 }, boxWidth: 10, padding: 8 } } }\n      }\n    });\n\n    // Render analytics section\n    renderAnalytics(d.umami_url || \'\', d.umami_id || \'\');\n\n  } catch(e) {\n    console.error(\'Admin load failed:\', e);\n  }\n}\n\nfunction renderAnalytics(umami_url, umami_id) {\n  const section = document.getElementById(\'analytics-section\');\n  if (!section) return;\n  if (umami_id) {\n    // Extract website slug for the share URL\n    const shareBase = \'https://cloud.umami.is/share/\' + umami_id + \'/vectraspace\';\n    section.innerHTML = `\n      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">\n        <div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;letter-spacing:2px;color:var(--accent3);text-transform:uppercase;">\n          ● Umami Analytics · Live\n        </div>\n        <a href="${shareBase}" target="_blank"\n           style="font-family:\'Share Tech Mono\',monospace;font-size:8px;letter-spacing:1px;\n                  color:var(--accent);text-decoration:none;padding:4px 10px;\n                  border:1px solid var(--accent);border-radius:3px;text-transform:uppercase;\n                  transition:all 0.2s;"\n           onmouseover="this.style.background=\'rgba(0,212,255,0.1)\'"\n           onmouseout="this.style.background=\'transparent\'">\n          Open Full Dashboard →\n        </a>\n      </div>\n      <iframe\n        src="${shareBase}"\n        style="width:100%;height:600px;border:none;border-radius:6px;background:var(--bg2);"\n        loading="lazy"\n        title="Umami Analytics">\n      </iframe>`;\n  } else {\n    section.innerHTML = `\n      <div class="analytics-placeholder">\n        <div class="icon">📊</div>\n        <p>Umami Analytics Not Configured</p>\n        <p style="font-size:10px;color:var(--text);opacity:0.6;margin:8px 0 16px;font-family:sans-serif;">\n          Add free website analytics in 2 minutes. Tracks visits, pageviews, countries, devices — no cookies, no GDPR issues.\n        </p>\n        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">\n          <a href="https://cloud.umami.is/signup" target="_blank"\n             style="font-family:\'Share Tech Mono\',monospace;font-size:10px;letter-spacing:2px;\n                    padding:10px 20px;border:1px solid var(--accent);border-radius:3px;\n                    color:var(--accent);text-decoration:none;text-transform:uppercase;">\n            → Create Free Umami Account\n          </a>\n        </div>\n        <div class="umami-script-box" style="margin-top:16px;">\n          Set UMAMI_WEBSITE_ID env var on Render, then redeploy.\n        </div>\n      </div>`;\n  }\n}\n\nfunction copyUmamiInstructions() {\n  const text = \'UMAMI_SCRIPT_URL=https://cloud.umami.is/script.js\nUMAMI_WEBSITE_ID=your-website-id-here\';\n  navigator.clipboard.writeText(text).catch(() => {});\n}\n\nloadAdmin();\n</script>\n</body>\n</html>'
+  #run-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(74,158,255,0.12), rgba(74,158,255,0.04));
+    border: 1px solid rgba(74,158,255,0.4);
+    border-radius: 7px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  #run-btn:hover {
+    background: linear-gradient(135deg, rgba(74,158,255,0.22), rgba(74,158,255,0.08));
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(74,158,255,0.12);
+  }
+  #run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #run-btn.running {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(52,211,153,0.02));
+    animation: pulse-border 1.5s infinite;
+  }
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.2); }
+    50% { box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+  }
 
-# ── LANDING_HTML — patched with GitHub link + Grant Gill card ─────────────────
-_LANDING_BASE = '\n<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>VectraSpace — Orbital Mechanics & Space Safety Education</title>\n<meta name="description" content="Learn orbital mechanics, Space Situational Awareness, and the physics behind Kessler Syndrome through interactive simulations and deep-dive technical chapters.">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">\n<style>\n:root {\n  --ink:     #080c12;\n  --ink2:    #0d1320;\n  --ink3:    #131d2e;\n  --panel:   #0f1925;\n  --border:  rgba(255,255,255,0.07);\n  --border2: rgba(255,255,255,0.13);\n  --text:    #ccd6e0;\n  --muted:   #8aaac5;\n  --faint:   #2a3d50;\n  --accent:  #4a9eff;\n  --accent2: #7bc4ff;\n  --green:   #34d399;\n  --amber:   #f59e0b;\n  --red:     #f87171;\n  --serif:   \'Instrument Serif\', Georgia, serif;\n  --mono:    \'DM Mono\', monospace;\n  --sans:    \'Outfit\', sans-serif;\n}\n*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\nhtml { scroll-behavior: smooth; }\nbody {\n  background: var(--ink);\n  color: var(--text);\n  font-family: var(--sans);\n  line-height: 1.6;\n  overflow-x: hidden;\n}\n\n/* ── STARFIELD ── */\n#starfield {\n  position: fixed; inset: 0; z-index: 0; pointer-events: none;\n  overflow: hidden;\n}\n.star {\n  position: absolute; border-radius: 50%; background: #fff;\n  animation: twinkle var(--dur, 4s) ease-in-out infinite var(--delay, 0s);\n}\n@keyframes twinkle {\n  0%, 100% { opacity: var(--a1, 0.6); transform: scale(1); }\n  50% { opacity: var(--a2, 0.15); transform: scale(0.7); }\n}\n\n/* ── NAV ── */\nnav {\n  position: fixed; top: 0; left: 0; right: 0; z-index: 200;\n  height: 60px; padding: 0 40px;\n  display: flex; align-items: center; gap: 0;\n  transition: background 0.4s, border-color 0.4s;\n  border-bottom: 1px solid transparent;\n}\n.nav-right {\n  display: flex; align-items: center; gap: 8px; margin-left: auto;\n}\nnav.scrolled {\n  background: rgba(8,12,18,0.94);\n  border-bottom-color: var(--border);\n  backdrop-filter: blur(20px);\n}\n.nav-brand {\n  display: flex; align-items: center; text-decoration: none;\n}\n.nav-brand-name {\n  font-family: var(--serif); font-size: 18px; font-weight: 400;\n  color: #fff; letter-spacing: -0.2px; font-style: italic;\n}\n.nav-brand-name em { color: var(--accent); font-style: normal; }\n.nav-links {\n  display: flex; gap: 20px; list-style: none; align-items: center;\n  flex: 1; justify-content: center;\n}\n.nav-links a {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;\n  color: var(--muted); text-decoration: none; transition: color 0.2s;\n}\n.nav-links a:hover { color: var(--text); }\n.nav-cta {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;\n  text-transform: uppercase; padding: 8px 18px;\n  border: 1px solid var(--accent); border-radius: 4px;\n  color: var(--accent); text-decoration: none;\n  transition: all 0.2s; white-space: nowrap;\n}\n.nav-cta:hover { background: var(--accent); color: var(--ink); }\n.nav-signin {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;\n  text-transform: uppercase; text-decoration: none;\n  padding: 8px 16px; border: 1px solid var(--border);\n  border-radius: 3px; color: var(--muted);\n  transition: all 0.2s; white-space: nowrap;\n}\n.nav-signin:hover { color: var(--text); border-color: var(--border2); }\n\n/* Mobile hamburger */\n.nav-hamburger {\n  display: none; flex-direction: column; gap: 5px; cursor: pointer;\n  padding: 8px; border: 1px solid transparent; border-radius: 4px;\n  background: transparent; transition: border-color 0.2s;\n}\n.nav-hamburger:hover { border-color: var(--border2); }\n.nav-hamburger span {\n  display: block; width: 20px; height: 1.5px; background: var(--muted);\n  border-radius: 2px; transition: all 0.25s;\n}\n.nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }\n.nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }\n.nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }\n/* Mobile drawer */\n#mobile-nav {\n  display: none; position: fixed; top: 60px; left: 0; right: 0; z-index: 999;\n  background: rgba(8,12,18,0.97); border-bottom: 1px solid var(--border);\n  backdrop-filter: blur(16px); padding: 20px 24px 28px;\n  flex-direction: column; gap: 4px;\n  transform: translateY(-8px); opacity: 0;\n  transition: transform 0.2s ease, opacity 0.2s ease;\n}\n#mobile-nav.open { transform: translateY(0); opacity: 1; }\n#mobile-nav a {\n  font-family: var(--mono); font-size: 13px; letter-spacing: 1px;\n  color: var(--muted); text-decoration: none; padding: 12px 0;\n  border-bottom: 1px solid var(--border);\n  display: flex; align-items: center; justify-content: space-between;\n  transition: color 0.15s;\n}\n#mobile-nav a:last-child { border-bottom: none; }\n#mobile-nav a:hover { color: var(--text); }\n#mobile-nav a.cta-link {\n  color: var(--accent); margin-top: 8px; border: 1px solid var(--accent);\n  border-radius: 4px; padding: 12px 16px; justify-content: center;\n  border-bottom: 1px solid var(--accent);\n}\n\n/* ── LIVE TLE TICKER (in-page section version) ── */\n#tle-ticker {\n  background: var(--panel); border: 1px solid var(--border);\n  border-radius: 10px; overflow: hidden; height: 44px;\n  display: flex; align-items: center; max-width: 1100px; margin: 0 auto;\n}\n.ticker-label {\n  font-family: var(--mono); font-size: 8px; letter-spacing: 2px;\n  text-transform: uppercase; color: var(--accent);\n  background: rgba(74,158,255,0.08); border-right: 1px solid var(--border);\n  padding: 0 16px; height: 100%; display: flex; align-items: center;\n  white-space: nowrap; flex-shrink: 0;\n}\n.ticker-scroll {\n  display: flex; overflow: hidden; flex: 1; height: 100%;\n}\n.ticker-track {\n  display: flex; gap: 0; animation: ticker-move 60s linear infinite;\n  white-space: nowrap; align-items: center;\n}\n.ticker-track:hover { animation-play-state: paused; }\n@keyframes ticker-move {\n  from { transform: translateX(0); }\n  to   { transform: translateX(-50%); }\n}\n.ticker-sat {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px;\n  color: var(--muted); padding: 0 18px; border-right: 1px solid var(--border);\n  height: 44px; display: flex; align-items: center; gap: 8px;\n}\n.ticker-sat .t-name { color: var(--text); }\n.ticker-sat .t-alt { color: var(--accent); }\n.ticker-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: blink-slow 3s infinite; }\n@keyframes blink-slow { 0%,100%{opacity:1} 50%{opacity:0.3} }\n.ticker-status {\n  font-family: var(--mono); font-size: 8px; letter-spacing: 1px;\n  color: var(--faint); padding: 0 14px; height: 100%; display: flex; align-items: center;\n  white-space: nowrap; flex-shrink: 0; border-left: 1px solid var(--border);\n}\n\n/* ── TOOLS STRIP ── */\n.tools-strip {\n  display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap;\n}\n.tool-card {\n  flex: 1; min-width: 200px;\n  background: var(--panel); border: 1px solid var(--border);\n  border-radius: 10px; padding: 20px 22px;\n  text-decoration: none; display: flex; align-items: flex-start; gap: 14px;\n  transition: all 0.2s; position: relative; overflow: hidden;\n}\n.tool-card::before {\n  content: \'\'; position: absolute; inset: 0;\n  background: linear-gradient(135deg, rgba(74,158,255,0.04) 0%, transparent 60%);\n  opacity: 0; transition: opacity 0.2s;\n}\n.tool-card:hover { border-color: rgba(74,158,255,0.35); transform: translateY(-2px); }\n.tool-card:hover::before { opacity: 1; }\n.tool-card-icon {\n  width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;\n  display: flex; align-items: center; justify-content: center; font-size: 18px;\n  background: rgba(74,158,255,0.1); border: 1px solid rgba(74,158,255,0.2);\n}\n.tool-card-icon.green  { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.2); }\n.tool-card-icon.amber  { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.2); }\n.tool-card-icon.purple { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.2); }\n.tool-card-body { flex: 1; }\n.tool-card-title {\n  font-family: var(--sans); font-size: 13px; font-weight: 600;\n  color: var(--text); margin-bottom: 3px;\n}\n.tool-card-desc {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 0.3px;\n  color: var(--muted); line-height: 1.5;\n}\n\n/* ── HERO ── */\n#hero {\n  position: relative; z-index: 1;\n  min-height: 100vh;\n  display: flex; flex-direction: column; align-items: center; justify-content: center;\n  text-align: center; padding: 120px 24px 80px;\n}\n.hero-orbit-system {\n  position: absolute; inset: 0;\n  display: flex; align-items: center; justify-content: center;\n  pointer-events: none; overflow: hidden;\n}\n.orbit-ring {\n  position: absolute; border-radius: 50%;\n  border: 1px solid rgba(74,158,255,0.12);\n  animation: orbit-spin linear infinite;\n}\n.orbit-ring-1 { width: 520px; height: 520px; animation-duration: 40s; }\n.orbit-ring-2 { width: 780px; height: 520px; border-color: rgba(74,158,255,0.07); animation-duration: 65s; transform: rotate(30deg); }\n.orbit-ring-3 { width: 1100px; height: 700px; border-color: rgba(74,158,255,0.05); animation-duration: 90s; animation-direction: reverse; transform: rotate(-20deg); }\n@keyframes orbit-spin { to { transform: rotate(360deg); } }\n.orbit-ring-2 { animation-name: orbit-spin2; }\n.orbit-ring-3 { animation-name: orbit-spin3; }\n@keyframes orbit-spin2 { from { transform: rotate(30deg); } to { transform: rotate(390deg); } }\n@keyframes orbit-spin3 { from { transform: rotate(-20deg); } to { transform: rotate(-380deg); } }\n\n.orbit-sat {\n  position: absolute; width: 6px; height: 6px; border-radius: 50%;\n  background: var(--accent); box-shadow: 0 0 10px var(--accent), 0 0 20px rgba(74,158,255,0.4);\n}\n.orbit-sat-2 { background: var(--green); box-shadow: 0 0 10px var(--green); }\n.orbit-sat-3 { background: var(--amber); box-shadow: 0 0 10px var(--amber); }\n\n.hero-eyebrow {\n  display: inline-flex; align-items: center; gap: 8px;\n  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;\n  text-transform: uppercase; color: var(--accent);\n  background: rgba(74,158,255,0.08); border: 1px solid rgba(74,158,255,0.25);\n  padding: 7px 16px; border-radius: 2px; margin-bottom: 32px;\n  animation: fadeUp 0.9s ease both;\n}\n.eyebrow-dot {\n  width: 5px; height: 5px; border-radius: 50%; background: var(--green);\n  animation: pulse-dot 2.4s ease infinite;\n}\n@keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(0.5);opacity:0.4} }\n\n.hero-title {\n  font-family: var(--serif);\n  font-size: clamp(52px, 8vw, 108px);\n  font-weight: 400; line-height: 1.0; color: #fff;\n  letter-spacing: -2px; margin-bottom: 12px;\n  animation: fadeUp 0.9s 0.1s ease both;\n}\n.hero-title-italic {\n  font-style: italic; color: var(--accent2);\n}\n.hero-title-line2 {\n  display: block; font-size: clamp(28px, 4vw, 56px);\n  color: rgba(255,255,255,0.55); font-weight: 400; font-style: normal;\n  letter-spacing: -0.5px; margin-top: 4px;\n}\n\n.hero-desc {\n  font-size: 18px; font-weight: 300; line-height: 1.8;\n  color: var(--muted); max-width: 620px; margin: 28px auto 48px;\n  animation: fadeUp 0.9s 0.2s ease both;\n}\n.hero-desc strong { color: var(--text); font-weight: 500; }\n\n.hero-actions {\n  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;\n  margin-bottom: 80px;\n  animation: fadeUp 0.9s 0.3s ease both;\n}\n.btn-primary-hero {\n  font-family: var(--mono); font-size: 12px; letter-spacing: 2px;\n  text-transform: uppercase; padding: 14px 36px;\n  background: var(--accent); color: var(--ink); border: none;\n  border-radius: 3px; cursor: pointer; text-decoration: none;\n  font-weight: 500; transition: all 0.2s;\n}\n.btn-primary-hero:hover { background: var(--accent2); transform: translateY(-1px); }\n.btn-secondary-hero {\n  font-family: var(--mono); font-size: 12px; letter-spacing: 2px;\n  text-transform: uppercase; padding: 14px 32px;\n  background: transparent; color: var(--text);\n  border: 1px solid var(--border2); border-radius: 3px;\n  cursor: pointer; text-decoration: none; transition: all 0.2s;\n}\n.btn-secondary-hero:hover { border-color: var(--text); }\n\n.hero-scroll {\n  position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);\n  display: flex; flex-direction: column; align-items: center; gap: 8px;\n  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;\n  color: var(--muted); text-transform: uppercase; cursor: pointer;\n  animation: fadeUp 1.2s 0.6s ease both; text-decoration: none;\n}\n.scroll-line {\n  width: 1px; height: 40px; background: linear-gradient(to bottom, var(--accent), transparent);\n  animation: scroll-pulse 2s ease infinite;\n}\n@keyframes scroll-pulse { 0%,100%{opacity:1;transform:scaleY(1)} 50%{opacity:0.3;transform:scaleY(0.6)} }\n\n@keyframes fadeUp {\n  from { opacity: 0; transform: translateY(24px); }\n  to { opacity: 1; transform: translateY(0); }\n}\n\n/* ── TICKER ── */\n.ticker-bar {\n  margin-top: 48px; position: relative; z-index: 1; overflow: hidden;\n  background: var(--panel); border-top: 1px solid var(--border);\n  border-bottom: 1px solid var(--border);\n  padding: 10px 0;\n}\n.ticker-inner {\n  display: flex; gap: 0; white-space: nowrap;\n  animation: ticker 30s linear infinite;\n}\n@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }\n.tick-item {\n  display: inline-flex; align-items: center; gap: 10px;\n  font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;\n  color: var(--muted); text-transform: uppercase; padding: 0 36px;\n  flex-shrink: 0;\n}\n.tick-sep { color: var(--faint); }\n.tick-item.hi { color: var(--accent); }\n.tick-item.warn { color: var(--amber); }\n.tick-item.ok { color: var(--green); }\n\n/* ── SECTION SHARED ── */\nsection { position: relative; z-index: 1; }\n.section-wrap { max-width: 1160px; margin: 0 auto; padding: 0 48px; }\n.section-label {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;\n  color: var(--accent); text-transform: uppercase; margin-bottom: 12px;\n}\n.section-title {\n  font-family: var(--serif); font-size: clamp(32px, 4vw, 52px);\n  font-weight: 400; color: #fff; line-height: 1.15; margin-bottom: 16px;\n  letter-spacing: -0.5px;\n}\n.section-title em { font-style: italic; color: var(--accent2); }\n.section-body {\n  font-size: 16px; font-weight: 300; color: var(--muted);\n  line-height: 1.8; max-width: 560px;\n}\n\n/* ── REVEAL ANIMATION ── */\n.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }\n.reveal.visible { opacity: 1; transform: translateY(0); }\n.reveal-delay-1 { transition-delay: 0.1s; }\n.reveal-delay-2 { transition-delay: 0.2s; }\n.reveal-delay-3 { transition-delay: 0.3s; }\n\n/* ── MISSION SECTION ── */\n#mission { padding: 120px 0; }\n.mission-grid {\n  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;\n}\n.mission-visual {\n  position: relative; display: flex; align-items: center; justify-content: center;\n  height: 400px; overflow: visible;\n}\n.mission-globe {\n  width: 260px; height: 260px; border-radius: 50%;\n  background: radial-gradient(circle at 35% 35%, #1a4a7a, #0a1f3a 60%, #060e1a);\n  box-shadow:\n    0 0 0 1px rgba(74,158,255,0.2),\n    0 0 60px rgba(74,158,255,0.08),\n    inset 0 0 40px rgba(0,0,0,0.6);\n  position: relative; overflow: hidden;\n}\n.globe-grid-line {\n  position: absolute; border: 1px solid rgba(74,158,255,0.1);\n}\n.globe-lat { width: 100%; height: 0; top: var(--t); left: 0; }\n.globe-lon {\n  width: 0; height: 100%;\n  left: var(--l); top: 0;\n  border: none; border-left: 1px solid rgba(74,158,255,0.1);\n}\n.globe-glow {\n  position: absolute; width: 80px; height: 80px; border-radius: 50%;\n  background: radial-gradient(circle, rgba(74,158,255,0.25) 0%, transparent 70%);\n  top: 10px; left: 20px;\n}\n.orbit-path {\n  position: absolute; border-radius: 50%; border: 1px solid;\n  width: var(--w); height: var(--w);\n  top: 50%; left: 50%; transform: translate(-50%, -50%);\n}\n.orbit-path-1 { --w:296px; border-color: rgba(74,158,255,0.35); animation: orb 8s linear infinite; }\n.orbit-path-2 { --w:366px; border-color: rgba(52,211,153,0.22); animation: orb2 12s linear infinite; }\n.orbit-path-3 { --w:436px; border-color: rgba(245,158,11,0.18); animation: orb3 18s linear infinite; }\n@keyframes orb  { from { transform: translate(-50%,-50%) rotate(0deg); }   to { transform: translate(-50%,-50%) rotate(360deg); } }\n@keyframes orb2 { from { transform: translate(-50%,-50%) rotate(45deg); }  to { transform: translate(-50%,-50%) rotate(405deg); } }\n@keyframes orb3 { from { transform: translate(-50%,-50%) rotate(-30deg); } to { transform: translate(-50%,-50%) rotate(330deg); } }\n.orb-sat {\n  position: absolute; width: 8px; height: 8px; border-radius: 50%;\n  top: -4px; left: calc(50% - 4px); box-shadow: 0 0 12px currentColor;\n}\n\n.mission-stats {\n  display: flex; flex-direction: column; gap: 24px; margin-top: 48px;\n}\n.mission-stat {\n  display: flex; gap: 20px; align-items: flex-start;\n  padding: 20px 24px; background: var(--panel);\n  border: 1px solid var(--border); border-radius: 6px;\n  transition: border-color 0.2s;\n}\n.mission-stat:hover { border-color: var(--border2); }\n.mission-stat-num {\n  font-family: var(--serif); font-size: 36px; color: var(--accent);\n  line-height: 1; flex-shrink: 0; width: 80px; text-align: right;\n}\n.mission-stat-label { font-size: 13px; color: var(--muted); line-height: 1.6; }\n.mission-stat-label strong { color: var(--text); display: block; font-size: 14px; margin-bottom: 2px; }\n\n/* ── SSA SECTION ── */\n#ssa { padding: 120px 0; background: linear-gradient(180deg, transparent 0%, rgba(74,158,255,0.02) 50%, transparent 100%); }\n.ssa-header { text-align: center; margin-bottom: 72px; }\n.ssa-header .section-body { margin: 0 auto; text-align: center; max-width: 640px; }\n.ssa-pillars {\n  display: grid; grid-template-columns: repeat(3, 1fr);\n  gap: 1px; background: var(--border);\n  border: 1px solid var(--border); border-radius: 8px; overflow: hidden;\n}\n.ssa-pillar {\n  background: var(--ink2); padding: 36px 32px;\n  position: relative; overflow: hidden; transition: background 0.2s;\n}\n.ssa-pillar::before {\n  content: \'\'; position: absolute; top: 0; left: 0; right: 0; height: 2px;\n  background: var(--pillar-color, var(--accent));\n  transform: scaleX(0); transition: transform 0.35s ease;\n}\n.ssa-pillar:hover { background: var(--panel); }\n.ssa-pillar:hover::before { transform: scaleX(1); }\n.ssa-pillar-icon {\n  font-size: 28px; margin-bottom: 20px; display: block;\n  filter: drop-shadow(0 0 8px var(--pillar-color, var(--accent)));\n}\n.ssa-pillar-title {\n  font-family: var(--mono); font-size: 11px; letter-spacing: 2px;\n  text-transform: uppercase; color: #fff; margin-bottom: 12px;\n}\n.ssa-pillar-body { font-size: 13px; color: var(--muted); line-height: 1.7; }\n.ssa-pillar-tag {\n  display: inline-block; font-family: var(--mono); font-size: 8px;\n  letter-spacing: 1px; padding: 3px 8px; border-radius: 2px;\n  margin-top: 14px; text-transform: uppercase;\n  background: rgba(74,158,255,0.08); color: var(--accent);\n  border: 1px solid rgba(74,158,255,0.2);\n}\n\n/* ── KESSLER SECTION ── */\n#kessler { padding: 120px 0; }\n.kessler-inner {\n  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start;\n}\n.kessler-cascade {\n  display: flex; flex-direction: column; gap: 0;\n}\n.cascade-step {\n  display: flex; gap: 20px; position: relative;\n  padding-bottom: 32px; cursor: default;\n}\n.cascade-step:last-child { padding-bottom: 0; }\n.cascade-step::before {\n  content: \'\'; position: absolute;\n  left: 19px; top: 40px; bottom: 0; width: 1px;\n  background: linear-gradient(to bottom, var(--step-color, var(--border2)), transparent);\n}\n.cascade-step:last-child::before { display: none; }\n.cascade-num {\n  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;\n  background: var(--ink3); border: 1px solid var(--step-color, var(--border));\n  display: flex; align-items: center; justify-content: center;\n  font-family: var(--mono); font-size: 11px; color: var(--step-color, var(--muted));\n  transition: all 0.2s; position: relative; z-index: 1;\n}\n.cascade-step:hover .cascade-num {\n  background: color-mix(in srgb, var(--step-color, var(--accent)), transparent 85%);\n  box-shadow: 0 0 0 4px color-mix(in srgb, var(--step-color, var(--accent)), transparent 88%);\n}\n.cascade-title {\n  font-family: var(--mono); font-size: 12px; letter-spacing: 1px;\n  color: #fff; margin-bottom: 6px; padding-top: 9px;\n  transition: color 0.2s;\n}\n.cascade-step:hover .cascade-title { color: var(--step-color, var(--accent)); }\n.cascade-body { font-size: 13px; color: var(--muted); line-height: 1.65; }\n\n.kessler-data {\n  display: flex; flex-direction: column; gap: 16px;\n  position: sticky; top: 100px;\n}\n.kd-card {\n  background: var(--panel); border: 1px solid var(--border);\n  border-radius: 6px; padding: 24px; position: relative; overflow: hidden;\n}\n.kd-card::after {\n  content: \'\'; position: absolute; inset: 0;\n  background: linear-gradient(135deg, transparent 60%, var(--card-tint, rgba(74,158,255,0.03)) 100%);\n}\n.kd-label {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;\n  color: var(--muted); text-transform: uppercase; margin-bottom: 8px;\n}\n.kd-value {\n  font-family: var(--serif); font-size: 36px; color: #fff; line-height: 1;\n  margin-bottom: 4px;\n}\n.kd-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }\n.kd-bar {\n  margin-top: 14px; height: 4px; background: var(--ink3); border-radius: 2px; overflow: hidden;\n}\n.kd-bar-fill {\n  height: 100%; border-radius: 2px;\n  background: linear-gradient(to right, var(--bar-color, var(--accent)), color-mix(in srgb, var(--bar-color, var(--accent)), transparent 30%));\n  animation: bar-fill 1.6s 0.5s ease both;\n  transform-origin: left;\n}\n@keyframes bar-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }\n\n/* ── SIMULATION CAPABILITIES ── */\n#simulation { padding: 120px 0; }\n.sim-header { margin-bottom: 64px; }\n.sim-grid {\n  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;\n  margin-bottom: 40px;\n}\n.sim-card {\n  background: var(--panel); border: 1px solid var(--border);\n  border-radius: 6px; padding: 28px 24px; transition: all 0.2s; position: relative;\n}\n.sim-card:hover { border-color: var(--border2); transform: translateY(-2px); }\n.sim-card-tag {\n  font-family: var(--mono); font-size: 8px; letter-spacing: 2px;\n  text-transform: uppercase; padding: 3px 8px; border-radius: 2px;\n  margin-bottom: 16px; display: inline-block;\n  background: rgba(74,158,255,0.08); color: var(--accent);\n  border: 1px solid rgba(74,158,255,0.2);\n}\n.sim-card-tag.green {\n  background: rgba(52,211,153,0.08); color: var(--green);\n  border-color: rgba(52,211,153,0.2);\n}\n.sim-card-tag.amber {\n  background: rgba(245,158,11,0.08); color: var(--amber);\n  border-color: rgba(245,158,11,0.2);\n}\n.sim-card-tag.red {\n  background: rgba(248,113,113,0.08); color: var(--red);\n  border-color: rgba(248,113,113,0.2);\n}\n.sim-card-icon { font-size: 22px; margin-bottom: 14px; }\n.sim-card-title {\n  font-family: var(--mono); font-size: 12px; letter-spacing: 1px;\n  color: #fff; margin-bottom: 8px; text-transform: uppercase;\n}\n.sim-card-body { font-size: 13px; color: var(--muted); line-height: 1.65; }\n.sim-card-stat {\n  margin-top: 16px; font-family: var(--mono); font-size: 10px;\n  color: var(--faint); letter-spacing: 1px;\n}\n.sim-card-stat span { color: var(--accent); }\n\n.sim-terminal {\n  background: #060c14; border: 1px solid var(--border);\n  border-radius: 8px; overflow: hidden;\n  box-shadow: 0 0 80px rgba(74,158,255,0.06), 0 40px 80px rgba(0,0,0,0.6);\n}\n.sim-terminal-bar {\n  background: #0a111c; border-bottom: 1px solid var(--border);\n  padding: 12px 20px; display: flex; align-items: center; gap: 14px;\n}\n.terminal-dots { display: flex; gap: 7px; }\n.terminal-dots span { width: 10px; height: 10px; border-radius: 50%; }\n.td-r { background: #ff5f57; } .td-y { background: #febc2e; } .td-g { background: #28c840; }\n.terminal-title {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;\n  color: var(--muted); text-transform: uppercase; margin-left: auto;\n}\n.sim-terminal-body {\n  padding: 24px 28px; font-family: var(--mono); font-size: 11px;\n  line-height: 2.0;\n}\n.tl { display: block; }\n.tp { color: var(--accent); } .tc { color: var(--text); }\n.to { color: var(--muted); } .tok { color: var(--green); }\n.tw { color: var(--amber); } .tv { color: var(--accent2); }\n.te { color: var(--red); }\n.cursor-blink { display: inline-block; width: 8px; height: 14px; background: var(--accent); animation: cursor-blink 1s step-end infinite; vertical-align: middle; }\n@keyframes cursor-blink { 50% { opacity: 0; } }\n\n/* ── LEARN SECTION ── */\n#learn { padding: 120px 0; background: linear-gradient(180deg, transparent 0%, rgba(74,158,255,0.015) 50%, transparent 100%); }\n.learn-header { text-align: center; margin-bottom: 72px; }\n.learn-header .section-body { margin: 0 auto; text-align: center; }\n.chapters-grid {\n  display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;\n}\n.chapter-card {\n  display: block; text-decoration: none;\n  background: var(--panel); border: 1px solid var(--border);\n  border-radius: 8px; overflow: hidden; transition: all 0.25s;\n  position: relative;\n}\n.chapter-card:hover {\n  border-color: var(--ch-color, var(--accent));\n  transform: translateY(-3px);\n  box-shadow: 0 16px 48px rgba(0,0,0,0.4), 0 0 0 0.5px var(--ch-color, var(--accent));\n}\n.chapter-card-accent {\n  height: 3px; background: var(--ch-color, var(--accent));\n  transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease;\n}\n.chapter-card:hover .chapter-card-accent { transform: scaleX(1); }\n.chapter-card-body { padding: 32px; }\n.chapter-number {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;\n  color: var(--ch-color, var(--accent)); text-transform: uppercase;\n  margin-bottom: 12px;\n}\n.chapter-title {\n  font-family: var(--serif); font-size: 26px; font-weight: 400;\n  color: #fff; line-height: 1.2; margin-bottom: 12px;\n  letter-spacing: -0.3px;\n}\n.chapter-desc { font-size: 13px; color: var(--muted); line-height: 1.65; }\n.chapter-topics {\n  margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px;\n}\n.topic-pill {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;\n  padding: 3px 10px; border-radius: 20px;\n  background: rgba(255,255,255,0.04); color: var(--muted);\n  border: 1px solid var(--border); text-transform: uppercase;\n  transition: all 0.2s;\n}\n.chapter-card:hover .topic-pill { border-color: rgba(255,255,255,0.12); color: var(--text); }\n.chapter-footer {\n  border-top: 1px solid var(--border); padding: 16px 32px;\n  display: flex; justify-content: space-between; align-items: center;\n  font-family: var(--mono); font-size: 10px; color: var(--muted);\n}\n.chapter-read-link {\n  color: var(--ch-color, var(--accent)); letter-spacing: 1.5px;\n  text-transform: uppercase; font-size: 9px;\n  display: flex; align-items: center; gap: 6px;\n}\n.chapter-read-link::after {\n  content: \'→\'; transition: transform 0.2s;\n}\n.chapter-card:hover .chapter-read-link::after { transform: translateX(4px); }\n\n/* ── CHAPTER PROGRESS TRACKING ── */\n.chapter-card { position: relative; }\n.chapter-progress-badge {\n  position: absolute; top: 14px; right: 14px;\n  width: 26px; height: 26px; border-radius: 50%;\n  background: var(--green, #34d399); display: none;\n  align-items: center; justify-content: center;\n  font-size: 12px; z-index: 2;\n  box-shadow: 0 0 12px rgba(52,211,153,0.4);\n}\n.chapter-card.completed .chapter-progress-badge { display: flex; }\n.chapter-card.completed .chapter-card-accent { transform: scaleX(1); background: var(--green, #34d399); }\n.chapter-card.completed { border-color: rgba(52,211,153,0.2); }\n\n/* Learning progress bar strip */\n.learn-progress-strip {\n  max-width: 480px; margin: 0 auto 56px;\n  background: var(--panel); border: 1px solid var(--border);\n  border-radius: 8px; padding: 16px 24px;\n  display: none;\n}\n.learn-progress-strip.show { display: block; }\n.lps-label {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;\n  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;\n  display: flex; justify-content: space-between;\n}\n.lps-bar-track {\n  height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;\n}\n.lps-bar-fill {\n  height: 100%; border-radius: 2px;\n  background: linear-gradient(90deg, var(--accent) 0%, var(--green) 100%);\n  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);\n}\n\n/* ── DATA SECTION ── */\n#data { padding: 100px 0; }\n.data-metrics {\n  display: grid; grid-template-columns: repeat(4, 1fr);\n  gap: 1px; background: var(--border);\n  border: 1px solid var(--border); border-radius: 8px; overflow: hidden;\n}\n.data-metric {\n  background: var(--panel); padding: 40px 32px; text-align: center;\n  position: relative; overflow: hidden; transition: background 0.2s;\n}\n.data-metric:hover { background: var(--ink3); }\n.data-metric-glyph {\n  position: absolute; bottom: -10px; right: -10px;\n  font-family: var(--serif); font-size: 80px; color: rgba(255,255,255,0.02);\n  line-height: 1; pointer-events: none;\n}\n.data-metric-val {\n  font-family: var(--serif); font-size: 48px; color: var(--accent);\n  line-height: 1; margin-bottom: 8px; display: block;\n}\n.c2 .data-metric-val { color: var(--green); }\n.c3 .data-metric-val { color: var(--amber); }\n.c4 .data-metric-val { color: #a78bfa; }\n.data-metric-label {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;\n  color: var(--muted); text-transform: uppercase;\n}\n\n/* ── SATELLITE OF THE DAY ── */\n#satod { padding: 40px 0 80px; }\n.satod-card {\n  max-width: 900px; margin: 0 auto;\n  background: var(--panel); border: 1px solid var(--border); border-radius: 16px;\n  overflow: hidden; position: relative;\n}\n.satod-card::before {\n  content: \'\'; position: absolute; top: 0; left: 0; right: 0; height: 2px;\n  background: linear-gradient(90deg, var(--satod-color, var(--accent)) 0%, transparent 100%);\n}\n.satod-header {\n  padding: 28px 36px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;\n}\n.satod-eyebrow {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;\n  color: var(--green); text-transform: uppercase; margin-bottom: 8px;\n  display: flex; align-items: center; gap: 8px;\n}\n.satod-live-dot {\n  width: 6px; height: 6px; border-radius: 50%; background: var(--green);\n  animation: pulse-dot 2s ease-in-out infinite;\n}\n@keyframes pulse-dot {\n  0%, 100% { opacity: 1; transform: scale(1); }\n  50% { opacity: 0.4; transform: scale(0.7); }\n}\n.satod-name {\n  font-family: var(--serif); font-size: 28px; color: #fff;\n  font-weight: 400; letter-spacing: -0.3px; line-height: 1.2;\n}\n.satod-type-badge {\n  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;\n  padding: 5px 12px; border-radius: 20px; border: 1px solid;\n  text-transform: uppercase; white-space: nowrap; align-self: flex-start;\n  color: var(--satod-color, var(--accent));\n  border-color: var(--satod-color, var(--accent));\n  background: rgba(74,158,255,0.07);\n}\n.satod-stats {\n  display: grid; grid-template-columns: repeat(3, 1fr);\n  border-top: 1px solid var(--border);\n}\n.satod-stat {\n  padding: 24px 28px; border-right: 1px solid var(--border);\n  display: flex; flex-direction: column; gap: 4px;\n}\n.satod-stat:last-child { border-right: none; }\n.satod-stat-val {\n  font-family: var(--serif); font-size: 32px; color: var(--satod-color, var(--accent));\n  line-height: 1; letter-spacing: -0.5px;\n}\n.satod-stat-unit {\n  font-family: var(--mono); font-size: 9px; color: var(--muted);\n  letter-spacing: 1px; text-transform: uppercase;\n}\n.satod-stat-label {\n  font-family: var(--mono); font-size: 9px; color: var(--muted);\n  letter-spacing: 1px; text-transform: uppercase; margin-top: 2px;\n}\n.satod-footer {\n  padding: 20px 36px; border-top: 1px solid var(--border);\n  display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\n}\n.satod-fact-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }\n.satod-fact {\n  font-size: 14px; color: var(--muted); line-height: 1.7; flex: 1;\n  font-style: italic;\n}\n.satod-operator {\n  font-family: var(--mono); font-size: 9px; color: var(--faint);\n  letter-spacing: 1px; text-transform: uppercase; padding: 20px 36px 0;\n}\n.satod-loading {\n  padding: 60px 36px; text-align: center;\n  font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 1px;\n}\n\n/* ── CTA SECTION ── */\n#cta { padding: 100px 0; }\n.cta-box {\n  position: relative; overflow: hidden;\n  background: linear-gradient(135deg, rgba(74,158,255,0.08) 0%, rgba(74,158,255,0.02) 100%);\n  border: 1px solid rgba(74,158,255,0.2); border-radius: 20px;\n  padding: 80px 64px; text-align: center;\n}\n.cta-glow {\n  position: absolute; top: -80px; left: 50%; transform: translateX(-50%);\n  width: 500px; height: 300px; border-radius: 50%;\n  background: radial-gradient(ellipse, rgba(74,158,255,0.12) 0%, transparent 70%);\n  pointer-events: none;\n}\n.cta-eyebrow {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;\n  text-transform: uppercase; color: var(--accent); margin-bottom: 20px;\n}\n.cta-title {\n  font-family: var(--serif); font-size: clamp(30px, 4vw, 52px);\n  font-weight: 400; color: #fff; line-height: 1.15; letter-spacing: -0.5px;\n  margin-bottom: 20px;\n}\n.cta-title em { font-style: italic; color: var(--accent2); }\n.cta-body {\n  font-size: 16px; color: var(--muted); line-height: 1.8;\n  max-width: 580px; margin: 0 auto 40px;\n}\n.cta-buttons {\n  display: flex; gap: 14px; justify-content: center;\n  flex-wrap: wrap; align-items: center;\n}\n\n/* ── FOOTER ── */\nfooter {\n  padding: 60px 48px 40px;\n  border-top: 1px solid var(--border);\n  position: relative; z-index: 1;\n}\n.footer-top {\n  display: flex; align-items: flex-start; justify-content: space-between;\n  gap: 40px; margin-bottom: 40px; flex-wrap: wrap;\n}\n.footer-brand {\n  font-family: var(--serif); font-size: 18px; font-style: italic;\n  color: #fff; letter-spacing: -0.2px; text-decoration: none;\n}\n.footer-brand em { color: var(--accent); font-style: normal; }\n.footer-links {\n  display: flex; gap: 6px 24px; flex-wrap: wrap; list-style: none;\n  max-width: 420px;\n}\n.footer-links a {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;\n  text-transform: uppercase; color: var(--muted); text-decoration: none;\n  transition: color 0.2s;\n}\n.footer-links a:hover { color: var(--text); }\n.footer-contact {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;\n  color: var(--muted); line-height: 1.8;\n}\n.footer-contact a { color: var(--accent); text-decoration: none; }\n.footer-contact a:hover { text-decoration: underline; }\n.footer-copy {\n  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;\n  color: var(--faint); border-top: 1px solid var(--border); padding-top: 20px;\n}\n\n@media (max-width: 600px) {\n  .satod-stats { grid-template-columns: 1fr; }\n  .satod-stat { border-right: none; border-bottom: 1px solid var(--border); }\n  .satod-stat:last-child { border-bottom: none; }\n  .satod-header { padding: 24px 20px 16px; }\n  .satod-footer, .satod-operator { padding-left: 20px; padding-right: 20px; }\n}\n\n/* ═══════════════════════════════════════════════════\n   RESPONSIVE — TABLET  (≤960px)\n   ═══════════════════════════════════════════════════ */\n@media (max-width: 960px) {\n  nav { padding: 0 16px; }\n  .nav-links { display: none; }\n  .nav-hamburger { display: flex; }\n  .nav-cta { display: none; }\n  .nav-signin { display: none; }\n  .section-wrap { padding: 0 20px; }\n  .mission-grid, .kessler-inner { grid-template-columns: 1fr; gap: 40px; }\n  .ssa-pillars { grid-template-columns: 1fr 1fr; }\n  .sim-grid { grid-template-columns: 1fr 1fr; }\n  .chapters-grid { grid-template-columns: 1fr; }\n  .data-metrics { grid-template-columns: repeat(2, 1fr); }\n  .mission-visual { height: 260px; }\n  footer { flex-direction: column; gap: 20px; text-align: center; }\n  .kessler-data { position: static; }\n  #contact .container { padding: 0 20px !important; }\n  #contact .reveal > div { padding: 40px 32px !important; }\n  /* Why cards — 2 col on tablet */\n  #why .why-grid { grid-template-columns: repeat(2, 1fr) !important; }\n  /* Howto strip — stack on tablet */\n  #howto .howto-inner { flex-direction: column !important; gap: 0 !important; }\n  #howto .howto-step { border-right: none !important; border-bottom: 1px solid var(--border) !important; padding: 20px 0 !important; }\n  #howto .howto-step:last-child { border-bottom: none !important; }\n}\n\n/* ═══════════════════════════════════════════════════\n   RESPONSIVE — MOBILE  (≤600px)\n   ═══════════════════════════════════════════════════ */\n@media (max-width: 600px) {\n  /* ── Nav ── */\n  nav { padding: 0 16px; height: 54px; }\n\n  /* ── Hero ── */\n  #hero { padding: 88px 16px 60px; min-height: auto; }\n  .hero-orbit-system { display: none; }\n  .hero-title { font-size: clamp(38px, 11vw, 56px); letter-spacing: -1px; }\n  .hero-title-line2 { font-size: clamp(22px, 7vw, 32px); }\n  .hero-desc { font-size: 15px; margin: 20px auto 32px; }\n  /* Social proof strip — 2x2 grid on mobile */\n  .hero-proof { flex-wrap: wrap !important; gap: 16px !important; }\n  .hero-proof-divider { display: none !important; }\n  .hero-proof-item { min-width: calc(50% - 8px) !important; }\n  .hero-actions { flex-direction: column; gap: 10px; width: 100%; }\n  .btn-primary-hero, .btn-secondary-hero { width: 100%; text-align: center; }\n  .hero-scroll { display: none; }\n\n  /* ── Ticker ── */\n  #tle-ticker { display: none; }\n  .ticker-bar { margin-top: 16px; }\n\n  /* ── Section wrap ── */\n  .section-wrap { padding: 0 16px; }\n\n  /* ── Why cards — single column ── */\n  #why { padding: 60px 0 40px !important; }\n  #why .why-grid { grid-template-columns: 1fr !important; gap: 14px !important; }\n\n  /* ── Howto strip ── */\n  #howto { padding: 12px 0 60px !important; }\n  #howto .howto-inner {\n    flex-direction: column !important;\n    padding: 28px 20px !important;\n    gap: 0 !important;\n  }\n  #howto .howto-step {\n    border-right: none !important;\n    border-bottom: 1px solid var(--border) !important;\n    padding: 20px 0 !important;\n  }\n  #howto .howto-step:last-child { border-bottom: none !important; padding-bottom: 0 !important; }\n\n  /* ── Chapters ── */\n  .chapters-grid { grid-template-columns: 1fr; gap: 14px; }\n  .chapter-card-body { padding: 20px 16px; }\n  .chapter-footer { padding: 12px 16px; }\n  .chapter-topics { gap: 5px; }\n  .topic-pill { font-size: 8px; padding: 3px 8px; }\n\n  /* ── Simulation grid ── */\n  .sim-grid { grid-template-columns: 1fr; }\n  .tools-strip { flex-direction: column; }\n  .tool-card { min-width: 0; }\n\n  /* ── Data metrics ── */\n  .data-metrics { grid-template-columns: 1fr 1fr; }\n\n  /* ── CTA ── */\n  .cta-box { padding: 40px 20px; }\n  .cta-title { font-size: clamp(22px, 6vw, 34px); }\n  .cta-body { font-size: 14px; }\n  .cta-buttons { flex-direction: column; gap: 10px; }\n  .cta-buttons a { width: 100%; text-align: center; }\n\n  /* ── SSA pillars ── */\n  .ssa-pillars { grid-template-columns: 1fr; }\n\n  /* ── Contact ── */\n  #contact { padding: 60px 0 !important; }\n  /* Team cards: horizontal scroll on mobile */\n  .team-grid {\n    grid-template-columns: 1fr 1fr !important;\n    gap: 12px !important;\n    overflow-x: auto;\n    -webkit-overflow-scrolling: touch;\n    padding-bottom: 8px;\n  }\n  .team-grid > div { min-width: 240px; }\n  #contact .container { padding: 0 16px !important; }\n  #contact .reveal > div { padding: 28px 16px !important; }\n  .contact-bio-row { flex-direction: column !important; gap: 20px !important; align-items: center !important; text-align: center !important; }\n  #contact .reveal [style*="font-size:26px"] { font-size: 18px !important; }\n  #contact .reveal [style*="font-size:clamp(22px"] { font-size: 18px !important; }\n  #contact .reveal [style*="max-width:520px"] { max-width: 100% !important; }\n  #contact a[href^="mailto"] { width: 100%; justify-content: center !important; font-size: 9px !important; padding: 12px 12px !important; box-sizing: border-box; }\n  /* Team cards — stack on mobile */\n  #contact .reveal > div > div[style*="grid-template-columns:1fr 1fr"] {\n    grid-template-columns: 1fr !important;\n  }\n\n  /* ── Footer ── */\n  footer { padding: 28px 16px; }\n  .footer-top { flex-direction: column; align-items: flex-start; gap: 24px; margin-bottom: 24px; }\n  .footer-top { flex-direction: column; align-items: center; text-align: center; }\n  .footer-links { flex-wrap: wrap; justify-content: center; gap: 6px 14px; }\n  .footer-contact { text-align: center; }\n  .footer-copy { font-size: 10px; text-align: center; }\n}\n</style>\n</head>\n<body>\n\n<!-- STARFIELD -->\n<div id="starfield"></div>\n\n<!-- NAV -->\n<nav id="nav">\n  <a href="/" class="nav-brand">\n    <span class="nav-brand-name">Vectra<em>Space</em></span>\n  </a>\n  <ul class="nav-links">\n    <li><a href="#mission">Mission</a></li>\n    <li><a href="#learn">Chapters</a></li>\n    <li><a href="/scenarios">Scenarios</a></li>\n        <li><a href="/glossary">Resources</a></li>\n    <li><a href="/calculator">Calculator</a></li>\n    <li><a href="#contact">Contact</a></li>
-    <li><a href="/api/tools/trajectory" style="color:var(--green);border:1px solid rgba(52,211,153,0.3);border-radius:4px;padding:4px 10px;">Trajectory ↗</a></li>\n  </ul>\n  <div class="nav-right">\n    <a href="/dashboard" class="nav-cta">Dashboard →</a>\n  </div>\n  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">\n    <span></span><span></span><span></span>\n  </button>\n</nav>\n<div id="mobile-nav">\n  <a href="#mission">Mission <span>→</span></a>\n  <a href="#learn">Chapters <span>→</span></a>\n  <a href="/scenarios">Scenarios <span>→</span></a>\n  <a href="/glossary">Resources <span>→</span></a>\n  <a href="/calculator">Calculator <span>→</span></a>\n  <a href="#contact">Contact <span>→</span></a>
-  <a href="/api/tools/trajectory">Trajectory Simulator <span>↗</span></a>\n  <a href="/dashboard" class="cta-link">Open Dashboard →</a>\n</div>\n\n<!-- HERO -->\n<section id="hero">\n  <div class="hero-orbit-system">\n    <div class="orbit-ring orbit-ring-1"><div class="orbit-sat" style="color:#4a9eff;"></div></div>\n    <div class="orbit-ring orbit-ring-2"><div class="orbit-sat orbit-sat-2" style="top:-4px;left:calc(50% - 4px);"></div></div>\n    <div class="orbit-ring orbit-ring-3"><div class="orbit-sat orbit-sat-3" style="top:calc(50% - 4px);left:-4px;"></div></div>\n  </div>\n\n  <div class="hero-eyebrow">\n    <span class="eyebrow-dot"></span>\n    Space Situational Awareness &amp; Education Platform\n  </div>\n\n  <h1 class="hero-title">\n    <span class="hero-title-italic">Understanding</span>\n    <span class="hero-title-line2">the Crowded Cosmos</span>\n  </h1>\n\n  <p class="hero-desc">\n    <strong>27,000+ tracked objects.</strong> A debris field that could trigger an irreversible\n    cascade. VectraSpace gives you the physics, the data, and the tools to understand it —\n    from Kepler to Kessler, in four chapters.\n  </p>\n\n  <!-- Social proof strip -->\n  <div class="hero-proof" style="display:flex;gap:32px;margin:28px 0 36px;flex-wrap:wrap;">\n    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">\n      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:#fff;letter-spacing:-1px;">4</span>\n      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Technical Chapters</span>\n    </div>\n    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>\n    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">\n      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:#fff;letter-spacing:-1px;">27k+</span>\n      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Tracked Objects</span>\n    </div>\n    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>\n    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">\n      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:var(--green);letter-spacing:-1px;">Live</span>\n      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">SGP4 Scanner</span>\n    </div>\n    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>\n    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">\n      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:var(--amber);letter-spacing:-1px;">Free</span>\n      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">No account needed</span>\n    </div>\n  </div>\n\n  <div class="hero-actions">\n    <a href="#learn" class="btn-primary-hero">Start Learning &darr;</a>\n    <a href="/dashboard" class="btn-secondary-hero">Live Scanner &rarr;</a>\n  </div>\n\n  <a href="#why" class="hero-scroll">\n    <div class="scroll-line"></div>\n    Scroll\n  </a>\n</section>\n<!-- TICKER -->\n<div class="ticker-bar">\n  <div class="ticker-inner" id="ticker">\n    <span class="tick-item ok"><span class="tick-sep">◆</span> Tracked Objects: 27,000+</span>\n    <span class="tick-item warn"><span class="tick-sep">◆</span> Estimated Debris &gt;1mm: 130 Million</span>\n    <span class="tick-item hi"><span class="tick-sep">◆</span> ISS Altitude: 408 km LEO</span>\n    <span class="tick-item"><span class="tick-sep">◆</span> Collision Risk Method: Foster-Alfano Pc</span>\n    <span class="tick-item warn"><span class="tick-sep">◆</span> Fengyun-1C 2007: Largest Single Debris Event</span>\n    <span class="tick-item ok"><span class="tick-sep">◆</span> SGP4 Propagation: 1-Minute Resolution</span>\n    <span class="tick-item"><span class="tick-sep">◆</span> Sun-Synchronous i ≈ 97.8° — RAAN Drifts +0.9856°/day</span>\n    <span class="tick-item hi"><span class="tick-sep">◆</span> Kessler Syndrome: Self-Sustaining Cascade</span>\n    <span class="tick-item"><span class="tick-sep">◆</span> J₂ Coefficient: 1.08263 × 10⁻³</span>\n    <span class="tick-item ok"><span class="tick-sep">◆</span> Tracked Objects: 27,000+</span>\n    <span class="tick-item warn"><span class="tick-sep">◆</span> Estimated Debris &gt;1mm: 130 Million</span>\n    <span class="tick-item hi"><span class="tick-sep">◆</span> ISS Altitude: 408 km LEO</span>\n    <span class="tick-item"><span class="tick-sep">◆</span> Collision Risk Method: Foster-Alfano Pc</span>\n    <span class="tick-item warn"><span class="tick-sep">◆</span> Fengyun-1C 2007: Largest Single Debris Event</span>\n    <span class="tick-item ok"><span class="tick-sep">◆</span> SGP4 Propagation: 1-Minute Resolution</span>\n    <span class="tick-item"><span class="tick-sep">◆</span> Sun-Synchronous i ≈ 97.8° — RAAN Drifts +0.9856°/day</span>\n    <span class="tick-item hi"><span class="tick-sep">◆</span> Kessler Syndrome: Self-Sustaining Cascade</span>\n    <span class="tick-item"><span class="tick-sep">◆</span> J₂ Coefficient: 1.08263 × 10⁻³</span>\n  </div>\n</div>\n\n<!-- MISSION / WHY IT MATTERS -->\n<div id="mission" style="position:relative;top:-60px;pointer-events:none;"></div>\n<section id="why"  style="padding:80px 0 60px;">\n  <div class="section-wrap">\n    <!-- ── WHY WE EXIST ── -->\n    <div class="reveal" style="text-align:center;margin-bottom:56px;">\n      <div class="section-label" style="justify-content:center;">// Our Mission</div>\n      <h2 class="section-title" style="margin-bottom:20px;">Built because the physics<br><em>deserves to be understood</em></h2>\n      <p style="font-size:15px;color:var(--muted);max-width:600px;margin:0 auto 40px;line-height:1.85;">\n        VectraSpace exists because orbital safety is one of the most consequential engineering\n        problems of our generation — and almost no one outside the industry understands it.\n        We built a platform where anyone can engage with the real mathematics: not simplified\n        metaphors, but the actual SGP4 propagation, Foster-Alfano probability of collision,\n        and Kessler cascade physics that real SSA operators use every day.\n      </p>\n      <div style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;">\n        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">\n          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--accent);">Free</span>\n          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Always &amp; Forever</span>\n        </div>\n        <div style="width:1px;background:var(--border);"></div>\n        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">\n          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--green);">Real</span>\n          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Physics &amp; Data</span>\n        </div>\n        <div style="width:1px;background:var(--border);"></div>\n        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">\n          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--amber);">Open</span>\n          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">No Account Needed</span>\n        </div>\n      </div>\n      <div class="section-label" style="justify-content:center;margin-bottom:8px;">// Why orbital safety matters</div>\n      <h2 class="section-title">The orbital environment<br>is <em>running out of time</em></h2>\n    </div>\n    <div class="why-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">\n\n      <div class="reveal" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">\n        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);"></div>\n        <div style="font-family:var(--serif);font-size:48px;font-style:italic;color:var(--accent);letter-spacing:-2px;margin-bottom:10px;">27,000+</div>\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Tracked Objects</div>\n        <p style="font-size:13px;color:var(--muted);line-height:1.75;">The US Space Surveillance Network tracks 27,000+ objects larger than 10cm. Hundreds of thousands of smaller fragments — invisible to radar — travel at 7.8 km/s through crowded orbital shells.</p>\n      </div>\n\n      <div class="reveal reveal-delay-1" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">\n        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--amber),transparent);"></div>\n        <div style="font-family:var(--serif);font-size:48px;font-style:italic;color:var(--amber);letter-spacing:-2px;margin-bottom:10px;">10×</div>\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Collision Energy Multiplier</div>\n        <p style="font-size:13px;color:var(--muted);line-height:1.75;">Orbital velocities of ~7.8 km/s mean a 10 cm debris fragment carries the kinetic energy of a hand grenade. Even a 1 cm fragment can destroy a satellite — and generate thousands more pieces.</p>\n      </div>\n\n      <div class="reveal reveal-delay-2" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">\n        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent);"></div>\n        <div style="font-family:var(--serif);font-size:48px;font-style:italic;color:var(--red);letter-spacing:-2px;margin-bottom:10px;">Cascade</div>\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Kessler Syndrome Risk</div>\n        <p style="font-size:13px;color:var(--muted);line-height:1.75;">Above a critical density threshold, collisions generate debris faster than drag removes it. The cascade becomes self-sustaining — rendering entire orbital shells permanently unusable.</p>\n      </div>\n\n    </div>\n  </div>\n</section>\n\n<!-- 3-step onboarding strip -->\n<section id="howto" style="padding:20px 0 80px;">\n  <div class="section-wrap">\n    <div class="reveal howto-inner" style="background:var(--ink2);border:1px solid var(--border);border-radius:16px;padding:40px 48px;display:flex;align-items:center;gap:0;flex-wrap:wrap;">\n      <div class="howto-step" style="flex:1;min-width:160px;padding:0 24px 0 0;border-right:1px solid var(--border);">\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">Step 01</div>\n        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Read the Chapters</div>\n        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Four technical deep dives — orbital mechanics, collision prediction, perturbations, debris modeling.</div>\n      </div>\n      <div class="howto-step" style="flex:1;min-width:160px;padding:0 24px;border-right:1px solid var(--border);">\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:10px;">Step 02</div>\n        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Run a Simulation</div>\n        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Explore the Kessler cascade, Iridium–Cosmos collision, and ASAT events in interactive 3D.</div>\n      </div>\n      <div class="howto-step" style="flex:1;min-width:160px;padding:0 0 0 24px;">\n        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">Step 03</div>\n        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Scan Live Orbits</div>\n        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Run the live SGP4 conjunction scanner on real TLE data and generate a downloadable CDM report.</div>\n      </div>\n    </div>\n  </div>\n</section>\n<!-- DEEP DIVE CHAPTERS -->\n<section id="learn">\n  <div class="section-wrap">\n    <div class="learn-header">\n      <div class="reveal">\n        <div class="section-label">// Technical Deep Dives</div>\n        <h2 class="section-title">The physics behind<br><em>every orbit</em></h2>\n        <p class="section-body">\n          Four comprehensive chapters covering the mathematics, algorithms, and engineering principles\n          that power modern Space Situational Awareness — from Kepler to Kessler.\n        </p>\n      </div>\n    </div>\n\n    <div class="learn-progress-strip" id="learn-progress-strip">\n      <div class="lps-label"><span>Your Progress</span><span id="lps-text">0 / 4 Chapters</span></div>\n      <div class="lps-bar-track"><div class="lps-bar-fill" id="lps-fill" style="width:0%"></div></div>\n    </div>\n    <div class="chapters-grid">\n      <!-- Chapter 01 -->\n      <a href="/education/orbital-mechanics" class="chapter-card reveal" id="chcard-1" style="--ch-color:#4a9eff;">\n        <div class="chapter-card-accent"></div>\n        <div class="chapter-progress-badge">✓</div>\n        <div class="chapter-card-body">\n          <div class="chapter-number">Chapter 01 — Foundations</div>\n          <h3 class="chapter-title">Orbital Mechanics &amp; the Two-Body Problem</h3>\n          <p class="chapter-desc">\n            From Newton\'s universal gravitation to Kepler\'s three laws, vis-viva equation,\n            orbital elements, TLE format, and the SGP4 propagator that powers every conjunction\n            screening system on Earth.\n          </p>\n          <div class="chapter-topics">\n            <span class="topic-pill">Kepler\'s Laws</span>\n            <span class="topic-pill">Six Orbital Elements</span>\n            <span class="topic-pill">TLE Format</span>\n            <span class="topic-pill">SGP4 Model</span>\n            <span class="topic-pill">Vis-Viva Equation</span>\n          </div>\n        </div>\n        <div class="chapter-footer">\n          <span>~25 min read · 12 equations</span>\n          <span class="chapter-read-link">Read chapter</span>\n        </div>\n      </a>\n\n      <!-- Chapter 02 -->\n      <a href="/education/collision-prediction" class="chapter-card reveal reveal-delay-1" id="chcard-2" style="--ch-color:#34d399;">\n        <div class="chapter-card-accent"></div>\n        <div class="chapter-progress-badge">✓</div>\n        <div class="chapter-card-body">\n          <div class="chapter-number">Chapter 02 — Collision Analysis</div>\n          <h3 class="chapter-title">Conjunction Prediction &amp; Probability of Collision</h3>\n          <p class="chapter-desc">\n            How operators screen 350 million possible object pairs daily, compute Time of Closest\n            Approach, model covariance ellipsoids, and apply the Foster-Alfano method to estimate\n            whether a maneuver is warranted.\n          </p>\n          <div class="chapter-topics">\n            <span class="topic-pill">TCA Algorithm</span>\n            <span class="topic-pill">Foster-Alfano Pc</span>\n            <span class="topic-pill">CCSDS CDM</span>\n            <span class="topic-pill">Covariance Matrix</span>\n            <span class="topic-pill">CW Maneuver</span>\n          </div>\n        </div>\n        <div class="chapter-footer">\n          <span>~30 min read · 18 equations</span>\n          <span class="chapter-read-link">Read chapter</span>\n        </div>\n      </a>\n\n      <!-- Chapter 03 -->\n      <a href="/education/perturbations" class="chapter-card reveal reveal-delay-2" id="chcard-3" style="--ch-color:#f59e0b;">\n        <div class="chapter-card-accent"></div>\n        <div class="chapter-progress-badge">✓</div>\n        <div class="chapter-card-body">\n          <div class="chapter-number">Chapter 03 — Perturbation Theory</div>\n          <h3 class="chapter-title">Why Real Orbits Deviate from Kepler</h3>\n          <p class="chapter-desc">\n            Earth\'s oblateness (J₂ = 1.08263×10⁻³), atmospheric drag, solar radiation pressure,\n            and luni-solar gravity all bend real orbits away from ideal ellipses — and drive\n            sun-synchronous design, station-keeping budgets, and TLE accuracy decay.\n          </p>\n          <div class="chapter-topics">\n            <span class="topic-pill">J₂ Oblateness</span>\n            <span class="topic-pill">Atmospheric Drag</span>\n            <span class="topic-pill">Solar Rad. Pressure</span>\n            <span class="topic-pill">RAAN Precession</span>\n            <span class="topic-pill">TLE Age Error</span>\n          </div>\n        </div>\n        <div class="chapter-footer">\n          <span>~28 min read · 15 equations</span>\n          <span class="chapter-read-link">Read chapter</span>\n        </div>\n      </a>\n\n      <!-- Chapter 04 -->\n      <a href="/education/debris-modeling" class="chapter-card reveal reveal-delay-3" id="chcard-4" style="--ch-color:#f87171;">\n        <div class="chapter-card-accent"></div>\n        <div class="chapter-progress-badge">✓</div>\n        <div class="chapter-card-body">\n          <div class="chapter-number">Chapter 04 — Debris Physics</div>\n          <h3 class="chapter-title">Debris Modeling &amp; the Kessler Cascade</h3>\n          <p class="chapter-desc">\n            The NASA Standard Breakup Model, power-law fragment distributions, historical events\n            from Fengyun-1C to Iridium-Cosmos, cascade threshold mathematics, Active Debris Removal\n            technologies, and IADC mitigation guidelines.\n          </p>\n          <div class="chapter-topics">\n            <span class="topic-pill">NASA SBM</span>\n            <span class="topic-pill">Fragment Velocity</span>\n            <span class="topic-pill">Cascade Physics</span>\n            <span class="topic-pill">ADR Technologies</span>\n            <span class="topic-pill">IADC Guidelines</span>\n          </div>\n        </div>\n        <div class="chapter-footer">\n          <span>~32 min read · 10 equations</span>\n          <span class="chapter-read-link">Read chapter</span>\n        </div>\n      </a>\n    </div>\n  </div>\n</section>\n\n<div class="section-divider"></div>\n\n<!-- SIMULATION -->\n<section id="simulation">\n  <div class="section-wrap">\n    <div class="sim-header reveal">\n      <div class="section-label">// Live Simulation Platform</div>\n      <h2 class="section-title">See the math <em>in motion</em></h2>\n      <p class="section-body">\n        The VectraSpace dashboard runs real SGP4 propagation on live TLE data, screens\n        every orbit pair for conjunctions, and visualizes the results on a photorealistic\n        CesiumJS globe — all in your browser.\n      </p>\n    </div>\n\n    <div class="sim-grid">\n      <div class="sim-card reveal">\n        <span class="sim-card-tag">SGP4 / SDP4</span>\n        <div class="sim-card-icon">⚡</div>\n        <div class="sim-card-title">Live Propagation</div>\n        <p class="sim-card-body">NumPy-vectorized SGP4 propagates thousands of satellites simultaneously across a 12–72 hour window at 1-minute resolution. Regime-specific filters for LEO, MEO, and GEO.</p>\n        <div class="sim-card-stat">Step size: <span>60 s</span> · Batch: <span>50 sats</span></div>\n      </div>\n      <div class="sim-card reveal reveal-delay-1">\n        <span class="sim-card-tag green">Conjunction</span>\n        <div class="sim-card-icon">🎯</div>\n        <div class="sim-card-title">Conjunction Screening</div>\n        <p class="sim-card-body">Ellipsoid pre-filter eliminates 95%+ of pairs before refinement. Bounded golden-section search finds exact TCA. Foster-Alfano Pc with real CDM covariance when Space-Track credentials are set.</p>\n        <div class="sim-card-stat">Filter rate: <span>~95%</span> · Pc method: <span>Foster-Alfano</span></div>\n      </div>\n      <div class="sim-card reveal reveal-delay-2">\n        <span class="sim-card-tag amber">Debris</span>\n        <div class="sim-card-icon">💥</div>\n        <div class="sim-card-title">Fragmentation Model</div>\n        <p class="sim-card-body">Simulate a collision or explosion using the NASA Standard Breakup Model. Lognormal velocity distributions, isotropic ejection directions, and real conjunction screening of the resulting debris cloud.</p>\n        <div class="sim-card-stat">Max fragments: <span>200</span> · Lc range: <span>1–50 cm</span></div>\n      </div>\n      <div class="sim-card reveal">\n        <span class="sim-card-tag">CCSDS CDM</span>\n        <div class="sim-card-icon">📄</div>\n        <div class="sim-card-title">CDM Export</div>\n        <p class="sim-card-body">Standards-compliant Conjunction Data Messages (CCSDS 508.0-B-1) generated per event. Individual download or bulk ZIP. Includes Clohessy-Wiltshire minimum-ΔV maneuver advisory for each conjunction.</p>\n        <div class="sim-card-stat">Format: <span>CCSDS 508.0</span> · Maneuver: <span>CW Linear</span></div>\n      </div>\n      <div class="sim-card reveal reveal-delay-1">\n        <span class="sim-card-tag red">Alerting</span>\n        <div class="sim-card-icon">🔔</div>\n        <div class="sim-card-title">Real-time Alerts</div>\n        <p class="sim-card-body">Threshold-based alert routing: email (Gmail, SendGrid, SES, Postmark), Pushover mobile push, and HTTP webhooks. Per-user Pc threshold and miss-distance configuration. Styled HTML email with full conjunction data.</p>\n        <div class="sim-card-stat">Channels: <span>4 email + Pushover + webhook</span></div>\n      </div>\n      <div class="sim-card reveal reveal-delay-2">\n        <span class="sim-card-tag">CesiumJS</span>\n        <div class="sim-card-icon">🌐</div>\n        <div class="sim-card-title">3D Globe Visualization</div>\n        <p class="sim-card-body">Photorealistic Cesium World Terrain + Imagery, animated orbital tracks, conjunction markers, time-scrubbing, and adjustable simulation speed. Click any object for satellite info powered by the Anthropic API.</p>\n        <div class="sim-card-stat">Engine: <span>CesiumJS 1.114</span> · Mode: <span>WebGL 2</span></div>\n      </div>\n    </div>\n\n    <!-- Interactive Tools Strip -->\n    <div class="tools-strip reveal" style="margin-top:40px;">\n      <a href="/scenarios" class="tool-card">\n        <div class="tool-card-icon">💥</div>\n        <div class="tool-card-body">\n          <div class="tool-card-title">Scenario Modules</div>\n          <div class="tool-card-desc">Iridium-Cosmos · Kessler · ASAT · Maneuver</div>\n        </div>\n      </a>\n\n      <a href="/calculator" class="tool-card">\n        <div class="tool-card-icon amber">⚡</div>\n        <div class="tool-card-body">\n          <div class="tool-card-title">Impact Calculator</div>\n          <div class="tool-card-desc">KE, Pc, fragment counts, Kessler risk</div>\n        </div>\n      </a>\n      <a href="/glossary" class="tool-card">\n        <div class="tool-card-icon purple">📖</div>\n        <div class="tool-card-body">\n          <div class="tool-card-title">Resources</div>\n          <div class="tool-card-desc">50+ terms · searchable · deep-link ready</div>\n        </div>\n      </a>\n    </div>\n\n    <!-- Terminal -->\n    <div class="sim-terminal reveal" style="margin-top:36px;">\n      <div class="sim-terminal-bar">\n        <div class="terminal-dots"><span class="td-r"></span><span class="td-y"></span><span class="td-g"></span></div>\n        <div class="terminal-title">VectraSpace v11 — Orbital Scan</div>\n      </div>\n      <div class="sim-terminal-body">\n        <span class="tl"><span class="tp">$ </span><span class="tc">python vectraspace.py</span></span>\n        <span class="tl"><span class="to">[INFO] Loading environment from .env</span></span>\n        <span class="tl"><span class="tok">✓ Space-Track authenticated — 4,812 TLEs downloaded</span></span>\n        <span class="tl"><span class="to">  LEO: <span class="tv">3,204</span> · MEO: <span class="tv">891</span> · GEO: <span class="tv">717</span></span></span>\n        <span class="tl"> </span>\n        <span class="tl"><span class="to">Propagating 170 satellites — 12h @ 1 min resolution</span></span>\n        <span class="tl"><span class="tok">✓ Vectorized propagation complete (1,240 timesteps × 170 sats)</span></span>\n        <span class="tl"><span class="to">Screening 14,365 pairs — ellipsoid pre-filter active</span></span>\n        <span class="tl"><span class="tok">✓ 13,642 pairs rejected (94.9%) — 723 refined</span></span>\n        <span class="tl"> </span>\n        <span class="tl"><span class="tw">⚠ CONJUNCTION DETECTED</span></span>\n        <span class="tl"><span class="to">  STARLINK-4521 ↔ COSMOS-1408 DEB  [LEO/LEO]</span></span>\n        <span class="tl"><span class="to">  Miss dist: <span class="tv">3.214 km</span> · Pc: <span class="tw">4.1e-04</span> · TCA: <span class="tv">+2h 14m</span></span></span>\n        <span class="tl"><span class="to">  Δv advisory: <span class="tv">0.082 m/s</span> radial · <span class="tv">0.341 m/s</span> transverse</span></span>\n        <span class="tl"> </span>\n        <span class="tl"><span class="tok">✓ 3 conjunctions found · CDMs generated · Alerts dispatched</span></span>\n        <span class="tl"><span class="tp">$ </span><span class="cursor-blink"></span></span>\n      </div>\n    </div>\n  </div>\n</section>\n\n<div class="section-divider"></div>\n\n<!-- SATELLITE OF THE DAY -->\n<section id="satod">\n  <div class="section-wrap">\n    <div class="section-label reveal" style="margin-bottom:28px;">// Featured Object</div>\n    <div class="satod-card reveal" id="satod-card">\n      <div class="satod-loading">⌁ Loading today\'s featured satellite...</div>\n    </div>\n  </div>\n</section>\n\n<script>\n(function loadSatOD() {\n  fetch(\'/satellite-of-the-day\')\n    .then(r => r.json())\n    .then(sat => {\n      const card = document.getElementById(\'satod-card\');\n      const color = sat.color || \'#4a9eff\';\n      card.style.setProperty(\'--satod-color\', color);\n      const liveTag = sat.live\n        ? \'<span class="satod-live-dot"></span> Live Data\'\n        : \'Estimated Orbital Data\';\n      card.innerHTML = `\n        <div class="satod-header">\n          <div>\n            <div class="satod-eyebrow">${liveTag} · Satellite of the Day</div>\n            <div class="satod-name">${sat.name}</div>\n            <div class="satod-operator">${sat.operator || \'\'}</div>\n          </div>\n          <div class="satod-type-badge">${sat.type}</div>\n        </div>\n        <div class="satod-stats">\n          <div class="satod-stat">\n            <div class="satod-stat-val">${(sat.alt_km||0).toLocaleString()}</div>\n            <div class="satod-stat-unit">km</div>\n            <div class="satod-stat-label">Current Altitude</div>\n          </div>\n          <div class="satod-stat">\n            <div class="satod-stat-val">${sat.velocity_kms}</div>\n            <div class="satod-stat-unit">km/s</div>\n            <div class="satod-stat-label">Orbital Velocity</div>\n          </div>\n          <div class="satod-stat">\n            <div class="satod-stat-val">${sat.period_min}</div>\n            <div class="satod-stat-unit">min</div>\n            <div class="satod-stat-label">Orbital Period</div>\n          </div>\n        </div>\n        <div class="satod-footer">\n          <div class="satod-fact-icon">💡</div>\n          <div class="satod-fact">${sat.fun_fact}</div>\n        </div>\n      `;\n    })\n    .catch(() => {\n      const card = document.getElementById(\'satod-card\');\n      if (card) card.innerHTML = \'<div class="satod-loading">Satellite data unavailable — run a scan to populate the TLE cache.</div>\';\n    });\n})();\n</script>\n\n<div class="section-divider"></div>\n\n<!-- DATA METRICS -->\n<section id="data" style="padding:80px 0;">\n  <div class="section-wrap">\n    <div class="data-metrics reveal">\n      <div class="data-metric">\n        <div class="data-metric-glyph">∞</div>\n        <span class="data-metric-val" id="count-1">0</span>\n        <div class="data-metric-label">Tracked Objects in Catalog</div>\n      </div>\n      <div class="data-metric c2">\n        <div class="data-metric-glyph">⌬</div>\n        <span class="data-metric-val" id="count-2">0</span>\n        <div class="data-metric-label">Conjunction Screens per Day (global)</div>\n      </div>\n      <div class="data-metric c3">\n        <div class="data-metric-glyph">◎</div>\n        <span class="data-metric-val" id="count-3">0</span>\n        <div class="data-metric-label">Years to Self-Clear Above 800 km</div>\n      </div>\n      <div class="data-metric c4">\n        <div class="data-metric-glyph">✦</div>\n        <span class="data-metric-val" id="count-4">0</span>\n        <div class="data-metric-label">kJ Energy: 10 cm Fragment at 10 km/s</div>\n      </div>\n    </div>\n  </div>\n  <!-- TLE Ticker embedded in data section -->\n  <div style="padding: 0 48px 48px; position:relative; z-index:1;">\n    <div id="tle-ticker">\n      <div class="ticker-label">⬤ LIVE</div>\n      <div class="ticker-scroll">\n        <div class="ticker-track" id="ticker-track">\n          <span class="ticker-sat"><div class="ticker-dot"></div><span class="t-name">Loading...</span></span>\n        </div>\n      </div>\n      <div class="ticker-status" id="ticker-status">— connecting</div>\n    </div>\n  </div>\n</section>\n\n<div class="section-divider"></div>\n\n<!-- CTA -->\n<section id="cta">\n  <div class="section-wrap">\n    <div class="cta-box reveal">\n      <div class="cta-glow"></div>\n      <div class="cta-eyebrow">⬡ Start Exploring</div>\n      <h2 class="cta-title">The cosmos doesn\'t wait.<br><em>Neither should your education.</em></h2>\n      <p class="cta-body">\n        Dive into the physics chapters, run a live conjunction scan against 4,000+ active satellites,\n        or simulate a debris fragmentation event — all backed by the same math used by real SSA operators.\n      </p>\n      <div class="cta-buttons">\n        <a href="/education/orbital-mechanics" class="btn-primary-hero">Begin Chapter 01</a>\n        <a href="/scenarios" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:14px 28px;border:1px solid var(--border2);border-radius:6px;color:var(--muted);text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor=\'var(--accent)\';this.style.color=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border2)\';this.style.color=\'var(--muted)\'">Try Scenarios →</a>\n        <a href="/dashboard" class="btn-secondary-hero">Open Live Dashboard</a>\n      </div>\n    </div>\n  </div>\n</section>\n\n<!-- ABOUT & CONTACT -->\n\n<div class="section-divider"></div>\n\n<section id="contact" style="padding:100px 0; position:relative; z-index:1;">\n  <div class="container" style="max-width:1080px; margin:0 auto; padding:0 48px;">\n\n    <!-- section eyebrow -->\n    <div style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:10px;">\n      <span style="display:inline-block; width:14px; height:1px; background:var(--green);"></span>The Team\n    </div>\n    <div style="font-family:var(--serif); font-size:clamp(28px,3.5vw,44px); color:#fff; font-weight:400; line-height:1.15; letter-spacing:-0.4px; margin-bottom:52px;">\n      The people behind<br><em style="font-style:italic; color:var(--accent2);">VectraSpace</em>\n    </div>\n\n    <!-- two-card grid -->\n    <div class="team-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:60px;">\n\n      <!-- ── Truman card ── -->\n      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">\n        <div style="height:2px; background:linear-gradient(90deg, var(--accent) 0%, var(--green) 60%, transparent 100%);"></div>\n        <div style="padding:40px 44px;">\n          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:24px;">Founder &amp; Builder</div>\n          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">\n            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--accent) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(74,158,255,0.2);">T</div>\n            <div>\n              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Truman Heaston</div>\n              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--accent); text-transform:uppercase;">Builder · Student · Orbital Mechanics Nerd</div>\n            </div>\n          </div>\n          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">\n            Passionate about space, orbital mechanics, and the belief that great education can change the world. VectraSpace started as a personal obsession — I wanted to understand the real math behind satellite conjunction events, so I built the platform I wished existed.\n          </p>\n          <a href="mailto:trumanheaston@gmail.com"\n             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;\n                    background:var(--accent); color:#fff; border-radius:6px;\n                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;\n                    text-decoration:none; transition:all 0.2s; font-weight:500;\n                    box-shadow:0 4px 20px rgba(74,158,255,0.25);"\n             onmouseover="this.style.background=\'#6ab4ff\'; this.style.transform=\'translateY(-2px)\';"\n             onmouseout="this.style.background=\'var(--accent)\'; this.style.transform=\'\';">\n            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>\n            trumanheaston@gmail.com\n          </a>\n          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(74,158,255,0.05) 0%, transparent 70%); pointer-events:none;"></div>\n        </div>\n      </div>\n\n      <!-- ── Will card ── -->\n      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">\n        <div style="height:2px; background:linear-gradient(90deg, var(--amber) 0%, var(--green) 60%, transparent 100%);"></div>\n        <div style="padding:40px 44px;">\n          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--amber); text-transform:uppercase; margin-bottom:24px;">Marketing &amp; Outreach</div>\n          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">\n            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--amber) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(245,158,11,0.2);">W</div>\n            <div>\n              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Will Lovelace</div>\n              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--amber); text-transform:uppercase;">Marketing · Outreach · Growth</div>\n            </div>\n          </div>\n          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">\n            Leading marketing and outreach for VectraSpace — connecting the platform with researchers, educators, and operators across the space industry. If you\'re interested in partnerships, press, or collaboration opportunities, Will is your contact.\n          </p>\n          <a href="mailto:Will.s.lovelace@gmail.com"\n             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;\n                    background:var(--amber); color:#000; border-radius:6px;\n                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;\n                    text-decoration:none; transition:all 0.2s; font-weight:500;\n                    box-shadow:0 4px 20px rgba(245,158,11,0.25);"\n             onmouseover="this.style.background=\'#fbbf24\'; this.style.transform=\'translateY(-2px)\';"\n             onmouseout="this.style.background=\'var(--amber)\'; this.style.transform=\'\';">\n            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>\n            Will.s.lovelace@gmail.com\n          </a>\n          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(245,158,11,0.05) 0%, transparent 70%); pointer-events:none;"></div>\n        </div>\n      </div>\n\n    </div>\n\n    <!-- get in touch strip -->\n    <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">\n      <div style="height:2px; background:linear-gradient(90deg, var(--green) 0%, var(--accent) 50%, transparent 100%);"></div>\n      <div style="padding:48px 56px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:32px;">\n        <div>\n          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:14px;">Get in Touch</div>\n          <div style="font-family:var(--serif); font-size:clamp(20px,2.5vw,30px); color:#fff; font-weight:400; line-height:1.25; letter-spacing:-0.3px;">Have feedback, questions,<br>or want to collaborate?</div>\n        </div>\n        <p style="font-size:14px; color:var(--muted); line-height:1.8; max-width:380px;">Whether you\'re a researcher, operator, educator, or fellow student — we\'d genuinely love to hear from you. Technical critique, curriculum suggestions, partnership ideas — all of it is welcome.</p>\n      </div>\n    </div>\n\n  </div>\n</section>\n\n<!-- FOOTER -->\n<footer>\n  <div class="footer-top">\n    <div class="footer-brand">Vectra<em>Space</em></div>\n    <ul class="footer-links">\n      <li><a href="/education/orbital-mechanics">Orbital Mechanics</a></li>\n      <li><a href="/education/collision-prediction">Collision Prediction</a></li>\n      <li><a href="/education/perturbations">Perturbations</a></li>\n      <li><a href="/education/debris-modeling">Debris Modeling</a></li>\n      <li><a href="/dashboard">Dashboard</a></li>\n      <li><a href="#contact">Contact</a></li>\n    </ul>\n    <div class="footer-contact">Built by Truman Heaston · <a href="mailto:trumanheaston@gmail.com">trumanheaston@gmail.com</a></div>\n  </div>\n  <div class="footer-copy">© 2026 VectraSpace · Educational Orbital Platform</div>\n</footer>\n\n<script>\n// ── STARFIELD ────────────────────────────────────────────────\n(function() {\n  const container = document.getElementById(\'starfield\');\n  for (let i = 0; i < 220; i++) {\n    const star = document.createElement(\'div\');\n    star.className = \'star\';\n    const size = Math.random() * 1.8 + 0.4;\n    star.style.cssText = `\n      width:${size}px; height:${size}px;\n      left:${Math.random()*100}%; top:${Math.random()*100}%;\n      --a1:${(Math.random()*0.5+0.2).toFixed(2)};\n      --a2:${(Math.random()*0.1+0.03).toFixed(2)};\n      --dur:${(Math.random()*5+3).toFixed(1)}s;\n      --delay:-${(Math.random()*8).toFixed(1)}s;\n    `;\n    container.appendChild(star);\n  }\n})();\n\n// ── MOBILE NAV TOGGLE ────────────────────────────────────────\nfunction toggleMobileNav() {\n  const drawer = document.getElementById(\'mobile-nav\');\n  const btn    = document.getElementById(\'nav-hamburger\');\n  const isOpen = drawer.classList.contains(\'open\');\n  if (isOpen) {\n    drawer.classList.remove(\'open\');\n    btn.classList.remove(\'open\');\n    setTimeout(() => { drawer.style.display = \'none\'; }, 220);\n  } else {\n    drawer.style.display = \'flex\';\n    requestAnimationFrame(() => {\n      drawer.classList.add(\'open\');\n      btn.classList.add(\'open\');\n    });\n  }\n}\ndocument.querySelectorAll(\'#mobile-nav a\').forEach(a => {\n  a.addEventListener(\'click\', () => {\n    const drawer = document.getElementById(\'mobile-nav\');\n    const btn    = document.getElementById(\'nav-hamburger\');\n    drawer.classList.remove(\'open\');\n    btn.classList.remove(\'open\');\n    setTimeout(() => { drawer.style.display = \'none\'; }, 220);\n  });\n});\n\n// ── LIVE TLE TICKER ──────────────────────────────────────────\n(async function loadTicker() {\n  try {\n    const res  = await fetch(\'/api/live-sats?limit=60&regime=LEO\');\n    const data = await res.json();\n    if (!data.sats || data.sats.length === 0) throw new Error(\'empty\');\n    const track = document.getElementById(\'ticker-track\');\n    const html  = data.sats.map(s =>\n      \'<span class="ticker-sat"><div class="ticker-dot"></div>\' +\n      \'<span class="t-name">\' + s.name + \'</span>\' +\n      \'<span class="t-alt">\' + Math.round(s.alt) + \' km</span></span>\'\n    ).join(\'\');\n    track.innerHTML = html + html; // duplicate for seamless loop\n    const w = track.scrollWidth / 2;\n    track.style.animationDuration = Math.max(30, w / 80) + \'s\';\n    document.getElementById(\'ticker-status\').textContent =\n      data.count + \' sats · \' + (data.utc || \'\').slice(11, 16) + \' UTC\';\n  } catch(e) {\n    // Static fallback so ticker always shows something\n    const fallback = [\n      \'ISS (ZARYA)|418\', \'STARLINK-1007|550\', \'COSMOS 2251 DEB|789\',\n      \'STARLINK-3004|553\', \'SENTINEL-2A|786\', \'TERRA|705\', \'AQUA|709\',\n      \'LANDSAT 8|705\', \'NOAA 18|854\', \'METOP-B|817\', \'FENGYUN 3D|836\',\n      \'SUOMI NPP|824\', \'STARLINK-2488|548\', \'ONEWEB-0012|1200\',\n      \'IRIDIUM 33 DEB|782\', \'COSMOS 1408 DEB|760\',\n    ];\n    const track = document.getElementById(\'ticker-track\');\n    const html  = fallback.map(s => {\n      const [name, alt] = s.split(\'|\');\n      return \'<span class="ticker-sat"><div class="ticker-dot" style="background:var(--faint)"></div>\' +\n             \'<span class="t-name">\' + name + \'</span>\' +\n             \'<span class="t-alt">\' + alt + \' km</span></span>\';\n    }).join(\'\');\n    track.innerHTML = html + html;\n    document.getElementById(\'ticker-status\').textContent = \'Sample data\';\n  }\n})();\n\n// ── NAV SCROLL ────────────────────────────────────────────────\nconst nav = document.getElementById(\'nav\');\nwindow.addEventListener(\'scroll\', () => {\n  nav.classList.toggle(\'scrolled\', window.scrollY > 30);\n}, { passive: true });\n\n// ── REVEAL ON SCROLL ──────────────────────────────────────────\nconst revealObserver = new IntersectionObserver((entries) => {\n  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add(\'visible\'); });\n}, { threshold: 0.08 });\ndocument.querySelectorAll(\'.reveal\').forEach(el => revealObserver.observe(el));\n\n// ── COUNTER ANIMATION ─────────────────────────────────────────\nconst counters = [\n  { id: \'count-1\', target: 27000, suffix: \'+\', format: n => n >= 1000 ? Math.round(n/1000)*1000 : n },\n  { id: \'count-2\', target: 350, suffix: \'M\', format: n => Math.round(n) },\n  { id: \'count-3\', target: 100, suffix: \'+\', format: n => Math.round(n) },\n  { id: \'count-4\', target: 500, suffix: \' kJ\', format: n => Math.round(n) },\n];\nlet countersStarted = false;\nconst counterObserver = new IntersectionObserver((entries) => {\n  entries.forEach(e => {\n    if (e.isIntersecting && !countersStarted) {\n      countersStarted = true;\n      counters.forEach(({ id, target, suffix, format }) => {\n        const el = document.getElementById(id);\n        const start = performance.now();\n        const dur = 1800;\n        function step(now) {\n          const t = Math.min((now - start) / dur, 1);\n          const ease = 1 - Math.pow(1 - t, 3);\n          el.textContent = format(target * ease) + suffix;\n          if (t < 1) requestAnimationFrame(step);\n        }\n        requestAnimationFrame(step);\n      });\n    }\n  });\n}, { threshold: 0.4 });\nconst metricsEl = document.querySelector(\'.data-metrics\');\nif (metricsEl) counterObserver.observe(metricsEl);\n\n// ── CHAPTER PROGRESS ──────────────────────────────────────────\n(function() {\n  const CHAPTERS = [\n    { id: \'chcard-1\', key: \'vs_ch1_done\' },\n    { id: \'chcard-2\', key: \'vs_ch2_done\' },\n    { id: \'chcard-3\', key: \'vs_ch3_done\' },\n    { id: \'chcard-4\', key: \'vs_ch4_done\' },\n  ];\n  let completed = 0;\n  CHAPTERS.forEach(({ id, key }) => {\n    try {\n      if (localStorage.getItem(key) === \'1\') {\n        const card = document.getElementById(id);\n        if (card) { card.classList.add(\'completed\'); completed++; }\n      }\n    } catch(e) {}\n  });\n  if (completed > 0) {\n    const strip = document.getElementById(\'learn-progress-strip\');\n    const fill  = document.getElementById(\'lps-fill\');\n    const text  = document.getElementById(\'lps-text\');\n    if (strip) strip.classList.add(\'show\');\n    if (fill)  setTimeout(() => fill.style.width = (completed/4*100) + \'%\', 100);\n    if (text)  text.textContent = completed + \' / 4 Chapters\';\n  }\n})();\n\n</script>\n</body>\n</html>\n\n'
+  #run-locked-msg {
+    width: 100%;
+    padding: 12px;
+    background: rgba(74,106,133,0.06);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: center;
+  }
 
-# ── Patch 1: GitHub repository link added to footer nav ─────────────────────
+  #status-bar {
+    padding: 9px 20px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 9px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  #status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex-shrink: 0; }
+  #status-dot.ready { background: var(--accent3); box-shadow: 0 0 6px rgba(52,211,153,0.5); }
+  #status-dot.running { background: var(--accent); animation: blink 1s infinite; }
+  #status-dot.error { background: var(--accent2); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  #status-text { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.5px; }
+
+  #log-panel {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    height: 140px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    line-height: 1.7;
+  }
+  #log-panel::-webkit-scrollbar { width: 3px; }
+  #log-panel::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 2px; }
+  .log-line { color: var(--faint); }
+  .log-line.info { color: #5ba3c9; }
+  .log-line.ok { color: var(--accent3); }
+  .log-line.warn { color: #f59e0b; }
+  .log-line.error { color: var(--accent2); }
+
+  #results-list { display: flex; flex-direction: column; gap: 6px; }
+  .conj-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .conj-card:hover { border-color: rgba(74,158,255,0.4); background: var(--bg3); }
+  .conj-card .sats { font-weight: 600; color: var(--text); font-size: 11px; margin-bottom: 4px; font-family: var(--sans); }
+  .conj-card .meta { color: var(--muted); font-family: var(--mono); font-size: 9px; display: flex; gap: 10px; letter-spacing: 0.5px; }
+  .conj-card .dist { color: var(--accent2); font-weight: 600; }
+  .conj-card .pc   { color: #f59e0b; }
+  .conj-card .time { color: var(--muted); }
+  #no-results { color: var(--faint); font-family: var(--mono); font-size: 9px; text-align: center; padding: 20px 0; letter-spacing: 1px; }
+
+  #globe-header {
+    position: absolute;
+    top: 16px; left: 16px;
+    background: rgba(5,10,15,0.85);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
+  #sat-counter {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: rgba(5,10,15,0.85);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text);
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+    text-align: right;
+  }
+  #sat-counter span { color: var(--accent); font-size: 18px; font-weight: 700; display: block; }
+
+  #tooltip {
+    position: absolute;
+    background: rgba(5,10,15,0.95);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text);
+    pointer-events: all;
+    display: none;
+    max-width: 260px;
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+  #tooltip .tt-title { color: var(--accent2); font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+  #tooltip .tt-row { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 3px; }
+  #tooltip .tt-key { color: var(--muted); }
+  #tooltip .tt-val { color: #fff; }
+  #tooltip .tt-link { color: var(--accent); text-decoration: underline; cursor: pointer;
+                      font-size: 9px; margin-top: 8px; display: block; text-align: center; }
+
+  #globe-controls {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(5,10,15,0.88);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    backdrop-filter: blur(8px);
+    z-index: 10;
+  }
+  .ctrl-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ctrl-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.1); }
+  .ctrl-btn.active-green { border-color: var(--accent3); color: var(--accent3); background: rgba(0,255,136,0.1); }
+  .ctrl-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+  #speed-label { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); }
+
+  #risk-slider-wrap { margin: 6px 0; }
+  #risk-track { position: relative; padding-bottom: 20px; }
+  #risk-track input[type=range] {
+    width: 100%; -webkit-appearance: none; appearance: none;
+    height: 4px; border-radius: 2px; outline: none;
+    background: linear-gradient(to right, #00ff88, #ffaa44, #ff4444, #cc0000);
+    cursor: pointer;
+  }
+  #risk-track input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: #fff;
+    border: 2px solid var(--accent); cursor: pointer;
+  }
+  #risk-labels { display: flex; justify-content: space-between;
+                 font-size: 8px; color: var(--muted);
+                 font-family: 'Share Tech Mono', monospace;
+                 letter-spacing: 1px; margin-top: 4px; }
+  #risk-display { display: flex; justify-content: space-between;
+                  align-items: center; margin-top: 4px; }
+  #risk-name { font-family: 'Share Tech Mono', monospace; font-size: 11px;
+               font-weight: 700; color: var(--accent3); }
+  #risk-pc-val { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--muted); }
+
+  #sat-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 200;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  #sat-modal-overlay.open { display: flex; }
+  #sat-modal {
+    background: #090f17; border: 1px solid var(--accent);
+    border-radius: 8px; width: 520px; max-height: 80vh;
+    overflow-y: auto; box-shadow: 0 0 40px rgba(0,212,255,0.2);
+  }
+  #sat-modal::-webkit-scrollbar { width: 4px; }
+  #sat-modal::-webkit-scrollbar-thumb { background: var(--border); }
+  #sat-modal-header {
+    padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: flex-start;
+    background: linear-gradient(135deg, #0a1929, #0d2137);
+  }
+  #sat-modal-header h2 { font-size: 14px; color: #fff; margin: 0; }
+  #sat-modal-header .badge { font-size: 9px; color: var(--accent);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  #sat-modal-close {
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 4px; color: var(--muted); cursor: pointer;
+    font-size: 14px; padding: 2px 8px; transition: all 0.15s;
+  }
+  #sat-modal-close:hover { border-color: var(--accent2); color: var(--accent2); }
+  #sat-modal-body { padding: 16px 20px; }
+  .sat-field { display: flex; justify-content: space-between;
+               padding: 7px 0; border-bottom: 1px solid #0d2137;
+               font-size: 11px; }
+  .sat-field:last-child { border-bottom: none; }
+  .sat-field .sf-key { color: var(--muted); font-family: 'Share Tech Mono', monospace;
+                       font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+  .sat-field .sf-val { color: #fff; font-weight: 600; text-align: right; max-width: 60%; }
+  #sat-modal-loading { text-align: center; padding: 30px;
+    color: var(--muted); font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 2px; }
+  #sat-modal-error { padding: 20px; color: var(--accent2);
+    font-family: 'Share Tech Mono', monospace; font-size: 10px; text-align:center; }
+
+  #top-pairs-list .tp-row {
+    display: flex; justify-content: space-between;
+    padding: 5px 0; border-bottom: 1px solid var(--border);
+    font-size: 9px; font-family: 'Share Tech Mono', monospace;
+  }
+  #top-pairs-list .tp-row .tp-sats { color: var(--text); }
+  #top-pairs-list .tp-row .tp-count { color: var(--accent); }
+  #top-pairs-list .tp-row .tp-dist { color: var(--accent2); }
+
+  /* ââ MOBILE HAMBURGER BUTTON ââ */
+  #hamburger {
+    display: none;
+    position: fixed;
+    top: 12px; left: 12px;
+    z-index: 200;
+    background: rgba(7,16,26,0.92);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 40px; height: 40px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+  }
+  #hamburger:hover { border-color: var(--accent); }
+  #hamburger span {
+    display: block;
+    width: 18px; height: 2px;
+    background: var(--text);
+    border-radius: 1px;
+    transition: all 0.25s;
+  }
+  #hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  #hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  #hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ââ MOBILE SIDEBAR OVERLAY ââ */
+  #sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 150;
+    backdrop-filter: blur(2px);
+  }
+
+  /* ââ RESPONSIVE BREAKPOINTS ââ */
+  @media (max-width: 768px) {
+    #hamburger { display: flex; }
+    #sidebar-overlay.active { display: block; }
+
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 160;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 300px !important;
+      min-width: 300px !important;
+      box-shadow: 4px 0 40px rgba(0,0,0,0.6);
+    }
+    #sidebar.open {
+      transform: translateX(0);
+    }
+
+    /* Globe takes full screen on mobile */
+    #globe-container {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+    }
+    #app {
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    /* Globe overlays: reposition to avoid hamburger button */
+    #globe-header {
+      top: 12px;
+      left: 60px;
+      font-size: 8px;
+      padding: 6px 10px;
+    }
+    #sat-counter {
+      top: 12px;
+      right: 12px;
+      font-size: 8px;
+      padding: 6px 10px;
+    }
+    #sat-counter span { font-size: 14px; }
+
+    /* Globe controls: scrollable on mobile */
+    #globe-controls {
+      bottom: max(16px, env(safe-area-inset-bottom, 16px));
+      left: 8px;
+      right: 8px;
+      transform: none;
+      overflow-x: auto;
+      border-radius: 6px;
+      padding: 8px 12px;
+      gap: 8px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      z-index: 20;
+      flex-wrap: nowrap;
+      min-height: 44px;
+    }
+    #globe-controls::-webkit-scrollbar { display: none; }
+    .ctrl-btn { font-size: 10px; padding: 8px 12px; white-space: nowrap; flex-shrink: 0; min-height: 36px; }
+    #speed-label { font-size: 9px; flex-shrink: 0; }
+
+    /* Tooltip: full width at bottom on mobile */
+    #tooltip {
+      left: 8px !important;
+      right: 8px !important;
+      top: auto !important;
+      bottom: 80px;
+      max-width: none;
+    }
+
+    /* Sat modal: full screen on mobile */
+    #sat-modal-overlay { align-items: flex-end; }
+    #sat-modal { width: 100%; border-radius: 12px 12px 0 0; max-height: 85vh; }
+
+    /* Status bar: compact */
+    #status-bar { padding: 6px 12px; }
+    #status-text { font-size: 9px; }
+
+    /* Log panel: shorter on mobile */
+    #log-panel { height: 90px; }
+  }
+
+  @media (max-width: 480px) {
+    #sidebar { width: 100vw !important; min-width: unset !important; }
+    #globe-header { display: none; }
+    /* Inputs: bigger tap targets */
+    .field input, .field select { font-size: 14px !important; padding: 10px 10px !important; min-height: 44px; }
+    .field label { font-size: 9px; }
+    /* Run button: full width, tall */
+    #run-btn { width: 100% !important; min-height: 52px; font-size: 12px !important; letter-spacing: 2px; }
+    /* Section titles: slightly bigger */
+    .section-title { font-size: 9px; letter-spacing: 2px; }
+    /* Tighter section padding */
+    .section { padding: 10px 12px; }
+    #scroll { padding: 8px; }
+    #header { padding: 10px 12px; }
+    /* Sign-in button full width on small sidebar */
+    .signin-btn { width: 100%; justify-content: center; }
+  }
+
+  /* ââ SIGN IN BUTTON ââ */
+  .signin-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;
+    text-transform: uppercase; text-decoration: none;
+    padding: 8px 16px; border-radius: 5px;
+    background: var(--accent); color: var(--bg);
+    border: none; cursor: pointer; font-weight: 600;
+    transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .signin-btn:hover { background: #6bb5ff; transform: translateY(-1px); }
+  .signin-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+  #user-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    min-height: 42px; gap: 8px; flex-wrap: wrap;
+  }
+  #user-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.5px; }
+  #user-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  #user-actions a {
+    font-family: var(--mono); font-size: 8px; letter-spacing: 1px;
+    color: var(--muted); text-decoration: none; padding: 4px 8px;
+    border: 1px solid var(--border); border-radius: 3px;
+    text-transform: uppercase; transition: all 0.15s;
+  }
+  #user-actions a:hover { color: var(--accent); border-color: rgba(74,158,255,0.4); }
+</style>
+
+<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ââ MOBILE HAMBURGER ââ -->
+  <button id="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- ââ SIDEBAR ââ -->
+  <div id="sidebar">
+    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Collapse sidebar">â <span class="toggle-label">Collapse</span></button>
+    <div class="sidebar-collapsible" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <div id="header">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="logo">// Mission Control</div>
+        <a href="/welcome" style="font-family:var(--mono);font-size:8px;
+                           letter-spacing:1.5px;color:var(--muted);text-decoration:none;
+                           padding:4px 10px;border:1px solid var(--border);border-radius:4px;
+                           text-transform:uppercase;transition:all 0.2s;"
+           onmouseover="this.style.color='var(--accent)';this.style.borderColor='rgba(74,158,255,0.4)'"
+           onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">
+          â Hub
+        </a>
+      </div>
+      <div class="brand">
+        <a href="/" class="brand-name" style="text-decoration:none;" title="VectraSpace Home">Vectra<em>Space</em></a>
+        <div class="brand-tag">Platform</div>
+      </div>
+      <div class="sub">Orbital Safety Dashboard</div>
+    </div>
+    <!-- User bar: populated by /me endpoint -->
+    <div id="user-bar">
+      <span id="user-label">Loading...</span>
+      <span id="user-actions"></span>
+    </div>
+
+    <div id="scroll">
+
+      <!-- Demo mode banner (shown when not logged in) -->
+      <div id="demo-banner" style="display:none;margin-bottom:12px;padding:8px 10px;
+           background:rgba(255,170,68,0.08);border:1px solid #ffaa44;border-radius:4px;
+           font-family:Share Tech Mono,monospace;font-size:9px;color:#ffaa44;letter-spacing:1px;">
+        DEMO MODE â Showing latest public scan.<br>
+        </div>
+
+      <!-- Detection Settings -->
+      <div class="section">
+        <div class="section-title">Satellites per Regime</div>
+        <div style="display:flex;gap:8px;">
+          <div class="field" style="flex:1;margin-bottom:0">
+            <label>LEO</label>
+            <input type="number" id="num_leo" placeholder="100" min="1" max="2000">
+          </div>
+          <div class="field" style="flex:1;margin-bottom:0">
+            <label>MEO</label>
+            <input type="number" id="num_meo" placeholder="50" min="1" max="500">
+          </div>
+          <div class="field" style="flex:1;margin-bottom:0">
+            <label>GEO</label>
+            <input type="number" id="num_geo" placeholder="20" min="1" max="200">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section">
+        <div class="section-title">Detection Parameters</div>
+        <div class="field">
+          <label>Time Window (hours)</label>
+          <input type="number" id="time_window" value="12" min="1" max="72">
+        </div>
+        <div class="field">
+          <label>Collision Alert Threshold (km)</label>
+          <input type="number" id="alert_km" value="10" min="0.1" step="0.1">
+        </div>
+        <div class="field">
+          <label>Refinement Threshold (km)</label>
+          <input type="number" id="refine_km" value="50" min="1">
+          <div class="hint">Candidates below this get refined</div>
+        </div>
+
+        <div class="field">
+          <label>Alert Risk Level</label>
+          <div id="risk-slider-wrap">
+            <div id="risk-track">
+              <div id="risk-fill"></div>
+              <input type="range" id="risk-slider" min="0" max="3" step="1" value="1"
+                     oninput="updateRiskSlider(this.value)">
+              <div id="risk-labels">
+                <span>LOW</span><span>MODERATE</span><span>HIGH</span><span>CRITICAL</span>
+              </div>
+            </div>
+            <div id="risk-display">
+              <span id="risk-name">MODERATE</span>
+              <span id="risk-pc-val">Pc â¥ 1Ã10â»â´</span>
+            </div>
+          </div>
+          <input type="hidden" id="pc_thresh" value="0.0001">
+          <div class="hint">Minimum probability of collision to trigger alert</div>
+        </div>
+      </div>
+
+      <!-- Alert Settings (only shown when logged in) -->
+      <div class="section" id="alert-settings-section" style="display:none;">
+        <div class="section-title">Alert Settings</div>
+        <div class="field">
+          <label>Alert Email</label>
+          <input type="email" id="alert_email" placeholder="you@example.com">
+          <div class="hint">Leave blank to use saved preferences</div>
+        </div>
+        <div class="field">
+          <label>Pushover Key</label>
+          <input type="text" id="pushover_key" placeholder="Leave blank to use saved preferences">
+        </div>
+        <div style="text-align:right;margin-top:-4px;">
+          <a href="/preferences" style="color:var(--accent);font-family:Share Tech Mono,monospace;font-size:9px;letter-spacing:1px;">â Edit Saved Preferences â</a>
+        </div>
+      </div>
+
+      <!-- F-07: Debris Simulation -->
+      <div class="section">
+        <div class="section-title">Debris Simulation</div>
+        <div id="debris-form" style="display:none;">
+          <div class="field">
+            <label>Parent Satellite</label>
+            <select id="debris_sat" style="width:100%;background:#0a1520;border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:Share Tech Mono,monospace;font-size:11px;padding:7px 10px;outline:none;">
+              <option value="">â run a scan first â</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <div class="field" style="flex:1;margin-bottom:0">
+              <label>Event Type</label>
+              <select id="debris_type" style="width:100%;background:#0a1520;border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:Share Tech Mono,monospace;font-size:11px;padding:7px 10px;outline:none;">
+                <option value="COLLISION">COLLISION</option>
+                <option value="EXPLOSION">EXPLOSION</option>
+              </select>
+            </div>
+            <div class="field" style="flex:1;margin-bottom:0">
+              <label>Count</label>
+              <input type="number" id="debris_count" placeholder="50" min="10" max="200">
+            </div>
+          </div>
+          <button onclick="simulateFragmentation()" style="width:100%;margin-top:10px;padding:9px;background:transparent;border:1px solid #ff6644;border-radius:4px;color:#ff6644;font-family:Share Tech Mono,monospace;font-size:11px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;"
+            onmouseover="this.style.background='rgba(255,102,68,0.1)'"
+            onmouseout="this.style.background='transparent'">
+            ð¥ SIMULATE FRAGMENTATION
+          </button>
+        </div>
+        <div id="debris-locked" style="color:var(--muted);font-family:Share Tech Mono,monospace;font-size:9px;text-align:center;padding:8px 0;letter-spacing:1px;">
+          Run a scan to enable
+        </div>
+      </div>
+
+      <!-- Run -->
+      <div class="section">
+        <button id="run-btn" onclick="runDetection()" style="display:none;">â¶ EXECUTE SCAN</button>
+        <div id="first-run-tip" style="display:none;margin-top:8px;padding:8px 10px;
+             background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);
+             border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:8px;
+             letter-spacing:1px;color:var(--accent);line-height:1.6;">
+          ð Click to run your first scan<br>
+          <span style="color:var(--muted);">Fetches live TLEs Â· detects conjunctions Â· populates globe</span>
+          <button onclick="document.getElementById('first-run-tip').style.display='none';
+                           try{localStorage.setItem('vs_seen_tip','1')}catch(e){}"
+                  style="display:block;margin-top:6px;background:transparent;border:none;
+                         color:var(--muted);font-family:'Share Tech Mono',monospace;
+                         font-size:8px;cursor:pointer;letter-spacing:1px;">
+            â dismiss
+          </button>
+        </div>
+        <div id="run-locked-msg" style="display:none;">
+          Run is available
+        </div>
+      </div>
+
+      <!-- Log -->
+      <div class="section">
+        <div class="section-title">Live Log</div>
+        <div id="log-panel"><div class="log-line">Initializing...</div></div>
+      </div>
+
+      <!-- Results -->
+      <div class="section">
+        <div class="section-title">
+          Conjunctions <span id="conj-count" style="color:var(--accent2)"></span>
+          <button id="export-all-btn" onclick="exportAllCDMs()"
+            style="float:right;background:transparent;border:1px solid var(--muted);
+                   border-radius:3px;color:var(--muted);font-family:'Share Tech Mono',monospace;
+                   font-size:8px;padding:2px 6px;cursor:pointer;letter-spacing:1px;display:none;">
+            â¬ ZIP ALL
+          </button>
+        </div>
+        <div id="results-list">
+          <div id="no-results">Run a scan to see results</div>
+        </div>
+      </div>
+
+      <!-- Historical Trends -->
+      <div class="section">
+        <div class="section-title" style="cursor:pointer;user-select:none;" onclick="toggleHistory()">
+          Historical Trends
+          <span id="history-toggle" style="float:right;color:var(--muted);">â¶</span>
+        </div>
+        <div id="history-panel" style="display:none;">
+          <div style="margin-bottom:10px;">
+            <canvas id="chart-daily" height="140"></canvas>
+          </div>
+          <div style="margin-bottom:10px;">
+            <canvas id="chart-regimes" height="140"></canvas>
+          </div>
+          <div id="top-pairs-list"></div>
+          <button onclick="loadHistory()"
+            style="width:100%;margin-top:8px;background:transparent;border:1px solid var(--border);
+                   border-radius:4px;color:var(--muted);font-family:'Share Tech Mono',monospace;
+                   font-size:9px;padding:6px;cursor:pointer;letter-spacing:2px;">
+            âº REFRESH
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /scroll -->
+
+    <!-- TLE Freshness indicator -->
+    <div id="tle-freshness-bar" style="padding:6px 12px;border-top:1px solid var(--border);
+         background:rgba(0,0,0,0.2);font-family:'Share Tech Mono',monospace;font-size:8px;
+         letter-spacing:1px;display:flex;align-items:center;gap:6px;color:var(--muted);">
+      <span id="tle-dot" style="width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;"></span>
+      <span id="tle-text">Checking TLE status...</span>
+    </div>
+    <div id="status-bar">
+      <div id="status-dot"></div>
+      <div id="status-text">Initializing...</div>
+    </div>
+    </div><!-- end sidebar-collapsible -->
+  </div><!-- /sidebar -->
+
+  <!-- ââ GLOBE ââ -->
+  <div id="globe-container">
+    <!-- Cesium init overlay -->
+    <div id="cesium-init-overlay" style="
+        position:absolute;inset:0;z-index:50;
+        background:#030508;
+        display:flex;flex-direction:column;
+        align-items:center;justify-content:center;gap:20px;
+        pointer-events:none;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;
+                  letter-spacing:4px;color:#00d4ff;text-transform:uppercase;">
+        VectraSpace
+      </div>
+      <div style="width:220px;">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;
+                    color:#3a5a75;letter-spacing:2px;margin-bottom:8px;
+                    text-transform:uppercase;" id="cesium-init-msg">
+          Initializing Globe...
+        </div>
+        <div style="background:#0a1520;border:1px solid #0d2137;border-radius:3px;
+                    height:3px;overflow:hidden;">
+          <div id="cesium-init-bar" style="
+              height:100%;width:0%;
+              background:linear-gradient(90deg,#00d4ff,#00ff88);
+              border-radius:3px;
+              transition:width 0.4s ease;"></div>
+        </div>
+      </div>
+    </div>
+    <div id="cesiumContainer"></div>
+    <div id="globe-header">VECTRASPACE // LIVE ORBITAL TRACKING</div>
+    <div id="sat-counter">
+      <span id="sat-count">â</span>
+      SATELLITES
+    </div>
+    <div id="tooltip"></div>
+    <div id="globe-controls">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-right:4px;">ORBITS</span>
+      <button class="ctrl-btn active" id="filter-all"    onclick="setOrbitFilter('all')">ALL</button>
+      <button class="ctrl-btn"        id="filter-alerts" onclick="setOrbitFilter('alerts')">ALERTS ONLY</button>
+      <button class="ctrl-btn"        id="filter-none"   onclick="setOrbitFilter('none')">NONE</button>
+      <div class="ctrl-divider"></div>
+      <button class="ctrl-btn" id="anim-btn" onclick="toggleAnimation()">â¶ ANIMATE</button>
+      <button class="ctrl-btn" id="speed-down" onclick="changeSpeed(-1)">â</button>
+      <span id="speed-label">1Ã</span>
+      <button class="ctrl-btn" id="speed-up" onclick="changeSpeed(1)">+</button>
+      <button class="ctrl-btn" id="reset-btn" onclick="resetClock()">RESET</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ââ SATELLITE INFO MODAL ââ -->
+<div id="sat-modal-overlay" onclick="closeSatModal(event)">
+  <div id="sat-modal">
+    <div id="sat-modal-header">
+      <div>
+        <div class="badge">VECTRASPACE // SATELLITE RECORD</div>
+        <h2 id="sat-modal-title">Loading...</h2>
+      </div>
+      <button id="sat-modal-close" onclick="closeSatModal()">â</button>
+    </div>
+    <div id="sat-modal-body">
+      <div id="sat-modal-loading">FETCHING SATELLITE DATA...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ââ CESIUM INIT ââââââââââââââââââââââââââââââââââââââââââââââ
+
+Cesium.Ion.defaultAccessToken = '__CESIUM_TOKEN__';
+
+// ââ MOBILE SIDEBAR TOGGLE âââââââââââââââââââââââââââââââââââââââââââââââââ
+function toggleSidebar() {
+  const sidebar  = document.getElementById('sidebar');
+  const overlay  = document.getElementById('sidebar-overlay');
+  const hamburger = document.getElementById('hamburger');
+  const isOpen = sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('active', !isOpen);
+  hamburger.classList.toggle('open', !isOpen);
+}
+
+// Close sidebar when a result card is clicked on mobile
+function closeSidebarOnMobile() {
+  if (window.innerWidth <= 768) {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar.classList.contains('open')) toggleSidebar();
+  }
+}
+
+let viewer;
+let viewerReady = false;
+
+let satEntities = [];
+let conjEntities = [];
+let conjData = [];
+let alertSatNames = new Set();
+let orbitFilter = 'all';
+let animPlaying = false;
+let animSpeeds = [1, 10, 60, 300, 600];
+let animSpeedIdx = 0;
+let startJulian = null;
+let currentUser = null;  // {username, role} or null
+
+const COLORS = {
+  LEO: Cesium.Color.fromCssColorString('#4da6ff').withAlpha(0.9),
+  MEO: Cesium.Color.fromCssColorString('#ff6b6b').withAlpha(0.9),
+  GEO: Cesium.Color.fromCssColorString('#00ff88').withAlpha(0.9),
+};
+
+async function initCesium() {
+  // ââ Terrain: Cesium World Terrain (Ion) for photorealistic 3D elevation ââ
+  let terrainProvider;
+  try {
+    terrainProvider = await Cesium.createWorldTerrainAsync({
+      requestWaterMask: true,           // shows ocean water surface
+      requestVertexNormals: true,       // enables normal-mapped terrain lighting
+    });
+  } catch(e) {
+    console.warn('World terrain unavailable â using ellipsoid fallback');
+    terrainProvider = new Cesium.EllipsoidTerrainProvider();
+  }
+
+  viewer = new Cesium.Viewer('cesiumContainer', {
+    terrainProvider: terrainProvider,
+    baseLayerPicker: false,
+    geocoder: false,
+    homeButton: false,
+    sceneModePicker: false,
+    navigationHelpButton: false,
+    animation: false,
+    timeline: false,
+    fullscreenButton: false,
+    infoBox: false,
+    selectionIndicator: false,
+    skyBox: new Cesium.SkyBox({
+      sources: {
+        positiveX: 'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_px.jpg',
+        negativeX: 'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mx.jpg',
+        positiveY: 'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_py.jpg',
+        negativeY: 'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_my.jpg',
+        positiveZ: 'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_pz.jpg',
+        negativeZ: 'https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg',
+      }
+    }),
+    contextOptions: { requestWebgl2: true, allowTextureFilterAnisotropic: true },
+    shadows: false,
+    orderIndependentTranslucency: false,
+  });
+
+  // ââ Imagery: high-resolution aerial with enhanced contrast ââââââââââââââ
+  viewer.imageryLayers.removeAll();
+  try {
+    const aerial = await Cesium.createWorldImageryAsync({
+      style: Cesium.IonWorldImageryStyle.AERIAL
+    });
+    const layer = viewer.imageryLayers.add(new Cesium.ImageryLayer(aerial, {
+      brightness: 1.05,
+      contrast: 1.1,
+      saturation: 1.15,
+      gamma: 0.9,
+    }));
+  } catch(e) {
+    console.warn('World imagery unavailable â using OSM fallback');
+    viewer.imageryLayers.add(new Cesium.ImageryLayer(
+      new Cesium.OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/', maximumLevel: 18 }),
+      { brightness: 1.0, contrast: 1.1 }
+    ));
+  }
+
+  // ââ Scene settings: maximum visual quality ââââââââââââââââââââââââââââââ
+  // Globe appearance
+  viewer.scene.globe.enableLighting = true;
+  viewer.scene.globe.atmosphereLightIntensity = 15.0;
+  viewer.scene.globe.atmosphereRayleighCoefficient = new Cesium.Cartesian3(5.5e-6, 13.0e-6, 28.4e-6);
+  viewer.scene.globe.atmosphereMieCoefficient = new Cesium.Cartesian3(21e-6, 21e-6, 21e-6);
+  viewer.scene.globe.showGroundAtmosphere = true;
+  viewer.scene.globe.depthTestAgainstTerrain = false;
+  viewer.scene.globe.maximumScreenSpaceError = 1.5;     // more tiles = sharper
+  viewer.scene.globe.tileCacheSize = 200;               // cache more tiles
+  viewer.scene.globe.preloadAncestors = true;
+  viewer.scene.globe.preloadSiblings = true;
+  viewer.scene.globe.translucency.enabled = false;
+
+  // Atmosphere: rich blue scattering
+  viewer.scene.atmosphere.brightnessShift = 0.15;
+  viewer.scene.atmosphere.hueShift = 0.0;
+  viewer.scene.atmosphere.saturationShift = 0.1;
+  viewer.scene.skyAtmosphere.show = true;
+  viewer.scene.skyAtmosphere.atmosphereLightIntensity = 20.0;
+  viewer.scene.skyAtmosphere.atmosphereRayleighCoefficient = new Cesium.Cartesian3(5.5e-6, 13.0e-6, 28.4e-6);
+
+  // Fog: subtle depth
+  viewer.scene.fog.enabled = true;
+  viewer.scene.fog.density = 0.0001;
+  viewer.scene.fog.minimumBrightness = 0.03;
+
+  // Celestial bodies & HDR
+  viewer.scene.sun = new Cesium.Sun();
+  viewer.scene.moon = new Cesium.Moon();
+  viewer.scene.highDynamicRange = true;                 // enable HDR for better contrast
+  viewer.scene.postProcessStages.fxaa.enabled = true;  // anti-aliasing
+
+  // Lighting: sun-based directional
+  viewer.scene.light = new Cesium.SunLight();
+
+  viewer.clock.currentTime = Cesium.JulianDate.now();
+  viewer.clock.shouldAnimate = false;
+
+  viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(0, 20, 25000000),
+    orientation: { heading: 0, pitch: -Cesium.Math.PI_OVER_TWO, roll: 0 }
+  });
+
+  // Tooltip setup
+  const tooltip = document.getElementById('tooltip');
+  let tooltipHovered = false;
+  let tooltipHideTimer = null;
+
+  function showTooltip(x, y) {
+    tooltip.style.display = 'block';
+    tooltip.style.left = (x + 16) + 'px';
+    tooltip.style.top  = (y - 10) + 'px';
+  }
+  function hideTooltipNow() {
+    tooltip.style.display = 'none';
+    tooltipHovered = false;
+  }
+
+  tooltip.addEventListener('mouseenter', () => {
+    tooltipHovered = true;
+    if (tooltipHideTimer) { clearTimeout(tooltipHideTimer); tooltipHideTimer = null; }
+  });
+  tooltip.addEventListener('mouseleave', () => {
+    tooltipHovered = false;
+    tooltipHideTimer = setTimeout(hideTooltipNow, 150);
+  });
+  tooltip.addEventListener('click', (e) => {
+    const link = e.target.closest('[data-satname]');
+    if (link) { e.stopPropagation(); openSatInfo(link.dataset.satname); }
+  });
+
+  viewer.screenSpaceEventHandler.setInputAction(movement => {
+    const picked = viewer.scene.pick(movement.endPosition);
+    if (Cesium.defined(picked) && Cesium.defined(picked.id)) {
+      const entity = picked.id;
+      try {
+        const data = JSON.parse(entity.description.getValue());
+        if (data.type === 'conjunction') {
+          const c = conjData[data.idx];
+          const h = Math.floor(c.time_min / 60);
+          const m = Math.floor(c.time_min % 60);
+          tooltip.innerHTML = `
+            <div class="tt-title">â  CONJUNCTION EVENT</div>
+            <div class="tt-row"><span class="tt-key">SAT 1</span><span class="tt-val">${c.sat1}</span></div>
+            <div class="tt-row"><span class="tt-key">SAT 2</span><span class="tt-val">${c.sat2}</span></div>
+            <div class="tt-row"><span class="tt-key">REGIMES</span><span class="tt-val">${c.regime1} / ${c.regime2}</span></div>
+            <div class="tt-row"><span class="tt-key">MISS DIST</span><span class="tt-val" style="color:#ff4444">${c.min_dist_km.toFixed(3)} km</span></div>
+            <div class="tt-row"><span class="tt-key">Pc</span><span class="tt-val" style="color:#ffaa44">${c.pc_estimate.toExponential(2)}</span></div>
+            <div class="tt-row"><span class="tt-key">TIME TO CA</span><span class="tt-val">+${h}h ${m.toString().padStart(2,'0')}m</span></div>
+            <a class="tt-link" data-satname="${c.sat1}">ð° ${c.sat1} â View Info</a>
+            <a class="tt-link" data-satname="${c.sat2}">ð° ${c.sat2} â View Info</a>
+          `;
+        } else {
+          tooltip.innerHTML = `
+            <div class="tt-title">${data.name}</div>
+            <div class="tt-row"><span class="tt-key">REGIME</span><span class="tt-val">${data.regime}</span></div>
+            <a class="tt-link" data-satname="${data.name}">ð° View Satellite Info</a>
+          `;
+        }
+        showTooltip(movement.endPosition.x, movement.endPosition.y);
+      } catch(e) { hideTooltipNow(); }
+    } else {
+      if (!tooltipHovered) {
+        tooltipHideTimer = setTimeout(hideTooltipNow, 150);
+      }
+    }
+  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+  viewer.screenSpaceEventHandler.setInputAction(click => {
+    const picked = viewer.scene.pick(click.position);
+    if (Cesium.defined(picked) && Cesium.defined(picked.id)) {
+      try {
+        const data = JSON.parse(picked.id.description.getValue());
+        if (data.type === 'conjunction') {
+          const c = conjData[data.idx];
+          viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(
+              c.midpoint[0], c.midpoint[1], c.midpoint[2] + 3000000
+            ),
+            duration: 2.0,
+          });
+          document.querySelectorAll('.conj-card').forEach((el,i) => {
+            el.style.borderLeftColor = i === data.idx ? 'var(--accent)' : 'var(--accent2)';
+          });
+        }
+      } catch(e) {}
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  viewerReady = true;
+  console.log('Cesium viewer ready');
+  // Complete + dismiss the init overlay
+  const _bar = document.getElementById('cesium-init-bar');
+  const _msg = document.getElementById('cesium-init-msg');
+  const _overlay = document.getElementById('cesium-init-overlay');
+  if (window._cesiumInitInterval) clearInterval(window._cesiumInitInterval);
+  if (_bar) _bar.style.width = '100%';
+  if (_msg) _msg.textContent = 'Ready';
+  if (_overlay) {
+    setTimeout(() => {
+      _overlay.style.transition = 'opacity 0.6s ease';
+      _overlay.style.opacity = '0';
+      setTimeout(() => { _overlay.style.display = 'none'; }, 650);
+    }, 300);
+  }
+}
+
+// ââ CESIUM INIT PROGRESS âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+(function() {
+  const bar = document.getElementById('cesium-init-bar');
+  const msg = document.getElementById('cesium-init-msg');
+  if (!bar) return;
+  const steps = [
+    [10, 'Loading terrain...'],
+    [30, 'Connecting to Ion...'],
+    [55, 'Fetching imagery...'],
+    [75, 'Building scene...'],
+    [90, 'Almost ready...'],
+  ];
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < steps.length) {
+      bar.style.width = steps[i][0] + '%';
+      msg.textContent = steps[i][1];
+      i++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 600);
+  // Store cleanup ref for when Cesium is ready
+  window._cesiumInitInterval = interval;
+  window._cesiumInitBar = bar;
+  window._cesiumInitMsg = msg;
+})();
+
+initCesium();
+
+// ââ CHECK CURRENT USER ââââââââââââââââââââââââââââââââââââââââ
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const btn = document.getElementById('sidebar-toggle-btn');
+  const label = btn.querySelector('.toggle-label');
+  // On mobile, use open/close drawer pattern instead of collapse
+  if (window.innerWidth <= 768) {
+    const isOpen = sidebar.classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('active', isOpen);
+    return;
+  }
+  const collapsed = sidebar.classList.toggle('collapsed');
+  btn.querySelector
+  if (label) label.textContent = collapsed ? 'Expand' : 'Collapse';
+  btn.innerHTML = collapsed
+    ? 'â¶ <span class="toggle-label">Expand</span>'
+    : 'â <span class="toggle-label">Collapse</span>';
+  btn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  try { localStorage.setItem('vs_sidebar_collapsed', collapsed ? '1' : '0'); } catch(e) {}
+}
+
+function initSidebarState() {
+  try {
+    if (window.innerWidth > 768 && localStorage.getItem('vs_sidebar_collapsed') === '1') {
+      const sidebar = document.getElementById('sidebar');
+      const btn = document.getElementById('sidebar-toggle-btn');
+      sidebar.classList.add('collapsed');
+      btn.innerHTML = 'â¶ <span class="toggle-label">Expand</span>';
+    }
+  } catch(e) {}
+}
+
+async function updateTLEStatus() {
+  try {
+    const res = await fetch('/tle-status');
+    if (!res.ok) return;
+    const d = await res.json();
+    const dot  = document.getElementById('tle-dot');
+    const text = document.getElementById('tle-text');
+    if (!dot || !text) return;
+    dot.style.background  = d.fresh ? '#00ff88' : '#ffaa44';
+    text.style.color      = d.fresh ? '#4a8a65' : '#aa6600';
+    text.textContent      = d.message || 'TLE unknown';
+  } catch(e) {}
+}
+
+function maybeShowFirstRunTip() {
+  try {
+    if (localStorage.getItem('vs_seen_tip') === '1') return;
+    const tip = document.getElementById('first-run-tip');
+    if (tip) tip.style.display = 'block';
+  } catch(e) {}
+}
+
+async function initUserState() {
+  try {
+    const res = await fetch('/me');
+    if (res.status === 401) {
+      currentUser = null;
+    } else {
+      currentUser = await res.json();
+    }
+  } catch(e) {
+    currentUser = null;
+  }
+
+  const userLabel = document.getElementById('user-label');
+  const userActions = document.getElementById('user-actions');
+  const runBtn = document.getElementById('run-btn');
+  const runLocked = document.getElementById('run-locked-msg');
+  const alertSettings = document.getElementById('alert-settings-section');
+  const demoBanner = document.getElementById('demo-banner');
+
+  if (currentUser && currentUser.username) {
+    userLabel.innerHTML = `Logged in as <span class="user-name">${currentUser.username}</span>`;
+    const adminLnk = currentUser.role === 'admin' ? ' &nbsp; <a href="/admin" style="color:#ff6b6b;">â¬¡ Admin</a>' : '';
+    userActions.innerHTML = '<a href="/preferences">â Prefs</a>' + adminLnk;
+    runBtn.style.display = 'block';
+    maybeShowFirstRunTip();
+    runLocked.style.display = 'none';
+    alertSettings.style.display = 'block';
+    demoBanner.style.display = 'none';
+    setStatus('Ready â authenticated as ' + currentUser.username, 'ready');
+    // Load demo/public results for now
+    loadDemoResults();
+  } else {
+    userLabel.textContent = 'Demo Mode';
+    userActions.innerHTML = '';
+    runBtn.style.display = 'none';
+    runLocked.style.display = 'block';
+    alertSettings.style.display = 'none';
+    demoBanner.style.display = 'block';
+    setStatus('Demo mode â showing latest public scan', 'ready');
+    loadDemoResults();
+  }
+}
+
+async function loadDemoResults() {
+  try {
+    const res = await fetch('/demo-results');
+    if (!res.ok) { addLog('No public scan data available yet', 'warn'); return; }
+    const data = await res.json();
+    if (data.tracks && data.tracks.length > 0) {
+      alertSatNames = new Set();
+      (data.conjunctions || []).forEach(c => {
+        alertSatNames.add(c.sat1);
+        alertSatNames.add(c.sat2);
+      });
+      plotSatellites(data.tracks);
+      plotConjunctions(data.conjunctions || []);
+      renderResults(data.conjunctions || []);
+      if (typeof populateDebrisSatList === 'function' && data.tracks.length) {
+        populateDebrisSatList(data.tracks.map(t => t.name));
+      }
+      addLog(`Demo: ${data.tracks.length} satellites, ${(data.conjunctions||[]).length} conjunction(s)`, 'ok');
+    } else {
+      addLog('No public scan data yet â run a scan to populate', 'warn');
+    }
+  } catch(e) {
+    addLog('Demo data unavailable', 'warn');
+  }
+}
+
+initSidebarState();
+initUserState();
+updateTLEStatus();
+setInterval(updateTLEStatus, 5 * 60 * 1000);
+
+// ââ PLOT SATELLITES ââââââââââââââââââââââââââââââââââââââââââ
+function plotSatellites(tracks) {
+  satEntities.forEach(e => {
+    if (e.dot) viewer.entities.remove(e.dot);
+    if (e.trail) viewer.entities.remove(e.trail);
+  });
+  satEntities = [];
+
+  const now = Cesium.JulianDate.now();
+  startJulian = now.clone();
+  const end = Cesium.JulianDate.addSeconds(now, (tracks[0]?.positions.length || 120) * 60, new Cesium.JulianDate());
+  viewer.clock.startTime = now.clone();
+  viewer.clock.stopTime = end.clone();
+  viewer.clock.currentTime = now.clone();
+  viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
+  viewer.clock.multiplier = animSpeeds[animSpeedIdx];
+  viewer.clock.shouldAnimate = false;
+
+  tracks.forEach(track => {
+    const color = COLORS[track.regime] || Cesium.Color.WHITE;
+    const isAlert = alertSatNames.has(track.name);
+
+    const sampledPos = new Cesium.SampledPositionProperty();
+    sampledPos.interpolationDegree = 2;
+    sampledPos.interpolationAlgorithm = Cesium.HermitePolynomialApproximation;
+
+    const cartPositions = [];
+    track.positions.forEach((p, i) => {
+      const cart = Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2]);
+      cartPositions.push(cart);
+      const t = Cesium.JulianDate.addSeconds(now, i * 60, new Cesium.JulianDate());
+      sampledPos.addSample(t, cart);
+    });
+
+    if (cartPositions.length === 0) return;
+
+    const dot = viewer.entities.add({
+      position: sampledPos,
+      point: {
+        pixelSize: isAlert ? 7 : (track.regime === 'GEO' ? 5 : 3),
+        color: isAlert ? Cesium.Color.YELLOW : color,
+        outlineColor: isAlert ? Cesium.Color.RED : Cesium.Color.BLACK.withAlpha(0.5),
+        outlineWidth: isAlert ? 2 : 1,
+        scaleByDistance: new Cesium.NearFarScalar(1e6, 2.0, 5e7, 0.5),
+      },
+      label: {
+        text: track.name,
+        font: '9px Share Tech Mono',
+        fillColor: isAlert ? Cesium.Color.YELLOW : color,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(8, 0),
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 8e6),
+        show: isAlert,
+      },
+      description: JSON.stringify({ name: track.name, regime: track.regime }),
+    });
+
+    const trail = cartPositions.length > 1 ? viewer.entities.add({
+      polyline: {
+        positions: cartPositions,
+        width: isAlert ? 2.0 : 1.2,
+        material: new Cesium.ColorMaterialProperty(
+          isAlert ? Cesium.Color.YELLOW.withAlpha(0.7) : color.withAlpha(0.5)
+        ),
+        arcType: Cesium.ArcType.NONE,
+      }
+    }) : null;
+
+    satEntities.push({ dot, trail, name: track.name, isAlert });
+  });
+
+  document.getElementById('sat-count').textContent = tracks.length;
+  applyOrbitFilter();
+}
+
+function plotConjunctions(conjunctions) {
+  conjEntities.forEach(e => viewer.entities.remove(e));
+  conjEntities = [];
+  conjData = conjunctions;
+
+  conjunctions.forEach((c, idx) => {
+    const pos = Cesium.Cartesian3.fromDegrees(c.midpoint[0], c.midpoint[1], c.midpoint[2]);
+    const entity = viewer.entities.add({
+      position: pos,
+      point: {
+        pixelSize: 14,
+        color: Cesium.Color.RED.withAlpha(0.85),
+        outlineColor: Cesium.Color.YELLOW,
+        outlineWidth: 2,
+        scaleByDistance: new Cesium.NearFarScalar(1e6, 2.5, 5e7, 1.0),
+      },
+      label: {
+        text: `â  ${c.min_dist_km.toFixed(1)}km`,
+        font: 'bold 11px Exo 2',
+        fillColor: Cesium.Color.YELLOW,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(0, -20),
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 3e7),
+      },
+      description: JSON.stringify({type:'conjunction', idx}),
+    });
+    conjEntities.push(entity);
+  });
+}
+
+function setOrbitFilter(mode) {
+  orbitFilter = mode;
+  ['all','alerts','none'].forEach(m => {
+    document.getElementById('filter-'+m).className =
+      'ctrl-btn' + (m === mode ? ' active' : '');
+  });
+  applyOrbitFilter();
+}
+
+function applyOrbitFilter() {
+  satEntities.forEach(e => {
+    let showDot = true;
+    let showTrail = true;
+    if (orbitFilter === 'none') { showTrail = false; }
+    else if (orbitFilter === 'alerts') { showTrail = e.isAlert; showDot = e.isAlert; }
+    if (e.dot) e.dot.show = showDot;
+    if (e.trail) e.trail.show = showTrail;
+  });
+}
+
+function toggleAnimation() {
+  animPlaying = !animPlaying;
+  viewer.clock.shouldAnimate = animPlaying;
+  const btn = document.getElementById('anim-btn');
+  btn.textContent = animPlaying ? 'â¸ PAUSE' : 'â¶ ANIMATE';
+  btn.className = animPlaying ? 'ctrl-btn active-green' : 'ctrl-btn';
+}
+
+function changeSpeed(dir) {
+  animSpeedIdx = Math.max(0, Math.min(animSpeeds.length - 1, animSpeedIdx + dir));
+  const s = animSpeeds[animSpeedIdx];
+  viewer.clock.multiplier = s;
+  document.getElementById('speed-label').textContent = s < 60 ? s+'Ã' : s >= 600 ? '600Ã' : (s/60).toFixed(0)+'m/s';
+}
+
+function resetClock() {
+  if (startJulian) {
+    viewer.clock.currentTime = startJulian.clone();
+    viewer.clock.shouldAnimate = false;
+    animPlaying = false;
+    document.getElementById('anim-btn').textContent = 'â¶ ANIMATE';
+    document.getElementById('anim-btn').className = 'ctrl-btn';
+  }
+}
+
+const logPanel = document.getElementById('log-panel');
+function addLog(text, type='info') {
+  const line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  const time = new Date().toTimeString().slice(0,8);
+  line.textContent = `[${time}] ${text}`;
+  logPanel.appendChild(line);
+  logPanel.scrollTop = logPanel.scrollHeight;
+}
+function clearLog() { logPanel.innerHTML = ''; }
+
+function setStatus(text, state='ready') {
+  document.getElementById('status-text').textContent = text;
+  const dot = document.getElementById('status-dot');
+  dot.className = state;
+}
+
+function renderResults(conjunctions) {
+  const list = document.getElementById('results-list');
+  const count = document.getElementById('conj-count');
+  const exportBtn = document.getElementById('export-all-btn');
+  count.textContent = conjunctions.length ? `(${conjunctions.length})` : '';
+
+  if (!conjunctions.length) {
+    list.innerHTML = '<div id="no-results" style="color:var(--accent3);font-family:Share Tech Mono,monospace;font-size:10px;text-align:center;padding:20px 0">â No conjunctions detected</div>';
+    exportBtn.style.display = 'none';
+    return;
+  }
+
+  exportBtn.style.display = 'inline-block';
+
+  list.innerHTML = conjunctions.map((c, idx) => {
+    const h = Math.floor(c.time_min / 60);
+    const m = Math.floor(c.time_min % 60);
+    const pcColor = c.pc_estimate >= 1e-3 ? '#ff4444' : c.pc_estimate >= 1e-5 ? '#ffaa44' : '#4a6a85';
+    const covBadge = c.covariance_source === 'measured'
+      ? '<span style="color:#00ff88;font-size:8px;margin-left:6px;font-family:Share Tech Mono,monospace;">COV:REAL</span>' : '';
+    const debrisBadge = c.debris
+      ? '<span style="color:#ff6644;font-size:8px;margin-left:4px;font-family:Share Tech Mono,monospace;">DEBRIS</span>' : '';
+    let maneuverHTML = '';
+    if (c.maneuver && c.maneuver.feasible && c.maneuver.delta_v_magnitude != null) {
+      const dv = Number(c.maneuver.delta_v_magnitude).toFixed(2);
+      const rtn = c.maneuver.delta_v_rtn || [0,0,0];
+      maneuverHTML = `
+        <div style="margin-top:6px;padding:5px 7px;background:#0a1015;border-left:2px solid #ffaa44;border-radius:2px;font-family:'Share Tech Mono',monospace;">
+          <div style="font-size:8px;color:#ffaa44;letter-spacing:1px;margin-bottom:2px;">Îv MANEUVER <span style="color:#4a6a85;">(CW-LINEAR)</span></div>
+          <div style="font-size:10px;color:#ffaa44;">${dv} m/s</div>
+          <div style="font-size:8px;color:#4a6a85;">R:${Number(rtn[0]).toFixed(3)} T:${Number(rtn[1]).toFixed(3)} N:${Number(rtn[2]).toFixed(3)}</div>
+          <div style="font-size:7px;color:#4a6a85;margin-top:2px;font-style:italic;">${c.maneuver.advisory_note || ''}</div>
+        </div>`;
+    } else if (c.maneuver && !c.maneuver.feasible) {
+      maneuverHTML = `<div style="margin-top:5px;font-size:8px;color:#ff4444;font-family:'Share Tech Mono',monospace;">Îv: ${c.maneuver.advisory_note || 'Infeasible'}</div>`;
+    }
+    return `
+      <div class="conj-card" onclick="flyToConjunction(${idx})">
+        <div class="sats">${c.sat1} â ${c.sat2}${covBadge}${debrisBadge}</div>
+        <div class="meta">
+          <span class="dist">${c.min_dist_km.toFixed(2)} km</span>
+          <span class="pc" style="color:${pcColor}">Pc ${c.pc_estimate.toExponential(1)}</span>
+          <span class="time">+${h}h${m.toString().padStart(2,'0')}m</span>
+        </div>
+        ${maneuverHTML}
+        <div style="margin-top:6px;display:flex;gap:4px;">
+          <button onclick="event.stopPropagation();downloadCDM(${idx})"
+            style="flex:1;background:transparent;border:1px solid var(--border);border-radius:3px;
+                   color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:8px;
+                   padding:3px;cursor:pointer;letter-spacing:1px;transition:all 0.15s;"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+            â¬ CDM
+          </button>
+          <button data-satname="${c.sat1}" onclick="event.stopPropagation();openSatInfo(this.dataset.satname)"
+            style="flex:1;background:transparent;border:1px solid var(--border);border-radius:3px;
+                   color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:8px;
+                   padding:3px;cursor:pointer;letter-spacing:1px;transition:all 0.15s;"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+            â¹ ${c.sat1.length > 12 ? c.sat1.slice(0,12)+'â¦' : c.sat1}
+          </button>
+          <button data-satname="${c.sat2}" onclick="event.stopPropagation();openSatInfo(this.dataset.satname)"
+            style="flex:1;background:transparent;border:1px solid var(--border);border-radius:3px;
+                   color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:8px;
+                   padding:3px;cursor:pointer;letter-spacing:1px;transition:all 0.15s;"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+            â¹ ${c.sat2.length > 12 ? c.sat2.slice(0,12)+'â¦' : c.sat2}
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function flyToConjunction(idx) {
+  const c = conjData[idx];
+  if (!c) return;
+  closeSidebarOnMobile();
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(c.midpoint[0], c.midpoint[1], c.midpoint[2] + 3000000),
+    duration: 2.0,
+  });
+}
+
+const RISK_LEVELS = [
+  { name: 'LOW',      pc: 1e-6,  label: 'Pc â¥ 1Ã10â»â¶', color: '#00ff88' },
+  { name: 'MODERATE', pc: 1e-4,  label: 'Pc â¥ 1Ã10â»â´', color: '#ffaa44' },
+  { name: 'HIGH',     pc: 1e-3,  label: 'Pc â¥ 1Ã10â»Â³', color: '#ff6644' },
+  { name: 'CRITICAL', pc: 1e-2,  label: 'Pc â¥ 1Ã10â»Â²', color: '#ff4444' },
+];
+function updateRiskSlider(val) {
+  const r = RISK_LEVELS[parseInt(val)];
+  document.getElementById('risk-name').textContent = r.name;
+  document.getElementById('risk-name').style.color = r.color;
+  document.getElementById('risk-pc-val').textContent = r.label;
+  document.getElementById('pc_thresh').value = r.pc;
+}
+updateRiskSlider(1);
+
+// ââ F-07: Debris simulation âââââââââââââââââââââââââââââââââââ
+let debrisEntities = [];
+
+function populateDebrisSatList(trackNames) {
+  const sel = document.getElementById('debris_sat');
+  sel.innerHTML = trackNames.map(n => `<option value="${n}">${n}</option>`).join('');
+  document.getElementById('debris-form').style.display = 'block';
+  document.getElementById('debris-locked').style.display = 'none';
+}
+
+async function simulateFragmentation() {
+  const satName = document.getElementById('debris_sat').value;
+  const eventType = document.getElementById('debris_type').value;
+  const count = Math.min(200, parseInt(document.getElementById('debris_count').value) || 50);
+  if (!satName) { addLog('Select a parent satellite first', 'warn'); return; }
+
+  addLog(`Simulating ${eventType} of ${satName} â ${count} fragments...`, 'info');
+  try {
+    const res = await fetch(`/debris/simulate?sat_name=${encodeURIComponent(satName)}&event_type=${eventType}&n_debris=${count}`);
+    const data = await res.json();
+    if (data.error) { addLog('Fragmentation error: ' + data.error, 'error'); return; }
+
+    debrisEntities.forEach(e => { if(e.dot) viewer.entities.remove(e.dot); if(e.trail) viewer.entities.remove(e.trail); });
+    debrisEntities = [];
+
+    const debColor = Cesium.Color.WHITE.withAlpha(0.8);
+    const now = Cesium.JulianDate.now();
+
+    data.debris_tracks.forEach(track => {
+      const cartPositions = track.positions.map(p => Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2]));
+      if (cartPositions.length === 0) return;
+
+      const sampledPos = new Cesium.SampledPositionProperty();
+      sampledPos.interpolationDegree = 1;
+      sampledPos.interpolationAlgorithm = Cesium.HermitePolynomialApproximation;
+      cartPositions.forEach((cart, i) => {
+        const t = Cesium.JulianDate.addSeconds(now, i * 60, new Cesium.JulianDate());
+        sampledPos.addSample(t, cart);
+      });
+
+      const dot = viewer.entities.add({
+        position: sampledPos,
+        point: { pixelSize: 2, color: debColor, outlineWidth: 0,
+                 scaleByDistance: new Cesium.NearFarScalar(1e6, 1.5, 5e7, 0.3) },
+        description: JSON.stringify({ name: track.name, regime: track.regime }),
+      });
+      const trail = cartPositions.length > 1 ? viewer.entities.add({
+        polyline: {
+          positions: cartPositions,
+          width: 0.8,
+          material: new Cesium.ColorMaterialProperty(Cesium.Color.WHITE.withAlpha(0.25)),
+          arcType: Cesium.ArcType.NONE,
+        }
+      }) : null;
+      debrisEntities.push({ dot, trail, name: track.name, isAlert: false });
+    });
+
+    document.getElementById('sat-count').textContent = satEntities.length + debrisEntities.length;
+    addLog(`${data.debris_tracks.length} debris entities added to globe`, 'ok');
+
+    if (data.conjunctions && data.conjunctions.length > 0) {
+      addLog(`${data.conjunctions.length} debris-conjunction(s) detected`, 'warn');
+      renderResults([...conjData, ...data.conjunctions]);
+    }
+  } catch(e) {
+    addLog('Fragmentation simulation failed: ' + e.message, 'error');
+  }
+}
+
+// ââ CDM DOWNLOAD âââââââââââââââââââââââââââââââââââââââââââââ
+function downloadCDM(idx) { window.open(`/cdm/${idx}`, '_blank'); }
+function exportAllCDMs() { window.open('/cdm/zip/all', '_blank'); }
+
+// ââ SATELLITE INFO MODAL â SEC-01: server-side via /sat-info/ â
+async function openSatInfo(satName) {
+  const overlay = document.getElementById('sat-modal-overlay');
+  const title   = document.getElementById('sat-modal-title');
+  const body    = document.getElementById('sat-modal-body');
+
+  title.textContent = satName;
+  body.innerHTML = '<div id="sat-modal-loading">FETCHING SATELLITE DATA...</div>';
+  overlay.classList.add('open');
+
+  try {
+    // SEC-01: All Anthropic API calls happen server-side via /sat-info/{name}
+    const res = await fetch(`/sat-info/${encodeURIComponent(satName)}`);
+    if (!res.ok) {
+      throw new Error(`Server returned ${res.status}`);
+    }
+    const info = await res.json();
+
+    if (info.error) {
+      body.innerHTML = `
+        <div style="padding:16px 0;">
+          <div class="sat-field"><span class="sf-key">Name</span><span class="sf-val">${satName}</span></div>
+          <div style="margin-top:16px;text-align:center;">
+            <a href="https://celestrak.org/satcat/records.php?NAME=${encodeURIComponent(satName)}"
+               target="_blank"
+               style="color:var(--accent);font-family:'Share Tech Mono',monospace;font-size:10px;
+                      border:1px solid var(--accent);padding:8px 16px;border-radius:4px;
+                      text-decoration:none;display:inline-block;">
+              â VIEW FULL RECORD ON CELESTRAK
+            </a>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // Mission type badge colour
+    const missionColors = {
+      'Communications': '#00d4ff', 'Earth Observation': '#00ff88',
+      'Navigation': '#ffaa44', 'Scientific': '#aa88ff',
+      'Military': '#ff4444', 'Weather': '#44aaff',
+      'Technology Demo': '#ffdd44', 'Human Spaceflight': '#ff88aa',
+      'Space Station': '#ff88aa', 'Debris': '#888888', 'Unknown': '#4a6a85',
+    };
+    const mType = info.missionType || 'Unknown';
+    const mColor = missionColors[mType] || '#4a6a85';
+    const missionBadge = `<span style="background:${mColor}22;color:${mColor};
+      border:1px solid ${mColor}55;border-radius:3px;padding:2px 8px;
+      font-size:9px;letter-spacing:1px;text-transform:uppercase;">${mType}</span>`;
+
+    const fields = [
+      ['Full Name',       info.fullName],
+      ['NORAD ID',        info.noradId],
+      ['Country',         info.country || info.owner],
+      ['Mission Type',    missionBadge],
+      ['Object Class',    info.objectType],
+      ['Launch Date',     info.launchDate],
+      ['Launch Site',     info.launchSite],
+      ['Orbit Type',      info.orbitType],
+      ['Period',          info.periodMin ? `${info.periodMin} min` : null],
+      ['Inclination',     info.inclinationDeg ? `${info.inclinationDeg}Â°` : null],
+      ['Apogee',          info.apogeeKm ? `${info.apogeeKm} km` : null],
+      ['Perigee',         info.perigeeKm ? `${info.perigeeKm} km` : null],
+      ['RCS Size',        info.rcsSize],
+      ['Status',          info.operationalStatus],
+    ];
+
+    body.innerHTML = fields.filter(([,v]) => v && v !== 'Unknown' && v !== null).map(([k, v]) =>
+      `<div class="sat-field"><span class="sf-key">${k}</span><span class="sf-val">${v}</span></div>`
+    ).join('') + `
+      <div style="margin-top:16px;text-align:center;">
+        <a href="https://celestrak.org/satcat/records.php?NAME=${encodeURIComponent(satName)}"
+           target="_blank"
+           style="color:var(--accent);font-family:'Share Tech Mono',monospace;font-size:10px;
+                  border:1px solid var(--accent);padding:8px 16px;border-radius:4px;
+                  text-decoration:none;display:inline-block;">
+          â VIEW FULL RECORD ON CELESTRAK
+        </a>
+      </div>`;
+  } catch(e) {
+    body.innerHTML = `<div id="sat-modal-error">Could not load satellite data.<br><br>
+      <a href="https://celestrak.org/satcat/records.php?NAME=${encodeURIComponent(satName)}"
+         target="_blank" style="color:var(--accent);">â Open on CelesTrak directly</a></div>`;
+  }
+}
+
+function closeSatModal(e) {
+  if (!e || e.target === document.getElementById('sat-modal-overlay')) {
+    document.getElementById('sat-modal-overlay').classList.remove('open');
+  }
+}
+
+// ââ HISTORICAL TRENDS âââââââââââââââââââââââââââââââââââââââââ
+let historyOpen = false;
+let chartDaily = null;
+let chartRegimes = null;
+
+function toggleHistory() {
+  historyOpen = !historyOpen;
+  document.getElementById('history-panel').style.display = historyOpen ? 'block' : 'none';
+  document.getElementById('history-toggle').textContent = historyOpen ? 'â¼' : 'â¶';
+  if (historyOpen) loadHistory();
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/history');
+    if (res.status === 401) { addLog('Sign in to view history', 'warn'); return; }
+    const data = await res.json();
+
+    const dailyCtx = document.getElementById('chart-daily').getContext('2d');
+    if (chartDaily) chartDaily.destroy();
+    chartDaily = new Chart(dailyCtx, {
+      type: 'line',
+      data: {
+        labels: data.daily.map(d => d.day).reverse(),
+        datasets: [{
+          label: 'Conjunctions / Day',
+          data: data.daily.map(d => d.count).reverse(),
+          borderColor: '#00d4ff',
+          backgroundColor: 'rgba(0,212,255,0.1)',
+          borderWidth: 1.5,
+          pointRadius: 3,
+          pointBackgroundColor: '#00d4ff',
+          tension: 0.3,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#4a6a85', font: { family: 'Share Tech Mono', size: 9 } } } },
+        scales: {
+          x: { ticks: { color: '#4a6a85', font: { size: 8 } }, grid: { color: '#0d2137' } },
+          y: { ticks: { color: '#4a6a85', font: { size: 8 } }, grid: { color: '#0d2137' } }
+        }
+      }
+    });
+
+    const regCtx = document.getElementById('chart-regimes').getContext('2d');
+    if (chartRegimes) chartRegimes.destroy();
+    chartRegimes = new Chart(regCtx, {
+      type: 'doughnut',
+      data: {
+        labels: data.regimes.map(r => r.pair),
+        datasets: [{
+          data: data.regimes.map(r => r.count),
+          backgroundColor: ['#4da6ff','#ff6b6b','#00ff88','#ffaa44','#aa44ff','#00d4ff'],
+          borderColor: '#090f17',
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { color: '#4a6a85', font: { family: 'Share Tech Mono', size: 8 }, boxWidth: 10 } } }
+      }
+    });
+
+    const pairDiv = document.getElementById('top-pairs-list');
+    if (data.top_pairs.length) {
+      pairDiv.innerHTML = '<div style="font-size:9px;color:var(--accent);letter-spacing:2px;margin:10px 0 6px;font-family:Share Tech Mono,monospace;">TOP RECURRING PAIRS</div>' +
+        data.top_pairs.map(p => `
+          <div class="tp-row">
+            <span class="tp-sats">${p.sat1.slice(0,10)} â ${p.sat2.slice(0,10)}</span>
+            <span class="tp-count">${p.count}Ã</span>
+            <span class="tp-dist">${p.closest.toFixed(1)}km</span>
+          </div>`).join('');
+    } else {
+      pairDiv.innerHTML = '<div style="color:var(--muted);font-size:9px;text-align:center;padding:8px;font-family:Share Tech Mono,monospace;">No history yet</div>';
+    }
+  } catch(e) {
+    console.error('History load failed:', e);
+  }
+}
+
+// ââ RUN DETECTION âââââââââââââââââââââââââââââââââââââââââââââ
+async function runDetection() {
+  if (!currentUser) {
+    addLog('Not authenticated â please sign in', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.className = 'running';
+  btn.textContent = 'â³ SCANNING...';
+  clearLog();
+  setStatus('Initializing scan...', 'running');
+
+  // Progress bar
+  let pb = document.getElementById('vs-pb');
+  let pbWrap = document.getElementById('vs-pb-wrap');
+  let pbLbl = document.getElementById('vs-pb-lbl');
+  if (!pb) {
+    const w = document.createElement('div');
+    w.id = 'vs-pb-wrap';
+    w.style.cssText = 'margin:8px 0 4px;background:#0a1520;border:1px solid #0d2137;border-radius:4px;height:6px;overflow:hidden;';
+    const b = document.createElement('div');
+    b.id = 'vs-pb';
+    b.style.cssText = 'height:100%;width:0%;background:linear-gradient(90deg,#00d4ff,#00ff88);border-radius:4px;transition:width 0.5s ease;';
+    w.appendChild(b);
+    const l = document.createElement('div');
+    l.id = 'vs-pb-lbl';
+    l.style.cssText = 'font-size:9px;color:#4a6a85;letter-spacing:1px;margin-top:3px;font-family:Share Tech Mono,monospace;';
+    btn.parentNode.insertBefore(w, btn);
+    btn.parentNode.insertBefore(l, btn);
+    pb = b; pbWrap = w; pbLbl = l;
+  }
+  pbWrap.style.display = 'block';
+  pb.style.width = '0%';
+  pbLbl.textContent = 'INITIALIZING...';
+
+  function setProgress(pct, msg) { pb.style.width = pct+'%'; pbLbl.textContent = (msg||'').toUpperCase(); }
+  function resetBtn() {
+    btn.disabled = false; btn.className = ''; btn.textContent = 'â¶ EXECUTE SCAN';
+    setTimeout(() => { pbWrap.style.display='none'; pbLbl.textContent=''; }, 3000);
+  }
+
+  function _intVal(id, def) {
+    const v = parseInt(document.getElementById(id).value);
+    if (isNaN(v)) { addLog(`${id} not set â using default: ${def}`, 'warn'); return def; }
+    return v;
+  }
+  function _floatVal(id, def) {
+    const v = parseFloat(document.getElementById(id).value);
+    if (isNaN(v)) { addLog(`${id} not set â using default: ${def}`, 'warn'); return def; }
+    return v;
+  }
+
+  const params = {
+    num_leo: _intVal('num_leo', 100),
+    num_meo: _intVal('num_meo', 50),
+    num_geo: _intVal('num_geo', 20),
+    time_window_hours: _floatVal('time_window', 12),
+    collision_alert_km: _floatVal('alert_km', 10),
+    refine_threshold_km: _floatVal('refine_km', 50),
+    pc_alert_threshold: parseFloat(document.getElementById('pc_thresh').value),
+    alert_email: document.getElementById('alert_email') ? document.getElementById('alert_email').value || null : null,
+    pushover_user_key: document.getElementById('pushover_key') ? document.getElementById('pushover_key').value || null : null,
+  };
+
+  try {
+    const evtSource = new EventSource('/run?' + new URLSearchParams(params));
+    let scanDone = false;
+    let lastActivity = Date.now();
+
+    // Keepalive watchdog â large scans (10k sats) can take 3+ min.
+    // Only fire if we haven't received any message in 4 minutes AND scan isn't done.
+    const watchdog = setInterval(() => {
+      if (!scanDone && Date.now() - lastActivity > 240000) {
+        clearInterval(watchdog);
+        evtSource.close();
+        setProgress(0, 'Timeout');
+        addLog('Scan timed out after 4 minutes â try fewer satellites or a shorter window', 'warn');
+        setStatus('Scan timed out', 'error');
+        resetBtn();
+      }
+    }, 15000);
+
+    evtSource.onmessage = (e) => {
+      lastActivity = Date.now();
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'ping') return; // server keepalive â ignore
+      if (msg.type === 'log') {
+        const level = msg.text.includes('â') ? 'ok' : msg.text.includes('â') || msg.text.includes('ERROR') ? 'error' : msg.text.includes('WARNING') ? 'warn' : 'info';
+        addLog(msg.text, level);
+        setStatus(msg.text.slice(0, 60), 'running');
+      } else if (msg.type === 'progress') {
+        setProgress(msg.pct, msg.text);
+        setStatus(msg.text.slice(0, 60), 'running');
+      } else if (msg.type === 'rate_limit') {
+        scanDone = true; clearInterval(watchdog); evtSource.close();
+        setProgress(0, 'Rate limited');
+        addLog('Rate limit: ' + msg.text, 'warn');
+        setStatus('Rate limited â wait before next scan', 'error');
+        resetBtn();
+      } else if (msg.type === 'auth_error') {
+        scanDone = true; clearInterval(watchdog); evtSource.close();
+        setProgress(0, 'Auth required');
+        addLog('Authentication required', 'error');
+        setStatus('Please sign in', 'error');
+        resetBtn();
+      } else if (msg.type === 'done') {
+        scanDone = true; clearInterval(watchdog); evtSource.close();
+        setProgress(100, 'Complete!');
+        const results = msg.data;
+        addLog(`Scan complete â ${results.conjunctions.length} conjunction(s) found`, 'ok');
+        setStatus(`Done â ${results.conjunctions.length} conjunction(s)`, 'ready');
+        plotConjunctions(results.conjunctions);
+        alertSatNames = new Set();
+        results.conjunctions.forEach(c => { alertSatNames.add(c.sat1); alertSatNames.add(c.sat2); });
+        plotSatellites(results.tracks);
+        renderResults(results.conjunctions);
+        const trackNames = results.tracks.map(t => t.name);
+        if (typeof populateDebrisSatList === 'function') populateDebrisSatList(trackNames);
+        resetBtn();
+        viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(0, 20, 25000000), duration: 2.0 });
+      } else if (msg.type === 'error') {
+        scanDone = true; clearInterval(watchdog); evtSource.close();
+        setProgress(0, 'Error');
+        addLog('ERROR: ' + msg.text, 'error');
+        setStatus('Scan failed â ' + msg.text.slice(0, 80), 'error');
+        resetBtn();
+      }
+    };
+
+    evtSource.onerror = () => {
+      // Some browsers fire onerror on normal stream close â ignore if scan completed
+      if (scanDone) return;
+      clearInterval(watchdog);
+      evtSource.close();
+      setProgress(0, 'Connection lost');
+      addLog('Connection lost â the scan may still be running server-side. Refresh to check results.', 'warn');
+      setStatus('Connection dropped', 'error');
+      resetBtn();
+    };
+
+  } catch(err) {
+    setProgress(0, 'Error');
+    addLog('Failed to start scan: ' + err.message, 'error');
+    setStatus('Error', 'error');
+    resetBtn();
+  }
+}
+</script>
+</body>
+</html>
+'''
+
+SCENARIOS_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Interactive Scenarios â VectraSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#080c12;--ink2:#0d1320;--ink3:#111d2e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;
+  --accent:#4a9eff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;
+  --serif:'Instrument Serif',serif;--mono:'DM Mono',monospace;--sans:'Outfit',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--ink);color:var(--text);font-family:var(--sans);overflow:hidden;width:100%;height:100%;}
+
+#topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);}
+.tb-brand{font-family:var(--serif);font-size:16px;font-style:italic;color:#fff;text-decoration:none;}
+.tb-brand em{color:var(--accent);font-style:normal;}
+.tb-links{display:flex;gap:4px;}
+.tb-link{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:5px 12px;border:1px solid transparent;border-radius:4px;transition:all 0.15s;}
+.tb-link:hover,.tb-link.active{border-color:var(--border2);color:var(--text);}
+.tb-link.active{border-color:rgba(74,158,255,0.4);color:var(--accent);background:rgba(74,158,255,0.06);}
+
+#app{display:flex;height:100vh;padding-top:52px;}
+#canvas-wrap{flex:1;position:relative;overflow:hidden;}
+#three-canvas{display:block;width:100%;height:100%;}
+
+/* SCENARIO SELECTOR */
+#scenario-bar{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:50;display:flex;gap:8px;background:rgba(8,12,18,0.9);border:1px solid var(--border);border-radius:8px;padding:8px;}
+.sc-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:7px 16px;border-radius:5px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.sc-btn:hover{border-color:var(--accent);color:var(--accent);}
+.sc-btn.active{background:rgba(74,158,255,0.12);border-color:var(--accent);color:var(--accent);}
+
+/* PLAYBACK BAR */
+#playback{position:absolute;bottom:0;left:0;right:0;z-index:50;background:rgba(8,12,18,0.92);border-top:1px solid var(--border);padding:12px 20px 16px;backdrop-filter:blur(8px);}
+.pb-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.pb-title{font-family:var(--serif);font-size:16px;font-style:italic;color:#fff;flex:1;}
+.pb-time{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;}
+.pb-btns{display:flex;gap:8px;}
+.pb-btn{width:34px;height:34px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.pb-btn:hover{border-color:var(--accent);color:var(--accent);}
+.pb-btn.active{background:rgba(74,158,255,0.12);border-color:var(--accent);color:var(--accent);}
+#pb-progress{width:100%;height:4px;background:var(--border2);border-radius:2px;cursor:pointer;position:relative;}
+#pb-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.05s linear;pointer-events:none;}
+#pb-scrubber{position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:grab;left:0%;margin-left:-6px;}
+
+/* INFO OVERLAY */
+#info-overlay{position:absolute;top:76px;left:20px;z-index:50;max-width:320px;}
+.io-card{background:rgba(8,12,18,0.9);border:1px solid var(--border);border-radius:8px;padding:16px 18px;backdrop-filter:blur(8px);margin-bottom:10px;}
+.io-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.io-title{font-family:var(--serif);font-size:17px;color:#fff;margin-bottom:6px;}
+.io-body{font-size:12px;color:var(--muted);line-height:1.65;}
+.io-body strong{color:var(--text);}
+.io-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+.io-stat{background:var(--ink3);border:1px solid var(--border);border-radius:5px;padding:8px 10px;}
+.io-stat-val{font-family:var(--mono);font-size:13px;color:var(--text);}
+.io-stat-lbl{font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+
+/* FRAGMENT COUNTER */
+#frag-counter{position:absolute;top:76px;right:20px;z-index:50;background:rgba(8,12,18,0.9);border:1px solid var(--border);border-radius:8px;padding:14px 18px;backdrop-filter:blur(8px);text-align:center;min-width:120px;}
+.fc-val{font-family:var(--serif);font-size:32px;font-style:italic;color:var(--red);line-height:1;}
+.fc-lbl{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+
+/* TIMELINE EVENTS */
+#timeline-events{position:absolute;bottom:80px;left:20px;right:20px;pointer-events:none;}
+.te-badge{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 10px;border-radius:4px;white-space:nowrap;opacity:0;transition:opacity 0.3s;}
+.te-badge.show{opacity:1;}
+
+/* MOBILE */
+@media(max-width:700px){
+  #scenario-bar{top:8px;gap:4px;padding:6px;}
+  .sc-btn{font-size:8px;padding:5px 10px;}
+  #info-overlay{max-width:200px;}
+  .io-card{padding:12px 14px;}
+  .tb-link:not(.back-link){display:none;}
+}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="/" class="tb-brand">Vectra<em>Space</em></a>
+  <div class="tb-links">
+    <a href="/" class="tb-link back-link">â Hub</a>
+    <a href="/scenarios" class="tb-link active">Scenarios</a>
+    <a href="/api/tools/trajectory" class="tb-link" style="color:var(--green);">Trajectory â</a>
+    <a href="/calculator" class="tb-link">Calculator</a>
+    <a href="/glossary" class="tb-link">Resources</a>
+  </div>
+</div>
+
+<div id="app">
+  <div id="canvas-wrap">
+    <canvas id="three-canvas"></canvas>
+
+    <div id="scenario-bar">
+      <button class="sc-btn active" onclick="loadScenario('iridium')">Iridium-Cosmos</button>
+      <button class="sc-btn" onclick="loadScenario('kessler')">Kessler Cascade</button>
+      <button class="sc-btn" onclick="loadScenario('fy1c')">FY-1C ASAT</button>
+      <button class="sc-btn" onclick="loadScenario('maneuver')">Avoidance Maneuver</button>
+    </div>
+
+    <div id="info-overlay">
+      <div class="io-card" id="io-main">
+        <div class="io-eyebrow" id="io-eyebrow">Feb 10, 2009 Â· 789 km</div>
+        <div class="io-title" id="io-title">Iridium 33 â Cosmos 2251</div>
+        <div class="io-body" id="io-body">The first accidental hypervelocity collision between two intact satellites. Both were destroyed, generating <strong>~2,300 trackable fragments</strong> â many still orbit today.</div>
+        <div class="io-stats" id="io-stats">
+          <div class="io-stat"><div class="io-stat-val" id="is-v">11.7</div><div class="io-stat-lbl">km/s rel. vel.</div></div>
+          <div class="io-stat"><div class="io-stat-val" id="is-alt">789</div><div class="io-stat-lbl">km altitude</div></div>
+          <div class="io-stat"><div class="io-stat-val" id="is-m1">560</div><div class="io-stat-lbl">Iridium mass (kg)</div></div>
+          <div class="io-stat"><div class="io-stat-val" id="is-m2">900</div><div class="io-stat-lbl">Cosmos mass (kg)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="frag-counter">
+      <div class="fc-val" id="fc-val">0</div>
+      <div class="fc-lbl" id="fc-lbl">Fragments</div>
+    </div>
+
+    <div id="playback">
+      <div class="pb-top">
+        <div class="pb-title" id="pb-title">Iridium-Cosmos Collision Simulation</div>
+        <div class="pb-time" id="pb-time">T+00:00</div>
+        <div class="pb-btns">
+          <button class="pb-btn" id="btn-restart" onclick="restart()" title="Restart">âº</button>
+          <button class="pb-btn active" id="btn-play" onclick="togglePlay()" title="Play/Pause">â¸</button>
+          <button class="pb-btn" id="btn-speed" onclick="cycleSpeed()" title="Speed">1Ã</button>
+        </div>
+      </div>
+      <div id="pb-progress" onclick="scrubTo(event)">
+        <div id="pb-fill"></div>
+        <div id="pb-scrubber"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ââ THREE.JS SETUP ââââââââââââââââââââââââââââââââââââââââââââ
+const canvas  = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x080c12, 1);
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 800000);
+
+// Earth
+const R_E = 6371;
+const earthMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(R_E, 48, 48),
+  new THREE.MeshPhongMaterial({ color: 0x1a3a6a, emissive: 0x0a1a3a, shininess: 5 })
+);
+scene.add(earthMesh);
+
+// Grid overlay
+const gMat = new THREE.LineBasicMaterial({ color: 0x1a3a6a, transparent: true, opacity: 0.3 });
+for (let la = -80; la <= 80; la += 20) {
+  const pts = [];
+  for (let lo = 0; lo <= 360; lo += 6) {
+    const r=R_E+5, lR=la*Math.PI/180, oR=lo*Math.PI/180;
+    pts.push(new THREE.Vector3(r*Math.cos(lR)*Math.cos(oR), r*Math.sin(lR), r*Math.cos(lR)*Math.sin(oR)));
+  }
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gMat));
+}
+for (let lo = 0; lo < 360; lo += 30) {
+  const pts = [];
+  for (let la = -90; la <= 90; la += 6) {
+    const r=R_E+5, lR=la*Math.PI/180, oR=lo*Math.PI/180;
+    pts.push(new THREE.Vector3(r*Math.cos(lR)*Math.cos(oR), r*Math.sin(lR), r*Math.cos(lR)*Math.sin(oR)));
+  }
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gMat));
+}
+
+// Atmosphere
+scene.add(new THREE.Mesh(
+  new THREE.SphereGeometry(R_E * 1.04, 32, 32),
+  new THREE.MeshPhongMaterial({ color: 0x2a5f9f, transparent: true, opacity: 0.07, side: THREE.FrontSide })
+));
+
+// Stars
+const sPos = [];
+for (let i = 0; i < 2000; i++) sPos.push((Math.random()-.5)*600000, (Math.random()-.5)*600000, (Math.random()-.5)*600000);
+const sGeo = new THREE.BufferGeometry();
+sGeo.setAttribute('position', new THREE.Float32BufferAttribute(sPos, 3));
+scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 80, transparent: true, opacity: 0.5 })));
+
+// Lights
+scene.add(new THREE.AmbientLight(0x223355, 1.2));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.position.set(50000, 20000, 30000);
+scene.add(sun);
+
+// ââ ORBIT MATH âââââââââââââââââââââââââââââââââââââââââââââââ
+const MU = 398600.4418;
+function orbitPoints(a, e, iDeg, ODeg, wDeg, N=180) {
+  const pts=[], iR=iDeg*Math.PI/180, OR=ODeg*Math.PI/180, wR=wDeg*Math.PI/180;
+  for (let k=0; k<=N; k++) {
+    const nu=(k/N)*2*Math.PI;
+    const p=a*(1-e*e), r=p/(1+e*Math.cos(nu));
+    const xp=r*Math.cos(nu), yp=r*Math.sin(nu);
+    const cosO=Math.cos(OR), sinO=Math.sin(OR), ci=Math.cos(iR), si=Math.sin(iR), cw=Math.cos(wR), sw=Math.sin(wR);
+    pts.push(new THREE.Vector3(
+      (cosO*cw-sinO*sw*ci)*xp+(-cosO*sw-sinO*cw*ci)*yp,
+      (si*sw)*xp+(si*cw)*yp,
+      (sinO*cw+cosO*sw*ci)*xp+(-sinO*sw+cosO*cw*ci)*yp
+    ));
+  }
+  return pts;
+}
+function satPos(a, e, iDeg, ODeg, wDeg, nuDeg) {
+  const pts = orbitPoints(a, e, iDeg, ODeg, wDeg, 1);
+  // recompute at nuDeg
+  const nu=nuDeg*Math.PI/180, iR=iDeg*Math.PI/180, OR=ODeg*Math.PI/180, wR=wDeg*Math.PI/180;
+  const p=a*(1-e*e), r=p/(1+e*Math.cos(nu));
+  const xp=r*Math.cos(nu), yp=r*Math.sin(nu);
+  const cosO=Math.cos(OR), sinO=Math.sin(OR), ci=Math.cos(iR), si=Math.sin(iR), cw=Math.cos(wR), sw=Math.sin(wR);
+  return new THREE.Vector3(
+    (cosO*cw-sinO*sw*ci)*xp+(-cosO*sw-sinO*cw*ci)*yp,
+    (si*sw)*xp+(si*cw)*yp,
+    (sinO*cw+cosO*sw*ci)*xp+(-sinO*sw+cosO*cw*ci)*yp
+  );
+}
+
+// ââ SCENE OBJECTS âââââââââââââââââââââââââââââââââââââââââââââ
+let sceneGroup = new THREE.Group();
+scene.add(sceneGroup);
+let fragments = [];
+let animState = {};
+let playing = true, speed = 1, t = 0, tMax = 1;
+const speeds = [0.5, 1, 2, 4];
+let speedIdx = 1;
+
+function clearScene() {
+  sceneGroup.clear();
+  fragments = [];
+}
+
+function mkLine(pts, color, opacity=1) {
+  const mat = new THREE.LineBasicMaterial({ color, transparent: opacity<1, opacity });
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);
+}
+function mkSphere(r, color, emissive=0) {
+  return new THREE.Mesh(new THREE.SphereGeometry(r,12,12), new THREE.MeshPhongMaterial({ color, emissive }));
+}
+
+// ââ SCENARIOS ââââââââââââââââââââââââââââââââââââââââââââââââ
+const SCENARIOS = {
+  iridium: {
+    title: 'Iridium-Cosmos Collision Simulation',
+    eyebrow: 'Feb 10, 2009 Â· 789 km',
+    heading: 'Iridium 33 â Cosmos 2251',
+    body: 'The first accidental hypervelocity collision between two intact satellites. Both were destroyed, generating <strong>~2,300 trackable fragments</strong> â many still orbit today.',
+    stats: { v:'11.7', alt:'789', m1:'560', m2:'900', l1:'km/s rel. vel.', l2:'km altitude', l3:'Iridium mass (kg)', l4:'Cosmos mass (kg)' },
+    fcLabel: 'Trackable Fragments',
+    totalFrags: 2300,
+    camera: { pos: [0, 8000, 22000], lookAt: [0, 0, 0] },
+    build() {
+      clearScene();
+      // Iridium orbit (a=7160 km, i=86.4Â°)
+      const iriPts = orbitPoints(7160, 0.001, 86.4, 340, 0);
+      sceneGroup.add(mkLine(iriPts, 0x4a9eff, 0.6));
+      // Cosmos orbit (a=7159 km, i=74.0Â°, retrograde)
+      const cosPts = orbitPoints(7159, 0.001, 74.0, 155, 0);
+      sceneGroup.add(mkLine(cosPts, 0xf87171, 0.6));
+
+      // sat meshes (start positions nu=~270)
+      const iriSat = mkSphere(100, 0x4a9eff, 0x103060);
+      const cosSat = mkSphere(100, 0xf87171, 0x601010);
+      const collPt = satPos(7160, 0.001, 86.4, 340, 0, 270);
+      iriSat.position.copy(satPos(7160, 0.001, 86.4, 340, 0, 180));
+      cosSat.position.copy(satPos(7159, 0.001, 74.0, 155, 0, 90));
+      sceneGroup.add(iriSat); sceneGroup.add(cosSat);
+
+      // Collision point marker (appears at t=0.45)
+      const flashGeo = new THREE.SphereGeometry(350, 16, 16);
+      const flashMat = new THREE.MeshPhongMaterial({ color: 0xffaa00, emissive: 0xff6600, transparent: true, opacity: 0 });
+      const flash = new THREE.Mesh(flashGeo, flashMat);
+      flash.position.copy(collPt);
+      sceneGroup.add(flash);
+
+      // Build debris particles
+      const NFRAG = 400;
+      const fragGeo = new THREE.BufferGeometry();
+      const fragPos = new Float32Array(NFRAG * 3);
+      fragGeo.setAttribute('position', new THREE.BufferAttribute(fragPos, 3));
+      const fragMat = new THREE.PointsMaterial({ color: 0xff8844, size: 50, transparent: true, opacity: 0 });
+      const fragPoints = new THREE.Points(fragGeo, fragMat);
+      sceneGroup.add(fragPoints);
+
+      // Collision ring (expanding ring at impact)
+      const ringGeo = new THREE.RingGeometry(100, 160, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xff8844, transparent: true, opacity: 0, side: THREE.DoubleSide });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.copy(collPt);
+      ring.lookAt(0, 1, 0);
+      sceneGroup.add(ring);
+
+      // Store fragment velocity vectors
+      fragments = [];
+      for (let k = 0; k < NFRAG; k++) {
+        const phi = Math.random() * Math.PI * 2;
+        const theta2 = Math.acos(2 * Math.random() - 1);
+        const spd = 300 + Math.random() * 2000;  // m/s dispersion
+        fragments.push({
+          vx: Math.sin(theta2)*Math.cos(phi)*spd,
+          vy: Math.cos(theta2)*spd,
+          vz: Math.sin(theta2)*Math.sin(phi)*spd,
+        });
+      }
+
+      animState = {
+        iriSat, cosSat, flash, flashMat, fragPoints, fragPos, fragMat, ring, ringMat, ringGeo,
+        collPt, NFRAG,
+      };
+    },
+    tick(t) {
+      const s = animState;
+      if (!s.iriSat) return;
+      // Phase 0â0.4: satellites approach
+      const approach = Math.min(t / 0.4, 1.0);
+      const iriNu  = 180 + approach * 90;
+      const cosNu  = 90  + approach * 180;
+      s.iriSat.position.copy(satPos(7160, 0.001, 86.4, 340, 0, iriNu));
+      s.cosSat.position.copy(satPos(7159, 0.001, 74.0, 155, 0, cosNu));
+
+      // Phase 0.4â0.5: collision flash
+      const flashT = Math.max(0, Math.min((t - 0.4) / 0.1, 1));
+      s.flashMat.opacity = flashT < 0.5 ? flashT * 2 : (1 - flashT) * 2;
+
+      // Phase 0.45+: fragments expand
+      if (t > 0.45) {
+        const fT = (t - 0.45) * 3.0;
+        s.iriSat.visible = false; s.cosSat.visible = false;
+        s.fragMat.opacity = Math.min(fT * 3, 0.8);
+        for (let k = 0; k < s.NFRAG; k++) {
+          const f = fragments[k];
+          s.fragPos[k*3]   = s.collPt.x + f.vx * fT * 0.8;
+          s.fragPos[k*3+1] = s.collPt.y + f.vy * fT * 0.8;
+          s.fragPos[k*3+2] = s.collPt.z + f.vz * fT * 0.8;
+        }
+        s.fragPoints.geometry.attributes.position.needsUpdate = true;
+        // Ring expand
+        s.ring.scale.setScalar(1 + fT * 6);
+        s.ringMat.opacity = Math.max(0, 0.5 - fT * 0.5);
+      } else {
+        s.iriSat.visible = true; s.cosSat.visible = true;
+        s.fragMat.opacity = 0;
+      }
+
+      // Fragment counter
+      const fragCount = t > 0.45 ? Math.round(Math.min((t - 0.45) / 0.4 * 2300, 2300)) : 0;
+      document.getElementById('fc-val').textContent = fragCount.toLocaleString();
+    }
+  },
+
+  kessler: {
+    title: 'Kessler Cascade â Runaway Debris Chain',
+    eyebrow: 'Hypothetical Â· 800â1000 km',
+    heading: 'The Kessler Syndrome',
+    body: 'Each collision generates debris that causes more collisions. Above a critical density, the cascade becomes <strong>self-sustaining and irreversible</strong>. This simulation shows the exponential growth in fragment count.',
+    stats: { v:'9â11', alt:'900', m1:'2', m2:'events', l1:'km/s avg', l2:'km altitude', l3:'cascade', l4:'collisions' },
+    fcLabel: 'Total Fragments',
+    totalFrags: 15000,
+    camera: { pos: [0, 10000, 28000], lookAt: [0, 0, 0] },
+    build() {
+      clearScene();
+      // 6 initial satellite orbits at slightly different inclinations
+      const sats = [];
+      const orbitDefs = [
+        { a:7180, e:0.001, i:82, O:0   },
+        { a:7200, e:0.001, i:86, O:60  },
+        { a:7160, e:0.001, i:78, O:120 },
+        { a:7220, e:0.001, i:94, O:180 },
+        { a:7190, e:0.001, i:90, O:240 },
+        { a:7170, e:0.001, i:72, O:300 },
+      ];
+      const colors = [0x4a9eff, 0x34d399, 0xa78bfa, 0xf59e0b, 0xf87171, 0x67e8f9];
+      orbitDefs.forEach((o, idx) => {
+        const pts = orbitPoints(o.a, o.e, o.i, o.O, 0);
+        sceneGroup.add(mkLine(pts, colors[idx], 0.4));
+        const s = mkSphere(90, colors[idx], 0);
+        s.position.copy(satPos(o.a, o.e, o.i, o.O, 0, idx * 60));
+        sceneGroup.add(s);
+        sats.push({ ...o, mesh: s, nu: idx * 60 });
+      });
+
+      // Debris cloud particles (grows over time)
+      const MAXFRAG = 1200;
+      const fragGeo = new THREE.BufferGeometry();
+      const fragPos = new Float32Array(MAXFRAG * 3);
+      // start all at center far away
+      for (let i = 0; i < MAXFRAG * 3; i++) fragPos[i] = 999999;
+      fragGeo.setAttribute('position', new THREE.BufferAttribute(fragPos, 3));
+      const fragMat = new THREE.PointsMaterial({ color: 0xff6644, size: 35, transparent: true, opacity: 0.6 });
+      const fragPoints = new THREE.Points(fragGeo, fragMat);
+      sceneGroup.add(fragPoints);
+
+      // Collision flash meshes (one per event)
+      const flashes = [];
+      const flashPositions = [
+        satPos(7180, 0.001, 82, 0, 0, 130),
+        satPos(7200, 0.001, 86, 60, 0, 220),
+        satPos(7190, 0.001, 90, 240, 0, 310),
+        satPos(7170, 0.001, 72, 300, 0, 45),
+      ];
+      flashPositions.forEach(p => {
+        const f = mkSphere(280, 0xff8800, 0xff4400);
+        f.material.transparent = true; f.material.opacity = 0;
+        f.position.copy(p);
+        sceneGroup.add(f);
+        flashes.push(f);
+      });
+
+      animState = { sats, fragPoints, fragPos, fragMat, flashes, flashPositions, MAXFRAG };
+      fragments = Array.from({ length: MAXFRAG }, () => ({
+        vx: (Math.random()-.5)*2000, vy: (Math.random()-.5)*2000, vz: (Math.random()-.5)*2000,
+        spawnT: Math.random(),
+        baseX: flashPositions[Math.floor(Math.random()*flashPositions.length)].x,
+        baseY: flashPositions[Math.floor(Math.random()*flashPositions.length)].y,
+        baseZ: flashPositions[Math.floor(Math.random()*flashPositions.length)].z,
+      }));
+    },
+    tick(t) {
+      const s = animState;
+      if (!s.sats) return;
+      // Move satellites
+      s.sats.forEach((sat, i) => {
+        sat.nu = (sat.nu + 0.4 * (1 + i*0.05)) % 360;
+        sat.mesh.position.copy(satPos(sat.a, sat.e, sat.i, sat.O, 0, sat.nu));
+      });
+      // Cascade flashes
+      const eventTimes = [0.15, 0.35, 0.55, 0.75];
+      s.flashes.forEach((f, i) => {
+        const dt = t - eventTimes[i];
+        if (dt > 0 && dt < 0.12) {
+          f.material.opacity = dt < 0.06 ? dt/0.06 : (0.12-dt)/0.06;
+        } else {
+          f.material.opacity = 0;
+        }
+      });
+      // Grow debris cloud
+      let activeFrags = 0;
+      fragments.forEach((frag, k) => {
+        if (t > frag.spawnT) {
+          const age = (t - frag.spawnT) * 1.5;
+          s.fragPos[k*3]   = frag.baseX + frag.vx * age;
+          s.fragPos[k*3+1] = frag.baseY + frag.vy * age;
+          s.fragPos[k*3+2] = frag.baseZ + frag.vz * age;
+          activeFrags++;
+        }
+      });
+      s.fragPoints.geometry.attributes.position.needsUpdate = true;
+      const count = Math.round(t * 15000);
+      document.getElementById('fc-val').textContent = count.toLocaleString();
+      // Hide sats progressively after first collision
+      if (t > 0.2) { s.sats[0].mesh.visible = false; s.sats[1].mesh.visible = false; }
+      if (t > 0.4) { s.sats[2].mesh.visible = false; }
+      if (t > 0.6) { s.sats[3].mesh.visible = false; }
+    }
+  },
+
+  fy1c: {
+    title: 'FY-1C ASAT Strike â Jan 11, 2007',
+    eyebrow: 'Deliberate Â· 863 km Â· China',
+    heading: 'FY-1C Anti-Satellite Test',
+    body: 'China destroyed its own Fengyun-1C weather satellite using a direct-ascent kinetic kill vehicle. Created <strong>3,500+ trackable fragments</strong> â the worst single debris-generating event ever.',
+    stats: { v:'9.0', alt:'863', m1:'750', m2:'300', l1:'km/s rel. vel.', l2:'km altitude', l3:'FY-1C mass (kg)', l4:'KKV mass (est., kg)' },
+    fcLabel: 'Debris Objects Created',
+    totalFrags: 3500,
+    camera: { pos: [0, 9000, 24000], lookAt: [0, 0, 0] },
+    build() {
+      clearScene();
+      // FY-1C polar orbit
+      const fyPts = orbitPoints(7234, 0.001, 98.8, 200, 0);
+      const fyLine = mkLine(fyPts, 0x44ffaa, 1.0);
+      sceneGroup.add(fyLine);
+      animState._fyLine = fyLine;
+      // KKV trajectory (direct ascent from ground, simplified as inclined arc)
+      const kkvPts = [];
+      for (let k = 0; k <= 60; k++) {
+        const frac = k / 60;
+        const alt = R_E + 200 + (863 - 200) * frac;
+        const lng = 100 + frac * 10; // rough path
+        const lat = 28 + frac * 70;
+        const lR = lat*Math.PI/180, oR = lng*Math.PI/180;
+        kkvPts.push(new THREE.Vector3(alt*Math.cos(lR)*Math.cos(oR), alt*Math.sin(lR), alt*Math.cos(lR)*Math.sin(oR)));
+      }
+      sceneGroup.add(mkLine(kkvPts, 0xf87171, 0.7));
+
+      const fy1c = mkSphere(110, 0x34d399, 0x106030);
+      const kkv  = mkSphere(60, 0xf87171, 0x601010);
+      const collPt = satPos(7234, 0.001, 98.8, 200, 0, 260);
+      fy1c.position.copy(satPos(7234, 0.001, 98.8, 200, 0, 180));
+      kkv.position.copy(kkvPts[0]);
+      sceneGroup.add(fy1c); sceneGroup.add(kkv);
+
+      const flash = mkSphere(400, 0xffaa00, 0xff6600);
+      flash.material.transparent = true; flash.material.opacity = 0;
+      flash.position.copy(collPt);
+      sceneGroup.add(flash);
+
+      const NFRAG = 500;
+      const fragGeo = new THREE.BufferGeometry();
+      const fragPos = new Float32Array(NFRAG * 3);
+      for (let i = 0; i < NFRAG*3; i++) fragPos[i] = 999999;
+      fragGeo.setAttribute('position', new THREE.BufferAttribute(fragPos, 3));
+      const fragMat = new THREE.PointsMaterial({ color: 0xff8844, size: 45, transparent: true, opacity: 0 });
+      const fragPoints = new THREE.Points(fragGeo, fragMat);
+      sceneGroup.add(fragPoints);
+
+      fragments = Array.from({ length: NFRAG }, () => {
+        const phi=Math.random()*Math.PI*2, th=Math.acos(2*Math.random()-1);
+        const spd = 400 + Math.random() * 3000;
+        return { vx:Math.sin(th)*Math.cos(phi)*spd, vy:Math.cos(th)*spd, vz:Math.sin(th)*Math.sin(phi)*spd };
+      });
+
+      animState = { fy1c, kkv, flash, kkvPts, collPt, fragPoints, fragPos, fragMat, NFRAG };
+    },
+    tick(t) {
+      const s = animState;
+      if (!s.fy1c) return;
+      const fy1cNu = 180 + t * 0.4 * 80;
+      s.fy1c.position.copy(satPos(7234, 0.001, 98.8, 200, 0, fy1cNu));
+      // KKV rises
+      const kkvIdx = Math.floor(Math.min(t / 0.5, 0.99) * 59);
+      s.kkv.position.copy(s.kkvPts[kkvIdx]);
+      // Flash at t=0.5
+      const flashT = Math.max(0, Math.min((t - 0.5) / 0.1, 1));
+      s.flash.material.opacity = flashT < 0.5 ? flashT * 2 : (1 - flashT) * 2;
+      if (t > 0.52) {
+        s.fy1c.visible = false; s.kkv.visible = false;
+        if (s._fyLine) s._fyLine.visible = true;
+        s.fragMat.opacity = Math.min((t - 0.52) * 3, 0.85);
+        const fT = (t - 0.52) * 2;
+        for (let k = 0; k < s.NFRAG; k++) {
+          const f = fragments[k];
+          s.fragPos[k*3]   = s.collPt.x + f.vx * fT;
+          s.fragPos[k*3+1] = s.collPt.y + f.vy * fT;
+          s.fragPos[k*3+2] = s.collPt.z + f.vz * fT;
+        }
+        s.fragPoints.geometry.attributes.position.needsUpdate = true;
+      } else {
+        s.fy1c.visible = true; s.kkv.visible = true;
+        s.fragMat.opacity = 0;
+      }
+      document.getElementById('fc-val').textContent = t > 0.52 ? Math.round(Math.min((t-0.52)/0.4*3500, 3500)).toLocaleString() : '0';
+    }
+  },
+
+  maneuver: {
+    title: 'Conjunction Avoidance Maneuver',
+    eyebrow: 'Operational Â· 400 km Â· LEO',
+    heading: 'Avoidance Delta-V',
+    body: 'When Pc exceeds 1Ã10â»â´, operators execute a small maneuver to change their orbit. Even <strong>0.1 m/s Îv</strong> is enough to move several kilometers in 2 hours.',
+    stats: { v:'0.10', alt:'400', m1:'1e-4', m2:'0.1', l1:'Îv (m/s)', l2:'km altitude', l3:'Pc threshold', l4:'m/s burn' },
+    fcLabel: 'Miss Distance (km)',
+    totalFrags: 12,
+    camera: { pos: [0, 7000, 18000], lookAt: [0, 0, 0] },
+    build() {
+      clearScene();
+      // Primary satellite orbit (ISS-like)
+      const origPts = orbitPoints(6778, 0.001, 51.6, 0, 0);
+      sceneGroup.add(mkLine(origPts, 0x4a9eff, 0.5));
+      // Post-maneuver orbit (slightly higher)
+      const manPts = orbitPoints(6790, 0.001, 51.6, 0, 0);
+      const manLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(manPts),
+        new THREE.LineDashedMaterial({ color: 0x34d399, dashSize: 200, gapSize: 100, transparent: true, opacity: 0 }));
+      manLine.computeLineDistances();
+      sceneGroup.add(manLine);
+      // Debris orbit (crossing)
+      const debrisPts = orbitPoints(6780, 0.001, 68.5, 20, 45);
+      sceneGroup.add(mkLine(debrisPts, 0xf87171, 0.4));
+
+      const sat   = mkSphere(90, 0x4a9eff, 0x103060);
+      const debris = mkSphere(60, 0xf87171, 0x601010);
+      const conjPt = satPos(6778, 0.001, 51.6, 0, 0, 310);
+
+      // Warning ring at conjunction point
+      const warnGeo = new THREE.RingGeometry(200, 320, 32);
+      const warnMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0, side: THREE.DoubleSide });
+      const warnRing = new THREE.Mesh(warnGeo, warnMat);
+      warnRing.position.copy(conjPt);
+      warnRing.lookAt(0, 0, 0);
+      sceneGroup.add(warnRing);
+
+      sat.position.copy(satPos(6778, 0.001, 51.6, 0, 0, 180));
+      debris.position.copy(satPos(6780, 0.001, 68.5, 20, 45, 180));
+      sceneGroup.add(sat); sceneGroup.add(debris);
+
+      animState = { sat, debris, manLine, warnRing, warnMat, conjPt, maneuvered: false };
+    },
+    tick(t) {
+      const s = animState;
+      if (!s.sat) return;
+      // Phase 0-0.4: normal orbit, warning ring pulses
+      const warnT = Math.min(t / 0.4, 1);
+      s.warnMat.opacity = warnT * 0.6 * (0.5 + 0.5 * Math.sin(t * 20));
+
+      const satNu  = 180 + t * 0.4 * 130;
+      const debNu  = 180 + t * 0.4 * 110;
+      const manNu  = 180 + t * 0.4 * 130;
+
+      if (t < 0.5) {
+        s.sat.position.copy(satPos(6778, 0.001, 51.6, 0, 0, satNu));
+        s.manLine.material.opacity = 0;
+      } else {
+        // After maneuver: track higher orbit
+        s.sat.position.copy(satPos(6790, 0.001, 51.6, 0, 0, manNu));
+        s.manLine.material.opacity = Math.min((t - 0.5) * 5, 0.7);
+        s.warnMat.opacity = Math.max(0, 0.6 - (t - 0.5) * 2);
+      }
+      s.debris.position.copy(satPos(6780, 0.001, 68.5, 20, 45, debNu));
+
+      // Miss distance (km)
+      const miss = t < 0.5 ? Math.max(0.1, 3.2 - t * 4) : 0.1 + (t - 0.5) * 28;
+      document.getElementById('fc-val').textContent = miss.toFixed(1);
+    }
+  }
+};
+
+// ââ PLAYBACK CONTROLS ââââââââââââââââââââââââââââââââââââââââ
+function loadScenario(key) {
+  const sc = SCENARIOS[key];
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().replace(/\s+/g,' ') === {
+    iridium:'Iridium-Cosmos', kessler:'Kessler Cascade', fy1c:'FY-1C ASAT', maneuver:'Avoidance Maneuver'
+  }[key]));
+  document.getElementById('pb-title').textContent = sc.title;
+  document.getElementById('io-eyebrow').textContent = sc.eyebrow;
+  document.getElementById('io-title').textContent = sc.heading;
+  document.getElementById('io-body').innerHTML = sc.body;
+  document.getElementById('is-v').textContent  = sc.stats.v;
+  document.getElementById('is-alt').textContent = sc.stats.alt;
+  document.getElementById('is-m1').textContent = sc.stats.m1;
+  document.getElementById('is-m2').textContent = sc.stats.m2;
+  document.querySelector('#io-stats .io-stat:nth-child(1) .io-stat-lbl').textContent = sc.stats.l1;
+  document.querySelector('#io-stats .io-stat:nth-child(2) .io-stat-lbl').textContent = sc.stats.l2;
+  document.querySelector('#io-stats .io-stat:nth-child(3) .io-stat-lbl').textContent = sc.stats.l3;
+  document.querySelector('#io-stats .io-stat:nth-child(4) .io-stat-lbl').textContent = sc.stats.l4;
+  document.getElementById('fc-lbl').textContent = sc.fcLabel;
+  document.getElementById('fc-val').textContent = '0';
+  camera.position.set(...sc.camera.pos);
+  camera.lookAt(...sc.camera.lookAt);
+  radius = camera.position.length();
+  sc.build();
+  t = 0;
+  playing = true;
+  document.getElementById('btn-play').textContent = 'â¸';
+  currentScenario = key;
+}
+
+let currentScenario = 'iridium';
+let lastTime = null;
+
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('btn-play').textContent = playing ? 'â¸' : 'â¶';
+}
+function restart() {
+  t = 0; playing = true;
+  document.getElementById('btn-play').textContent = 'â¸';
+  loadScenario(currentScenario);
+}
+function cycleSpeed() {
+  speedIdx = (speedIdx + 1) % speeds.length;
+  speed = speeds[speedIdx];
+  document.getElementById('btn-speed').textContent = speed + 'Ã';
+}
+function scrubTo(e) {
+  const rect = document.getElementById('pb-progress').getBoundingClientRect();
+  t = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+}
+
+// ââ ORBIT CONTROLS âââââââââââââââââââââââââââââââââââââââââââ
+let isDragging=false, lastX=0, lastY=0, lastTouchDist=0;
+let phi=0.5, theta=0.4, radius=24000;
+
+function updateCam() {
+  camera.position.set(radius*Math.sin(phi)*Math.cos(theta), radius*Math.cos(phi), radius*Math.sin(phi)*Math.sin(theta));
+  camera.lookAt(0,0,0);
+}
+canvas.addEventListener('mousedown', e => { isDragging=true; lastX=e.clientX; lastY=e.clientY; });
+window.addEventListener('mouseup', () => isDragging=false);
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  theta -= (e.clientX-lastX)*0.005; phi=Math.max(0.1,Math.min(Math.PI-0.1,phi-(e.clientY-lastY)*0.005));
+  lastX=e.clientX; lastY=e.clientY; updateCam();
+});
+canvas.addEventListener('wheel', e => { radius=Math.max(R_E*1.5,Math.min(200000,radius+e.deltaY*12)); updateCam(); }, { passive:true });
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length===1) { isDragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; }
+  else if (e.touches.length===2) { isDragging=false; lastTouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); }
+}, { passive:true });
+canvas.addEventListener('touchmove', e => {
+  if (e.touches.length===1 && isDragging) {
+    theta-=(e.touches[0].clientX-lastX)*0.007; phi=Math.max(0.1,Math.min(Math.PI-0.1,phi-(e.touches[0].clientY-lastY)*0.007));
+    lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; updateCam();
+  } else if (e.touches.length===2) {
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    radius=Math.max(R_E*1.5,Math.min(200000,radius*(lastTouchDist/d))); lastTouchDist=d; updateCam();
+  }
+}, { passive:true });
+canvas.addEventListener('touchend', ()=>isDragging=false, { passive:true });
+
+// ââ RESIZE ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function resize() {
+  const w=canvas.parentElement.clientWidth, h=canvas.parentElement.clientHeight;
+  renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize); resize();
+
+// ââ RENDER LOOP âââââââââââââââââââââââââââââââââââââââââââââââ
+function animate(ts) {
+  requestAnimationFrame(animate);
+  if (playing && lastTime !== null) {
+    const dt = Math.min((ts - lastTime) / 1000, 0.05) * speed * 0.12;
+    t = Math.min(t + dt, 1.0);
+    if (t >= 1.0) playing = false;
+  }
+  lastTime = ts;
+
+  // Run scenario tick
+  const sc = SCENARIOS[currentScenario];
+  if (sc && sc.tick) sc.tick(t);
+
+  // Update timeline
+  document.getElementById('pb-fill').style.width = (t * 100) + '%';
+  document.getElementById('pb-scrubber').style.left  = (t * 100) + '%';
+  const seconds = Math.round(t * 120);
+  const mm = Math.floor(seconds / 60), ss = seconds % 60;
+  document.getElementById('pb-time').textContent = 'T+' + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+
+  earthMesh.rotation.y += 0.0003;
+  renderer.render(scene, camera);
+}
+
+// ââ INIT ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+loadScenario('iridium');
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>'''
+
+CALC_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Impact Calculator â VectraSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#080c12;--ink2:#0d1320;--ink3:#131d2e;--panel:#0f1925;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;
+  --accent:#4a9eff;--accent2:#7bc4ff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;
+  --serif:'Instrument Serif',Georgia,serif;--mono:'DM Mono',monospace;--sans:'Outfit',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden;min-height:100vh;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.94);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}
+.nav-brand-name{font-family:var(--serif);font-size:17px;font-style:italic;letter-spacing:-0.2px;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
+.nav-links{display:flex;gap:4px;align-items:center;}
+.nav-link{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:4px;transition:all 0.2s;border:1px solid transparent;}
+.nav-link:hover{color:var(--text);border-color:var(--border);}
+.nav-link.active{color:var(--accent);border-color:rgba(74,158,255,0.3);background:rgba(74,158,255,0.05);}
+
+/* PAGE LAYOUT */
+.page{padding:96px 48px 80px;max-width:1100px;margin:0 auto;}
+.page-hero{margin-bottom:56px;}
+.page-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.page-eyebrow::before{content:'';width:24px;height:1px;background:var(--amber);display:inline-block;}
+.page-title{font-family:var(--serif);font-size:clamp(38px,4.5vw,60px);font-weight:400;color:#fff;line-height:1.1;letter-spacing:-0.5px;margin-bottom:16px;}
+.page-title em{font-style:italic;color:var(--accent2);}
+.page-subtitle{font-size:15px;color:var(--muted);line-height:1.8;max-width:620px;}
+
+/* GRID */
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+
+/* PANEL */
+.calc-panel{background:var(--ink2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.calc-panel-header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.calc-panel-icon{font-size:16px;}
+.calc-panel-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.calc-panel-body{padding:28px;}
+
+/* INPUTS */
+.field{margin-bottom:24px;}
+.field:last-child{margin-bottom:0;}
+.field-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.field-hint{font-family:var(--mono);font-size:9px;color:var(--faint);letter-spacing:0;text-transform:none;}
+.field-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}
+.field-input{
+  width:100%;padding:11px 16px;background:var(--ink3);
+  border:1px solid var(--border);border-radius:6px;
+  color:var(--text);font-family:var(--mono);font-size:14px;
+  outline:none;transition:border-color 0.2s;
+}
+.field-input:focus{border-color:var(--accent);}
+.field-input::placeholder{color:var(--faint);}
+.field-unit{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;white-space:nowrap;padding:0 4px;}
+
+/* SLIDER */
+.slider-wrap{margin-top:6px;}
+.range-slider{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border2);outline:none;cursor:pointer;}
+.range-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px rgba(74,158,255,0.5);}
+.range-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none;}
+.slider-labels{display:flex;justify-content:space-between;margin-top:4px;font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:1px;}
+
+/* PRESETS */
+.preset-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.preset-btn{
+  font-family:var(--mono);font-size:8px;letter-spacing:0.5px;
+  padding:4px 10px;border-radius:4px;border:1px solid var(--border);
+  color:var(--muted);background:transparent;cursor:pointer;transition:all 0.15s;
+}
+.preset-btn:hover,.preset-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,0.06);}
+
+/* RESULTS */
+.results-empty{padding:48px 28px;text-align:center;}
+.results-empty-icon{font-size:32px;margin-bottom:12px;opacity:0.3;}
+.results-empty-text{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:1.5px;text-transform:uppercase;line-height:1.8;}
+
+.result-hero{padding:28px;border-bottom:1px solid var(--border);text-align:center;}
+.result-hero-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.result-hero-val{font-family:var(--serif);font-size:52px;font-style:italic;color:var(--accent);line-height:1;}
+.result-hero-unit{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;}
+
+.result-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}
+.result-cell{padding:20px 24px;border-right:1px solid var(--border);}
+.result-cell:nth-child(even){border-right:none;}
+.result-cell-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.result-cell-val{font-family:var(--serif);font-size:24px;font-style:italic;color:var(--text);}
+.result-cell-sub{font-family:var(--mono);font-size:9px;color:var(--faint);margin-top:2px;}
+
+/* SEVERITY METER */
+.severity-wrap{padding:24px 28px;border-bottom:1px solid var(--border);}
+.severity-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;}
+.severity-bar-track{height:6px;background:var(--border2);border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.severity-bar-fill{height:100%;border-radius:3px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1),background 0.4s;}
+.severity-ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:0.5px;}
+
+/* ANALOG */
+.analogy-wrap{padding:20px 28px;border-bottom:1px solid var(--border);}
+.analogy-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.analogy-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.analogy-card{background:var(--ink3);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;}
+.analogy-icon{font-size:20px;margin-bottom:6px;}
+.analogy-name{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+.analogy-val{font-family:var(--serif);font-size:15px;color:var(--text);}
+.analogy-active{border-color:var(--accent2);background:rgba(74,158,255,0.06);}
+.analogy-active .analogy-val{color:var(--accent2);}
+
+/* FRAGMENT */
+.fragment-wrap{padding:20px 28px;}
+.fragment-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.fragment-bars{display:flex;flex-direction:column;gap:8px;}
+.fbar-row{display:grid;grid-template-columns:70px 1fr 80px;gap:10px;align-items:center;}
+.fbar-cat{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.5px;}
+.fbar-track{height:6px;background:var(--ink3);border-radius:3px;overflow:hidden;}
+.fbar-fill{height:100%;border-radius:3px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1);}
+.fbar-count{font-family:var(--mono);font-size:10px;color:var(--text);text-align:right;}
+
+/* KESSLER RISK */
+.kessler-wrap{padding:20px 28px;border-top:1px solid var(--border);}
+.kessler-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;border:1px solid;font-family:var(--mono);font-size:11px;letter-spacing:0.5px;}
+.kessler-dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.kessler-msg{font-size:13px;color:var(--muted);line-height:1.6;margin-top:10px;}
+
+/* SHARE */
+.share-wrap{padding:20px 28px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.share-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.share-btn{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 18px;border-radius:5px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.2s;}
+.share-btn:hover{border-color:var(--accent);color:var(--accent);}
+.share-btn.copied{border-color:var(--green);color:var(--green);}
+
+/* CALC BUTTON */
+.calc-btn{
+  width:100%;margin-top:20px;padding:14px;border-radius:7px;
+  background:linear-gradient(135deg,rgba(74,158,255,0.15),rgba(74,158,255,0.05));
+  border:1px solid rgba(74,158,255,0.4);color:var(--accent2);
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;
+}
+.calc-btn:hover{background:linear-gradient(135deg,rgba(74,158,255,0.25),rgba(74,158,255,0.1));border-color:var(--accent);}
+
+/* SCENARIO CARDS (below) */
+.scenarios{margin-top:40px;}
+.scenarios-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+.scenario-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.scenario-card{
+  background:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:16px;
+  cursor:pointer;transition:all 0.2s;
+}
+.scenario-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.sc-icon{font-size:22px;margin-bottom:8px;}
+.sc-name{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.sc-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* EDUCATIONAL CALLOUT */
+.edu-callout{margin-top:40px;background:var(--ink2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:24px 28px;}
+.edu-callout-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;}
+.edu-callout-title{font-family:var(--serif);font-size:18px;color:#fff;margin-bottom:8px;}
+.edu-callout-body{font-size:13px;color:var(--muted);line-height:1.7;}
+.edu-link{color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:1px;display:inline-flex;align-items:center;gap:5px;margin-top:12px;transition:color 0.2s;}
+.edu-link:hover{color:var(--accent2);}
+
+@media(max-width:900px){
+  .calc-grid{grid-template-columns:1fr;}
+  .scenario-cards{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:600px){
+  nav{padding:0 16px;}
+  .page{padding:88px 20px 60px;}
+  .analogy-cards{grid-template-columns:1fr 1fr;}
+  .result-grid{grid-template-columns:1fr;}
+  .result-cell{border-right:none;border-bottom:1px solid var(--border);}
+  .scenario-cards{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Hub</a>
+    <a href="/glossary" class="nav-link">Resources</a>
+    <a href="/calculator" class="nav-link active">Calculator</a>
+    <a href="/api/tools/trajectory" class="nav-link" style="color:var(--green);border:1px solid rgba(52,211,153,0.3);border-radius:4px;padding:5px 10px;">Trajectory â</a>
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-hero">
+    <div class="page-eyebrow">// Interactive Tool</div>
+    <h1 class="page-title">Orbital Collision <em>Impact Calculator</em></h1>
+    <p class="page-subtitle">Model the kinetic energy, fragment count, and cascade risk of any space collision using the NASA Standard Breakup Model and real orbital physics.</p>
+  </div>
+
+  <div class="calc-grid">
+    <!-- LEFT: INPUTS -->
+    <div>
+      <div class="calc-panel">
+        <div class="calc-panel-header">
+          <span class="calc-panel-icon">â</span>
+          <span class="calc-panel-title">Collision Parameters</span>
+        </div>
+        <div class="calc-panel-body">
+
+          <!-- Object A -->
+          <div class="field">
+            <div class="field-label">Object A â Mass<span class="field-hint">Primary satellite</span></div>
+            <div class="field-row">
+              <input type="number" class="field-input" id="massA" value="800" min="0.01" max="500000" step="1" placeholder="800">
+              <span class="field-unit">kg</span>
+            </div>
+            <div class="slider-wrap">
+              <input type="range" class="range-slider" id="slMassA" min="1" max="20000" value="800" step="1">
+              <div class="slider-labels"><span>1 kg</span><span>1,000</span><span>5,000</span><span>10,000</span><span>20,000</span></div>
+            </div>
+          </div>
+
+          <!-- Object B -->
+          <div class="field">
+            <div class="field-label">Object B â Mass<span class="field-hint">Impactor / debris</span></div>
+            <div class="field-row">
+              <input type="number" class="field-input" id="massB" value="900" min="0.01" max="500000" step="1" placeholder="900">
+              <span class="field-unit">kg</span>
+            </div>
+            <div class="slider-wrap">
+              <input type="range" class="range-slider" id="slMassB" min="1" max="20000" value="900" step="1">
+              <div class="slider-labels"><span>1 kg</span><span>1,000</span><span>5,000</span><span>10,000</span><span>20,000</span></div>
+            </div>
+          </div>
+
+          <!-- Relative velocity -->
+          <div class="field">
+            <div class="field-label">Relative Velocity<span class="field-hint">At impact (0â15 km/s for LEO)</span></div>
+            <div class="field-row">
+              <input type="number" class="field-input" id="velRel" value="11.7" min="0.1" max="15" step="0.1" placeholder="11.7">
+              <span class="field-unit">km/s</span>
+            </div>
+            <div class="slider-wrap">
+              <input type="range" class="range-slider" id="slVel" min="0.1" max="15" value="11.7" step="0.1">
+              <div class="slider-labels"><span>0</span><span>3.75</span><span>7.5</span><span>11.25</span><span>15 km/s</span></div>
+            </div>
+          </div>
+
+          <!-- Altitude -->
+          <div class="field">
+            <div class="field-label">Altitude<span class="field-hint">Affects cascade risk assessment</span></div>
+            <div class="field-row">
+              <input type="number" class="field-input" id="altitude" value="789" min="160" max="36000" step="1" placeholder="789">
+              <span class="field-unit">km</span>
+            </div>
+            <div class="preset-row">
+              <button class="preset-btn" onclick="setAlt(400)">ISS (400 km)</button>
+              <button class="preset-btn active" onclick="setAlt(789)">Iridium/Cosmos (789)</button>
+              <button class="preset-btn" onclick="setAlt(863)">FY-1C (863)</button>
+              <button class="preset-btn" onclick="setAlt(1200)">High LEO (1,200)</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label">Common Scenarios</div>
+            <div class="preset-row">
+              <button class="preset-btn" onclick="loadPreset('frag')">1 cm fragment</button>
+              <button class="preset-btn" onclick="loadPreset('smallsat')">SmallSat vs debris</button>
+              <button class="preset-btn" onclick="loadPreset('iridium')">Iridium-Cosmos</button>
+              <button class="preset-btn" onclick="loadPreset('fy1c')">FY-1C ASAT</button>
+            </div>
+          </div>
+
+          <button class="calc-btn" onclick="calculate()">â¶ Calculate Collision Physics</button>
+        </div>
+      </div>
+
+      <div class="edu-callout" style="margin-top:20px;">
+        <div class="edu-callout-eyebrow">// How the math works</div>
+        <div class="edu-callout-title">NASA Standard Breakup Model</div>
+        <div class="edu-callout-body">Fragment count follows N(L<sub>c</sub>) = 6Â·M<sup>0.75</sup>Â·L<sub>c</sub><sup>â1.6</sup> where M is the mass of the smaller object (kg) and L<sub>c</sub> is the minimum fragment characteristic length (m). Kinetic energy KE = Â½Î¼vÂ² uses the reduced mass Î¼ = mâmâ/(mâ+mâ). The specific energy E* = KE/M_total determines whether a collision is catastrophic (E* > 40 kJ/kg) or cratering.</div>
+        <a href="/education/debris-modeling" class="edu-link">Read Chapter 04: Debris Modeling â</a>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="calc-panel" id="results-panel">
+      <div class="calc-panel-header">
+        <span class="calc-panel-icon">ð</span>
+        <span class="calc-panel-title">Results</span>
+      </div>
+      <div class="results-empty" id="results-empty">
+        <div class="results-empty-icon">â¡</div>
+        <div class="results-empty-text">Set parameters<br>and calculate</div>
+      </div>
+      <div id="results-body" style="display:none;">
+        <!-- injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENARIO CARDS -->
+  <div class="scenarios">
+    <div class="scenarios-label">// Historical & Reference Events</div>
+    <div class="scenario-cards">
+      <div class="scenario-card" onclick="loadPreset('iridium')">
+        <div class="sc-icon">ð°</div>
+        <div class="sc-name">Iridium-Cosmos 2009</div>
+        <div class="sc-desc">First accidental collision â 789 km, 11.7 km/s, ~2,300 trackable fragments</div>
+      </div>
+      <div class="scenario-card" onclick="loadPreset('fy1c')">
+        <div class="sc-icon">ð¥</div>
+        <div class="sc-name">FY-1C ASAT 2007</div>
+        <div class="sc-desc">Deliberate kinetic impact â 863 km, 9.0 km/s, worst single debris event</div>
+      </div>
+      <div class="scenario-card" onclick="loadPreset('smallsat')">
+        <div class="sc-icon">ð¦</div>
+        <div class="sc-name">CubeSat Impact</div>
+        <div class="sc-desc">3U CubeSat vs 10 cm fragment at typical LEO crossing velocity</div>
+      </div>
+      <div class="scenario-card" onclick="loadPreset('frag')">
+        <div class="sc-icon">ð©</div>
+        <div class="sc-name">Paint Fleck / Bolt</div>
+        <div class="sc-desc">1 cm fragment vs 500 kg satellite â surprisingly lethal at orbital speeds</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ââ SYNC SLIDERS TO INPUTS ââââââââââââââââââââââââââââââââââââ
+function syncSlider(inputId, sliderId) {
+  const input  = document.getElementById(inputId);
+  const slider = document.getElementById(sliderId);
+  input.addEventListener('input', () => { slider.value = input.value; });
+  slider.addEventListener('input', () => { input.value = slider.value; });
+}
+syncSlider('massA','slMassA');
+syncSlider('massB','slMassB');
+syncSlider('velRel','slVel');
+
+function setAlt(v) {
+  document.getElementById('altitude').value = v;
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes('(' + v));
+  });
+}
+
+// ââ PRESETS âââââââââââââââââââââââââââââââââââââââââââââââââââ
+const PRESETS = {
+  frag:     { massA: 500,   massB: 0.01,  vel: 7.7,  alt: 500,  label: '1 cm fragment vs 500 kg satellite' },
+  smallsat: { massA: 4,     massB: 1,     vel: 10.3, alt: 550,  label: '3U CubeSat vs 1 kg fragment' },
+  iridium:  { massA: 560,   massB: 900,   vel: 11.7, alt: 789,  label: 'Iridium 33 vs Cosmos 2251 (2009)' },
+  fy1c:     { massA: 750,   massB: 300,   vel: 9.0,  alt: 863,  label: 'FY-1C ASAT Impact (2007)' },
+};
+function loadPreset(key) {
+  const p = PRESETS[key];
+  document.getElementById('massA').value  = p.massA;
+  document.getElementById('massB').value  = p.massB;
+  document.getElementById('velRel').value = p.vel;
+  document.getElementById('altitude').value = p.alt;
+  document.getElementById('slMassA').value = p.massA;
+  document.getElementById('slMassB').value = p.massB;
+  document.getElementById('slVel').value   = p.vel;
+  calculate();
+}
+
+// ââ PHYSICS âââââââââââââââââââââââââââââââââââââââââââââââââââ
+function formatNum(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(2) + ' GJ';
+  if (n >= 1e6) return (n/1e6).toFixed(2) + ' MJ';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + ' kJ';
+  return n.toFixed(0) + ' J';
+}
+function formatCount(n) {
+  if (n >= 1e6) return '>' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '~' + Math.round(n/100)*100;
+  return '~' + Math.round(n);
+}
+
+function calculate() {
+  const mA  = parseFloat(document.getElementById('massA').value)  || 0;
+  const mB  = parseFloat(document.getElementById('massB').value)  || 0;
+  const vel = parseFloat(document.getElementById('velRel').value) || 0;
+  const alt = parseFloat(document.getElementById('altitude').value) || 0;
+
+  if (!mA || !mB || !vel) return;
+
+  // Reduced mass & kinetic energy
+  const mu    = (mA * mB) / (mA + mB);          // reduced mass, kg
+  const vMs   = vel * 1000;                       // m/s
+  const keJ   = 0.5 * mu * vMs * vMs;            // Joules
+  const kekJ  = keJ / 1000;
+
+  // Full system KE (as reference)
+  const fullKe = 0.5 * (mA + mB) * vMs * vMs;
+
+  // Specific energy (determines catastrophic vs cratering)
+  const eStar = keJ / ((mA + mB) * 1000);   // J/kg â kJ/kg after /1000
+  const eStarkJ = eStar / 1000;
+  const catastrophic = eStarkJ >= 40;
+
+  // NASA SBM fragment counts (using smaller mass as target for catastrophic)
+  // N(Lc) = 6 * M^0.75 * Lc^-1.6
+  const mSBM = catastrophic ? Math.min(mA, mB) : Math.min(mA, mB);
+  const sbmCoeff = 6 * Math.pow(mSBM, 0.75);
+  const nTrackable  = Math.round(sbmCoeff * Math.pow(0.10, -1.6));  // â¥10 cm
+  const nLethal     = Math.round(sbmCoeff * Math.pow(0.01, -1.6));  // â¥1 cm
+  const nTiny       = Math.round(sbmCoeff * Math.pow(0.001,-1.6)); // â¥1 mm
+
+  // Analogy table (kJ)
+  const analogies = [
+    { icon:'ð«', name:'Rifle bullet', kJ: 3 },
+    { icon:'ð£', name:'Hand grenade', kJ: 400 },
+    { icon:'ð', name:'Car at 100 mph', kJ: 540 },
+    { icon:'ð¯', name:'AT missile', kJ: 5000 },
+    { icon:'â', name:'747 at cruise', kJ: 3.7e8 },
+    { icon:'ð', name:'Hiroshima', kJ: 6.3e10 },
+  ];
+  let closestIdx = 0;
+  let closestDiff = Infinity;
+  analogies.forEach((a,i) => {
+    const diff = Math.abs(Math.log10(kekJ+1) - Math.log10(a.kJ+1));
+    if (diff < closestDiff) { closestDiff = diff; closestIdx = i; }
+  });
+  const showAnalogies = analogies.slice(Math.max(0,closestIdx-1), closestIdx+2);
+
+  // Severity (0â100 log scale)
+  const sevPct = Math.min(100, Math.log10(kekJ + 1) / Math.log10(1e12) * 100);
+  const sevColor = sevPct < 30 ? 'var(--green)' : sevPct < 60 ? 'var(--amber)' : 'var(--red)';
+
+  // Kessler cascade risk
+  const altRisk = alt >= 800 && alt <= 1400;
+  const massRisk = catastrophic && (mA > 100 || mB > 100);
+  let kesslerLevel, kesslerColor, kesslerMsg;
+  if (altRisk && massRisk) {
+    kesslerLevel = 'HIGH CASCADE RISK';
+    kesslerColor = 'var(--red)';
+    kesslerMsg = `At ${alt} km with ${formatCount(nTrackable)} new trackable fragments, this collision falls in the critical density altitude band. Without active debris removal, fragments from this event could trigger further cascading collisions. This is exactly the Kessler scenario.`;
+  } else if (altRisk || (catastrophic && (mA>50||mB>50))) {
+    kesslerLevel = 'ELEVATED RISK';
+    kesslerColor = 'var(--amber)';
+    kesslerMsg = `This collision generates a significant debris cloud${altRisk ? ` at a high-risk altitude (${alt} km)` : ''}. Below 600 km, atmospheric drag will naturally remove most fragments within years. Above 800 km, fragments can persist for decades to centuries.`;
+  } else {
+    kesslerLevel = 'CONTAINED EVENT';
+    kesslerColor = 'var(--green)';
+    kesslerMsg = `This collision is relatively contained. ${catastrophic ? 'The small masses involved limit fragment count.' : 'Non-catastrophic: the impactor cratered rather than fully fragmenting the target.'} Atmospheric drag at this altitude will deorbit most small fragments over time.`;
+  }
+
+  // Orbital lifetime of fragments (rough)
+  let lifetime;
+  if (alt < 350) lifetime = 'weeks to months';
+  else if (alt < 500) lifetime = '1â5 years';
+  else if (alt < 700) lifetime = '5â25 years';
+  else if (alt < 900) lifetime = '25â100 years';
+  else lifetime = 'centuries';
+
+  // Fragment bar max
+  const maxN = Math.max(nTiny, 1);
+
+  // Build result HTML
+  const html = `
+    <div class="result-hero">
+      <div class="result-hero-label">Kinetic Energy Released</div>
+      <div class="result-hero-val">${formatNum(keJ)}</div>
+      <div class="result-hero-unit">reduced-mass Â· (${vel} km/s)Â²</div>
+    </div>
+    <div class="result-grid">
+      <div class="result-cell">
+        <div class="result-cell-label">Collision Type</div>
+        <div class="result-cell-val" style="color:${catastrophic?'var(--red)':'var(--amber)'}">${catastrophic?'Catastrophic':'Cratering'}</div>
+        <div class="result-cell-sub">E* = ${eStarkJ.toFixed(0)} kJ/kg${catastrophic?' (>40 threshold)':' (<40 threshold)'}</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">Fragment Lifetime</div>
+        <div class="result-cell-val" style="font-size:16px;font-style:normal;font-family:var(--mono);color:var(--muted)">${lifetime}</div>
+        <div class="result-cell-sub">at ${alt} km altitude</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">Relative Velocity</div>
+        <div class="result-cell-val">${vel}</div>
+        <div class="result-cell-sub">km/s Â· ${(vel/29.8*100).toFixed(0)}% of Earth orbital speed</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">Reduced Mass</div>
+        <div class="result-cell-val">${mu.toFixed(1)}</div>
+        <div class="result-cell-sub">kg Â· mâmâ/(mâ+mâ)</div>
+      </div>
+    </div>
+    <div class="severity-wrap">
+      <div class="severity-label">
+        <span>Impact Severity</span>
+        <span style="color:${sevColor}">${sevPct.toFixed(0)}%</span>
+      </div>
+      <div class="severity-bar-track"><div class="severity-bar-fill" style="width:${sevPct}%;background:${sevColor};"></div></div>
+      <div class="severity-ticks"><span>Tiny</span><span>Hand grenade</span><span>Car</span><span>Bomb</span><span>Nuclear</span></div>
+    </div>
+    <div class="analogy-wrap">
+      <div class="analogy-eyebrow">Energy equivalents â closest matches</div>
+      <div class="analogy-cards">
+        ${analogies.slice(Math.max(0,closestIdx-1),closestIdx+2).map((a,i) => `
+          <div class="analogy-card ${i===Math.min(closestIdx,1)?'analogy-active':''}">
+            <div class="analogy-icon">${a.icon}</div>
+            <div class="analogy-name">${a.name}</div>
+            <div class="analogy-val">${formatNum(a.kJ*1000)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="fragment-wrap">
+      <div class="fragment-label">NASA SBM Fragment Estimates</div>
+      <div class="fragment-bars">
+        <div class="fbar-row">
+          <span class="fbar-cat">â¥10 cm</span>
+          <div class="fbar-track"><div class="fbar-fill" style="width:${(nTrackable/maxN*100)}%;background:var(--red);"></div></div>
+          <span class="fbar-count">${formatCount(nTrackable)}</span>
+        </div>
+        <div class="fbar-row">
+          <span class="fbar-cat">â¥1 cm</span>
+          <div class="fbar-track"><div class="fbar-fill" style="width:${(nLethal/maxN*100)}%;background:var(--amber);"></div></div>
+          <span class="fbar-count">${formatCount(nLethal)}</span>
+        </div>
+        <div class="fbar-row">
+          <span class="fbar-cat">â¥1 mm</span>
+          <div class="fbar-track"><div class="fbar-fill" style="width:100%;background:var(--faint);"></div></div>
+          <span class="fbar-count">${formatCount(nTiny)}</span>
+        </div>
+      </div>
+    </div>
+    <div class="kessler-wrap">
+      <div class="kessler-badge" style="color:${kesslerColor};border-color:${kesslerColor};background:${kesslerColor}22;">
+        <div class="kessler-dot" style="background:${kesslerColor};"></div>
+        ${kesslerLevel}
+      </div>
+      <div class="kessler-msg">${kesslerMsg}</div>
+    </div>
+    <div class="share-wrap">
+      <span class="share-label">Share this result</span>
+      <button class="share-btn" id="share-btn" onclick="shareResult(${mA},${mB},${vel},${alt})">â Copy Link</button>
+    </div>
+  `;
+
+  document.getElementById('results-empty').style.display = 'none';
+  const body = document.getElementById('results-body');
+  body.style.display = 'block';
+  body.innerHTML = html;
+}
+
+function shareResult(mA,mB,vel,alt) {
+  const url = `${location.origin}/calculator?mA=${mA}&mB=${mB}&v=${vel}&alt=${alt}`;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('share-btn');
+    btn.textContent = 'â Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'â Copy Link'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ââ AUTO-LOAD FROM URL PARAMS âââââââââââââââââââââââââââââââââ
+window.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(location.search);
+  if (p.has('mA')) document.getElementById('massA').value = p.get('mA');
+  if (p.has('mB')) document.getElementById('massB').value = p.get('mB');
+  if (p.has('v'))  document.getElementById('velRel').value = p.get('v');
+  if (p.has('alt')) document.getElementById('altitude').value = p.get('alt');
+  // sync sliders
+  ['slMassA','slMassB','slVel'].forEach(id => {
+    const linked = {slMassA:'massA',slMassB:'massB',slVel:'velRel'}[id];
+    document.getElementById(id).value = document.getElementById(linked).value;
+  });
+  if (p.has('mA') || p.has('mB') || p.has('v')) calculate();
+  else loadPreset('iridium'); // default
+});
+</script>
+</body>
+</html>'''
+
+GLOSSARY_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resources â VectraSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#080c12;--ink2:#0d1320;--ink3:#131d2e;--panel:#0f1925;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#ccd6e0;--muted:#8aaac5;--faint:#2a3d50;
+  --accent:#4a9eff;--accent2:#7bc4ff;--green:#34d399;--amber:#f59e0b;--red:#f87171;--purple:#a78bfa;
+  --serif:"Instrument Serif",Georgia,serif;
+  --mono:"DM Mono",monospace;
+  --sans:"Outfit",sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;min-height:100vh;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,12,18,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+.nav-brand{text-decoration:none;}
+.nav-brand-name{font-family:var(--serif);font-size:17px;font-style:italic;color:#fff;letter-spacing:-0.2px;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
+.nav-right{display:flex;gap:8px;}
+.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:7px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
+.nav-back:hover{color:var(--text);border-color:var(--border2);}
+
+/* HERO */
+.hero{padding:108px 48px 52px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.eyebrow::before{content:"";width:14px;height:1px;background:var(--green);}
+.hero-title{font-family:var(--serif);font-size:clamp(36px,5vw,62px);color:#fff;font-weight:400;line-height:1.08;letter-spacing:-0.5px;margin-bottom:14px;}
+.hero-title em{font-style:italic;color:var(--accent2);}
+.hero-sub{font-size:15px;color:var(--muted);max-width:540px;line-height:1.8;}
+
+/* SEARCH + FILTER */
+.controls{max-width:1100px;margin:0 auto;padding:0 48px 36px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.si{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;}
+.search-input{width:100%;background:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:10px 13px 10px 40px;font-family:var(--mono);font-size:11px;color:var(--text);outline:none;transition:border-color 0.2s;letter-spacing:0.3px;}
+.search-input::placeholder{color:var(--faint);}
+.search-input:focus{border-color:rgba(74,158,255,0.35);}
+.filters{display:flex;gap:5px;flex-wrap:wrap;}
+.fbtn{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.fbtn:hover{border-color:var(--border2);color:var(--text);}
+.fbtn.on{color:#fff;}
+.fbtn[data-cat="all"].on{border-color:var(--accent);background:rgba(74,158,255,0.1);color:var(--accent);}
+.fbtn[data-cat="data"].on{border-color:var(--accent);background:rgba(74,158,255,0.1);color:var(--accent);}
+.fbtn[data-cat="tools"].on{border-color:var(--green);background:rgba(52,211,153,0.1);color:var(--green);}
+.fbtn[data-cat="papers"].on{border-color:var(--amber);background:rgba(245,158,11,0.1);color:var(--amber);}
+.fbtn[data-cat="standards"].on{border-color:var(--red);background:rgba(248,113,113,0.1);color:var(--red);}
+.fbtn[data-cat="courses"].on{border-color:var(--purple);background:rgba(167,139,250,0.1);color:var(--purple);}
+
+/* META */
+.meta{max-width:1100px;margin:0 auto;padding:0 48px 20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--faint);}
+
+/* GRID */
+.grid{max-width:1100px;margin:0 auto;padding:0 48px 100px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+
+/* CARD */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.2s,transform 0.18s;text-decoration:none;color:inherit;}
+.card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.card-top{padding:20px 22px 16px;flex:1;display:flex;flex-direction:column;gap:10px;}
+.card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.tag{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:10px;border:1px solid;white-space:nowrap;flex-shrink:0;}
+.tag-data{color:var(--accent);border-color:rgba(74,158,255,0.25);background:rgba(74,158,255,0.07);}
+.tag-tools{color:var(--green);border-color:rgba(52,211,153,0.25);background:rgba(52,211,153,0.07);}
+.tag-papers{color:var(--amber);border-color:rgba(245,158,11,0.25);background:rgba(245,158,11,0.07);}
+.tag-standards{color:var(--red);border-color:rgba(248,113,113,0.25);background:rgba(248,113,113,0.07);}
+.tag-courses{color:var(--purple);border-color:rgba(167,139,250,0.25);background:rgba(167,139,250,0.07);}
+.card-org{font-family:var(--mono);font-size:8px;letter-spacing:0.5px;color:var(--faint);}
+.card-title{font-family:var(--serif);font-size:17px;font-style:italic;color:#fff;line-height:1.35;}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.7;}
+.card-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-link-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:5px;}
+.card-link-label svg{transition:transform 0.15s;}
+.card:hover .card-link-label svg{transform:translateX(3px);}
+.card-free{font-family:var(--mono);font-size:7px;letter-spacing:1px;color:var(--green);background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);padding:2px 7px;border-radius:8px;}
+
+/* EMPTY */
+.empty{grid-column:1/-1;text-align:center;padding:70px 0;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);}
+
+/* SECTION DIVIDER */
+.section-label{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding-top:8px;}
+.section-label-text{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;}
+.section-label-line{flex:1;height:1px;background:var(--border);}
+
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:580px){
+  nav{padding:0 20px;}
+  .hero,.controls,.meta,.grid{padding-left:20px;padding-right:20px;}
+  .hero{padding-top:88px;}
+  .grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <div class="nav-right">
+    <a href="/" class="nav-back">&larr; Hub</a>
+    <a href="/dashboard" class="nav-back">Dashboard &rarr;</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Curated Library</div>
+  <h1 class="hero-title">Space Safety <em>Resources</em></h1>
+  <p class="hero-sub">Hand-picked datasets, tools, papers, standards, and courses for orbital mechanics researchers, satellite operators, and space safety professionals.</p>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg class="si" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="rs-search" type="text" placeholder="Search resources, organisations, topics..." autocomplete="off" spellcheck="false">
+  </div>
+  <div class="filters">
+    <button class="fbtn on" data-cat="all">All</button>
+    <button class="fbtn" data-cat="data">Data &amp; Catalogs</button>
+    <button class="fbtn" data-cat="tools">Tools</button>
+    <button class="fbtn" data-cat="papers">Papers</button>
+    <button class="fbtn" data-cat="standards">Standards</button>
+    <button class="fbtn" data-cat="courses">Courses</button>
+  </div>
+</div>
+
+<div class="meta" id="rs-meta"></div>
+<div class="grid" id="rs-grid"></div>
+
+<script>
+var RESOURCES = [
+
+  /* ââ DATA & CATALOGS âââââââââââââââââââââââââââââââââââââââ */
+  { cat:"data", org:"CelesTrak / Dr. T.S. Kelso", free:true,
+    title:"GP Element Sets (TLE Catalog)",
+    desc:"The most widely used source of publicly available TLE data. Provides GP element sets for 20,000+ tracked objects in multiple formats (TLE, JSON, CSV) updated several times daily. Essential for any SGP4-based propagation work.",
+    url:"https://celestrak.org/NORAD/elements/" },
+
+  { cat:"data", org:"18th Space Defense Squadron", free:true,
+    title:"Space-Track.org Satellite Catalog",
+    desc:"The authoritative US government satellite catalog maintained by 18 SDS. Provides TLEs, conjunction data messages (CDMs), launch and decay notifications. Requires free account registration. The source for official SSN tracking data.",
+    url:"https://www.space-track.org" },
+
+  { cat:"data", org:"ESA DISCOS", free:false,
+    title:"ESA DISCOS Database",
+    desc:"ESA's Database and Information System Characterising Objects in Space. Comprehensive physical and orbital characteristics for space objects â dimensions, mass, shape, material composition. Used for accurate area-to-mass ratio calculations in drag and SRP modeling.",
+    url:"https://discosweb.esoc.esa.int" },
+
+  { cat:"data", org:"NASA CARA", free:true,
+    title:"Conjunction Assessment Risk Analysis (CARA)",
+    desc:"NASA's public conjunction assessment service providing close approach screening for NASA assets. Publishes methodology papers and probability of collision calculation approaches used as a reference standard across the industry.",
+    url:"https://nasa.gov/conjunction-assessment" },
+
+  { cat:"data", org:"LeoLabs", free:false,
+    title:"LeoLabs Space Object Database",
+    desc:"Commercial radar network tracking LEO objects with higher update rates and smaller trackable sizes than SSN. Provides conjunction screening, decay predictions, and maneuver support for commercial operators.",
+    url:"https://leolabs.space" },
+
+  { cat:"data", org:"Aerospace Corp / CCAR", free:true,
+    title:"SOCRATES Conjunction Screening",
+    desc:"Satellite Orbital Conjunction Reports Assessing Threatening Encounters in Space. Daily screening of the entire satellite catalog using publicly available TLEs. Ranks the top conjunction events by probability of collision.",
+    url:"https://celestrak.org/SOCRATES/" },
+
+  /* ââ TOOLS ââââââââââââââââââââââââââââââââââââââââââââââââ */
+  { cat:"tools", org:"AGI / Ansys", free:false,
+    title:"Systems Tool Kit (STK)",
+    desc:"The industry-standard orbital analysis and space mission engineering software. Models satellite coverage, conjunction analysis, sensor performance, and link budgets. Used by most government and commercial satellite operators globally.",
+    url:"https://www.ansys.com/products/missions/ansys-stk" },
+
+  { cat:"tools", org:"NASA / Vallado", free:true,
+    title:"SGP4 Reference Implementation",
+    desc:"The canonical C++, Python, and MATLAB implementation of the SGP4/SDP4 propagator by David Vallado at Aerospace Corp. The definitive reference for implementing TLE-based orbit propagation consistent with USSPACECOM standards.",
+    url:"https://celestrak.org/software/vallado-sw.php" },
+
+  { cat:"tools", org:"Open Source", free:true,
+    title:"Skyfield (Python)",
+    desc:"High-accuracy Python library for computing positions of stars, planets, and Earth satellites. Uses modern IERS Earth orientation data and supports TLE propagation via SGP4. The best Python library for precise satellite positional astronomy.",
+    url:"https://rhodesmill.org/skyfield/" },
+
+  { cat:"tools", org:"ESA", free:true,
+    title:"DRAMA â Debris Risk Assessment",
+    desc:"ESA's Debris Risk Assessment and Mitigation Analysis tool. Computes casualty risk for uncontrolled reentries, orbital lifetime estimates, and collision avoidance maneuver analysis. Used for compliance with space debris mitigation guidelines.",
+    url:"https://sdup.esoc.esa.int/drama/" },
+
+  { cat:"tools", org:"NASA Goddard", free:true,
+    title:"GMAT â General Mission Analysis Tool",
+    desc:"NASA's open-source mission design and navigation software. Supports high-fidelity trajectory optimization, maneuver planning, formation flying analysis, and conjunction assessment. Used for mission planning from LEO to deep space.",
+    url:"https://software.nasa.gov/software/GSC-17177-1" },
+
+  { cat:"tools", org:"Open Source / Helge Eichhorn", free:true,
+    title:"Orekit (Java/Python)",
+    desc:"A highly accurate open-source space dynamics library supporting all major orbit propagators (numerical, SGP4, Eckstein-Hechler), coordinate frame transformations, attitude modeling, and event detection. The reference for high-fidelity propagation in research.",
+    url:"https://www.orekit.org" },
+
+  /* ââ PAPERS âââââââââââââââââââââââââââââââââââââââââââââââ */
+  { cat:"papers", org:"Kessler & Cour-Palais (1978)", free:false,
+    title:"Collision Frequency of Artificial Satellites",
+    desc:"The foundational paper introducing what became known as the Kessler Syndrome â the concept of a self-sustaining debris cascade in LEO. Arguably the most important paper in the history of space debris research. Published in Journal of Geophysical Research.",
+    url:"https://doi.org/10.1029/JA083iA06p02637" },
+
+  { cat:"papers", org:"Alfriend et al. (1999)", free:false,
+    title:"Probability of Collision Error Analysis",
+    desc:"Defines the probability of collision formulation used as the industry standard for conjunction assessment. Introduces the combined covariance approach and the 2D Pc computation method still used by 18 SDS and NASA CARA today.",
+    url:"https://doi.org/10.1023/A:1008168728822" },
+
+  { cat:"papers", org:"Vallado & Crawford (2008)", free:true,
+    title:"SGP4 Orbit Determination",
+    desc:"Comprehensive treatment of SGP4 orbit determination from observations, mean element generation, and TLE fitting. Essential reading for anyone implementing or validating SGP4 propagation. Freely available via AIAA.",
+    url:"https://celestrak.org/publications/AIAA/2008-6770/" },
+
+  { cat:"papers", org:"Letizia et al. (ESA, 2019)", free:true,
+    title:"Extending the Continuum Approach for Debris Evolution",
+    desc:"Presents ESA's DELTA model for long-term debris environment evolution using a continuum (density-based) approach rather than Monte Carlo object-by-object simulation. Provides a computationally tractable method for century-scale debris projections.",
+    url:"https://doi.org/10.1016/j.actaastro.2019.01.039" },
+
+  { cat:"papers", org:"Oltrogge & Alfano (2019)", free:true,
+    title:"The Universal Pc Algorithm",
+    desc:"Proposes a unified probability of collision calculation framework reconciling multiple prior Pc methods. Addresses numerical edge cases in near-miss geometries where the classical Alfriend formulation breaks down. Widely cited in recent conjunction analysis work.",
+    url:"https://doi.org/10.1007/s10569-019-9927-z" },
+
+  /* ââ STANDARDS ââââââââââââââââââââââââââââââââââââââââââââ */
+  { cat:"standards", org:"IADC", free:true,
+    title:"IADC Space Debris Mitigation Guidelines",
+    desc:"The Inter-Agency Space Debris Coordination Committee guidelines â the internationally agreed baseline for debris mitigation. Covers protected orbital regions, passivation requirements, and the 25-year deorbit rule for LEO. The reference standard for compliance.",
+    url:"https://www.iadc-home.org/documents_public/view/id/82" },
+
+  { cat:"standards", org:"ISO", free:false,
+    title:"ISO 24113 â Space Debris Mitigation",
+    desc:"The formal ISO standard codifying space debris mitigation requirements for space systems. Provides normative requirements for mission design, operations, and end-of-life disposal. Referenced in national space law frameworks across multiple jurisdictions.",
+    url:"https://www.iso.org/standard/72383.html" },
+
+  { cat:"standards", org:"CCSDS", free:true,
+    title:"Conjunction Data Message (CDM) Standard",
+    desc:"The CCSDS 508.0-B standard defines the format of Conjunction Data Messages used by 18 SDS, NASA CARA, and commercial screening services. Understanding the CDM format is essential for automated conjunction assessment pipelines.",
+    url:"https://public.ccsds.org/Pubs/508x0b1e2c2.pdf" },
+
+  { cat:"standards", org:"FCC / ITU", free:true,
+    title:"FCC Orbital Debris Mitigation Rules",
+    desc:"The US Federal Communications Commission's orbital debris mitigation rules (47 CFR Part 25), updated in 2022 to require a 5-year post-mission disposal rule for satellites below 2000 km. Required reading for any US-licensed satellite operator.",
+    url:"https://www.fcc.gov/document/fcc-updates-orbital-debris-mitigation-rules" },
+
+  { cat:"standards", org:"NASA", free:true,
+    title:"NASA-STD-8719.14B â Process for Limiting Orbital Debris",
+    desc:"NASA's internal standard for limiting orbital debris generation, used as a design requirement for all NASA missions. More stringent than IADC guidelines in several areas. Provides detailed requirements for mission planning, debris assessment, and reporting.",
+    url:"https://standards.nasa.gov/standard/nasa/nasa-std-871914" },
+
+  /* ââ COURSES & LEARNING âââââââââââââââââââââââââââââââââââ */
+  { cat:"courses", org:"MIT OpenCourseWare", free:true,
+    title:"16.346 â Astrodynamics",
+    desc:"MIT's graduate astrodynamics course covering orbital mechanics, Lambert's problem, orbit determination, and spacecraft navigation. Lecture notes and problem sets freely available. One of the most rigorous freely accessible astrodynamics curricula online.",
+    url:"https://ocw.mit.edu/courses/16-346-astrodynamics-fall-2008/" },
+
+  { cat:"courses", org:"ESA Academy", free:true,
+    title:"ESA Space Debris Training Course",
+    desc:"ESA's dedicated training program on space debris â environment models, mitigation measures, debris removal technologies, and regulatory landscape. Offered periodically as in-person and online formats. Directly relevant to VectraSpace's domain.",
+    url:"https://www.esa.int/Enabling_Support/Space_Engineering_Technology/Space_Debris_Training_Course" },
+
+  { cat:"courses", org:"Coursera / University of Colorado", free:false,
+    title:"Spacecraft Dynamics and Control Specialization",
+    desc:"Four-course specialization covering attitude dynamics, kinematics, control systems, and mission simulation. Highly rated, mathematically rigorous, and directly applicable to satellite conjunction and maneuver planning contexts.",
+    url:"https://www.coursera.org/specializations/spacecraft-dynamics-control" },
+
+  { cat:"courses", org:"AGI / Ansys", free:true,
+    title:"STK Fundamentals Online Training",
+    desc:"Free self-paced online training for Systems Tool Kit (STK), the industry-standard orbital analysis platform. Covers satellite access analysis, coverage, conjunction analysis, and sensor modeling. Certification available upon completion.",
+    url:"https://training.ansys.com/odl/stk_fundamentals/" },
+
+  { cat:"courses", org:"Wertz & Larson (Textbook)", free:false,
+    title:"Space Mission Engineering: The New SMAD",
+    desc:"The reference textbook for space systems engineering â covers orbit design, propulsion, power, communications, and mission operations. Universally recommended as the first technical book for anyone entering the space industry.",
+    url:"https://www.smad.com" },
+
+];
+
+var activeFilter = "all";
+var searchQuery  = "";
+
+function tagClass(cat){ return "tag tag-" + cat; }
+function tagLabel(cat){
+  return {data:"Data & Catalogs", tools:"Tools", papers:"Papers",
+          standards:"Standards", courses:"Courses"}[cat] || cat;
+}
+
+function arrowSVG(){
+  return '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+}
+
+function render(){
+  var q = searchQuery.toLowerCase();
+  var filtered = RESOURCES.filter(function(r){
+    if(activeFilter !== "all" && r.cat !== activeFilter) return false;
+    if(!q) return true;
+    return r.title.toLowerCase().indexOf(q) !== -1
+        || r.desc.toLowerCase().indexOf(q) !== -1
+        || r.org.toLowerCase().indexOf(q) !== -1;
+  });
+
+  var grid = document.getElementById("rs-grid");
+  var meta = document.getElementById("rs-meta");
+  meta.textContent = filtered.length + " resource" + (filtered.length !== 1 ? "s" : "");
+
+  if(filtered.length === 0){
+    grid.innerHTML = '<div class="empty">No resources match your search.</div>';
+    return;
+  }
+
+  /* Group by category in a defined order */
+  var ORDER = ["data","tools","papers","standards","courses"];
+  var groups = {};
+  ORDER.forEach(function(c){ groups[c] = []; });
+  filtered.forEach(function(r){ if(groups[r.cat]) groups[r.cat].push(r); });
+
+  var html = "";
+  ORDER.forEach(function(cat){
+    var items = groups[cat];
+    if(!items.length) return;
+    /* Section divider if showing all */
+    if(activeFilter === "all"){
+      html += '<div class="section-label">'
+            + '<span class="section-label-text" style="color:var(--' +
+              {data:"accent",tools:"green",papers:"amber",standards:"red",courses:"purple"}[cat]
+            + ')">' + tagLabel(cat) + '</span>'
+            + '<span class="section-label-line"></span>'
+            + '</div>';
+    }
+    items.forEach(function(r){
+      html += '<a class="card" href="' + r.url + '" target="_blank" rel="noopener">'
+            + '<div class="card-top">'
+            + '<div class="card-meta">'
+            + '<span class="' + tagClass(r.cat) + '">' + tagLabel(r.cat) + '</span>'
+            + '<span class="card-org">' + r.org + '</span>'
+            + '</div>'
+            + '<div class="card-title">' + r.title + '</div>'
+            + '<div class="card-desc">' + r.desc + '</div>'
+            + '</div>'
+            + '<div class="card-foot">'
+            + '<span class="card-link-label">Open resource ' + arrowSVG() + '</span>'
+            + (r.free ? '<span class="card-free">Free</span>' : '<span style="font-family:var(--mono);font-size:7px;letter-spacing:1px;color:var(--faint);">Paid / Login</span>')
+            + '</div>'
+            + '</a>';
+    });
+  });
+
+  grid.innerHTML = html;
+}
+
+/* Search */
+document.getElementById("rs-search").addEventListener("input", function(){
+  searchQuery = this.value.trim();
+  render();
+});
+
+/* Filters */
+document.querySelectorAll(".fbtn[data-cat]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.querySelectorAll(".fbtn[data-cat]").forEach(function(b){ b.classList.remove("on"); });
+    btn.classList.add("on");
+    activeFilter = btn.dataset.cat;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>'''
+
+RESEARCH_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VectraSpace â Research Data Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:     #030508;
+  --panel:  #070f18;
+  --border: #0d2137;
+  --accent: #00d4ff;
+  --green:  #00ff88;
+  --red:    #ff4444;
+  --muted:  #3a5a75;
+  --text:   #c8dff0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Exo 2', sans-serif; min-height: 100vh; }
+a { color: var(--accent); }
+
+/* ââ HEADER ââ */
+#header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 4px; color: var(--accent); }
+.header-links { display: flex; gap: 20px; font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 1px; }
+.header-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.header-links a:hover { color: var(--accent); }
+
+/* ââ HERO ââ */
+#hero { padding: 48px 40px 32px; max-width: 1100px; margin: 0 auto; }
+#hero h1 { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+#hero p { color: var(--muted); font-size: 13px; line-height: 1.7; max-width: 680px; }
+.badge { display: inline-block; background: rgba(0,212,255,0.08); color: var(--accent);
+         border: 1px solid rgba(0,212,255,0.3); border-radius: 3px;
+         font-family: 'Share Tech Mono', monospace; font-size: 9px;
+         letter-spacing: 2px; padding: 3px 8px; margin-right: 8px; }
+
+/* ââ MAIN GRID ââ */
+#main { max-width: 1100px; margin: 0 auto; padding: 0 40px 60px; }
+.section { margin-bottom: 40px; }
+.section-title {
+  font-family: 'Share Tech Mono', monospace; font-size: 10px;
+  letter-spacing: 3px; color: var(--accent); text-transform: uppercase;
+  margin-bottom: 16px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; padding: 24px;
+}
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.chart-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
+.chart-title { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; }
+
+/* ââ STATS ROW ââ */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+.stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px; }
+.stat-val { font-family: 'Orbitron', sans-serif; font-size: 26px; color: var(--accent); margin-bottom: 4px; }
+.stat-lbl { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+
+/* ââ TABLE ââ */
+.tbl-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-family: 'Share Tech Mono', monospace; font-size: 10px; }
+thead th { background: #060d16; color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
+           padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody tr { border-bottom: 1px solid rgba(13,33,55,0.6); transition: background 0.15s; }
+tbody tr:hover { background: rgba(0,212,255,0.04); }
+tbody td { padding: 9px 14px; color: var(--text); white-space: nowrap; }
+.pc-high { color: var(--red); } .pc-med { color: #ffaa44; } .pc-low { color: var(--green); }
+.empty-row td { text-align: center; color: var(--muted); padding: 32px; letter-spacing: 2px; }
+
+/* ââ EXPORT BUTTONS ââ */
+.export-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.export-btn {
+  font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; padding: 8px 16px;
+  border: 1px solid var(--accent); border-radius: 3px;
+  color: var(--accent); background: transparent; cursor: pointer;
+  text-decoration: none; display: inline-block; transition: all 0.2s;
+}
+.export-btn:hover { background: rgba(0,212,255,0.1); }
+.export-btn.green { border-color: var(--green); color: var(--green); }
+.export-btn.green:hover { background: rgba(0,255,136,0.08); }
+
+/* ââ LOADING ââ */
+.loading { color: var(--muted); font-family: 'Share Tech Mono', monospace; font-size: 10px;
+           letter-spacing: 2px; padding: 32px; text-align: center; }
+
+@media (max-width: 700px) {
+  #header { padding: 16px 20px; }
+  #hero, #main { padding-left: 20px; padding-right: 20px; }
+  .charts-grid, .stats-row { grid-template-columns: 1fr; }
+}
+</style>
+
+<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <div class="logo">VectraSpace // Research Portal</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;font-family:'Share Tech Mono',monospace;">
+      Public Data Access â No Authentication Required
+    </div>
+  </div>
+  <div class="header-links">
+    <a href="/">â Landing</a>
+    <a href="/dashboard">Mission Control</a>
+  </div>
+</div>
+
+<div id="hero">
+  <div style="margin-bottom:12px;">
+    <span class="badge">OPEN DATA</span>
+    <span class="badge" style="color:var(--green);border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.05);">UTD CSS COLLABORATION</span>
+  </div>
+  <h1>Orbital Conjunction Research Portal</h1>
+  <p>Real-time and historical conjunction data from VectraSpace's SGP4 propagation engine. All data is derived from public TLE catalogs via CelesTrak. Probability of collision estimates use the Alfriend-Akella covariance model. For research inquiries contact <a href="mailto:trumanheaston@gmail.com">trumanheaston@gmail.com</a>.</p>
+</div>
+
+<div id="main">
+
+  <!-- Stats -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-val" id="stat-total-conj">â</div><div class="stat-lbl">Total Conjunctions</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-high-risk">â</div><div class="stat-lbl">High Risk (Pc &gt; 1e-4)</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-sats">â</div><div class="stat-lbl">Satellites Tracked</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-last-scan">â</div><div class="stat-lbl">Last Scan</div></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="section">
+    <div class="section-title">Orbital Analysis</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">PROBABILITY OF COLLISION DISTRIBUTION</div>
+        <canvas id="chart-pc" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">MISS DISTANCE DISTRIBUTION (KM)</div>
+        <canvas id="chart-dist" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">CONJUNCTIONS OVER TIME</div>
+        <canvas id="chart-time" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">RELATIVE VELOCITY AT TCA (KM/S)</div>
+        <canvas id="chart-vel" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conjunction Table -->
+  <div class="section">
+    <div class="section-title">
+      <span>Conjunction Events</span>
+      <div class="export-row" style="margin-top:0;">
+        <a class="export-btn" onclick="exportCSV()">â Export CSV</a>
+        <a class="export-btn green" onclick="exportJSON()">â Export JSON</a>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Object 1</th>
+            <th>Object 2</th>
+            <th>TCA (UTC)</th>
+            <th>Miss Distance (km)</th>
+            <th>Pc Estimate</th>
+            <th>Rel. Velocity (km/s)</th>
+            <th>CDM</th>
+          </tr>
+        </thead>
+        <tbody id="conj-tbody">
+          <tr class="empty-row"><td colspan="8"><div class="loading">LOADING CONJUNCTION DATA...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);">
+      Data refreshes on each scan execution. All times UTC. Pc values are estimates â not certified for operational use.
+    </div>
+  </div>
+
+  <!-- TLE Export -->
+  <div class="section">
+    <div class="section-title">TLE Data Export</div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
+        Export the current TLE catalog used in the last scan. Data sourced from CelesTrak active satellite catalog.
+        Format conforms to NORAD two-line element set standard (BSTAR drag term, epoch, mean motion, eccentricity).
+      </div>
+      <div class="export-row">
+        <a class="export-btn" href="/research/tle.json" download>â TLE Export (JSON)</a>
+        <a class="export-btn green" href="/research/tle.csv" download>â TLE Export (CSV)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Methodology -->
+  <div class="section">
+    <div class="section-title">Methodology</div>
+    <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">PROPAGATION</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+          SGP4/SDP4 orbital propagation via the <strong style="color:var(--text);">Skyfield</strong> library.
+          Positions computed at 1-minute intervals over a 24-hour window.
+          Vectorized chunk-based screening using NumPy for O(nÂ²) pair comparisons.
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">COLLISION PROBABILITY</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+          Pc estimates use the <strong style="color:var(--text);">Alfriend-Akella</strong> method with 
+          combined error covariance ellipsoids (1Ï along-track: 100m, cross-track: 20m, radial: 20m).
+          Refined via golden-section search for TCA.
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">DATA SOURCES</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+          TLE data from <strong style="color:var(--text);">CelesTrak</strong> active satellite catalog.
+          Optional Space-Track.org integration for additional orbital elements.
+          Conjunction data messages (CDM) generated per CCSDS 508.0-B-1 standard.
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">LIMITATIONS</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+          TLE accuracy degrades over time. Covariance values are assumed, not measured.
+          Pc values should be treated as <strong style="color:var(--text);">screening indicators</strong> only.
+          Not validated for operational conjunction assessment.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let conjData = [];
+
+const CHART_DEFAULTS = {
+  color: '#00d4ff',
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { color: '#3a5a75', font: { family: 'Share Tech Mono', size: 9 } }, grid: { color: '#0d2137' } },
+    y: { ticks: { color: '#3a5a75', font: { family: 'Share Tech Mono', size: 9 } }, grid: { color: '#0d2137' } }
+  }
+};
+
+async function loadData() {
+  try {
+    const res = await fetch('/conjunctions');
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    conjData = data.conjunctions || data || [];
+    renderStats(conjData);
+    renderTable(conjData);
+    renderCharts(conjData);
+  } catch(e) {
+    document.getElementById('conj-tbody').innerHTML =
+      '<tr class="empty-row"><td colspan="8">No conjunction data available â run a scan first.</td></tr>';
+  }
+}
+
+function renderStats(data) {
+  document.getElementById('stat-total-conj').textContent = data.length;
+  const highRisk = data.filter(c => (c.pc_estimate || c.pc || 0) > 1e-4).length;
+  document.getElementById('stat-high-risk').textContent = highRisk;
+  const sats = new Set();
+  data.forEach(c => { sats.add(c.sat1||c.name1||c.object1); sats.add(c.sat2||c.name2||c.object2); });
+  document.getElementById('stat-sats').textContent = sats.size;
+  if (data.length > 0) {
+    const times = data.map(c => c.tca_utc || c.time || c.epoch).filter(Boolean);
+    if (times.length) document.getElementById('stat-last-scan').textContent = times[0].slice(0,10);
+  }
+}
+
+function pcClass(pc) {
+  if (!pc || pc < 1e-6) return 'pc-low';
+  if (pc < 1e-4) return 'pc-med';
+  return 'pc-high';
+}
+
+function fmtPc(pc) {
+  if (!pc || pc === 0) return '<1e-8';
+  return pc.toExponential(2);
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('conj-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No conjunctions recorded yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.slice(0,200).map((c,i) => {
+    const pc = c.pc_estimate ?? c.pc ?? 0;
+    const dist = (c.min_dist_km ?? c.miss_distance ?? 0).toFixed(3);
+    const vel = (c.v_rel ?? c.relative_velocity ?? 0).toFixed(2);
+    const tca = c.tca_utc ?? c.time ?? 'â';
+    const s1 = c.sat1 ?? c.name1 ?? c.object1 ?? 'â';
+    const s2 = c.sat2 ?? c.name2 ?? c.object2 ?? 'â';
+    const cdmLink = c.cdm_index !== undefined
+      ? `<a href="/cdm/${c.cdm_index}" style="color:var(--accent);font-size:9px;">â CDM</a>`
+      : 'â';
+    return `<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td>${s1}</td><td>${s2}</td>
+      <td style="color:var(--muted)">${tca}</td>
+      <td>${dist}</td>
+      <td class="${pcClass(pc)}">${fmtPc(pc)}</td>
+      <td>${vel}</td>
+      <td>${cdmLink}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCharts(data) {
+  if (!data.length) return;
+
+  // Pc distribution
+  const pcBins = [0,0,0,0,0]; // <1e-8, 1e-8..1e-6, 1e-6..1e-4, 1e-4..1e-2, >1e-2
+  const pcLabels = ['<1e-8','1e-8 to
+1e-6','1e-6 to
+1e-4','1e-4 to
+1e-2','>1e-2'];
+  data.forEach(c => {
+    const pc = c.pc_estimate ?? c.pc ?? 0;
+    if (pc < 1e-8) pcBins[0]++;
+    else if (pc < 1e-6) pcBins[1]++;
+    else if (pc < 1e-4) pcBins[2]++;
+    else if (pc < 1e-2) pcBins[3]++;
+    else pcBins[4]++;
+  });
+  new Chart(document.getElementById('chart-pc'), {
+    type: 'bar',
+    data: { labels: pcLabels, datasets: [{ data: pcBins,
+      backgroundColor: ['#00ff8844','#44aaff44','#ffaa4444','#ff666644','#ff444444'],
+      borderColor:      ['#00ff88',  '#44aaff',  '#ffaa44',  '#ff6666',  '#ff4444'],
+      borderWidth: 1 }]},
+    options: { ...CHART_DEFAULTS, responsive: true }
+  });
+
+  // Miss distance histogram
+  const distBins = new Array(10).fill(0);
+  const maxDist = Math.max(...data.map(c => c.min_dist_km ?? 0), 10);
+  data.forEach(c => {
+    const d = c.min_dist_km ?? 0;
+    const bin = Math.min(Math.floor(d / maxDist * 10), 9);
+    distBins[bin]++;
+  });
+  const distLabels = distBins.map((_,i) => `${(i*maxDist/10).toFixed(0)}-${((i+1)*maxDist/10).toFixed(0)}`);
+  new Chart(document.getElementById('chart-dist'), {
+    type: 'bar',
+    data: { labels: distLabels, datasets: [{ data: distBins,
+      backgroundColor: '#00d4ff22', borderColor: '#00d4ff', borderWidth: 1 }]},
+    options: { ...CHART_DEFAULTS, responsive: true }
+  });
+
+  // Conjunctions over time
+  const timeCounts = {};
+  data.forEach(c => {
+    const t = (c.tca_utc ?? c.time ?? '').slice(0,10);
+    if (t) timeCounts[t] = (timeCounts[t]||0)+1;
+  });
+  const timeKeys = Object.keys(timeCounts).sort();
+  new Chart(document.getElementById('chart-time'), {
+    type: 'line',
+    data: { labels: timeKeys, datasets: [{ data: timeKeys.map(k=>timeCounts[k]),
+      borderColor: '#00ff88', backgroundColor: '#00ff8811', fill: true,
+      tension: 0.3, pointRadius: 3 }]},
+    options: { ...CHART_DEFAULTS, responsive: true }
+  });
+
+  // Relative velocity histogram
+  const velBins = new Array(10).fill(0);
+  const maxVel = Math.max(...data.map(c => c.v_rel ?? 0), 15);
+  data.forEach(c => {
+    const v = c.v_rel ?? 0;
+    const bin = Math.min(Math.floor(v / maxVel * 10), 9);
+    velBins[bin]++;
+  });
+  const velLabels = velBins.map((_,i) => `${(i*maxVel/10).toFixed(1)}-${((i+1)*maxVel/10).toFixed(1)}`);
+  new Chart(document.getElementById('chart-vel'), {
+    type: 'bar',
+    data: { labels: velLabels, datasets: [{ data: velBins,
+      backgroundColor: '#aa88ff22', borderColor: '#aa88ff', borderWidth: 1 }]},
+    options: { ...CHART_DEFAULTS, responsive: true }
+  });
+}
+
+function exportCSV() {
+  if (!conjData.length) return;
+  const hdr = 'index,object1,object2,tca_utc,miss_dist_km,pc_estimate,rel_velocity_kms
+';
+  const rows = conjData.map((c,i) => [
+    i+1,
+    c.sat1 ?? c.name1 ?? '', c.sat2 ?? c.name2 ?? '',
+    c.tca_utc ?? c.time ?? '',
+    (c.min_dist_km ?? 0).toFixed(4),
+    (c.pc_estimate ?? c.pc ?? 0).toExponential(4),
+    (c.v_rel ?? 0).toFixed(4)
+  ].join(',')).join('
+');
+  const blob = new Blob([hdr+rows], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `vectraspace_conjunctions_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function exportJSON() {
+  if (!conjData.length) return;
+  const blob = new Blob([JSON.stringify(conjData, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `vectraspace_conjunctions_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+loadData();
+</script>
+</body>
+</html>'''
+
+EDU_ORBITAL_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbital Mechanics â VectraSpace Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0a0e14;--ink2:#111720;--ink3:#1a2333;--panel:#131b27;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#d4dde8;--muted:#8aaac5;--accent:#3b82f6;--accent-h:#60a5fa;
+  --amber:#f59e0b;--red:#ef4444;--green:#10b981;--teal:#14b8a6;--r:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:'Space Grotesk',sans-serif;line-height:1.6;overflow-x:hidden;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}
+.nav-brand-name{font-family:'Instrument Serif',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
+.nav-back{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
+.nav-back:hover{color:var(--text);border-color:var(--border2);}
+.nav-brand-name{font-family:'Instrument Serif',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;color:#fff;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
+.chapter-progress{flex:1;max-width:300px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:0 40px;overflow:hidden;}
+.chapter-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.1s;}
+
+/* HERO */
+.learn-hero{padding:100px 40px 60px;max-width:900px;margin:0 auto;}
+.learn-breadcrumb{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:16px;}
+.learn-breadcrumb a{color:var(--muted);text-decoration:none;}
+.learn-breadcrumb a:hover{color:var(--accent);}
+.learn-chapter{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.learn-title{font-family:'Syne',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-1.5px;color:#fff;line-height:1.05;margin-bottom:20px;}
+.learn-intro{font-size:17px;color:var(--muted);line-height:1.8;max-width:680px;margin-bottom:36px;}
+.learn-meta{display:flex;gap:24px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}
+.meta-item{display:flex;align-items:center;gap:6px;}
+
+/* LAYOUT */
+.learn-layout{display:grid;grid-template-columns:220px 1fr;gap:0;max-width:1100px;margin:0 auto;padding:0 40px 80px;}
+.toc{position:sticky;top:80px;height:fit-content;padding-right:40px;}
+.toc-title{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.toc-list{list-style:none;display:flex;flex-direction:column;gap:2px;}
+.toc-list a{display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.5px;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:4px;border-left:2px solid transparent;transition:all 0.2s;}
+.toc-list a:hover,.toc-list a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(59,130,246,0.06);}
+.content{min-width:0;}
+
+/* CONTENT */
+.section-block{margin-bottom:64px;}
+.section-block h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:16px;padding-top:16px;}
+.section-block h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:28px 0 10px;}
+.section-block p{font-size:15px;color:var(--muted);line-height:1.85;margin-bottom:16px;}
+.section-block p strong{color:var(--text);font-weight:600;}
+.section-block p em{color:var(--accent-h);font-style:normal;}
+
+/* EQUATION BLOCK */
+.eq-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r);padding:24px 28px;margin:24px 0;}
+.eq-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.eq-main{font-family:'STIX Two Math','Latin Modern Math',Georgia,serif;font-size:17px;color:#fff;letter-spacing:0;margin-bottom:10px;font-style:italic;}
+.eq-vars{font-size:13px;color:var(--muted);line-height:1.9;}
+.eq-vars code{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
+
+/* CALLOUT */
+.callout{background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:var(--r);padding:20px 24px;margin:24px 0;}
+.callout-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+.callout p{font-size:13px;color:var(--muted);line-height:1.75;margin:0;}
+.callout.amber{background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.2);}
+.callout.amber .callout-title{color:var(--amber);}
+.callout.red{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2);}
+.callout.red .callout-title{color:var(--red);}
+
+/* TABLE */
+.data-table-wrap{overflow-x:auto;margin:24px 0;border-radius:var(--r);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead th{background:rgba(255,255,255,0.04);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);}
+tbody td{font-size:13px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);}
+tbody tr:last-child td{border-bottom:none;}
+tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
+
+/* DIAGRAM */
+.diagram-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin:24px 0;text-align:center;}
+.diagram-caption{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:12px;}
+
+/* NEXT/PREV */
+.chapter-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:80px;padding-top:40px;border-top:1px solid var(--border);}
+.chapter-nav-card{padding:20px 24px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);text-decoration:none;transition:all 0.2s;}
+.chapter-nav-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.cnc-dir{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.cnc-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}
+.chapter-nav-card.next{text-align:right;}
+
+@media(max-width:800px){
+  .learn-layout{grid-template-columns:1fr;padding:0 20px 60px;}
+  .toc{display:none;}
+  .learn-hero{padding:80px 20px 40px;}
+  nav{padding:0 20px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-brand">
+    <span class="nav-brand-name">Vectra<em>Space</em></span>
+  </a>
+  <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
+  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">â All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
+</nav>
+
+<div class="learn-hero">
+  <div class="learn-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Orbital Mechanics</div>
+  <div class="learn-chapter">Chapter 01 Â· Foundations</div>
+  <h1 class="learn-title">Orbital Mechanics</h1>
+  <p class="learn-intro">From Kepler's laws to <dfn data-term="SGP4">SGP4</dfn> propagation â the classical physics governing every object in Earth orbit. This is the mathematical foundation beneath VectraSpace's entire simulation engine.</p>
+  <div class="learn-meta">
+    <span class="meta-item">ð ~15 min read</span>
+    <span class="meta-item">ð§® 8 equations</span>
+    <span class="meta-item">ð¯ Intermediate physics</span>
+  </div>
+</div>
+
+<div class="learn-layout">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li><a href="#two-body">Two-Body Problem</a></li>
+      <li><a href="#kepler">Kepler's Laws</a></li>
+      <li><a href="#vis-viva"><dfn data-term="vis-viva">Vis-Viva Equation</dfn></a></li>
+      <li><a href="#elements">Orbital Elements</a></li>
+      <li><a href="#tle">TLE Format</a></li>
+      <li><a href="#sgp4">SGP4 Propagation</a></li>
+      <li><a href="#frames">Reference Frames</a></li>
+      <li><a href="#velocity">Orbital Velocity</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+
+    <div class="section-block" id="two-body">
+      <h2>The Two-Body Problem</h2>
+      <p>The foundation of orbital mechanics is the idealized <strong>two-body problem</strong>: a small object (satellite) in the gravitational field of a much larger body (Earth). Under this assumption, the only force acting on the satellite is Earth's gravity, and the motion can be described analytically.</p>
+      <p>Newton's law of gravitation gives us the equation of motion:</p>
+      <div class="eq-block">
+        <div class="eq-label">Newton's Gravitational Equation of Motion</div>
+        <div class="eq-main">rÌ = â(Î¼ / rÂ³) Â· r</div>
+        <div class="eq-vars">
+          <code>r</code> = position vector from Earth's center to satellite<br>
+          <code>rÌ</code> = second time derivative (acceleration)<br>
+          <code>Î¼ = GM</code> = gravitational parameter = 398,600.4418 kmÂ³/sÂ²<br>
+          <code>r = |r|</code> = scalar distance from Earth's center
+        </div>
+      </div>
+      <p>This differential equation has analytical solutions that trace out <strong>conic sections</strong> â circles, ellipses, parabolas, or hyperbolas â depending on the satellite's total energy. Satellites in stable orbit follow ellipses.</p>
+      <div class="callout">
+        <div class="callout-title">Why "Two-Body"?</div>
+        <p>In reality, many forces act on a satellite (atmospheric drag, solar radiation, Moon's gravity). The two-body problem ignores all of these. It gives us a clean analytical solution â a perfect baseline that perturbation theory then corrects. See Chapter 03 for perturbations.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="kepler">
+      <h2>Kepler's Three Laws</h2>
+      <p>Johannes Kepler (1609â1619) empirically derived three laws from Tycho Brahe's planetary observations. These laws emerge naturally from the two-body problem and remain central to modern astrodynamics.</p>
+
+      <h3>First Law â Elliptical Orbits</h3>
+      <p>The orbit of a satellite around Earth is an <strong>ellipse</strong> with Earth's center at one focus. This means the distance between the satellite and Earth varies continuously â minimum at <em>perigee</em>, maximum at <em>apogee</em>.</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Orbit Equation (Polar Form)</div>
+        <div class="eq-main">r = p / (1 + eÂ·cos Î¸)</div>
+        <div class="eq-vars">
+          <code>r</code> = orbital radius at true anomaly Î¸<br>
+          <code>p = a(1 â eÂ²)</code> = semi-latus rectum<br>
+          <code>a</code> = semi-major axis<br>
+          <code>e</code> = eccentricity (0 = circle, 0â1 = ellipse)<br>
+          <code>Î¸</code> = true anomaly (angle from perigee)
+        </div>
+      </div>
+
+      <h3>Second Law â Equal Areas</h3>
+      <p>A satellite sweeps out <strong>equal areas in equal times</strong>. This is conservation of angular momentum in disguise: a satellite moves faster near perigee (lower altitude) and slower near apogee (higher altitude).</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Conservation of Angular Momentum</div>
+        <div class="eq-main">h = r Ã á¹ = â(Î¼ Â· p) = const</div>
+        <div class="eq-vars"><code>h</code> = specific angular momentum vector (constant throughout orbit)</div>
+      </div>
+
+      <h3>Third Law â Period Relation</h3>
+      <p>The square of the orbital period is proportional to the cube of the semi-major axis. This is why GPS satellites at ~20,200 km orbit once per ~12 hours, while the ISS at ~420 km orbits once per ~92 minutes.</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Kepler's Third Law</div>
+        <div class="eq-main">T = 2Ï Â· â(aÂ³ / Î¼)</div>
+        <div class="eq-vars">
+          <code>T</code> = orbital period (seconds)<br>
+          <code>a</code> = semi-major axis (km)<br>
+          <code>Î¼</code> = 398,600.4418 kmÂ³/sÂ²
+        </div>
+      </div>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>Object</th><th>Altitude (km)</th><th>Semi-major axis (km)</th><th>Period</th><th>Velocity (km/s)</th></tr></thead>
+          <tbody>
+            <tr><td>ISS</td><td>~420</td><td>6,791</td><td>92 min</td><td>7.66</td></tr>
+            <tr><td>Starlink</td><td>~550</td><td>6,921</td><td>95.5 min</td><td>7.60</td></tr>
+            <tr><td>GPS</td><td>~20,200</td><td>26,571</td><td>11h 58m</td><td>3.87</td></tr>
+            <tr><td>GEO (Clarke Belt)</td><td>35,786</td><td>42,164</td><td>23h 56m</td><td>3.07</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-block" id="vis-viva">
+      <h2>The Vis-Viva Equation</h2>
+      <p>The <dfn data-term="vis-viva">vis-viva equation</dfn> is perhaps the single most useful result in orbital mechanics. It relates a satellite's speed at any point in its orbit to its distance from Earth and the orbit's semi-major axis â through conservation of energy.</p>
+      <div class="eq-block">
+        <div class="eq-label">Vis-Viva Equation</div>
+        <div class="eq-main">vÂ² = Î¼ Â· (2/r â 1/a)</div>
+        <div class="eq-vars">
+          <code>v</code> = orbital speed at radius r (km/s)<br>
+          <code>Î¼</code> = gravitational parameter (kmÂ³/sÂ²)<br>
+          <code>r</code> = current distance from Earth's center (km)<br>
+          <code>a</code> = semi-major axis of the orbit (km)
+        </div>
+      </div>
+      <p>For a <strong>circular orbit</strong>, <code>r = a</code> everywhere, giving <code>v = â(Î¼/r)</code>. This is why lower satellites move faster â they're in a deeper gravitational well. A 1 m/s increase in speed at ISS altitude raises the opposite side of the orbit by ~1.75 km.</p>
+      <div class="callout amber">
+        <div class="callout-title">VectraSpace Application</div>
+        <p>The vis-viva equation underlies all delta-v calculations in the maneuver planning module. When a conjunction is detected, the Clohessy-Wiltshire model computes the minimum Îv needed â and vis-viva tells us how that translates to an altitude change.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="elements">
+      <h2>Classical Orbital Elements</h2>
+      <p>Six numbers fully describe any Keplerian orbit. These are the <strong>Classical Orbital Elements (COEs)</strong> â a compact parameterization used in TLE sets and almost every orbital database.</p>
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>Symbol</th><th>Element</th><th>Description</th><th>Range</th></tr></thead>
+          <tbody>
+            <tr><td>a</td><td>Semi-major axis</td><td>Half the long axis of the ellipse. Determines orbit size and period.</td><td>0 â â km</td></tr>
+            <tr><td>e</td><td>Eccentricity</td><td>Shape of orbit. 0 = circle, 0â1 = ellipse, 1 = parabola (escape).</td><td>0 â &lt;1</td></tr>
+            <tr><td>i</td><td>Inclination</td><td>Tilt of orbit plane relative to Earth's equatorial plane.</td><td>0Â° â 180Â°</td></tr>
+            <tr><td>Î©</td><td>RAAN</td><td>Right Ascension of Ascending Node. Rotates orbit plane around polar axis.</td><td>0Â° â 360Â°</td></tr>
+            <tr><td>Ï</td><td>Argument of perigee</td><td>Angle from ascending node to closest approach point.</td><td>0Â° â 360Â°</td></tr>
+            <tr><td>Î½ or M</td><td>True / Mean anomaly</td><td>Current position in orbit. True = actual angle; Mean = time-averaged.</td><td>0Â° â 360Â°</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Converting between mean anomaly M and true anomaly Î½ requires solving <em>Kepler's Equation</em> â a transcendental equation typically solved iteratively:</p>
+      <div class="eq-block">
+        <div class="eq-label">Kepler's Equation</div>
+        <div class="eq-main">M = E â e Â· sin(E)</div>
+        <div class="eq-vars">
+          <code>M</code> = mean anomaly (linear in time: M = nÂ·t, n = mean motion)<br>
+          <code>E</code> = eccentric anomaly (solved iteratively via Newton-Raphson)<br>
+          <code>e</code> = eccentricity
+        </div>
+      </div>
+    </div>
+
+    <div class="section-block" id="tle">
+      <h2>Two-Line Element Sets (TLEs)</h2>
+      <p>A TLE is the standard format used by NORAD and CelesTrak to distribute orbital data for tracked space objects. Each TLE encodes the six orbital elements plus perturbation coefficients in exactly 69 characters per line.</p>
+      <div class="eq-block" style="font-size:11px;">
+        <div class="eq-label">Example TLE â ISS</div>
+        <div class="eq-main" style="font-size:12px;line-height:1.8">
+          ISS (ZARYA)<br>
+          1 25544U 98067A   24001.50000000  .00003456  00000-0  63041-4 0  9992<br>
+          2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.50377579431937
+        </div>
+        <div class="eq-vars">
+          Line 1: Satellite number Â· Classification Â· Launch year/number Â· Epoch Â· Drag term (B*) Â· Element set number<br>
+          Line 2: Inclination Â· RAAN Â· Eccentricity (assumed decimal) Â· Arg of Perigee Â· Mean Anomaly Â· Mean Motion (rev/day) Â· Rev number
+        </div>
+      </div>
+      <p>TLE accuracy degrades over time as unmodeled perturbations accumulate. A fresh LEO TLE is typically accurate to ~1 km; after 7 days it may be off by 10+ km. This is why <strong>VectraSpace refreshes TLEs every 6 hours</strong> from CelesTrak and Space-Track.</p>
+    </div>
+
+    <div class="section-block" id="sgp4">
+      <h2>SGP4 / SDP4 Propagation</h2>
+      <p>The <strong>Simplified General Perturbations 4 (SGP4)</strong> model is the standard algorithm for propagating TLE sets forward in time. It analytically approximates the most significant orbital perturbations â Earth's oblateness (Jâ, Jâ, Jâ), atmospheric drag, and solar/lunar effects (SDP4 for deep-space orbits).</p>
+      <p>SGP4 takes a TLE and a time offset Ît, and returns an ECI position and velocity vector. The computation is fast â thousands of satellites can be propagated per second on modern hardware â making it ideal for VectraSpace's vectorized batch processing.</p>
+      <div class="callout">
+        <div class="callout-title">SGP4 in VectraSpace</div>
+        <p>VectraSpace uses the Skyfield Python library's SGP4 implementation, propagating position arrays over 12â72 hour windows at 1-minute resolution. NumPy batching allows all satellites in a regime to be processed simultaneously, achieving 50Ã speedup over sequential loops.</p>
+      </div>
+      <div class="callout red">
+        <div class="callout-title">Important Limitation</div>
+        <p>SGP4 is a <em>mean element</em> theory â it models average perturbations, not instantaneous forces. For high-precision conjunction analysis (Pc &lt; 10â»â¶), higher-fidelity numerical propagators with real atmospheric density models are required. VectraSpace's results should be treated as <strong>screening-level estimates</strong>, not operationally certified predictions.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="frames">
+      <h2>Reference Frames</h2>
+      <p>Orbital calculations require a clear choice of coordinate system. VectraSpace uses two primary frames:</p>
+      <h3>ECI â Earth-Centered Inertial</h3>
+      <p>Origin at Earth's center. X-axis points to the vernal equinox; Z-axis to the celestial north pole. <strong>Does not rotate with Earth</strong>. Satellite positions and velocities are expressed in ECI for propagation calculations.</p>
+      <h3>RTN â Radial-Transverse-Normal (Hill Frame)</h3>
+      <p>A local coordinate frame co-moving with the reference satellite: <em>R</em> (radial, toward/away from Earth), <em>T</em> (transverse, along-track), <em>N</em> (normal, out-of-plane). Delta-v maneuver vectors are expressed in RTN.</p>
+      <div class="eq-block">
+        <div class="eq-label">RTN Unit Vectors</div>
+        <div class="eq-main">RÌ = r/|r|,  NÌ = (rÃá¹)/|rÃá¹|,  TÌ = NÌÃRÌ</div>
+      </div>
+    </div>
+
+    <div class="section-block" id="velocity">
+      <h2>Circular Orbital Velocity</h2>
+      <p>For a circular orbit, the satellite's speed is constant and determined entirely by altitude. This is the regime most LEO satellites operate in:</p>
+      <div class="eq-block">
+        <div class="eq-label">Circular Orbital Velocity</div>
+        <div class="eq-main">v_c = â(Î¼ / r) = â(Î¼ / (R_E + h))</div>
+        <div class="eq-vars">
+          <code>v_c</code> = circular velocity (km/s)<br>
+          <code>R_E</code> = Earth's mean radius = 6,371 km<br>
+          <code>h</code> = altitude above surface (km)
+        </div>
+      </div>
+      <p>At ISS altitude (420 km): v â 7.66 km/s. At GEO (35,786 km): v â 3.07 km/s. Two LEO satellites in crossing orbits can have a <strong>relative velocity of up to 15+ km/s</strong> â equivalent to a small car moving 54,000 km/h. A 1 cm aluminum sphere at this speed carries the kinetic energy of a hand grenade.</p>
+    </div>
+
+
+    <div class="chapter-nav">
+      <div></div>
+      <a href="/education/collision-prediction" class="chapter-nav-card next">
+        <div class="cnc-dir">Next Chapter â</div>
+        <div class="cnc-title">Collision Prediction</div>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Reading progress bar
+const fill = document.getElementById('progress-fill');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (window.scrollY / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+
+// TOC active highlight
+const sections = document.querySelectorAll('.section-block');
+const links = document.querySelectorAll('.toc-list a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc-list a[href="#${e.target.id}"]`);
+      if(active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => obs.observe(s));
+
+</script>
+</body>
+</html>
+
+'''
+
+EDU_COLLISION_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collision Prediction â VectraSpace Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0a0e14;--ink2:#111720;--panel:#131b27;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#d4dde8;--muted:#8aaac5;--accent:#f59e0b;--accent-h:#fbbf24;--blue:#3b82f6;--red:#ef4444;--green:#10b981;--r:8px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:'Space Grotesk',sans-serif;line-height:1.6;overflow-x:hidden;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+.nav-brand{display:flex;align-items:center;text-decoration:none;color:#fff;}
+.nav-brand-name{font-family:'Instrument Serif',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;}
+.nav-brand-name em{color:var(--accent);font-style:normal;}
+.nav-back{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:4px;transition:all 0.2s;}
+.nav-back:hover{color:var(--text);border-color:var(--border2);}
+.chapter-progress{flex:1;max-width:300px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:0 40px;overflow:hidden;}
+.chapter-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.1s;}
+.learn-hero{padding:100px 40px 60px;max-width:900px;margin:0 auto;}
+.learn-breadcrumb{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:16px;}
+.learn-breadcrumb a{color:var(--muted);text-decoration:none;}
+.learn-breadcrumb a:hover{color:var(--blue);}
+.learn-chapter{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.learn-title{font-family:'Syne',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-1.5px;color:#fff;line-height:1.05;margin-bottom:20px;}
+.learn-intro{font-size:17px;color:var(--muted);line-height:1.8;max-width:680px;margin-bottom:36px;}
+.learn-meta{display:flex;gap:24px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}
+.learn-layout{display:grid;grid-template-columns:220px 1fr;gap:0;max-width:1100px;margin:0 auto;padding:0 40px 80px;}
+.toc{position:sticky;top:80px;height:fit-content;padding-right:40px;}
+.toc-title{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.toc-list{list-style:none;display:flex;flex-direction:column;gap:2px;}
+.toc-list a{display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.5px;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:4px;border-left:2px solid transparent;transition:all 0.2s;}
+.toc-list a:hover,.toc-list a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(245,158,11,0.06);}
+.content{min-width:0;}
+.section-block{margin-bottom:64px;}
+.section-block h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:16px;padding-top:16px;}
+.section-block h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:28px 0 10px;}
+.section-block p{font-size:15px;color:var(--muted);line-height:1.85;margin-bottom:16px;}
+.section-block p strong{color:var(--text);font-weight:600;}
+.section-block p em{color:var(--accent-h);font-style:normal;}
+.eq-block{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r);padding:24px 28px;margin:24px 0;}
+.eq-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.eq-main{font-family:'STIX Two Math','Latin Modern Math',Georgia,serif;font-size:17px;color:#fff;letter-spacing:0;margin-bottom:10px;font-style:italic;}
+.eq-vars{font-size:13px;color:var(--muted);line-height:1.9;}
+.eq-vars code{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
+.callout{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:var(--r);padding:20px 24px;margin:24px 0;}
+.callout-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+.callout p{font-size:13px;color:var(--muted);line-height:1.75;margin:0;}
+.callout.blue{background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.2);}
+.callout.blue .callout-title{color:var(--blue);}
+.callout.red{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2);}
+.callout.red .callout-title{color:var(--red);}
+.callout.green{background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.2);}
+.callout.green .callout-title{color:var(--green);}
+.data-table-wrap{overflow-x:auto;margin:24px 0;border-radius:var(--r);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead th{background:rgba(255,255,255,0.04);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);}
+tbody td{font-size:13px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);}
+tbody tr:last-child td{border-bottom:none;}
+tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent-h);}
+.risk-scale{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:16px 0;gap:2px;}
+.rs-seg{flex:1;border-radius:2px;}
+.pc-table{width:100%;}
+.chapter-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:80px;padding-top:40px;border-top:1px solid var(--border);}
+.chapter-nav-card{padding:20px 24px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);text-decoration:none;transition:all 0.2s;}
+.chapter-nav-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.cnc-dir{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.cnc-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}
+.chapter-nav-card.next{text-align:right;}
+@media(max-width:800px){
+  .learn-layout{grid-template-columns:1fr;padding:0 20px 60px;}
+  .toc{display:none;}
+  .learn-hero{padding:80px 20px 40px;}
+  nav{padding:0 20px;}
+  .content-block{padding:24px 0;}
+  .equation-box{padding:16px 14px;overflow-x:auto;}
+  .quiz-wrap{padding:24px 20px;}
+  .quiz-option{padding:12px 14px;font-size:13px;}
+  .learn-hero h1{font-size:clamp(26px,7vw,42px);}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
+  <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">â All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
+</nav>
+
+<div class="learn-hero">
+  <div class="learn-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Collision Prediction</div>
+  <div class="learn-chapter">Chapter 02 Â· Risk Analysis</div>
+  <h1 class="learn-title">Collision Prediction</h1>
+  <p class="learn-intro">How do we calculate the probability that two objects will collide? This chapter covers the mathematics of conjunction analysis â from identifying close approaches to computing Pc and planning avoidance maneuvers.</p>
+  <div class="learn-meta">
+    <span>ð ~18 min read</span>
+    <span>ð§® 10 equations</span>
+    <span>ð¯ IntermediateâAdvanced</span>
+  </div>
+</div>
+
+<div class="learn-layout">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li><a href="#screening">Conjunction Screening</a></li>
+      <li><a href="#tca"><dfn data-term="TCA">Time of Closest Approach</dfn></a></li>
+      <li><a href="#covariance">Uncertainty & Covariance</a></li>
+      <li><a href="#pc-method">Pc Calculation</a></li>
+      <li><a href="#pc-levels">Risk Thresholds</a></li>
+      <li><a href="#cdm">CDM Standard</a></li>
+      <li><a href="#maneuver">Avoidance Maneuvers</a></li>
+      <li><a href="#cw">Clohessy-Wiltshire</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+
+    <div class="section-block" id="screening">
+      <h2>Conjunction Screening</h2>
+      <p>With 27,000+ tracked objects in orbit, checking every possible pair at every time step would be computationally prohibitive. Conjunction screening uses a <strong>filter cascade</strong> to rapidly eliminate low-risk pairs before expensive calculations.</p>
+      <h3>Step 1: Perigee-Apogee Filter</h3>
+      <p>Two objects can only collide if their orbits can geometrically intersect. Objects whose apogee-perigee altitude ranges don't overlap are immediately eliminated.</p>
+      <h3>Step 2: Ellipsoidal Pre-filter</h3>
+      <p>For remaining pairs, compute the minimum distance over the propagation window. Only pairs where this coarse minimum falls within <em>nÂ·Ï</em> of the combined position uncertainty are retained for refinement:</p>
+      <div class="eq-block">
+        <div class="eq-label">Ellipsoidal Overlap Condition</div>
+        <div class="eq-main">d_miss â¤ n Â· â2 Â· max(Ï_a, Ï_c, Ï_r)</div>
+        <div class="eq-vars">
+          <code>d_miss</code> = coarse minimum miss distance<br>
+          <code>n</code> = sigma multiplier (typically 5Ï)<br>
+          <code>Ï_a, Ï_c, Ï_r</code> = position uncertainty: along-track, cross-track, radial
+        </div>
+      </div>
+      <p>VectraSpace uses <strong>NumPy-batched distance matrix computation</strong> â all satellite pairs computed simultaneously in chunks, achieving ~50Ã speedup over sequential iteration. Typically 85â95% of pairs are eliminated at this stage.</p>
+    </div>
+
+    <div class="section-block" id="tca">
+      <h2>Time of Closest Approach (TCA)</h2>
+      <p>After coarse screening, the exact <strong>Time of Closest Approach (TCA)</strong> is found by minimizing the inter-satellite distance as a function of time. VectraSpace uses a bounded golden-section search (Brent's method) within a Â±1 minute window around the coarse minimum.</p>
+      <div class="eq-block">
+        <div class="eq-label">Miss Distance at TCA</div>
+        <div class="eq-main">d(t) = |râ(t) â râ(t)|<br>TCA = argmin_t d(t)</div>
+        <div class="eq-vars">
+          <code>râ(t), râ(t)</code> = propagated positions of objects 1 and 2 at time t<br>
+          Time interpolation uses Hermite polynomials for smooth derivatives
+        </div>
+      </div>
+      <p>Relative velocity at TCA determines collision energy. For LEO-crossing conjunctions, relative speeds of <strong>0â15 km/s</strong> are possible â even a 10 cm fragment at 10 km/s carries 500+ kJ of kinetic energy, catastrophic for any spacecraft.</p>
+    </div>
+
+    <div class="section-block" id="covariance">
+      <h2>Uncertainty & Covariance</h2>
+      <p>We never know a satellite's position exactly. Every TLE has errors â from unmodeled forces, tracking gaps, and atmospheric variability. This uncertainty is quantified by a <strong><dfn data-term="covariance">covariance matrix</dfn></strong> in the RTN frame.</p>
+      <div class="eq-block">
+        <div class="eq-label">3Ã3 RTN Covariance Matrix</div>
+        <div class="eq-main">
+P = [CR_R   CT_R   CN_R]<br>
+    [CT_R   CT_T   CN_T]<br>
+    [CN_R   CN_T   CN_N]
+        </div>
+        <div class="eq-vars">
+          Diagonal elements: variance in radial (R), transverse (T), normal (N) directions<br>
+          Off-diagonal elements: cross-correlations (usually large CT_R for LEO drag errors)<br>
+          Position uncertainty ellipsoid: principal axes from eigendecomposition of P
+        </div>
+      </div>
+      <p>When real CDM covariance data is available from Space-Track, VectraSpace uses it. When not, it falls back to <strong>assumed sigma values</strong> â typically Ï_along = 500m, Ï_cross = 200m, Ï_radial = 100m for LEO. The covariance source is flagged in every conjunction report.</p>
+      <div class="callout blue">
+        <div class="callout-title">Why Covariance Matters</div>
+        <p>Two conjunctions with the same 5 km miss distance can have wildly different Pc values â depending on the uncertainty. If position uncertainty is only 100 m (very certain), Pc is near zero. If uncertainty is 10 km (very uncertain), the 5 km miss could represent a high-risk event. Pc collapses miss distance and uncertainty into a single risk metric.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="pc-method">
+      <h2><dfn data-term="Pc">Probability of Collision</dfn> â Foster-Alfano Method</h2>
+      <p>VectraSpace uses the <strong>Foster (1992) / Alfano (1995)</strong> conjunction probability method, which projects the 3D problem onto the 2D collision plane (the plane perpendicular to relative velocity at TCA).</p>
+      <p>The combined position PDF (assuming Gaussian) is integrated over a disk of radius <em>R_c</em> â the "hard-body radius," or sum of the two object radii:</p>
+      <div class="eq-block">
+        <div class="eq-label">2D Collision Probability (Foster-Alfano)</div>
+        <div class="eq-main">Pc = (1/2ÏÂ·Ï_xÂ·Ï_y) Â· â¬_D exp[âÂ½Â·(xÂ²/Ï_xÂ² + yÂ²/Ï_yÂ²)] dx dy</div>
+        <div class="eq-vars">
+          Integration domain D: disk of radius R_c centered on predicted miss vector<br>
+          <code>Ï_x, Ï_y</code> = combined 1Ï position uncertainty in collision plane<br>
+          <code>R_c = râ + râ</code> = combined hard-body radius (typically 5â15 m for intact satellites)<br>
+          Numerically evaluated using chi-squared CDF: Pc â 1 â ÏÂ²_CDF(xÂ², df=2)
+        </div>
+      </div>
+      <p>This integral has no closed form for arbitrary offset â it is computed numerically in VectraSpace using SciPy's chi-squared CDF as an approximation valid for the typical range of operational Pc values.</p>
+      <div class="eq-block">
+        <div class="eq-label">VectraSpace Implementation (Simplified)</div>
+        <div class="eq-main">Ï_c = â[(Ï_aÂ² + Ï_cÂ² + Ï_rÂ²)/3] Â· â2<br>x = ((d_miss â R_c) / Ï_c)Â²<br>Pc = 1 â ÏÂ²_CDF(x, df=3)</div>
+      </div>
+    </div>
+
+    <div class="section-block" id="pc-levels">
+      <h2>Risk Thresholds & Decision Framework</h2>
+      <p>Pc alone does not tell an operator what to do. Different organizations apply different thresholds based on risk tolerance, available propellant, and operational context.</p>
+      <div class="risk-scale">
+        <div class="rs-seg" style="background:#10b981;flex:3"></div>
+        <div class="rs-seg" style="background:#f59e0b;flex:2"></div>
+        <div class="rs-seg" style="background:#ef4444;flex:1.5"></div>
+        <div class="rs-seg" style="background:#7f1d1d;flex:0.5"></div>
+      </div>
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>Pc Range</th><th>Risk Level</th><th>Typical Response</th><th>VectraSpace Alert</th></tr></thead>
+          <tbody>
+            <tr><td>&lt; 1Ã10â»â¶</td><td style="color:#10b981">Negligible</td><td>No action required</td><td>No alert</td></tr>
+            <tr><td>1Ã10â»â¶ â 1Ã10â»â´</td><td style="color:#fbbf24">Low / Watch</td><td>Monitor; gather more data</td><td>Optional</td></tr>
+            <tr><td>1Ã10â»â´ â 1Ã10â»Â³</td><td style="color:#f59e0b">Elevated</td><td>Maneuver analysis; prepare burn</td><td>Default threshold</td></tr>
+            <tr><td>1Ã10â»Â³ â 1Ã10â»Â²</td><td style="color:#ef4444">High</td><td>Maneuver strongly recommended</td><td>High priority alert</td></tr>
+            <tr><td>&gt; 1Ã10â»Â²</td><td style="color:#7f1d1d">Critical</td><td>Emergency maneuver required</td><td>Critical alert</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The default VectraSpace alert threshold is <strong>Pc â¥ 1Ã10â»â´</strong> (1 in 10,000) â consistent with NASA and ESA operational screening. Users can adjust this in their preferences down to 1Ã10â»â¶ for higher sensitivity or up to 1Ã10â»Â² for reduced noise.</p>
+      <div class="callout red">
+        <div class="callout-title">The False Alarm Problem</div>
+        <p>Most conjunction alerts do not lead to actual collisions. The false positive rate at 1Ã10â»â´ is very high â operators must balance the cost of unnecessary maneuvers (fuel, operational complexity) against the risk of inaction. This is fundamentally a decision theory problem, not just a physics problem.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="cdm">
+      <h2><dfn data-term="CDM">Conjunction Data Message</dfn>s (CDM)</h2>
+      <p>The <strong>CCSDS Conjunction Data Message (CDM)</strong> standard (CCSDS 508.0-B-1) is the international format for communicating conjunction events between agencies, operators, and databases. VectraSpace generates a CDM for every detected conjunction.</p>
+      <p>A CDM contains: time of closest approach, miss distance, Pc estimate, Pc method identifier, and full covariance matrices for both objects. It is the interoperability standard for space traffic management worldwide.</p>
+      <div class="callout green">
+        <div class="callout-title">Download CDMs from VectraSpace</div>
+        <p>Every conjunction detected in a VectraSpace scan generates a downloadable CDM file. Individual events can be downloaded from the results panel; the full run can be exported as a ZIP archive. These files follow the CCSDS format and can be imported into other SSA tools.</p>
+      </div>
+    </div>
+
+    <div class="section-block" id="maneuver">
+      <h2>Avoidance Maneuver Planning</h2>
+      <p>When Pc exceeds the action threshold, the satellite operator must decide whether and how to maneuver. The goal is to <strong>increase miss distance</strong> sufficiently to bring Pc below threshold, using the minimum propellant (Îv).</p>
+      <p>Maneuver planning is complicated by uncertainty in both orbits â a maneuver may be necessary even with low initial Pc if subsequent TLE updates reveal the true trajectory is closer. Conversely, updates may show a previously alarming event was benign.</p>
+      <h3>Maneuver Geometry</h3>
+      <p>The most efficient avoidance burns are typically in the <strong>transverse (along-track) direction</strong>. An along-track burn changes the orbital period, causing the satellite to arrive at the conjunction point earlier or later â spatially shifting the pass without a large altitude change.</p>
+    </div>
+
+    <div class="section-block" id="cw">
+      <h2>Clohessy-Wiltshire (Hill's) Equations</h2>
+      <p>For satellites in nearby orbits, the <strong>Clohessy-Wiltshire (CW) equations</strong> (also called Hill's equations) describe relative motion in the co-rotating RTN frame. They linearize orbital mechanics around a reference circular orbit, making analytical maneuver solutions tractable.</p>
+      <div class="eq-block">
+        <div class="eq-label">Clohessy-Wiltshire Equations (Linearized Relative Motion)</div>
+        <div class="eq-main">
+áº â 2nÂ·áº â 3nÂ²Â·x = f_x<br>
+Ã¿ + 2nÂ·áº = f_y<br>
+zÌ + nÂ²Â·z = f_z
+        </div>
+        <div class="eq-vars">
+          <code>x, y, z</code> = relative position in radial (x), transverse (y), normal (z)<br>
+          <code>n = â(Î¼/aÂ³)</code> = mean motion of reference orbit<br>
+          <code>f_x, f_y, f_z</code> = applied accelerations (thrust)<br>
+          Coriolis terms (â2nÂ·áº, +2nÂ·áº) couple radial and transverse motion
+        </div>
+      </div>
+      <p>VectraSpace uses a simplified CW solution to estimate minimum Îv for each conjunction. The advisory assumes an impulsive burn and linear dynamics â appropriate for initial screening. <strong>All maneuver recommendations require verification with a high-fidelity propagator before execution.</strong></p>
+      <div class="eq-block">
+        <div class="eq-label">VectraSpace Minimum Îv Estimate</div>
+        <div class="eq-main">Îv_T â (d_safe â d_current) / (2 Â· t_TCA)<br>Îv_R â â(v_rel Â· rÌ) Â· 0.1</div>
+        <div class="eq-vars">
+          <code>d_safe</code> = target safe separation distance (default: 50 km)<br>
+          <code>d_current</code> = current predicted miss distance<br>
+          <code>t_TCA</code> = time until closest approach (seconds)<br>
+          Output: [Îv_R, Îv_T, Îv_N] vector in m/s (RTN frame)
+        </div>
+      </div>
+    </div>
+
+
+    <div class="chapter-nav">
+      <a href="/education/orbital-mechanics" class="chapter-nav-card">
+        <div class="cnc-dir">â Previous Chapter</div>
+        <div class="cnc-title">Orbital Mechanics</div>
+      </a>
+      <a href="/education/perturbations" class="chapter-nav-card next">
+        <div class="cnc-dir">Next Chapter â</div>
+        <div class="cnc-title">Orbital Perturbations</div>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const fill = document.getElementById('progress-fill');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  fill.style.width = ((window.scrollY / (h.scrollHeight - h.clientHeight)) * 100) + '%';
+});
+const sections = document.querySelectorAll('.section-block');
+const links = document.querySelectorAll('.toc-list a');
+const obs = new IntersectionObserver(e => {
+  e.forEach(en => {
+    if(en.isIntersecting){
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.toc-list a[href="#${en.target.id}"]`);
+      if(a) a.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
+
+'''
+
+EDU_PERTURBATIONS_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbital Perturbations â VectraSpace Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #070c14;
+  --ink-2:      #0d1520;
+  --ink-3:      #111d2b;
+  --border:     #1a2e42;
+  --border-2:   #243d54;
+  --accent:     #3b82f6;
+  --accent-glow:rgba(59,130,246,0.18);
+  --amber:      #f59e0b;
+  --amber-dim:  rgba(245,158,11,0.12);
+  --green:      #10b981;
+  --green-dim:  rgba(16,185,129,0.10);
+  --red:        #ef4444;
+  --red-dim:    rgba(239,68,68,0.10);
+  --text:       #c9ddef;
+  --text-2:     #9dbbd4;
+  --text-3:     #6d92ad;
+  --mono:       'Space Mono', monospace;
+  --math:       'STIX Two Math','Latin Modern Math',Georgia,serif;
+  --sans:       'Space Grotesk', sans-serif;
+  --display:    'Syne', sans-serif;
+  --toc-w:      230px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ââ PROGRESS BAR ââ */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--amber));
+  z-index: 200; transition: width 0.1s linear;
+}
+
+/* ââ NAV ââ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px; padding: 0 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(7,12,20,0.92);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+.nav-brand {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 3px;
+  color: var(--accent); text-transform: uppercase; text-decoration: none;
+}
+.nav-back {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+  color: var(--text-3); text-decoration: none; text-transform: uppercase;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: var(--accent); }
+
+/* ââ HERO ââ */
+.hero {
+  padding: 120px 48px 64px;
+  max-width: 900px; margin: 0 auto;
+  position: relative;
+}
+.hero-breadcrumb {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 16px;
+}
+.hero-breadcrumb a { color: var(--text-3); text-decoration: none; }
+.hero-breadcrumb a:hover { color: var(--accent); }
+.chapter-label {
+  display: inline-block; font-family: var(--mono); font-size: 9px;
+  letter-spacing: 3px; color: var(--amber); text-transform: uppercase;
+  background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.25);
+  padding: 4px 10px; border-radius: 2px; margin-bottom: 20px;
+}
+.hero h1 {
+  font-family: var(--display); font-size: clamp(36px,5vw,58px);
+  font-weight: 800; line-height: 1.1; color: #fff; margin-bottom: 16px;
+}
+.hero-accent { color: var(--accent); }
+.hero-intro {
+  font-size: 17px; font-weight: 300; color: var(--text-2); line-height: 1.8;
+  max-width: 680px; margin-bottom: 32px;
+}
+.hero-meta {
+  display: flex; gap: 24px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  color: var(--text-3); text-transform: uppercase;
+}
+.hero-meta span { display: flex; align-items: center; gap: 6px; }
+.hero-meta-dot { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+
+/* ââ LAYOUT ââ */
+.page-wrap {
+  max-width: 1140px; margin: 0 auto;
+  padding: 48px 48px 120px;
+  display: grid;
+  grid-template-columns: var(--toc-w) 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+/* ââ TOC ââ */
+.toc {
+  position: sticky; top: 72px;
+  background: var(--ink-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  max-height: calc(100vh - 88px);
+  overflow-y: auto;
+}
+.toc::-webkit-scrollbar { width: 3px; }
+.toc::-webkit-scrollbar-thumb { background: var(--border); }
+.toc-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 3px;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 14px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.toc-list a {
+  display: block; font-size: 12px; color: var(--text-3);
+  text-decoration: none; padding: 5px 8px; border-radius: 4px;
+  transition: all 0.2s; border-left: 2px solid transparent;
+}
+.toc-list a:hover { color: var(--text); background: var(--ink-3); }
+.toc-list a.active {
+  color: var(--accent); background: var(--accent-glow);
+  border-left-color: var(--accent);
+}
+
+/* ââ CONTENT ââ */
+.content { min-width: 0; }
+.content-section { margin-bottom: 72px; scroll-margin-top: 80px; }
+.section-number {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 12px;
+}
+.content h2 {
+  font-family: var(--display); font-size: clamp(22px,3vw,30px);
+  font-weight: 700; color: #fff; margin-bottom: 20px; line-height: 1.2;
+}
+.content h3 {
+  font-family: var(--sans); font-size: 16px; font-weight: 600;
+  color: var(--text); margin: 28px 0 12px;
+}
+.content p { margin-bottom: 16px; color: var(--text-2); font-size: 15px; }
+.content strong { color: var(--text); font-weight: 600; }
+
+/* ââ EQUATION BLOCKS ââ */
+.eq-block {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 20px 24px; margin: 24px 0;
+  font-family: var(--mono); font-size: 13px; color: var(--text);
+  overflow-x: auto;
+}
+.eq-block .eq-label {
+  font-size: 8px; letter-spacing: 3px; color: var(--text-3);
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.eq-block .eq-main { font-family:var(--math,'STIX Two Math',Georgia,serif); font-size: 17px; color: #fff; margin-bottom: 8px; font-style:italic; }
+.eq-block .eq-vars { font-size: 12px; color: var(--text-2); line-height: 1.9; }
+.eq-block .eq-var-name { color: var(--amber); }
+
+/* ââ CALLOUT BOXES ââ */
+.callout {
+  border-radius: 6px; padding: 16px 20px; margin: 24px 0;
+  border-left: 3px solid; font-size: 14px;
+}
+.callout.info {
+  background: rgba(59,130,246,0.07); border-color: var(--accent); color: var(--text);
+}
+.callout.warning {
+  background: var(--amber-dim); border-color: var(--amber); color: var(--text);
+}
+.callout.danger {
+  background: var(--red-dim); border-color: var(--red); color: var(--text);
+}
+.callout.success {
+  background: var(--green-dim); border-color: var(--green); color: var(--text);
+}
+.callout-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 3px;
+  text-transform: uppercase; margin-bottom: 6px;
+  display: block;
+}
+.callout.info .callout-label { color: var(--accent); }
+.callout.warning .callout-label { color: var(--amber); }
+.callout.danger .callout-label { color: var(--red); }
+.callout.success .callout-label { color: var(--green); }
+
+/* ââ DATA TABLE ââ */
+.data-table-wrap { overflow-x: auto; margin: 24px 0; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; font-family: var(--mono);
+}
+thead th {
+  background: var(--ink-3); color: var(--text-3); font-size: 9px;
+  letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px;
+  text-align: left; border-bottom: 1px solid var(--border);
+}
+tbody td { padding: 10px 14px; border-bottom: 1px solid rgba(26,46,66,0.5); color: var(--text-2); }
+tbody tr:hover td { background: var(--ink-2); }
+.td-accent { color: var(--accent); }
+.td-amber  { color: var(--amber); }
+.td-green  { color: var(--green); }
+.td-red    { color: var(--red); }
+.td-white  { color: #fff; font-weight: 600; }
+
+/* ââ PERTURBATION DIAGRAM ââ */
+.pert-diagram {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 32px; margin: 24px 0; overflow: hidden;
+}
+.pert-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+}
+.pert-card {
+  background: var(--ink-3); border: 1px solid var(--border);
+  border-radius: 6px; padding: 18px; transition: border-color 0.2s;
+}
+.pert-card:hover { border-color: var(--accent); }
+.pert-card-icon { font-size: 24px; margin-bottom: 10px; }
+.pert-card-title {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 6px;
+}
+.pert-card-desc { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.pert-card-mag {
+  margin-top: 10px; padding: 6px 8px;
+  background: var(--ink); border-radius: 4px;
+  font-family: var(--mono); font-size: 11px; color: var(--amber);
+}
+
+/* ââ J2 VISUALIZER ââ */
+.j2-vis {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 24px; margin: 24px 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;
+}
+.j2-canvas-wrap { position: relative; height: 200px; }
+.j2-canvas-wrap canvas { width: 100%; height: 100%; }
+.j2-data { display: flex; flex-direction: column; gap: 12px; }
+.j2-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; background: var(--ink-3); border-radius: 4px;
+  border-left: 2px solid var(--border);
+  font-family: var(--mono); font-size: 11px;
+}
+.j2-row.active { border-left-color: var(--accent); }
+.j2-key { color: var(--text-3); }
+.j2-val { color: var(--accent); }
+
+/* ââ DRAG CHART ââ */
+.drag-chart-wrap {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 24px; margin: 24px 0;
+}
+.drag-chart-title {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 16px;
+}
+.drag-bars { display: flex; flex-direction: column; gap: 10px; }
+.drag-bar-row { display: flex; align-items: center; gap: 12px; }
+.drag-bar-label { font-family: var(--mono); font-size: 10px; color: var(--text-2); width: 100px; flex-shrink: 0; }
+.drag-bar-track { flex: 1; background: var(--ink-3); border-radius: 2px; height: 8px; position: relative; }
+.drag-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.8s ease; }
+.drag-bar-val { font-family: var(--mono); font-size: 10px; color: var(--amber); width: 80px; text-align: right; flex-shrink: 0; }
+
+/* ââ TLE ACCURACY CHART ââ */
+.accuracy-chart {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 24px; margin: 24px 0;
+}
+.accuracy-chart canvas { width: 100%; height: 180px; }
+
+/* ââ CHAPTER NAV ââ */
+.chapter-nav {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  margin-top: 80px; padding-top: 40px;
+  border-top: 1px solid var(--border);
+}
+.chapter-nav-card {
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px 24px; text-decoration: none;
+  transition: all 0.2s; display: block;
+}
+.chapter-nav-card:hover { border-color: var(--accent); background: var(--ink-3); }
+.cnc-dir {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 3px;
+  color: var(--text-3); text-transform: uppercase; margin-bottom: 6px;
+}
+.cnc-title { font-family: var(--display); font-size: 16px; font-weight: 700; color: #fff; }
+.cnc-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+.chapter-nav-card.next { text-align: right; }
+
+/* ââ SCROLL REVEAL ââ */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+
+@media (max-width: 900px) {
+  .page-wrap { grid-template-columns: 1fr; }
+  .toc { display: none; }
+  .hero { padding: 100px 24px 48px; }
+  .page-wrap { padding: 32px 24px 80px; }
+  .pert-grid, .j2-vis { grid-template-columns: 1fr; }
+  
+
+/* ââ GLOSSARY TOOLTIPS ââ */
+dfn {
+  font-style: normal;
+  border-bottom: 1px dashed rgba(74,158,255,0.4);
+  cursor: help;
+  color: inherit;
+  transition: color 0.15s, border-color 0.15s;
+}
+dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
+.gtooltip {
+  position: fixed; z-index: 9999;
+  max-width: 300px; pointer-events: none;
+  background: #0d1320; border: 1px solid rgba(74,158,255,0.3);
+  border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  padding: 14px 16px; opacity: 0; transform: translateY(4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.gtooltip.show { opacity: 1; transform: translateY(0); }
+.gtooltip-term { font-family: 'DM Mono','Space Mono',monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #4a9eff; margin-bottom: 6px; }
+.gtooltip-def  { font-size: 12px; color: #8aaac5; line-height: 1.6; }
+.gtooltip-link { display: block; margin-top: 8px; font-family: 'DM Mono','Space Mono',monospace; font-size: 9px; color: #4a9eff; letter-spacing: 1px; opacity: 0.7; }
+
+/* ââ GLOSSARY TOOLTIPS ââ */
+dfn {
+  font-style: normal;
+  border-bottom: 1px dashed rgba(74,158,255,0.4);
+  cursor: help;
+  color: inherit;
+  transition: color 0.15s, border-color 0.15s;
+}
+dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
+.gtooltip {
+  position: fixed; z-index: 9999;
+  max-width: 300px; pointer-events: none;
+  background: #0d1320; border: 1px solid rgba(74,158,255,0.3);
+  border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  padding: 14px 16px; opacity: 0; transform: translateY(4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.gtooltip.show { opacity: 1; transform: translateY(0); }
+.gtooltip-term { font-family: 'DM Mono','Space Mono',monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #4a9eff; margin-bottom: 6px; }
+.gtooltip-def  { font-size: 12px; color: #8aaac5; line-height: 1.6; }
+.gtooltip-link { display: block; margin-top: 8px; font-family: 'DM Mono','Space Mono',monospace; font-size: 9px; color: #4a9eff; letter-spacing: 1px; opacity: 0.7; }
+
+.chapter-nav { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">â All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
+</nav>
+
+<div class="hero">
+  <div class="hero-breadcrumb">
+    <a href="/">VectraSpace</a> / <a href="/#learn">Chapters</a> / Chapter 03
+  </div>
+  <span class="chapter-label">Chapter 03</span>
+  <h1>Orbital <span class="hero-accent">Perturbations</span></h1>
+  <p class="hero-intro">
+    Real orbits are never perfect ellipses. Atmospheric drag, Earth's oblate shape, solar radiation pressure,
+    and gravitational pulls from the Moon and Sun continuously nudge every satellite off its Keplerian path â
+    with consequences ranging from millisecond timing errors to catastrophic reentry.
+  </p>
+  <div class="hero-meta">
+    <span><span class="hero-meta-dot"></span>30 min read</span>
+    <span><span class="hero-meta-dot"></span>Intermediate Â· Advanced</span>
+    <span><span class="hero-meta-dot"></span>Physics Â· Astrodynamics</span>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <!-- TOC -->
+  <aside>
+    <nav class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li><a href="#why-matter">Why Perturbations Matter</a></li>
+        <li><a href="#j2-oblateness">Jâ Oblateness</a></li>
+        <li><a href="#nodal-regression">Nodal Regression</a></li>
+        <li><a href="#apsidal-precession">Apsidal Precession</a></li>
+        <li><a href="#atmospheric-drag">Atmospheric Drag</a></li>
+        <li><a href="#ballistic-coeff">Ballistic Coefficient</a></li>
+        <li><a href="#solar-radiation">Solar Radiation Pressure</a></li>
+        <li><a href="#luni-solar">Luni-Solar Gravity</a></li>
+        <li><a href="#tle-accuracy">TLE Accuracy & Decay</a></li>
+        <li><a href="#sgp4-model">SGP4 Perturbation Model</a></li>
+        <li><a href="#ops-consequences">Operational Consequences</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <article class="content">
+
+    <!-- WHY PERTURBATIONS MATTER -->
+    <section id="why-matter" class="content-section reveal">
+      <div class="section-number">// 01</div>
+      <h2>Why Perturbations Matter for SSA</h2>
+      <p>
+        In introductory orbital mechanics, we solve the <strong>two-body problem</strong>: a point mass orbiting another
+        under pure Newtonian gravity. The solution â a perfect conic section â holds forever. Real satellites
+        inhabit a messier universe.
+      </p>
+      <p>
+        Earth is not a perfect sphere. It has mass concentrations, an atmosphere that extends hundreds of kilometers,
+        and sits in a solar system full of other gravitating bodies. Each effect introduces small accelerations
+        that, over hours and days, accumulate into position errors measured in kilometers.
+      </p>
+
+      <div class="pert-diagram">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:20px;">Four Major Perturbation Sources</div>
+        <div class="pert-grid">
+          <div class="pert-card">
+            <div class="pert-card-icon">ð</div>
+            <div class="pert-card-title">Jâ Oblateness</div>
+            <div class="pert-card-desc">Earth's equatorial bulge exerts a stronger gravitational pull on low-inclination orbits, causing the orbital plane to precess.</div>
+            <div class="pert-card-mag">LEO: ~7Â°/day RAAN drift</div>
+          </div>
+          <div class="pert-card">
+            <div class="pert-card-icon">ð¬ï¸</div>
+            <div class="pert-card-title">Atmospheric Drag</div>
+            <div class="pert-card-desc">Residual air molecules below ~1000 km exert a retarding force, bleeding orbital energy and lowering the orbit over time.</div>
+            <div class="pert-card-mag">ISS: ~2 km/day altitude loss</div>
+          </div>
+          <div class="pert-card">
+            <div class="pert-card-icon">âï¸</div>
+            <div class="pert-card-title">Solar Radiation Pressure</div>
+            <div class="pert-card-desc">Photons carry momentum. Large, lightweight satellites (solar panels, balloon payloads) feel significant radiation pressure perturbations.</div>
+            <div class="pert-card-mag">4.56 Î¼N/mÂ² at 1 AU</div>
+          </div>
+          <div class="pert-card">
+            <div class="pert-card-icon">ð</div>
+            <div class="pert-card-title">Luni-Solar Gravity</div>
+            <div class="pert-card-desc">Moon and Sun third-body perturbations dominate at GEO and HEO where Earth's gravity weakens relative to their influence.</div>
+            <div class="pert-card-mag">GEO: ~0.75Â°/yr inclination growth</div>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        For Space Situational Awareness, perturbations drive two critical concerns. First, they mean that
+        a TLE propagated forward in time becomes less accurate every hour â the longer the prediction horizon,
+        the larger the position uncertainty. Second, some perturbations accumulate secularly, permanently
+        changing orbital elements rather than oscillating around a mean value.
+      </p>
+    </section>
+
+    <!-- J2 OBLATENESS -->
+    <section id="j2-oblateness" class="content-section reveal">
+      <div class="section-number">// 02</div>
+      <h2>Jâ: Earth's Equatorial Bulge</h2>
+      <p>
+        The dominant non-spherical gravitational term is the <strong>Jâ coefficient</strong>, which captures
+        Earth's oblateness: the equatorial radius (6,378 km) exceeds the polar radius (6,357 km) by about 21 km.
+        This equatorial bulge creates a gravitational potential that varies with latitude.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Gravitational Potential with Jâ</div>
+        <div class="eq-main">U = â(Î¼/r)Â·[1 â JâÂ·(Râ/r)Â²Â·(3sinÂ²Ï â 1)/2]</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">Jâ</span> = 1.08263 Ã 10â»Â³ (dimensionless oblateness coefficient)<br>
+          <span class="eq-var-name">Râ</span> = 6,378.137 km (Earth equatorial radius)<br>
+          <span class="eq-var-name">Ï</span> = geocentric latitude<br>
+          <span class="eq-var-name">r</span> = radial distance from Earth center
+        </div>
+      </div>
+
+      <p>
+        The Jâ term produces three distinct effects on Keplerian orbital elements. Two are <strong>secular</strong>
+        (they grow linearly with time, never reversing). One is <strong>periodic</strong> (it oscillates with the
+        orbital period and averages to zero over many revolutions).
+      </p>
+
+      <div class="j2-vis">
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);margin-bottom:14px;">Jâ SECULAR EFFECTS</div>
+          <div class="j2-data">
+            <div class="j2-row active">
+              <span class="j2-key">RAAN Regression (Î©Ì)</span>
+              <span class="j2-val">Secular â</span>
+            </div>
+            <div class="j2-row active">
+              <span class="j2-key">Apsidal Precession (ÏÌ)</span>
+              <span class="j2-val">Secular â/â</span>
+            </div>
+            <div class="j2-row">
+              <span class="j2-key">Semi-major axis (È§)</span>
+              <span class="j2-val">Periodic only</span>
+            </div>
+            <div class="j2-row">
+              <span class="j2-key">Eccentricity (Ä)</span>
+              <span class="j2-val">Periodic only</span>
+            </div>
+            <div class="j2-row">
+              <span class="j2-key">Inclination (iÌ)</span>
+              <span class="j2-val">Periodic only</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);margin-bottom:14px;">RAAN DRIFT RATE (Â°/day)</div>
+          <canvas id="j2-canvas" height="200"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- NODAL REGRESSION -->
+    <section id="nodal-regression" class="content-section reveal">
+      <div class="section-number">// 03</div>
+      <h2>Nodal Regression: The Drifting Orbital Plane</h2>
+      <p>
+        The most practically significant Jâ effect is <strong>right ascension of the ascending node (RAAN)
+        regression</strong>. The orbital plane slowly rotates around Earth's polar axis like a spinning top:
+        prograde for low-inclination orbits, retrograde for high-inclination orbits.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">RAAN Secular Drift Rate</div>
+        <div class="eq-main">dÎ©/dt = â(3/2)Â·nÂ·JâÂ·(Râ/p)Â²Â·cos(i)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">n</span> = mean motion (rad/s)<br>
+          <span class="eq-var-name">p</span> = semi-latus rectum = a(1 â eÂ²)<br>
+          <span class="eq-var-name">i</span> = orbital inclination<br>
+          <span class="eq-var-name">cos(i) = 0</span> â zero drift at i = 90Â° (polar orbit)<br>
+          <span class="eq-var-name">cos(i) &lt; 0</span> â prograde drift at i &gt; 90Â° (retrograde orbits)
+        </div>
+      </div>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Satellite / Orbit</th>
+              <th>Altitude</th>
+              <th>Inclination</th>
+              <th>RAAN Drift</th>
+              <th>Application</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">ISS</td><td>~420 km</td><td>51.6Â°</td><td class="td-amber">â6.0Â°/day</td><td class="td-accent">Human spaceflight</td></tr>
+            <tr><td class="td-white">Starlink LEO</td><td>~550 km</td><td>53Â°</td><td class="td-amber">â6.4Â°/day</td><td class="td-accent">Broadband internet</td></tr>
+            <tr><td class="td-white">Sun-Sync (SSO)</td><td>~600 km</td><td>97.8Â°</td><td class="td-green">+0.9856Â°/day</td><td class="td-accent">Earth observation</td></tr>
+            <tr><td class="td-white">GPS (MEO)</td><td>~20,200 km</td><td>55Â°</td><td class="td-amber">â0.04Â°/day</td><td class="td-accent">Navigation</td></tr>
+            <tr><td class="td-white">GEO</td><td>35,786 km</td><td>0.1Â°</td><td class="td-red">â0.013Â°/day</td><td class="td-accent">Communications</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout success">
+        <span class="callout-label">Sun-Synchronous Orbits</span>
+        At inclination â 97â98Â°, the Jâ-driven RAAN drift rate of +0.9856Â°/day exactly matches
+        Earth's orbital rate around the Sun. This keeps the orbital plane fixed relative to the Sun,
+        ensuring consistent lighting for Earth observation â a critical engineering feature exploited
+        by Landsat, Sentinel, and hundreds of optical imaging satellites.
+      </div>
+    </section>
+
+    <!-- APSIDAL PRECESSION -->
+    <section id="apsidal-precession" class="content-section reveal">
+      <div class="section-number">// 04</div>
+      <h2>Apsidal Precession: The Rotating Ellipse</h2>
+      <p>
+        Jâ also causes the argument of perigee Ï to drift â the ellipse slowly rotates within its
+        orbital plane. The rate depends strongly on inclination, and at two <strong>critical inclinations</strong>
+        the drift stops entirely.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Apsidal Precession Rate</div>
+        <div class="eq-main">dÏ/dt = (3/4)Â·nÂ·JâÂ·(Râ/p)Â²Â·(5cosÂ²i â 1)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">5cosÂ²i â 1 = 0</span> when cos(i) = 1/â5<br>
+          <span class="eq-var-name">i = 63.43Â°</span> or <span class="eq-var-name">i = 116.57Â°</span> â zero apsidal drift<br>
+          These are the <strong>Molniya critical inclinations</strong>
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-label">Molniya & Tundra Orbits</span>
+        Russian engineers discovered that highly elliptical orbits (HEO) at exactly 63.43Â° inclination
+        keep their apogee fixed over the northern hemisphere indefinitely â Jâ apsidal precession is
+        exactly zero. Molniya communication satellites exploit this to provide 6â8 hours of high-elevation
+        coverage over Russia per orbit, where geostationary geometry is poor.
+      </div>
+    </section>
+
+    <!-- ATMOSPHERIC DRAG -->
+    <section id="atmospheric-drag" class="content-section reveal">
+      <div class="section-number">// 05</div>
+      <h2>Atmospheric Drag: The Orbit Killer</h2>
+      <p>
+        Below approximately 1,000 km, residual atmospheric molecules collide with satellites, removing
+        kinetic energy. Counterintuitively, this energy loss causes the satellite to <strong>speed up</strong>:
+        losing energy causes it to drop to a lower orbit with higher velocity per vis-viva. The orbit
+        spirals inward, shrinking both apogee and perigee.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Drag Acceleration</div>
+        <div class="eq-main">a_drag = â(1/2)Â·(C_D Â· A / m)Â·ÏÂ·vÂ²</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">C_D</span> = drag coefficient (~2.2 for satellites in free molecular flow)<br>
+          <span class="eq-var-name">A/m</span> = area-to-mass ratio (mÂ²/kg) â critical parameter<br>
+          <span class="eq-var-name">Ï(h)</span> = atmospheric density at altitude h (kg/mÂ³)<br>
+          <span class="eq-var-name">v</span> = orbital velocity relative to atmosphere (~7.7 km/s at 400 km)
+        </div>
+      </div>
+
+      <div class="drag-chart-wrap">
+        <div class="drag-chart-title">Atmospheric Density by Altitude (Exponential Scale)</div>
+        <div class="drag-bars">
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">200 km</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:100%;background:#ef4444;"></div></div>
+            <div class="drag-bar-val">2.5 Ã 10â»Â¹â°</div>
+          </div>
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">400 km (ISS)</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:58%;background:#f59e0b;"></div></div>
+            <div class="drag-bar-val">3.7 Ã 10â»Â¹Â²</div>
+          </div>
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">550 km (SL)</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:35%;background:#3b82f6;"></div></div>
+            <div class="drag-bar-val">7.9 Ã 10â»Â¹Â³</div>
+          </div>
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">800 km</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:18%;background:#3b82f6;"></div></div>
+            <div class="drag-bar-val">4.5 Ã 10â»Â¹â´</div>
+          </div>
+          <div class="drag-bar-row">
+            <div class="drag-bar-label">1,000 km</div>
+            <div class="drag-bar-track"><div class="drag-bar-fill" style="width:8%;background:#10b981;"></div></div>
+            <div class="drag-bar-val">3.6 Ã 10â»Â¹âµ</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-family:var(--mono);font-size:9px;color:var(--text-3);">
+          * kg/mÂ³ â density varies by factor ~2â4Ã with solar activity (F10.7 solar flux index)
+        </div>
+      </div>
+
+      <h3>Solar Cycle Effects</h3>
+      <p>
+        Atmospheric density is not constant. During solar maximum, extreme ultraviolet radiation heats
+        and expands the upper atmosphere, increasing density at a given altitude by up to <strong>4Ã</strong>
+        compared to solar minimum. This variability is parameterized by the <strong>F10.7 solar flux index</strong>
+        (measured in solar flux units, SFU) and the geomagnetic Kp index.
+      </p>
+
+      <div class="callout danger">
+        <span class="callout-label">Solar Activity Impact on Starlink</span>
+        In February 2022, a geomagnetic storm following a solar event increased atmospheric density
+        at 210 km by 20â50%. Forty-nine of the 49 newly-launched Starlink satellites, still in their
+        low parking orbit, experienced drag levels 50% higher than predicted and re-entered
+        within days. This event highlighted how space weather directly determines satellite lifetimes.
+      </div>
+    </section>
+
+    <!-- BALLISTIC COEFFICIENT -->
+    <section id="ballistic-coeff" class="content-section reveal">
+      <div class="section-number">// 06</div>
+      <h2>Ballistic Coefficient &amp; the BSTAR Term</h2>
+      <p>
+        The <strong>ballistic coefficient</strong> Î² = m/(C_D Â· A) (kg/mÂ²) summarizes how strongly a satellite
+        resists atmospheric drag. A high ballistic coefficient â dense, compact objects â experiences
+        less drag per unit mass than large, lightweight ones.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Orbital Decay Rate (Circular Orbit Approximation)</div>
+        <div class="eq-main">da/dt â â(C_D Â· A / m)Â·ÏÂ·vÂ·a = âÏÂ·vÂ·a/Î²</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">Î² = m/(C_DÂ·A)</span> = ballistic coefficient (kg/mÂ²)<br>
+          Higher Î² â slower orbital decay<br>
+          <span class="eq-var-name">ISS Î²</span> â 120 kg/mÂ² | <span class="eq-var-name">CubeSat Î²</span> â 10â30 kg/mÂ²
+        </div>
+      </div>
+
+      <p>
+        In the TLE format, atmospheric drag is encoded in the <strong>BSTAR drag term</strong> (units of 1/Earth radii).
+        SGP4 uses this value to propagate the secular decay of mean motion over time. When BSTAR is unavailable
+        or unreliable, VectraSpace falls back to a standard assumed value based on orbital regime and estimated
+        satellite type.
+      </p>
+
+      <div class="callout info">
+        <span class="callout-label">VectraSpace Implementation</span>
+        VectraSpace uses the BSTAR value from each satellite's TLE when computing 12-hour propagation
+        windows. For debris objects â which often have poorly-determined BSTAR values â position
+        uncertainty grows fastest in the along-track direction. The covariance matrix assigned to debris
+        objects uses Ï_along = 500 m vs. Ï_along = 100 m for well-tracked active satellites.
+      </div>
+    </section>
+
+    <!-- SOLAR RADIATION PRESSURE -->
+    <section id="solar-radiation" class="content-section reveal">
+      <div class="section-number">// 07</div>
+      <h2>Solar Radiation Pressure</h2>
+      <p>
+        Photons carry momentum: p = E/c. When sunlight strikes a satellite surface, radiation pressure
+        imparts a small but continuous force. At Earth's distance of 1 AU, the solar radiation flux is
+        approximately 1,361 W/mÂ², producing a radiation pressure of <strong>4.56 Î¼N/mÂ²</strong>.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Solar Radiation Acceleration</div>
+        <div class="eq-main">a_SRP = âÎ½ Â· (P_â / c) Â· (A/m) Â· C_r Â· (r_â/|r_â|)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">Î½</span> = shadow function (0 in eclipse, 1 in sunlight)<br>
+          <span class="eq-var-name">P_â</span> = solar radiation flux â 1361 W/mÂ² at 1 AU<br>
+          <span class="eq-var-name">C_r</span> = radiation pressure coefficient (1 for absorption, 2 for perfect reflection)<br>
+          <span class="eq-var-name">A/m</span> = area-to-mass ratio (mÂ²/kg) â same parameter as drag!
+        </div>
+      </div>
+
+      <p>
+        SRP is negligible for dense LEO satellites (few mm/sÂ² per year) but becomes significant for
+        objects with high area-to-mass ratios: <strong>solar sail technology demonstrators</strong>,
+        balloon payloads, and large solar-panel-dominated GEO satellites. At GEO where drag is absent,
+        SRP is the dominant non-gravitational perturbation, responsible for the characteristic
+        "resonant eccentricity pumping" that slowly increases GEO eccentricity.
+      </p>
+
+      <div class="callout warning">
+        <span class="callout-label">Debris SRP Complication</span>
+        Tumbling debris objects present a varying cross-section to the Sun with unknown orientation.
+        The effective A/m ratio changes as the object rotates. This makes long-term SRP modeling
+        highly uncertain for defunct satellites and rocket bodies, contributing to the rapid
+        growth of position uncertainty in their TLE propagations.
+      </div>
+    </section>
+
+    <!-- LUNI-SOLAR -->
+    <section id="luni-solar" class="content-section reveal">
+      <div class="section-number">// 08</div>
+      <h2>Luni-Solar Third-Body Perturbations</h2>
+      <p>
+        The Moon and Sun exert gravitational forces on every Earth-orbiting satellite. The <strong>differential
+        force</strong> across the satellite's orbit â the deviation from perfect parallel attraction â is
+        the perturbation. For a satellite at radius r orbiting Earth, the third-body acceleration varies
+        as (m_3 / r_3Â³) Â· r, where r_3 is the distance to the perturbing body.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Third-Body Perturbation (Simplified)</div>
+        <div class="eq-main">a_3b = Î¼â Â· [(r_3 â r)/|r_3 â r|Â³ â r_3/|r_3|Â³]</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">Î¼_Moon</span> = 4,902.8 kmÂ³/sÂ² (Moon's gravitational parameter)<br>
+          <span class="eq-var-name">Î¼_Sun</span> = 1.327 Ã 10Â¹Â¹ kmÂ³/sÂ² (Sun's gravitational parameter)<br>
+          For GEO (~42,000 km radius): luni-solar effects produce ~0.75Â°/year inclination oscillation
+        </div>
+      </div>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Orbit Regime</th>
+              <th>Dominant Perturbation</th>
+              <th>Effect on TLE Age</th>
+              <th>Typical Position Error at 24h</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">LEO &lt; 500 km</td><td class="td-red">Atmospheric Drag</td><td class="td-amber">Hoursâdays</td><td class="td-red">&gt;10 km</td></tr>
+            <tr><td class="td-white">LEO 500â800 km</td><td class="td-amber">Jâ + Drag</td><td class="td-amber">1â3 days</td><td class="td-amber">1â5 km</td></tr>
+            <tr><td class="td-white">MEO (GPS ~20k km)</td><td class="td-accent">Jâ + Luni-Solar</td><td>Daysâweeks</td><td class="td-green">&lt;1 km</td></tr>
+            <tr><td class="td-white">GEO (36k km)</td><td class="td-accent">Luni-Solar + SRP</td><td>Weeks</td><td class="td-green">100â500 m</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The luni-solar perturbations at GEO are strong enough to require active station-keeping to maintain
+        geostationary position. Without north-south station-keeping burns, GEO satellites develop inclinations
+        of up to 15Â° over a 26-year period. "Graveyard" GEO orbits for retired satellites slowly develop
+        inclined, eccentric paths that create conjunction risk with operational satellites.
+      </p>
+    </section>
+
+    <!-- TLE ACCURACY -->
+    <section id="tle-accuracy" class="content-section reveal">
+      <div class="section-number">// 09</div>
+      <h2>TLE Accuracy &amp; Prediction Horizon</h2>
+      <p>
+        A Two-Line Element set is a snapshot of mean orbital elements at a specific epoch. As time passes,
+        perturbations accumulate and the TLE prediction diverges from the true position. The rate of
+        divergence defines the <strong>effective TLE age</strong> beyond which the element set is unreliable
+        for conjunction screening.
+      </p>
+
+      <div class="accuracy-chart">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);margin-bottom:16px;">TLE POSITION ERROR GROWTH (REPRESENTATIVE)</div>
+        <canvas id="accuracy-canvas"></canvas>
+        <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-3);">
+          * LEO object at 400 km Â· Standard deviation grows roughly as Ï â Ïâ + kÂ·t (along-track dominates)
+        </div>
+      </div>
+
+      <p>
+        Error growth is fastest in the <strong>along-track direction</strong> because perturbations that
+        change orbital period â drag, Jâ â create systematic timing errors that accumulate indefinitely.
+        Cross-track and radial errors grow more slowly and are dominated by Jâ periodic effects.
+        This asymmetry is reflected in the elongated covariance ellipsoids used in Pc calculation.
+      </p>
+
+      <div class="callout info">
+        <span class="callout-label">VectraSpace TLE Management</span>
+        VectraSpace caches TLEs for up to 6 hours (configurable). Beyond this, a fresh fetch
+        is triggered before each scan. For conjunction prediction requiring high accuracy,
+        operator-uploaded custom element sets can override the cached TLEs for specific objects
+        of interest. Fresh element sets reduce screening false-alarm rates significantly.
+      </div>
+    </section>
+
+    <!-- SGP4 MODEL -->
+    <section id="sgp4-model" class="content-section reveal">
+      <div class="section-number">// 10</div>
+      <h2>SGP4: The Perturbation Propagator</h2>
+      <p>
+        The <strong>Simplified General Perturbations 4 (SGP4)</strong> model, developed at NORAD in the 1970s
+        and refined since, is the standard analytic propagator for TLE-based orbit determination.
+        It captures the dominant perturbation effects through closed-form algebraic equations rather
+        than numerical integration, enabling fast propagation of thousands of objects.
+      </p>
+
+      <h3>Physical Effects in SGP4</h3>
+      <p>SGP4 models the following perturbations analytically:</p>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Effect</th>
+              <th>Modeling Approach</th>
+              <th>Accuracy</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">Jâ, Jâ, Jâ geopotential</td><td>Secular + short-period terms</td><td class="td-green">Good</td></tr>
+            <tr><td class="td-white">Atmospheric drag (BSTAR)</td><td>Power-law density model, secular á¹</td><td class="td-amber">Moderate (solar-cycle dependent)</td></tr>
+            <tr><td class="td-white">SRP</td><td>Not modeled in basic SGP4</td><td class="td-red">Absent (use SDP4 for deep space)</td></tr>
+            <tr><td class="td-white">Luni-solar (SDP4)</td><td>Simplified lunisolar terms for T > 225 min</td><td class="td-amber">Approximate</td></tr>
+            <tr><td class="td-white">Higher harmonics (Jâ+)</td><td>Not modeled</td><td class="td-red">Absent</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        SGP4 achieves position accuracies of roughly <strong>1â3 km at epoch</strong>, degrading to
+        tens of kilometers over days for LEO objects. For precise applications â rendezvous, precise
+        reentry prediction, high-accuracy conjunction assessment â numerical integrators (like
+        <strong>RK4/RK89</strong> with a full force model including up to Jââ harmonics and atmospheric
+        density tables) are required.
+      </p>
+
+      <div class="callout info">
+        <span class="callout-label">VectraSpace uses Skyfield's SGP4</span>
+        VectraSpace propagates all satellites using the Skyfield Python library's SGP4/SDP4
+        implementation, which conforms to the 2006 Vallado/Crawford/Hujsak revision of the
+        model. The SDP4 extension is automatically applied for satellites with orbital periods
+        greater than 225 minutes (semi-synchronous and higher orbits). All propagation results
+        are expressed in the ECI (Earth-Centered Inertial) J2000 frame.
+      </div>
+    </section>
+
+    <!-- OPERATIONAL CONSEQUENCES -->
+    <section id="ops-consequences" class="content-section reveal">
+      <div class="section-number">// 11</div>
+      <h2>Operational Consequences for SSA</h2>
+      <p>
+        Understanding perturbations is not merely academic for Space Situational Awareness â it directly
+        determines how far ahead conjunction screens are meaningful, how wide safety margins must be,
+        and which objects pose the highest long-term risk.
+      </p>
+
+      <h3>The 5Ï Screening Challenge</h3>
+      <p>
+        Conjunction screening typically evaluates pairs whose miss distance falls within 5Ï of the combined
+        position uncertainty ellipsoid. As TLE age increases, Ï grows, meaning the 5Ï envelope balloons
+        until nearly every object pair triggers a candidate event â swamping operators with false alarms.
+        This drives the requirement for frequent TLE updates (daily or better) for active conjunction
+        assessment.
+      </p>
+
+      <h3>Debris Population Growth</h3>
+      <p>
+        Perturbations also shape long-term debris population dynamics. Atmospheric drag naturally removes
+        debris below ~600 km within years to decades â a self-cleaning mechanism. Above 800 km, the
+        clearing timescale exceeds centuries. Jâ RAAN regression spreads debris clouds around orbital
+        shells, while luni-solar perturbations slowly perturb debris orbits at higher altitudes, sometimes
+        pumping eccentricity enough to force objects through crowded lower shells.
+      </p>
+
+      <div class="callout danger">
+        <span class="callout-label">The Reentry Timing Problem</span>
+        Predicting exactly when and where a decaying satellite will reenter is extremely difficult.
+        The primary uncertainty is atmospheric density, which varies with solar activity on timescales
+        from minutes to years. Even 24 hours before reentry, the predicted landing ellipse spans
+        thousands of kilometers along-track. Only within the final orbit can reentry location be
+        predicted to within ~500 km â and most objects survive only minutes of atmospheric passage.
+      </div>
+
+
+      <!-- Chapter nav -->
+      <div class="chapter-nav">
+        <a href="/education/collision-prediction" class="chapter-nav-card">
+          <div class="cnc-dir">â Previous</div>
+          <div class="cnc-title">Chapter 02</div>
+          <div class="cnc-sub">Collision Prediction &amp; Pc Methods</div>
+        </a>
+        <a href="/education/debris-modeling" class="chapter-nav-card next">
+          <div class="cnc-dir">Next â</div>
+          <div class="cnc-title">Chapter 04</div>
+          <div class="cnc-sub">Debris Modeling &amp; Kessler Cascade</div>
+        </a>
+      </div>
+    </section>
+
+  </article>
+</div>
+
+<script>
+// Progress bar
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  bar.style.width = pct + '%';
+});
+
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// TOC active highlight
+const sections = document.querySelectorAll('.content-section');
+const tocLinks = document.querySelectorAll('.toc-list a');
+const tocObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      tocLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => tocObserver.observe(s));
+
+// J2 canvas â RAAN drift by inclination
+const j2Canvas = document.getElementById('j2-canvas');
+if (j2Canvas) {
+  const ctx = j2Canvas.getContext('2d');
+  const W = j2Canvas.parentElement.offsetWidth || 300;
+  const H = 200;
+  j2Canvas.width = W; j2Canvas.height = H;
+  const pad = { top: 16, right: 16, bottom: 32, left: 48 };
+  const incs = [];
+  const rates = [];
+  for (let i = 0; i <= 180; i += 2) {
+    incs.push(i);
+    const n = 0.001078; // ~LEO mean motion rad/s
+    const J2 = 1.08263e-3;
+    const Re = 6378.137;
+    const p = 6928 * (1 - 0.001**2); // ~500km LEO
+    const rate = -(3/2) * n * J2 * (Re/p)**2 * Math.cos(i * Math.PI/180);
+    rates.push(rate * (180/Math.PI) * 86400); // deg/day
+  }
+  const minR = Math.min(...rates); const maxR = Math.max(...rates);
+  const scaleX = (inc) => pad.left + (inc / 180) * (W - pad.left - pad.right);
+  const scaleY = (r) => pad.top + ((maxR - r) / (maxR - minR)) * (H - pad.top - pad.bottom);
+
+  ctx.strokeStyle = '#1a2e42'; ctx.lineWidth = 1;
+  for (let g = -7; g <= 7; g += 3.5) {
+    ctx.beginPath();
+    ctx.moveTo(pad.left, scaleY(g)); ctx.lineTo(W - pad.right, scaleY(g));
+    ctx.stroke();
+    ctx.fillStyle = '#4a6a85'; ctx.font = '9px Space Mono';
+    ctx.fillText(g.toFixed(1), 2, scaleY(g) + 3);
+  }
+  // Zero line
+  ctx.strokeStyle = '#243d54'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.left, scaleY(0)); ctx.lineTo(W-pad.right, scaleY(0)); ctx.stroke();
+
+  // 90Â° vertical
+  ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(scaleX(90), pad.top); ctx.lineTo(scaleX(90), H-pad.bottom); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#10b981'; ctx.font = '8px Space Mono';
+  ctx.fillText('90Â°', scaleX(90)+3, pad.top+10);
+
+  // Curve
+  ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  incs.forEach((inc, i) => {
+    i === 0 ? ctx.moveTo(scaleX(inc), scaleY(rates[i])) : ctx.lineTo(scaleX(inc), scaleY(rates[i]));
+  });
+  ctx.stroke();
+
+  // X axis labels
+  ctx.fillStyle = '#4a6a85'; ctx.font = '8px Space Mono';
+  [0,30,60,90,120,150,180].forEach(inc => {
+    ctx.fillText(inc+'Â°', scaleX(inc)-6, H-6);
+  });
+}
+
+// TLE Accuracy canvas
+const accCanvas = document.getElementById('accuracy-canvas');
+if (accCanvas) {
+  const ctx = accCanvas.getContext('2d');
+  const W = accCanvas.parentElement.offsetWidth || 600;
+  const H = 180;
+  accCanvas.width = W; accCanvas.height = H;
+  const pad = { top: 12, right: 16, bottom: 32, left: 56 };
+
+  const days = Array.from({length: 21}, (_, i) => i);
+  const along = days.map(d => 0.5 + 1.2 * d);      // km
+  const cross  = days.map(d => 0.1 + 0.08 * d);
+  const radial = days.map(d => 0.05 + 0.04 * d);
+  const maxV = Math.max(...along);
+  const scaleX = d => pad.left + (d / 20) * (W - pad.left - pad.right);
+  const scaleY = v => pad.top + ((maxV - v) / maxV) * (H - pad.top - pad.bottom);
+
+  ctx.strokeStyle = '#1a2e42'; ctx.lineWidth = 1;
+  [0, 6, 12, 18, 24].forEach(km => {
+    if (km > maxV) return;
+    ctx.beginPath(); ctx.moveTo(pad.left, scaleY(km)); ctx.lineTo(W-pad.right, scaleY(km)); ctx.stroke();
+    ctx.fillStyle = '#4a6a85'; ctx.font = '9px Space Mono';
+    ctx.fillText(km+'km', 2, scaleY(km)+3);
+  });
+
+  const drawLine = (data, color, label) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath();
+    days.forEach((d, i) => {
+      i === 0 ? ctx.moveTo(scaleX(d), scaleY(data[i])) : ctx.lineTo(scaleX(d), scaleY(data[i]));
+    });
+    ctx.stroke();
+  };
+
+  drawLine(along, '#ef4444', 'Along-track');
+  drawLine(cross, '#3b82f6', 'Cross-track');
+  drawLine(radial, '#10b981', 'Radial');
+
+  // Legend
+  [[along,'#ef4444','Along-track'],[cross,'#3b82f6','Cross-track'],[radial,'#10b981','Radial']].forEach(([,c,l],i) => {
+    ctx.fillStyle = c; ctx.fillRect(pad.left + i*120, H-10, 14, 3);
+    ctx.fillStyle = '#7a9bb5'; ctx.font = '9px Space Mono';
+    ctx.fillText(l, pad.left + i*120 + 18, H-6);
+  });
+
+  // X axis
+  ctx.fillStyle = '#4a6a85'; ctx.font = '9px Space Mono';
+  [0,5,10,15,20].forEach(d => ctx.fillText(d+'d', scaleX(d)-8, H-4));
+}
+</script>
+</body>
+</html>
+
+'''
+
+EDU_DEBRIS_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debris Modeling &amp; Kessler Cascade â VectraSpace Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #070c14;
+  --ink-2:      #0d1520;
+  --ink-3:      #111d2b;
+  --border:     #1a2e42;
+  --border-2:   #243d54;
+  --accent:     #3b82f6;
+  --accent-glow:rgba(59,130,246,0.18);
+  --amber:      #f59e0b;
+  --amber-dim:  rgba(245,158,11,0.12);
+  --green:      #10b981;
+  --green-dim:  rgba(16,185,129,0.10);
+  --red:        #ef4444;
+  --red-dim:    rgba(239,68,68,0.10);
+  --text:       #c9ddef;
+  --text-2:     #9dbbd4;
+  --text-3:     #6d92ad;
+  --mono:       'Space Mono', monospace;
+  --math:       'STIX Two Math','Latin Modern Math',Georgia,serif;
+  --sans:       'Space Grotesk', sans-serif;
+  --display:    'Syne', sans-serif;
+  --toc-w:      230px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--ink); color: var(--text); font-family: var(--sans); line-height: 1.7; overflow-x: hidden; }
+#progress-bar { position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,var(--red),var(--amber));z-index:200;transition:width 0.1s linear; }
+nav { position:fixed;top:0;left:0;right:0;z-index:100;height:56px;padding:0 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(7,12,20,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(12px); }
+.nav-brand { text-decoration:none; display:flex; align-items:center; }
+.nav-brand-name { font-family:'Instrument Serif',Georgia,serif;font-size:17px;font-style:italic;letter-spacing:-0.2px;color:#fff; }
+.nav-brand-name em { color:var(--accent);font-style:normal; }
+.nav-back { font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--text-3);text-decoration:none;text-transform:uppercase;transition:color 0.2s; }
+.nav-back:hover { color:var(--accent); }
+.hero { padding:120px 48px 64px;max-width:900px;margin:0 auto; }
+.hero-breadcrumb { font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:16px; }
+.hero-breadcrumb a { color:var(--text-3);text-decoration:none; }
+.hero-breadcrumb a:hover { color:var(--accent); }
+.chapter-label { display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--red);text-transform:uppercase;background:var(--red-dim);border:1px solid rgba(239,68,68,0.25);padding:4px 10px;border-radius:2px;margin-bottom:20px; }
+.hero h1 { font-family:var(--display);font-size:clamp(36px,5vw,58px);font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px; }
+.hero-accent { color:var(--red); }
+.hero-intro { font-size:17px;font-weight:300;color:var(--text-2);line-height:1.8;max-width:680px;margin-bottom:32px; }
+.hero-meta { display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-3);text-transform:uppercase; }
+.hero-meta span { display:flex;align-items:center;gap:6px; }
+.hero-meta-dot { width:4px;height:4px;background:var(--red);border-radius:50%; }
+.page-wrap { max-width:1140px;margin:0 auto;padding:48px 48px 120px;display:grid;grid-template-columns:var(--toc-w) 1fr;gap:64px;align-items:start; }
+.toc { position:sticky;top:72px;background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:20px;max-height:calc(100vh - 88px);overflow-y:auto; }
+.toc::-webkit-scrollbar { width:3px; }
+.toc::-webkit-scrollbar-thumb { background:var(--border); }
+.toc-label { font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border); }
+.toc-list { list-style:none;display:flex;flex-direction:column;gap:2px; }
+.toc-list a { display:block;font-size:12px;color:var(--text-3);text-decoration:none;padding:5px 8px;border-radius:4px;transition:all 0.2s;border-left:2px solid transparent; }
+.toc-list a:hover { color:var(--text);background:var(--ink-3); }
+.toc-list a.active { color:var(--accent);background:var(--accent-glow);border-left-color:var(--accent); }
+.content { min-width:0; }
+.content-section { margin-bottom:72px;scroll-margin-top:80px; }
+.section-number { font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:12px; }
+.content h2 { font-family:var(--display);font-size:clamp(22px,3vw,30px);font-weight:700;color:#fff;margin-bottom:20px;line-height:1.2; }
+.content h3 { font-family:var(--sans);font-size:16px;font-weight:600;color:var(--text);margin:28px 0 12px; }
+.content p { margin-bottom:16px;color:var(--text-2);font-size:15px; }
+.content strong { color:var(--text);font-weight:600; }
+.eq-block { background:var(--ink-2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:20px 24px;margin:24px 0;font-size:13px;color:var(--text);overflow-x:auto; }
+.eq-block .eq-label { font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:10px; }
+.eq-block .eq-main { font-family:var(--math,'STIX Two Math',Georgia,serif);font-size:17px;color:#fff;margin-bottom:8px;font-style:italic; }
+.eq-block .eq-vars { font-size:12px;color:var(--text-2);line-height:1.9; }
+.eq-block .eq-var-name { color:var(--amber); }
+.callout { border-radius:6px;padding:16px 20px;margin:24px 0;border-left:3px solid;font-size:14px; }
+.callout.info { background:rgba(59,130,246,0.07);border-color:var(--accent);color:var(--text); }
+.callout.warning { background:var(--amber-dim);border-color:var(--amber);color:var(--text); }
+.callout.danger { background:var(--red-dim);border-color:var(--red);color:var(--text); }
+.callout.success { background:var(--green-dim);border-color:var(--green);color:var(--text); }
+.callout-label { font-family:var(--mono);font-size:8px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;display:block; }
+.callout.info .callout-label { color:var(--accent); }
+.callout.warning .callout-label { color:var(--amber); }
+.callout.danger .callout-label { color:var(--red); }
+.callout.success .callout-label { color:var(--green); }
+.data-table-wrap { overflow-x:auto;margin:24px 0; }
+table { width:100%;border-collapse:collapse;font-size:13px;font-family:var(--mono); }
+thead th { background:var(--ink-3);color:var(--text-3);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border); }
+tbody td { padding:10px 14px;border-bottom:1px solid rgba(26,46,66,0.5);color:var(--text-2); }
+tbody tr:hover td { background:var(--ink-2); }
+.td-accent{color:var(--accent);} .td-amber{color:var(--amber);} .td-green{color:var(--green);} .td-red{color:var(--red);} .td-white{color:#fff;font-weight:600;}
+
+/* CASCADE DIAGRAM */
+.cascade-diagram { margin:24px 0; }
+.cascade-steps { display:flex;flex-direction:column;gap:0; }
+.cascade-step { display:grid;grid-template-columns:60px 1fr;gap:0;position:relative; }
+.cascade-step::before { content:'';position:absolute;left:29px;top:60px;bottom:-4px;width:2px;background:linear-gradient(180deg,var(--red),var(--amber));z-index:0; }
+.cascade-step:last-child::before { display:none; }
+.cascade-num { display:flex;align-items:flex-start;padding-top:16px;justify-content:center;position:relative;z-index:1; }
+.cascade-num-inner { width:40px;height:40px;border-radius:50%;background:var(--red-dim);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--red); }
+.cascade-body { padding:14px 16px 32px; }
+.cascade-title { font-family:var(--sans);font-size:15px;font-weight:600;color:#fff;margin-bottom:6px; }
+.cascade-text { font-size:13px;color:var(--text-2);line-height:1.7; }
+.cascade-stat { display:inline-block;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--amber);background:var(--amber-dim);padding:3px 8px;border-radius:2px; }
+
+/* POPULATION CHART */
+.pop-chart-wrap { background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0; }
+.pop-chart-title { font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:16px; }
+.pop-chart-wrap canvas { width:100%; }
+
+/* FRAGMENT SIZE DIST */
+.frag-chart-wrap { background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0; }
+
+/* HISTORICAL EVENTS TIMELINE */
+.timeline { margin:24px 0;display:flex;flex-direction:column;gap:0; }
+.timeline-item { display:grid;grid-template-columns:100px 1fr;gap:20px;padding:20px 0;border-bottom:1px solid var(--border); }
+.timeline-item:last-child { border-bottom:none; }
+.timeline-year { font-family:var(--mono);font-size:22px;font-weight:700;color:var(--red);line-height:1; padding-top:2px; }
+.timeline-content-title { font-family:var(--sans);font-size:14px;font-weight:600;color:#fff;margin-bottom:4px; }
+.timeline-content-body { font-size:13px;color:var(--text-2);line-height:1.6; }
+.timeline-content-badge { display:inline-block;margin-top:6px;font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 8px;border-radius:2px; }
+.badge-red { background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.25); }
+.badge-amber { background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.25); }
+.badge-accent { background:rgba(59,130,246,0.1);color:var(--accent);border:1px solid rgba(59,130,246,0.25); }
+
+/* ADR CARDS */
+.adr-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:24px 0; }
+.adr-card { background:var(--ink-2);border:1px solid var(--border);border-radius:6px;padding:20px;transition:border-color 0.2s; }
+.adr-card:hover { border-color:var(--green); }
+.adr-icon { font-size:22px;margin-bottom:10px; }
+.adr-title { font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--green);text-transform:uppercase;margin-bottom:6px; }
+.adr-desc { font-size:13px;color:var(--text-2);line-height:1.6; }
+.adr-status { margin-top:10px;font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:2px;display:inline-block; }
+
+/* CHAPTER NAV */
+.chapter-nav { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:80px;padding-top:40px;border-top:1px solid var(--border); }
+.chapter-nav-card { background:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:20px 24px;text-decoration:none;transition:all 0.2s;display:block; }
+.chapter-nav-card:hover { border-color:var(--accent);background:var(--ink-3); }
+.cnc-dir { font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px; }
+.cnc-title { font-family:var(--display);font-size:16px;font-weight:700;color:#fff; }
+.cnc-sub { font-size:12px;color:var(--text-3);margin-top:4px; }
+.chapter-nav-card.next { text-align:right; }
+.reveal { opacity:0;transform:translateY(16px);transition:opacity 0.6s ease,transform 0.6s ease; }
+.reveal.visible { opacity:1;transform:none; }
+@media (max-width:900px) {
+  .page-wrap { grid-template-columns:1fr; }
+  .toc { display:none; }
+  .hero { padding:100px 24px 48px; }
+  .page-wrap { padding:32px 24px 80px; }
+  .adr-grid { grid-template-columns:1fr; }
+  
+.chapter-nav { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">â All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
+</nav>
+
+<div class="hero">
+  <div class="hero-breadcrumb">
+    <a href="/">VectraSpace</a> / <a href="/#learn">Chapters</a> / Chapter 04
+  </div>
+  <span class="chapter-label">Chapter 04</span>
+  <h1>Debris Modeling &amp; <span class="hero-accent">Kessler Cascade</span></h1>
+  <p class="hero-intro">
+    Every collision in orbit creates thousands of new fragments, each capable of causing further collisions.
+    The runaway chain reaction known as <dfn data-term="Kessler">Kessler Syndrome</dfn> could render entire orbital shells
+    permanently inaccessible. Understanding its physics â and how to model, predict, and prevent it â is
+    the defining challenge of 21st century spaceflight.
+  </p>
+  <div class="hero-meta">
+    <span><span class="hero-meta-dot"></span>35 min read</span>
+    <span><span class="hero-meta-dot"></span>Intermediate Â· Policy</span>
+    <span><span class="hero-meta-dot"></span>Orbital Mechanics Â· Risk</span>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <aside>
+    <nav class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li><a href="#kessler-defined">Kessler Syndrome Defined</a></li>
+        <li><a href="#cascade-physics">Cascade Physics</a></li>
+        <li><a href="#population-history">Population History</a></li>
+        <li><a href="#critical-density">Critical Density</a></li>
+        <li><a href="#sbm-model">NASA Breakup Model (SBM)</a></li>
+        <li><a href="#fragment-distribution">Fragment Distributions</a></li>
+        <li><a href="#historical-events">Historical Events</a></li>
+        <li><a href="#collision-probability">Collision Rate Models</a></li>
+        <li><a href="#adr-remediation">Active Debris Removal</a></li>
+        <li><a href="#mitigation-guidelines">Mitigation Guidelines</a></li>
+        <li><a href="#vectraspace-sim">VectraSpace Simulation</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <article class="content">
+
+    <!-- KESSLER DEFINED -->
+    <section id="kessler-defined" class="content-section reveal">
+      <div class="section-number">// 01</div>
+      <h2>Kessler Syndrome: The Runaway Cascade</h2>
+      <p>
+        In 1978, NASA scientist Donald Kessler and Burton Cour-Palais published a paper describing a
+        concerning possibility: if the density of objects in low Earth orbit exceeded a critical threshold,
+        collisions would generate debris faster than atmospheric drag could remove it. Each collision
+        creates new objects that cause more collisions â a <strong>self-sustaining cascade</strong>
+        with no natural end state.
+      </p>
+      <p>
+        The Kessler paper did not predict imminent danger. It projected that this critical density
+        might be reached in the early 21st century if debris generation continued unchecked.
+        With over 27,000 tracked objects and an estimated 130 million fragments larger than 1 mm,
+        many researchers believe we may already be in the early stages of a Kessler cascade
+        in certain orbital bands.
+      </p>
+
+      <div class="cascade-diagram">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:20px;">The Cascade Mechanism</div>
+        <div class="cascade-steps">
+          <div class="cascade-step">
+            <div class="cascade-num"><div class="cascade-num-inner">01</div></div>
+            <div class="cascade-body">
+              <div class="cascade-title">Initial Collision or Fragmentation Event</div>
+              <div class="cascade-text">Two objects in the same orbital shell collide at hypervelocity (typically 10â15 km/s relative velocity). Even a 10 cm fragment carries kinetic energy equivalent to a hand grenade â enough to destroy a satellite.</div>
+              <span class="cascade-stat">Impact energy: ~500 kJ for 10 cm fragment at 10 km/s</span>
+            </div>
+          </div>
+          <div class="cascade-step">
+            <div class="cascade-num"><div class="cascade-num-inner">02</div></div>
+            <div class="cascade-body">
+              <div class="cascade-title">Debris Cloud Generation</div>
+              <div class="cascade-text">The collision produces thousands to millions of fragments ranging from mm-scale dust to multi-meter panels. These fragments distribute themselves across a band of inclinations and altitudes centered on the collision point, based on their ejection velocity.</div>
+              <span class="cascade-stat">A 1-tonne collision: ~thousands of &gt;1 cm fragments</span>
+            </div>
+          </div>
+          <div class="cascade-step">
+            <div class="cascade-num"><div class="cascade-num-inner">03</div></div>
+            <div class="cascade-body">
+              <div class="cascade-title">Density Increase in the Shell</div>
+              <div class="cascade-text">The new fragments spread around their orbital altitude band through Jâ RAAN regression and apsidal precession. Within weeks to months, they are distributed uniformly through the orbital shell, increasing the local object density.</div>
+              <span class="cascade-stat">~weeks to full shell distribution via RAAN spreading</span>
+            </div>
+          </div>
+          <div class="cascade-step">
+            <div class="cascade-num"><div class="cascade-num-inner">04</div></div>
+            <div class="cascade-body">
+              <div class="cascade-title">Elevated Collision Rate</div>
+              <div class="cascade-text">Higher object density means higher probability of subsequent collisions. If the density exceeds the critical value, new collisions produce more fragments than atmospheric drag removes. The collision rate accelerates, not decelerates â a runaway cascade.</div>
+              <span class="cascade-stat">Critical: generation rate &gt; removal rate by drag</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CASCADE PHYSICS -->
+    <section id="cascade-physics" class="content-section reveal">
+      <div class="section-number">// 02</div>
+      <h2>Cascade Physics: Kinetic Theory in Orbit</h2>
+      <p>
+        The mathematical treatment of orbital debris population dynamics borrows from
+        <strong>kinetic gas theory</strong>. Objects in a given orbital shell can be modeled as
+        particles in a box, with their collision rate determined by their number density and
+        cross-section-weighted relative velocity â a quantity called the <strong>spatial density</strong>.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Collision Rate per Object</div>
+        <div class="eq-main">dN_c/dt = n_d Â· A_c Â· v_rel</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">n_d</span> = number density of debris (objects/kmÂ³)<br>
+          <span class="eq-var-name">A_c</span> = combined cross-sectional area (mÂ²)<br>
+          <span class="eq-var-name">v_rel</span> = mean relative collision velocity (~10â15 km/s at 400â800 km)<br>
+          <span class="eq-var-name">n_d Â· A_c Â· v_rel</span> has units of collisions/year per object
+        </div>
+      </div>
+
+      <p>
+        The <strong>critical density</strong> is reached when the debris fragments produced by a
+        single collision (which then add to n_d) eventually cause more collisions than the original
+        collision itself replaced. This depends on both the number density and the mass
+        distribution of the debris population.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Population Evolution (Simplified Two-Species Model)</div>
+        <div class="eq-main">dN/dt = S + G(N,D) â L(N) â R(N)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">N</span> = number of lethal (â¥10 cm) objects in shell<br>
+          <span class="eq-var-name">S</span> = launch rate (new satellites added)<br>
+          <span class="eq-var-name">G(N,D)</span> = collision-generated fragments from N objects and D debris<br>
+          <span class="eq-var-name">L(N)</span> = orbital decay (atmospheric drag removal rate)<br>
+          <span class="eq-var-name">R(N)</span> = active remediation removal rate
+        </div>
+      </div>
+    </section>
+
+    <!-- POPULATION HISTORY -->
+    <section id="population-history" class="content-section reveal">
+      <div class="section-number">// 03</div>
+      <h2>Population History: How We Got Here</h2>
+
+      <div class="pop-chart-wrap">
+        <div class="pop-chart-title">Tracked Object Count in Earth Orbit (1957â2024)</div>
+        <canvas id="pop-canvas" height="200"></canvas>
+        <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-3);">
+          * USSPACECOM catalog data â objects â¥10 cm in LEO, â¥1 m in GEO Â· Events marked: â Chinese ASAT test 2007, â Iridium-Cosmos 2009
+        </div>
+      </div>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Object Category</th>
+              <th>Tracked (&gt;10 cm)</th>
+              <th>Estimated Total (&gt;1 cm)</th>
+              <th>Estimated Total (&gt;1 mm)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">Active Satellites</td><td class="td-green">~9,000</td><td class="td-green">~9,000</td><td class="td-green">~9,000</td></tr>
+            <tr><td class="td-white">Inactive Satellites</td><td class="td-amber">~5,000</td><td class="td-amber">~5,000</td><td class="td-amber">~5,000</td></tr>
+            <tr><td class="td-white">Rocket Bodies</td><td class="td-amber">~2,000</td><td class="td-amber">~2,000</td><td class="td-amber">~2,000</td></tr>
+            <tr><td class="td-white">Fragmentation Debris</td><td class="td-red">~14,000</td><td class="td-red">~500,000</td><td class="td-red">~130,000,000</td></tr>
+            <tr><td class="td-white">Total</td><td class="td-accent">~30,000</td><td class="td-accent">~516,000</td><td class="td-accent">&gt;130,000,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The vast majority of the hazard comes from debris objects too small to track but large enough
+        to be lethal. A 1 cm aluminum sphere at 7.7 km/s carries the kinetic energy of a bowling ball
+        dropped from 7 km. A 1 mm particle can damage solar panels and optics. <strong>None of these
+        objects appear in the TLE catalog</strong> â their existence is inferred from statistical models
+        and in-situ measurements on returned hardware (Space Shuttle windows, Hubble solar panels).
+      </p>
+    </section>
+
+    <!-- CRITICAL DENSITY -->
+    <section id="critical-density" class="content-section reveal">
+      <div class="section-number">// 04</div>
+      <h2>Critical Density: The Tipping Point</h2>
+      <p>
+        The critical debris density is not a single number â it depends on altitude (through drag removal
+        timescales), the mass distribution of debris, and the assumed breakup model. The classic
+        KesslerâCour-Palais formulation gives a critical spatial density where the collision rate
+        equals the drag removal rate.
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Critical Spatial Density (Kessler 1978)</div>
+        <div class="eq-main">n_c = 1 / (A_c Â· v_rel Â· Ï_d Â· Ï_f)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">n_c</span> = critical number density (objects/kmÂ³)<br>
+          <span class="eq-var-name">Ï_d</span> = atmospheric drag decay timescale (years)<br>
+          <span class="eq-var-name">Ï_f</span> = average number of new lethal fragments per collision<br>
+          At 800 km: Ï_d â 100 years â <strong>n_c is already exceeded in some shells</strong>
+        </div>
+      </div>
+
+      <div class="callout danger">
+        <span class="callout-label">We May Already Be Past the Threshold</span>
+        Multiple independent modeling studies (Liou &amp; Johnson 2006, ESA DRAMA, NASA LEGEND) find that
+        even if all launches stopped today, the debris population in the 750â900 km shell would continue
+        to grow due to collisions among existing objects. The shell is self-sustaining. This does not
+        mean access is immediately impossible â but it does mean active remediation is required to
+        prevent long-term collapse of this orbital band.
+      </div>
+    </section>
+
+    <!-- NASA SBM -->
+    <section id="sbm-model" class="content-section reveal">
+      <div class="section-number">// 05</div>
+      <h2><dfn data-term="NASA SBM">NASA Standard Breakup Model</dfn> (SBM)</h2>
+      <p>
+        When a collision or explosion occurs in orbit, how many fragments does it create, and what are
+        their sizes and velocities? The answer comes from the <strong>NASA Standard Breakup Model</strong>
+        (SBM), developed from analysis of on-orbit fragmentations, ground hypervelocity impact tests,
+        and recovered debris.
+      </p>
+
+      <h3>Fragment Number Distribution</h3>
+      <p>
+        The SBM predicts that the number of fragments larger than characteristic length L_c follows
+        a power-law distribution â a hallmark of fracture mechanics:
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Fragment Count Distribution (SBM)</div>
+        <div class="eq-main">N(L_c) = 6 Â· d^(0.5) Â· L_c^(â1.6)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">N(L_c)</span> = number of fragments larger than L_c<br>
+          <span class="eq-var-name">d</span> = effective diameter of the larger body (m)<br>
+          <span class="eq-var-name">L_c</span> = characteristic length (m) â roughly max dimension<br>
+          A 1 m Ã 1 m collision: ~6,000 fragments &gt;10 cm, ~600,000 fragments &gt;1 cm
+        </div>
+      </div>
+
+      <h3>Fragment Velocity Distribution</h3>
+      <p>
+        Fragment velocities relative to the parent orbit follow a <strong>lognormal distribution</strong>
+        whose parameters depend on the area-to-mass ratio (a surrogate for fragment size and shape):
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Fragment Velocity Distribution (SBM)</div>
+        <div class="eq-main">logââ(v) ~ N(Î¼_v, Ï_v)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">Î¼_v</span> = 0.2 Â· Ï + 1.85 (for collision fragments)<br>
+          <span class="eq-var-name">Ï_v</span> = 0.4 (approximately)<br>
+          <span class="eq-var-name">Ï</span> = logââ(A/m) â log of area-to-mass ratio<br>
+          Small high-A/m fragments receive the highest ejection velocities (~hundreds m/s)
+        </div>
+      </div>
+    </section>
+
+    <!-- FRAGMENT DISTRIBUTIONS -->
+    <section id="fragment-distribution" class="content-section reveal">
+      <div class="section-number">// 06</div>
+      <h2>Fragment Size &amp; Velocity Distributions</h2>
+
+      <div class="frag-chart-wrap">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:16px;">Fragment Count vs. Size (SBM Power Law) â Hypothetical 1-Tonne Collision</div>
+        <canvas id="frag-canvas" height="200"></canvas>
+        <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-3);">
+          * Log-log scale Â· Dashed lines: tracking threshold (10 cm) and lethal threshold (1 cm)
+        </div>
+      </div>
+
+      <p>
+        The power-law distribution means that <strong>vastly more small fragments are created than large ones</strong>:
+        roughly 1,000Ã more 1 cm fragments than 10 cm fragments. This is the core of the problem â
+        surveillance systems can track objects down to about 10 cm in LEO, but the most numerous
+        hazardous fragments fall below the detection threshold.
+      </p>
+
+      <h3>Velocity Spreading and Shell Distribution</h3>
+      <p>
+        Fragments ejected with velocities of 10â100 m/s from a circular orbit will shift their
+        semi-major axis by Îa â Â±(2/n) Â· Îv, where n is mean motion. For LEO at 400 km,
+        a 100 m/s ejection velocity shifts altitude by approximately Â±340 km, spreading the
+        debris cloud through a thick altitude band rather than concentrating it at the parent orbit.
+        High-velocity fragments (200+ m/s) may be ejected to orbits that cross multiple
+        occupied altitude bands.
+      </p>
+
+      <div class="callout warning">
+        <span class="callout-label">VectraSpace Debris Simulation</span>
+        The VectraSpace debris simulation module implements a simplified version of the SBM lognormal
+        fragment velocity distribution. When a fragmentation event is triggered, N_debris synthetic
+        fragment objects are generated with ejection velocities sampled from the lognormal model,
+        with characteristic length L_c randomly drawn between 1 cm and 50 cm. Their trajectories
+        are then propagated using the same SGP4 engine as primary catalog objects, and the resulting
+        debris cloud is screened for conjunctions with the existing catalog.
+      </div>
+    </section>
+
+    <!-- HISTORICAL EVENTS -->
+    <section id="historical-events" class="content-section reveal">
+      <div class="section-number">// 07</div>
+      <h2>Historical Fragmentation Events</h2>
+      <p>
+        The current debris environment has been shaped by a small number of high-mass fragmentation
+        events that together account for a disproportionate share of the hazard.
+      </p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-year">1965â</div>
+          <div>
+            <div class="timeline-content-title">Propellant Tank Explosions</div>
+            <div class="timeline-content-body">Residual propellant in rocket upper stages causes pressure-driven explosions years after launch. Over 200 fragmentation events attributed to this source. The US Delta and Soviet SL-12 families were particularly prolific. Modern mitigation: passivation â venting all remaining propellants and pressurized gases before abandonment.</div>
+            <span class="timeline-content-badge badge-amber">Ongoing</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2007</div>
+          <div>
+            <div class="timeline-content-title">Chinese ASAT Test â Fengyun-1C</div>
+            <div class="timeline-content-body">China destroyed its own 758 kg weather satellite Fengyun-1C using a direct-ascent kinetic kill vehicle, in a deliberate anti-satellite weapons test. The 865 km altitude generated the largest single debris-generating event in history, producing over 3,000 tracked fragments and an estimated 35,000+ objects â¥1 cm â nearly all above the ISS orbit with decay times of centuries to decades.</div>
+            <span class="timeline-content-badge badge-red">~3,500+ tracked fragments</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2009</div>
+          <div>
+            <div class="timeline-content-title">Iridium 33 / Cosmos 2251 Collision</div>
+            <div class="timeline-content-body">The first accidental collision between two intact cataloged satellites. The active 560 kg Iridium-33 communications satellite collided with the defunct 950 kg Cosmos-2251 at 789 km altitude, 11.7 km/s relative velocity. Both were completely destroyed, generating ~2,000 tracked fragments and an estimated 100,000+ hazardous objects. The event demonstrated that uncontrolled satellites in crowded orbits are a systemic risk.</div>
+            <span class="timeline-content-badge badge-red">First-ever intact satellite collision</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2021</div>
+          <div>
+            <div class="timeline-content-title">Russian ASAT Test â Kosmos 1408</div>
+            <div class="timeline-content-body">Russia destroyed its defunct 1,750 kg reconnaissance satellite Kosmos-1408 at 480 km altitude using a direct-ascent weapon, generating over 1,500 tracked fragments. The ISS crew sheltered in their return vehicles as the debris cloud passed through the station's orbital altitude. The event drew international condemnation and prompted US, Japan, and UK unilateral bans on destructive ASAT testing.</div>
+            <span class="timeline-content-badge badge-red">ISS crew emergency</span>
+            <span class="timeline-content-badge badge-amber" style="margin-left:6px;">International condemnation</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2022â</div>
+          <div>
+            <div class="timeline-content-title">Mega-Constellation Launch Wave</div>
+            <div class="timeline-content-body">SpaceX Starlink, OneWeb, and Amazon Kuiper are deploying tens of thousands of satellites into LEO. While each individual satellite poses lower risk (designed for deorbit), the cumulative conjunction rate with existing objects is unprecedented. Close approach frequency between Starlink and other operators has increased dramatically, raising concerns about both collision risk and operator coordination.</div>
+            <span class="timeline-content-badge badge-accent">Active monitoring required</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLLISION PROBABILITY -->
+    <section id="collision-probability" class="content-section reveal">
+      <div class="section-number">// 08</div>
+      <h2>Collision Rate Models: From Fragment to Fleet</h2>
+      <p>
+        Beyond individual Pc calculations for specific conjunctions, long-term debris environment
+        modeling requires predicting the <strong>fleet-wide collision rate</strong> â how many
+        collisions per year are expected in a given orbital shell?
+      </p>
+
+      <div class="eq-block">
+        <div class="eq-label">Flux-Based Collision Rate (Kessler Model)</div>
+        <div class="eq-main">F_c = (1/2) Â· nÂ² Â· â¨Ï_c Â· v_relâ© Â· V_shell</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">n</span> = object spatial density (objects/kmÂ³)<br>
+          <span class="eq-var-name">â¨Ï_c Â· v_relâ©</span> = cross-section Ã velocity, averaged over distribution<br>
+          <span class="eq-var-name">V_shell</span> = volume of the orbital shell (kmÂ³)<br>
+          The nÂ² dependence means doubling the population â quadrupling the collision rate
+        </div>
+      </div>
+
+      <p>
+        The <strong>nÂ² scaling</strong> is the key driver of Kessler Syndrome: a doubling of the
+        debris population quadruples the collision rate and therefore quadruples the fragment generation
+        rate from those collisions. Below the critical density, the drag removal rate grows only
+        linearly with n, so the population remains stable. Above it, generation outpaces removal
+        and growth accelerates.
+      </p>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Altitude Band</th>
+              <th>Object Density (obj/kmÂ³)</th>
+              <th>Drag Decay Time</th>
+              <th>Cascade Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">350â500 km</td><td>~0.0008</td><td>1â5 years</td><td class="td-green">Self-clearing</td></tr>
+            <tr><td class="td-white">500â700 km</td><td>~0.003</td><td>10â50 years</td><td class="td-amber">Marginal</td></tr>
+            <tr><td class="td-white">750â900 km</td><td>~0.006</td><td>50â200 years</td><td class="td-red">Likely unstable</td></tr>
+            <tr><td class="td-white">900â1,200 km</td><td>~0.002</td><td>100â500 years</td><td class="td-amber">Borderline</td></tr>
+            <tr><td class="td-white">&gt;1,200 km</td><td>&lt;0.0005</td><td>&gt;500 years</td><td class="td-accent">Low density but permanent</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ADR -->
+    <section id="adr-remediation" class="content-section reveal">
+      <div class="section-number">// 09</div>
+      <h2>Active Debris Removal: The Engineering Challenge</h2>
+      <p>
+        Passive mitigation (deorbiting satellites within 25 years) slows the growth rate but cannot
+        reverse an ongoing cascade. Only <strong>Active Debris Removal (ADR)</strong> â physically
+        capturing and deorbiting existing dead objects â can reduce population density in critical
+        shells.
+      </p>
+
+      <p>
+        Studies by ESA, NASA, and JAXA consistently find that removing approximately <strong>5â10
+        large intact objects per year</strong> (>1 tonne rocket bodies in 750â900 km altitude) would
+        stabilize the debris population. Each large object removed prevents dozens to hundreds of
+        future fragmentation fragments.
+      </p>
+
+      <div class="adr-grid">
+        <div class="adr-card">
+          <div class="adr-icon">ð¦¾</div>
+          <div class="adr-title">Robotic Grappling</div>
+          <div class="adr-desc">A chaser spacecraft matches the rotation rate of the tumbling target and mechanically grasps it, then fires to deorbit. The primary challenge: most targets are not designed to be captured.</div>
+          <div class="adr-status" style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);">ClearSpace-1 planned 2026</div>
+        </div>
+        <div class="adr-card">
+          <div class="adr-icon">ð¸ï¸</div>
+          <div class="adr-title">Harpoon &amp; Net Capture</div>
+          <div class="adr-desc">A harpoon or net is fired at the target to entangle it. Demonstrated on RemoveDEBRIS mission (2018). Lower precision required but harder to control the resulting motion.</div>
+          <div class="adr-status" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.25);">Demonstrated in LEO</div>
+        </div>
+        <div class="adr-card">
+          <div class="adr-icon">â¡</div>
+          <div class="adr-title">Electrodynamic Tether</div>
+          <div class="adr-desc">A conductive tether deployed from the debris object interacts with Earth's magnetic field to generate drag, deorbiting the object over months without a propulsive maneuver.</div>
+          <div class="adr-status" style="background:rgba(59,130,246,0.1);color:var(--accent);border:1px solid rgba(59,130,246,0.25);">Research phase</div>
+        </div>
+        <div class="adr-card">
+          <div class="adr-icon">ð</div>
+          <div class="adr-title">Ground-Based Laser</div>
+          <div class="adr-desc">A high-power pulsed laser ablates material from the debris surface, imparting a small thrust impulse. Effective for small debris (1â10 cm) but raises dual-use weapons concerns internationally.</div>
+          <div class="adr-status" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.25);">Politically sensitive</div>
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-label">The ADR Economics Problem</span>
+        Each ADR mission to capture a single defunct rocket body costs an estimated $50â200 million.
+        To stabilize the 750â900 km shell, 5â10 removals per year over decades are required â
+        a $500 millionâ$2 billion annual commitment with no commercial return. This is why
+        international policy frameworks, liability attribution, and government funding mechanisms
+        are as important as the engineering solutions.
+      </div>
+    </section>
+
+    <!-- MITIGATION GUIDELINES -->
+    <section id="mitigation-guidelines" class="content-section reveal">
+      <div class="section-number">// 10</div>
+      <h2>Mitigation Guidelines: Current Norms</h2>
+      <p>
+        In 2002, the Inter-Agency Space Debris Coordination Committee (IADC) published debris mitigation
+        guidelines, which have since been adopted by the UN Committee on the Peaceful Uses of Outer Space
+        (COPUOS). The key provisions:
+      </p>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Guideline</th>
+              <th>Requirement</th>
+              <th>Compliance Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">LEO post-mission disposal</td><td>Deorbit within 25 years</td><td class="td-amber">~70â80% (improving)</td></tr>
+            <tr><td class="td-white">GEO graveyard orbit</td><td>Raise â¥300 km above GEO</td><td class="td-green">~75%</td></tr>
+            <tr><td class="td-white">Passivation</td><td>Vent propellants and batteries</td><td class="td-amber">Improving</td></tr>
+            <tr><td class="td-white">Protected regions</td><td>Minimize time in LEO/GEO</td><td class="td-accent">Varies by mission</td></tr>
+            <tr><td class="td-white">Intentional fragmentation</td><td>Prohibited in protected regions</td><td class="td-red">Violated by ASAT tests</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The 25-year rule is increasingly seen as insufficient. The FCC in 2022 mandated 5-year
+        deorbit timelines for new US-licensed LEO satellites. SpaceX Starlink satellites are
+        designed to deorbit within 1â3 years. Some researchers advocate for mandatory
+        deorbit within 1 orbital cycle â a position not yet reflected in any binding treaty.
+      </p>
+    </section>
+
+    <!-- VECTRASPACE SIM -->
+    <section id="vectraspace-sim" class="content-section reveal">
+      <div class="section-number">// 11</div>
+      <h2>VectraSpace Debris Simulation Engine</h2>
+      <p>
+        VectraSpace includes an interactive debris simulation module that lets users explore
+        fragmentation dynamics in real time. When a fragmentation event is triggered, the engine:
+      </p>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Method</th>
+              <th>Parameters</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">1. Select parent</td><td>Any tracked satellite from current scan</td><td>Position, velocity, regime</td></tr>
+            <tr><td class="td-white">2. Fragment count</td><td>User-specified (10â200)</td><td>Capped for performance</td></tr>
+            <tr><td class="td-white">3. Lc distribution</td><td>Uniform(1 cm, 50 cm)</td><td>Simplified SBM</td></tr>
+            <tr><td class="td-white">4. Îv sampling</td><td>Log-normal N(Î¼_v, Ï_v = 0.4)</td><td>Î¼_v from SBM A/m relation</td></tr>
+            <tr><td class="td-white">5. Direction</td><td>Uniform on unit sphere</td><td>Isotropic ejection</td></tr>
+            <tr><td class="td-white">6. Propagation</td><td>Linear position offset (dt in seconds)</td><td>Simplified (not SGP4 for debris)</td></tr>
+            <tr><td class="td-white">7. Conjunction screen</td><td>Same chunked screener as primary scan</td><td>Debris-aware Pc flags</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-label">Educational Accuracy Note</span>
+        The VectraSpace debris simulation is designed for educational illustration, not operational
+        conjunction prediction. The linearized trajectory model diverges from true SGP4 propagation
+        within minutes for realistic ejection velocities. For operational debris cloud analysis,
+        agencies use full numerical integration with the complete SBM fragment distribution,
+        shape estimation, and individual BSTAR fitting for each fragment as tracking data becomes
+        available. The 2009 Iridium-Cosmos cloud took weeks to characterize adequately.
+      </div>
+
+      <div class="callout success">
+        <span class="callout-label">Try It Live</span>
+        The VectraSpace dashboard lets you run a real conjunction scan, select any tracked satellite
+        as a parent object, choose COLLISION or EXPLOSION event type, and generate up to 200 synthetic
+        debris fragments displayed in real time on the Cesium globe with instant conjunction screening.
+        <br><br>
+        <strong>â Access the live platform at the VectraSpace dashboard to explore these models in action.</strong>
+      </div>
+
+
+      <!-- Chapter nav -->
+      <div class="chapter-nav">
+        <a href="/education/perturbations" class="chapter-nav-card">
+          <div class="cnc-dir">â Previous</div>
+          <div class="cnc-title">Chapter 03</div>
+          <div class="cnc-sub">Orbital Perturbations</div>
+        </a>
+        <a href="/" class="chapter-nav-card next">
+          <div class="cnc-dir">â Back to Top</div>
+          <div class="cnc-title">Learning Hub</div>
+          <div class="cnc-sub">VectraSpace Educational Home</div>
+        </a>
+      </div>
+    </section>
+
+  </article>
+</div>
+
+<script>
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  bar.style.width = pct + '%';
+});
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+const sections = document.querySelectorAll('.content-section');
+const tocLinks = document.querySelectorAll('.toc-list a');
+const tocObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#'+id));
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => tocObs.observe(s));
+
+// Population history chart
+const popCanvas = document.getElementById('pop-canvas');
+if (popCanvas) {
+  const ctx = popCanvas.getContext('2d');
+  const W = popCanvas.parentElement.offsetWidth || 600;
+  const H = 200;
+  popCanvas.width = W; popCanvas.height = H;
+  const pad = { top:12, right:16, bottom:32, left:56 };
+  // Approximate data points
+  const data = [
+    [1957,1],[1960,50],[1965,400],[1970,900],[1975,2000],[1980,4000],
+    [1985,6000],[1990,7500],[1995,8500],[2000,9500],[2005,10500],
+    [2007,13000],[2008,13500],[2009,16000],[2010,16200],[2015,17000],
+    [2019,19000],[2021,21000],[2022,23000],[2024,28000]
+  ];
+  const years = data.map(d=>d[0]); const counts = data.map(d=>d[1]);
+  const minY=1957, maxY=2024, maxC=30000;
+  const sX = y => pad.left + ((y-minY)/(maxY-minY)) * (W-pad.left-pad.right);
+  const sY = c => pad.top + ((maxC-c)/maxC) * (H-pad.top-pad.bottom);
+  // Grid
+  ctx.strokeStyle='#1a2e42'; ctx.lineWidth=1;
+  [0,10000,20000,30000].forEach(c => {
+    ctx.beginPath(); ctx.moveTo(pad.left,sY(c)); ctx.lineTo(W-pad.right,sY(c)); ctx.stroke();
+    ctx.fillStyle='#4a6a85'; ctx.font='9px Space Mono';
+    ctx.fillText(c === 0 ? '0' : (c/1000)+'k', 2, sY(c)+3);
+  });
+  // Event markers
+  [[2007,'Fengyun'],[2009,'Iridium']].forEach(([yr,lbl]) => {
+    ctx.strokeStyle='rgba(239,68,68,0.4)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(sX(yr),pad.top); ctx.lineTo(sX(yr),H-pad.bottom); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ef4444'; ctx.font='8px Space Mono';
+    ctx.fillText(lbl, sX(yr)+3, pad.top+12);
+  });
+  // Curve
+  const grad = ctx.createLinearGradient(pad.left, 0, W-pad.right, 0);
+  grad.addColorStop(0,'#3b82f6'); grad.addColorStop(0.7,'#f59e0b'); grad.addColorStop(1,'#ef4444');
+  ctx.strokeStyle=grad; ctx.lineWidth=2;
+  ctx.beginPath();
+  data.forEach(([y,c],i) => i===0 ? ctx.moveTo(sX(y),sY(c)) : ctx.lineTo(sX(y),sY(c)));
+  ctx.stroke();
+  // X labels
+  ctx.fillStyle='#4a6a85'; ctx.font='9px Space Mono';
+  [1960,1970,1980,1990,2000,2010,2020].forEach(y => ctx.fillText(y, sX(y)-12, H-5));
+}
+
+// Fragment count chart
+const fragCanvas = document.getElementById('frag-canvas');
+if (fragCanvas) {
+  const ctx = fragCanvas.getContext('2d');
+  const W = fragCanvas.parentElement.offsetWidth || 600;
+  const H = 200;
+  fragCanvas.width = W; fragCanvas.height = H;
+  const pad = { top:12, right:16, bottom:32, left:64 };
+  // Log-log: size from 0.1 cm to 100 cm, N from SBM
+  const sizes = []; const counts = [];
+  for (let lx = -1; lx <= 2; lx += 0.15) {
+    const Lc = Math.pow(10, lx) / 100; // meters
+    const N = 6 * Math.pow(1.0, 0.5) * Math.pow(Lc, -1.6);
+    sizes.push(lx);
+    counts.push(Math.log10(Math.max(1, N)));
+  }
+  const maxC = Math.max(...counts);
+  const sX = lx => pad.left + ((lx - (-1)) / 3) * (W-pad.left-pad.right);
+  const sY = c => pad.top + ((maxC-c)/maxC) * (H-pad.top-pad.bottom);
+  // Grid
+  ctx.strokeStyle='#1a2e42'; ctx.lineWidth=1;
+  [0,2,4,6,8].forEach(c => {
+    ctx.beginPath(); ctx.moveTo(pad.left,sY(c)); ctx.lineTo(W-pad.right,sY(c)); ctx.stroke();
+    ctx.fillStyle='#4a6a85'; ctx.font='9px Space Mono';
+    ctx.fillText('10^'+c, 2, sY(c)+3);
+  });
+  // Threshold lines
+  [[Math.log10(0.01),'#ef4444','1 cm'],[Math.log10(0.1),'#f59e0b','10 cm']].forEach(([lx,color,lbl]) => {
+    ctx.strokeStyle=color+'77'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(sX(lx),pad.top); ctx.lineTo(sX(lx),H-pad.bottom); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=color; ctx.font='8px Space Mono';
+    ctx.fillText(lbl, sX(lx)+3, pad.top+10);
+  });
+  // Curve
+  ctx.strokeStyle='#3b82f6'; ctx.lineWidth=2;
+  ctx.beginPath();
+  sizes.forEach((lx,i) => i===0 ? ctx.moveTo(sX(lx),sY(counts[i])) : ctx.lineTo(sX(lx),sY(counts[i])));
+  ctx.stroke();
+  // X labels
+  ctx.fillStyle='#4a6a85'; ctx.font='9px Space Mono';
+  [[Math.log10(0.1),'0.1 cm'],[0,'1 cm'],[1,'10 cm'],[2,'100 cm']].forEach(([lx,lbl]) => {
+    ctx.fillText(lbl, sX(lx)-14, H-5);
+  });
+}
+</script>
+</body>
+</html>
+
+'''
+
+ADMIN_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VectraSpace â Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #030508; --panel: #07101a; --border: #0d2137;
+    --accent: #00d4ff; --accent2: #ff4444; --accent3: #00ff88;
+    --text: #c8dff0; --muted: #3a5a75;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
+         min-height: 100vh; }
+
+  /* ââ NAV ââ */
+  .admin-nav {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 0 32px; height: 56px; display: flex; align-items: center;
+    justify-content: space-between; position: sticky; top: 0; z-index: 10;
+  }
+  .admin-nav-logo { font-family: 'Orbitron', sans-serif; font-size: 13px;
+    font-weight: 700; color: #fff; letter-spacing: 2px; text-decoration: none; }
+  .admin-nav-logo span { color: var(--accent); }
+  .admin-nav-badge { font-family: 'Share Tech Mono', monospace; font-size: 9px;
+    letter-spacing: 3px; color: var(--accent2); background: rgba(255,68,68,0.1);
+    border: 1px solid rgba(255,68,68,0.3); padding: 3px 10px; border-radius: 2px;
+    text-transform: uppercase; }
+  .admin-nav-links { display: flex; gap: 20px; align-items: center; }
+  .admin-nav-links a { font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 1px; color: var(--muted); text-decoration: none;
+    text-transform: uppercase; transition: color 0.2s; }
+  .admin-nav-links a:hover { color: var(--accent); }
+
+  /* ââ LAYOUT ââ */
+  .admin-wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }
+
+  /* ââ STAT CARDS ââ */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 32px; }
+  .stat-card { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 24px 20px; position: relative; overflow: hidden;
+    transition: border-color 0.2s; }
+  .stat-card:hover { border-color: var(--accent); }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--accent); transform: scaleX(0);
+    transition: transform 0.3s; }
+  .stat-card:hover::before { transform: scaleX(1); }
+  .stat-card.c2::before { background: var(--accent3); }
+  .stat-card.c3::before { background: #ffaa44; }
+  .stat-card.c4::before { background: #aa66ff; }
+  .stat-label { font-family: 'Share Tech Mono', monospace; font-size: 8px;
+    letter-spacing: 3px; color: var(--muted); text-transform: uppercase;
+    margin-bottom: 10px; }
+  .stat-num { font-family: 'Orbitron', sans-serif; font-size: 36px; font-weight: 900;
+    color: var(--accent); line-height: 1; margin-bottom: 4px; }
+  .stat-card.c2 .stat-num { color: var(--accent3); }
+  .stat-card.c3 .stat-num { color: #ffaa44; }
+  .stat-card.c4 .stat-num { color: #aa66ff; }
+  .stat-sub { font-size: 11px; color: var(--muted); }
+
+  /* ââ SECTION HEADERS ââ */
+  .section-hdr { display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; margin-top: 32px; }
+  .section-hdr h2 { font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
+  .section-hdr .refresh-btn { background: transparent; border: 1px solid var(--border);
+    border-radius: 3px; color: var(--muted); font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; padding: 4px 10px; cursor: pointer; letter-spacing: 1px;
+    transition: all 0.2s; }
+  .section-hdr .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ââ CHARTS ROW ââ */
+  .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px;
+    margin-bottom: 12px; }
+  .chart-card { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 20px; }
+  .chart-title { font-family: 'Share Tech Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+    margin-bottom: 16px; }
+  .chart-wrap { position: relative; height: 180px; }
+
+  /* ââ USERS TABLE ââ */
+  .table-wrap { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { background: #040a10; font-family: 'Share Tech Mono', monospace;
+    font-size: 8px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+    padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 10px 16px; font-size: 12px; border-bottom: 1px solid #0a1520;
+    color: var(--text); transition: background 0.15s; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #0a1520; }
+  .data-table .td-mono { font-family: 'Share Tech Mono', monospace; font-size: 11px; }
+  .role-badge { font-family: 'Share Tech Mono', monospace; font-size: 8px;
+    letter-spacing: 1px; padding: 2px 8px; border-radius: 2px; text-transform: uppercase; }
+  .role-admin { background: rgba(255,68,68,0.12); color: var(--accent2);
+    border: 1px solid rgba(255,68,68,0.3); }
+  .role-operator { background: rgba(0,212,255,0.08); color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.25); }
+  .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    margin-right: 6px; }
+  .status-ok { background: var(--accent3); box-shadow: 0 0 4px var(--accent3); }
+  .status-pending { background: #ffaa44; }
+
+  /* ââ SCANS TABLE ââ */
+  .dist-crit { color: var(--accent2); font-weight: 700; }
+  .dist-warn { color: #ffaa44; }
+  .dist-ok   { color: var(--accent3); }
+
+  /* ââ ANALYTICS EMBED ââ */
+  .analytics-card { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 24px; margin-bottom: 12px; }
+  .analytics-placeholder { text-align: center; padding: 40px 20px; }
+  .analytics-placeholder .icon { font-size: 32px; margin-bottom: 12px; }
+  .analytics-placeholder p { font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  .analytics-placeholder a { color: var(--accent); font-size: 11px; }
+  .umami-script-box { background: #040a10; border: 1px solid var(--border);
+    border-radius: 4px; padding: 12px 16px; margin-top: 16px; font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--accent3); word-break: break-all; text-align: left;
+    cursor: pointer; transition: border-color 0.2s; }
+  .umami-script-box:hover { border-color: var(--accent); }
+  .umami-script-box::before { content: '// Click to copy'; display: block;
+    font-size: 8px; color: var(--muted); letter-spacing: 2px; margin-bottom: 6px; }
+
+  /* ââ EMPTY STATE ââ */
+  .empty { text-align: center; padding: 32px; font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* ââ RESPONSIVE ââ */
+  @media (max-width: 900px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .admin-wrap { padding: 20px 16px; }
+    .data-table td, .data-table th { padding: 8px 12px; }
+  }
+  @media (max-width: 480px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-nav { padding: 0 16px; }
+    .admin-nav-logo { font-size: 11px; }
+  }
+</style>
+
+<script defer src="https://cloud.umami.is/script.js" data-website-id="4e12fc04-8b26-4e42-8b69-0700a95c7d30"></script>
+</head>
+<body>
+
+<nav class="admin-nav">
+  <a href="/" class="admin-nav-logo">VECTRA<span>SPACE</span></a>
+  <span class="admin-nav-badge">â¬¡ Admin Console</span>
+  <div class="admin-nav-links">
+    <a href="/dashboard">Dashboard</a>
+    </div>
+</nav>
+
+<div class="admin-wrap">
+
+  <!-- ââ STAT CARDS ââ -->
+  <div class="stat-grid" id="stat-grid">
+    <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-num" id="stat-users">â</div><div class="stat-sub">registered accounts</div></div>
+    <div class="stat-card c2"><div class="stat-label">Total Scans</div><div class="stat-num" id="stat-scans">â</div><div class="stat-sub">pipeline runs</div></div>
+    <div class="stat-card c3"><div class="stat-label">Conjunctions Found</div><div class="stat-num" id="stat-conj">â</div><div class="stat-sub">all time</div></div>
+    <div class="stat-card c4"><div class="stat-label">New Users (7d)</div><div class="stat-num" id="stat-new">â</div><div class="stat-sub">last 7 days</div></div>
+  </div>
+
+  <!-- ââ CHARTS ââ -->
+  <div class="section-hdr">
+    <h2>Activity</h2>
+    <button class="refresh-btn" onclick="loadAdmin()">âº Refresh</button>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Scans per Day (30d)</div>
+      <div class="chart-wrap"><canvas id="chart-scans"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Conjunctions by Regime</div>
+      <div class="chart-wrap"><canvas id="chart-regimes"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ââ USERS TABLE ââ -->
+  <div class="section-hdr" style="margin-top:28px;">
+    <h2>Registered Users</h2>
+    <span id="users-count" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;"></span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th>Scans</th>
+        </tr>
+      </thead>
+      <tbody id="users-tbody">
+        <tr><td colspan="6" class="empty">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ââ RECENT SCANS TABLE ââ -->
+  <div class="section-hdr">
+    <h2>Recent Conjunction Events</h2>
+    <span id="scans-count" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;"></span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Time (UTC)</th>
+          <th>User</th>
+          <th>Sat 1</th>
+          <th>Sat 2</th>
+          <th>Regimes</th>
+          <th>Miss Dist</th>
+          <th>Pc</th>
+        </tr>
+      </thead>
+      <tbody id="scans-tbody">
+        <tr><td colspan="7" class="empty">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ââ ANALYTICS ââ -->
+  <div class="section-hdr">
+    <h2>Website Analytics</h2>
+  </div>
+  <div class="analytics-card">
+    <div id="analytics-section">
+      <!-- renderAnalytics() populates this -->
+      <div style="padding:40px;text-align:center;font-family:Share Tech Mono,monospace;font-size:9px;color:#3a5a75;letter-spacing:2px;">LOADING ANALYTICS...</div>
+    </div>
+  </div>
+
+</div><!-- /admin-wrap -->
+
+<script>
+let chartScans = null;
+let chartRegimes = null;
+
+async function loadAdmin() {
+  try {
+    const res = await fetch('/admin/data');
+    if (res.status === 403) {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Share Tech Mono,monospace;color:#ff4444;letter-spacing:3px;">ACCESS DENIED â ADMIN ONLY</div>';
+      return;
+    }
+    const d = await res.json();
+
+    // Stat cards
+    document.getElementById('stat-users').textContent  = d.total_users;
+    document.getElementById('stat-scans').textContent  = d.total_scan_runs;
+    document.getElementById('stat-conj').textContent   = d.total_conjunctions;
+    document.getElementById('stat-new').textContent    = d.new_users_7d;
+
+    // Users table
+    document.getElementById('users-count').textContent = d.users.length + ' TOTAL';
+    const tbody = document.getElementById('users-tbody');
+    if (!d.users.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No users yet</td></tr>';
+    } else {
+      tbody.innerHTML = d.users.map(u => {
+        const joined = u.created_at ? u.created_at.slice(0,10) : 'â';
+        const roleClass = u.role === 'admin' ? 'role-admin' : 'role-operator';
+        const statusDot = u.approved !== false
+          ? '<span class="status-dot status-ok"></span>Active'
+          : '<span class="status-dot status-pending"></span>Pending';
+        return `<tr>
+          <td class="td-mono">${u.username}</td>
+          <td style="color:var(--muted);font-size:11px;">${u.email || 'â'}</td>
+          <td><span class="role-badge ${roleClass}">${u.role}</span></td>
+          <td style="font-size:11px;">${statusDot}</td>
+          <td class="td-mono" style="color:var(--muted);">${joined}</td>
+          <td class="td-mono" style="color:var(--accent);">${u.scan_count || 0}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Recent conjunctions table
+    document.getElementById('scans-count').textContent = d.recent_conjunctions.length + ' RECENT';
+    const stbody = document.getElementById('scans-tbody');
+    if (!d.recent_conjunctions.length) {
+      stbody.innerHTML = '<tr><td colspan="7" class="empty">No scans yet</td></tr>';
+    } else {
+      stbody.innerHTML = d.recent_conjunctions.map(c => {
+        const distClass = c.min_dist_km < 1 ? 'dist-crit' : c.min_dist_km < 5 ? 'dist-warn' : 'dist-ok';
+        const t = (c.run_time || '').slice(0,16).replace('T',' ');
+        return `<tr>
+          <td class="td-mono" style="color:var(--muted);font-size:10px;">${t}</td>
+          <td class="td-mono" style="color:var(--accent);">${c.user_id || 'anon'}</td>
+          <td class="td-mono">${c.sat1}</td>
+          <td class="td-mono">${c.sat2}</td>
+          <td style="font-size:10px;color:var(--muted);">${c.regime1}/${c.regime2}</td>
+          <td class="td-mono ${distClass}">${Number(c.min_dist_km).toFixed(2)} km</td>
+          <td class="td-mono" style="color:#ffaa44;">${Number(c.pc_estimate).toExponential(1)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Charts
+    const scanCtx = document.getElementById('chart-scans').getContext('2d');
+    if (chartScans) chartScans.destroy();
+    chartScans = new Chart(scanCtx, {
+      type: 'bar',
+      data: {
+        labels: d.daily_scans.map(x => x.day).reverse(),
+        datasets: [{
+          label: 'Scan Runs',
+          data: d.daily_scans.map(x => x.count).reverse(),
+          backgroundColor: 'rgba(0,212,255,0.25)',
+          borderColor: '#00d4ff',
+          borderWidth: 1,
+          borderRadius: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#3a5a75', font: { size: 8, family: 'Share Tech Mono' }, maxTicksLimit: 10 }, grid: { color: '#0d2137' } },
+          y: { ticks: { color: '#3a5a75', font: { size: 8 } }, grid: { color: '#0d2137' }, beginAtZero: true }
+        }
+      }
+    });
+
+    const regCtx = document.getElementById('chart-regimes').getContext('2d');
+    if (chartRegimes) chartRegimes.destroy();
+    chartRegimes = new Chart(regCtx, {
+      type: 'doughnut',
+      data: {
+        labels: d.regime_breakdown.map(x => x.pair),
+        datasets: [{
+          data: d.regime_breakdown.map(x => x.count),
+          backgroundColor: ['#4da6ff','#ff6b6b','#00ff88','#ffaa44','#aa66ff','#00d4ff'],
+          borderColor: '#07101a', borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: '#3a5a75', font: { family: 'Share Tech Mono', size: 8 }, boxWidth: 10, padding: 8 } } }
+      }
+    });
+
+    // Render analytics section
+    renderAnalytics(d.umami_url || '', d.umami_id || '');
+
+  } catch(e) {
+    console.error('Admin load failed:', e);
+  }
+}
+
+function renderAnalytics(umami_url, umami_id) {
+  const section = document.getElementById('analytics-section');
+  if (!section) return;
+  if (umami_id) {
+    // Extract website slug for the share URL
+    const shareBase = 'https://cloud.umami.is/share/' + umami_id + '/vectraspace';
+    section.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent3);text-transform:uppercase;">
+          â Umami Analytics Â· Live
+        </div>
+        <a href="${shareBase}" target="_blank"
+           style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;
+                  color:var(--accent);text-decoration:none;padding:4px 10px;
+                  border:1px solid var(--accent);border-radius:3px;text-transform:uppercase;
+                  transition:all 0.2s;"
+           onmouseover="this.style.background='rgba(0,212,255,0.1)'"
+           onmouseout="this.style.background='transparent'">
+          Open Full Dashboard â
+        </a>
+      </div>
+      <iframe
+        src="${shareBase}"
+        style="width:100%;height:600px;border:none;border-radius:6px;background:var(--bg2);"
+        loading="lazy"
+        title="Umami Analytics">
+      </iframe>`;
+  } else {
+    section.innerHTML = `
+      <div class="analytics-placeholder">
+        <div class="icon">ð</div>
+        <p>Umami Analytics Not Configured</p>
+        <p style="font-size:10px;color:var(--text);opacity:0.6;margin:8px 0 16px;font-family:sans-serif;">
+          Add free website analytics in 2 minutes. Tracks visits, pageviews, countries, devices â no cookies, no GDPR issues.
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <a href="https://cloud.umami.is/signup" target="_blank"
+             style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+                    padding:10px 20px;border:1px solid var(--accent);border-radius:3px;
+                    color:var(--accent);text-decoration:none;text-transform:uppercase;">
+            â Create Free Umami Account
+          </a>
+        </div>
+        <div class="umami-script-box" style="margin-top:16px;">
+          Set UMAMI_WEBSITE_ID env var on Render, then redeploy.
+        </div>
+      </div>`;
+  }
+}
+
+function copyUmamiInstructions() {
+  const text = 'UMAMI_SCRIPT_URL=https://cloud.umami.is/script.js
+UMAMI_WEBSITE_ID=your-website-id-here';
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+loadAdmin();
+</script>
+</body>
+</html>'''
+
+_LANDING_BASE = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VectraSpace â Orbital Mechanics & Space Safety Education</title>
+<meta name="description" content="Learn orbital mechanics, Space Situational Awareness, and the physics behind Kessler Syndrome through interactive simulations and deep-dive technical chapters.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:     #080c12;
+  --ink2:    #0d1320;
+  --ink3:    #131d2e;
+  --panel:   #0f1925;
+  --border:  rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text:    #ccd6e0;
+  --muted:   #8aaac5;
+  --faint:   #2a3d50;
+  --accent:  #4a9eff;
+  --accent2: #7bc4ff;
+  --green:   #34d399;
+  --amber:   #f59e0b;
+  --red:     #f87171;
+  --serif:   'Instrument Serif', Georgia, serif;
+  --mono:    'DM Mono', monospace;
+  --sans:    'Outfit', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ââ STARFIELD ââ */
+#starfield {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  overflow: hidden;
+}
+.star {
+  position: absolute; border-radius: 50%; background: #fff;
+  animation: twinkle var(--dur, 4s) ease-in-out infinite var(--delay, 0s);
+}
+@keyframes twinkle {
+  0%, 100% { opacity: var(--a1, 0.6); transform: scale(1); }
+  50% { opacity: var(--a2, 0.15); transform: scale(0.7); }
+}
+
+/* ââ NAV ââ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 60px; padding: 0 40px;
+  display: flex; align-items: center; gap: 0;
+  transition: background 0.4s, border-color 0.4s;
+  border-bottom: 1px solid transparent;
+}
+.nav-right {
+  display: flex; align-items: center; gap: 8px; margin-left: auto;
+}
+nav.scrolled {
+  background: rgba(8,12,18,0.94);
+  border-bottom-color: var(--border);
+  backdrop-filter: blur(20px);
+}
+.nav-brand {
+  display: flex; align-items: center; text-decoration: none;
+}
+.nav-brand-name {
+  font-family: var(--serif); font-size: 18px; font-weight: 400;
+  color: #fff; letter-spacing: -0.2px; font-style: italic;
+}
+.nav-brand-name em { color: var(--accent); font-style: normal; }
+.nav-links {
+  display: flex; gap: 20px; list-style: none; align-items: center;
+  flex: 1; justify-content: center;
+}
+.nav-links a {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;
+  color: var(--muted); text-decoration: none; transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; padding: 8px 18px;
+  border: 1px solid var(--accent); border-radius: 4px;
+  color: var(--accent); text-decoration: none;
+  transition: all 0.2s; white-space: nowrap;
+}
+.nav-cta:hover { background: var(--accent); color: var(--ink); }
+.nav-signin {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; text-decoration: none;
+  padding: 8px 16px; border: 1px solid var(--border);
+  border-radius: 3px; color: var(--muted);
+  transition: all 0.2s; white-space: nowrap;
+}
+.nav-signin:hover { color: var(--text); border-color: var(--border2); }
+
+/* Mobile hamburger */
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 5px; cursor: pointer;
+  padding: 8px; border: 1px solid transparent; border-radius: 4px;
+  background: transparent; transition: border-color 0.2s;
+}
+.nav-hamburger:hover { border-color: var(--border2); }
+.nav-hamburger span {
+  display: block; width: 20px; height: 1.5px; background: var(--muted);
+  border-radius: 2px; transition: all 0.25s;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+/* Mobile drawer */
+#mobile-nav {
+  display: none; position: fixed; top: 60px; left: 0; right: 0; z-index: 999;
+  background: rgba(8,12,18,0.97); border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px); padding: 20px 24px 28px;
+  flex-direction: column; gap: 4px;
+  transform: translateY(-8px); opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+#mobile-nav.open { transform: translateY(0); opacity: 1; }
+#mobile-nav a {
+  font-family: var(--mono); font-size: 13px; letter-spacing: 1px;
+  color: var(--muted); text-decoration: none; padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  transition: color 0.15s;
+}
+#mobile-nav a:last-child { border-bottom: none; }
+#mobile-nav a:hover { color: var(--text); }
+#mobile-nav a.cta-link {
+  color: var(--accent); margin-top: 8px; border: 1px solid var(--accent);
+  border-radius: 4px; padding: 12px 16px; justify-content: center;
+  border-bottom: 1px solid var(--accent);
+}
+
+/* ââ LIVE TLE TICKER (in-page section version) ââ */
+#tle-ticker {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; height: 44px;
+  display: flex; align-items: center; max-width: 1100px; margin: 0 auto;
+}
+.ticker-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent);
+  background: rgba(74,158,255,0.08); border-right: 1px solid var(--border);
+  padding: 0 16px; height: 100%; display: flex; align-items: center;
+  white-space: nowrap; flex-shrink: 0;
+}
+.ticker-scroll {
+  display: flex; overflow: hidden; flex: 1; height: 100%;
+}
+.ticker-track {
+  display: flex; gap: 0; animation: ticker-move 60s linear infinite;
+  white-space: nowrap; align-items: center;
+}
+.ticker-track:hover { animation-play-state: paused; }
+@keyframes ticker-move {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.ticker-sat {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px;
+  color: var(--muted); padding: 0 18px; border-right: 1px solid var(--border);
+  height: 44px; display: flex; align-items: center; gap: 8px;
+}
+.ticker-sat .t-name { color: var(--text); }
+.ticker-sat .t-alt { color: var(--accent); }
+.ticker-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: blink-slow 3s infinite; }
+@keyframes blink-slow { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.ticker-status {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 1px;
+  color: var(--faint); padding: 0 14px; height: 100%; display: flex; align-items: center;
+  white-space: nowrap; flex-shrink: 0; border-left: 1px solid var(--border);
+}
+
+/* ââ TOOLS STRIP ââ */
+.tools-strip {
+  display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap;
+}
+.tool-card {
+  flex: 1; min-width: 200px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px 22px;
+  text-decoration: none; display: flex; align-items: flex-start; gap: 14px;
+  transition: all 0.2s; position: relative; overflow: hidden;
+}
+.tool-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(74,158,255,0.04) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.2s;
+}
+.tool-card:hover { border-color: rgba(74,158,255,0.35); transform: translateY(-2px); }
+.tool-card:hover::before { opacity: 1; }
+.tool-card-icon {
+  width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  background: rgba(74,158,255,0.1); border: 1px solid rgba(74,158,255,0.2);
+}
+.tool-card-icon.green  { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.2); }
+.tool-card-icon.amber  { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.2); }
+.tool-card-icon.purple { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.2); }
+.tool-card-body { flex: 1; }
+.tool-card-title {
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  color: var(--text); margin-bottom: 3px;
+}
+.tool-card-desc {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.3px;
+  color: var(--muted); line-height: 1.5;
+}
+
+/* ââ HERO ââ */
+#hero {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 120px 24px 80px;
+}
+.hero-orbit-system {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; overflow: hidden;
+}
+.orbit-ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(74,158,255,0.12);
+  animation: orbit-spin linear infinite;
+}
+.orbit-ring-1 { width: 520px; height: 520px; animation-duration: 40s; }
+.orbit-ring-2 { width: 780px; height: 520px; border-color: rgba(74,158,255,0.07); animation-duration: 65s; transform: rotate(30deg); }
+.orbit-ring-3 { width: 1100px; height: 700px; border-color: rgba(74,158,255,0.05); animation-duration: 90s; animation-direction: reverse; transform: rotate(-20deg); }
+@keyframes orbit-spin { to { transform: rotate(360deg); } }
+.orbit-ring-2 { animation-name: orbit-spin2; }
+.orbit-ring-3 { animation-name: orbit-spin3; }
+@keyframes orbit-spin2 { from { transform: rotate(30deg); } to { transform: rotate(390deg); } }
+@keyframes orbit-spin3 { from { transform: rotate(-20deg); } to { transform: rotate(-380deg); } }
+
+.orbit-sat {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 10px var(--accent), 0 0 20px rgba(74,158,255,0.4);
+}
+.orbit-sat-2 { background: var(--green); box-shadow: 0 0 10px var(--green); }
+.orbit-sat-3 { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent);
+  background: rgba(74,158,255,0.08); border: 1px solid rgba(74,158,255,0.25);
+  padding: 7px 16px; border-radius: 2px; margin-bottom: 32px;
+  animation: fadeUp 0.9s ease both;
+}
+.eyebrow-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--green);
+  animation: pulse-dot 2.4s ease infinite;
+}
+@keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(0.5);opacity:0.4} }
+
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(52px, 8vw, 108px);
+  font-weight: 400; line-height: 1.0; color: #fff;
+  letter-spacing: -2px; margin-bottom: 12px;
+  animation: fadeUp 0.9s 0.1s ease both;
+}
+.hero-title-italic {
+  font-style: italic; color: var(--accent2);
+}
+.hero-title-line2 {
+  display: block; font-size: clamp(28px, 4vw, 56px);
+  color: rgba(255,255,255,0.55); font-weight: 400; font-style: normal;
+  letter-spacing: -0.5px; margin-top: 4px;
+}
+
+.hero-desc {
+  font-size: 18px; font-weight: 300; line-height: 1.8;
+  color: var(--muted); max-width: 620px; margin: 28px auto 48px;
+  animation: fadeUp 0.9s 0.2s ease both;
+}
+.hero-desc strong { color: var(--text); font-weight: 500; }
+
+.hero-actions {
+  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 80px;
+  animation: fadeUp 0.9s 0.3s ease both;
+}
+.btn-primary-hero {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 2px;
+  text-transform: uppercase; padding: 14px 36px;
+  background: var(--accent); color: var(--ink); border: none;
+  border-radius: 3px; cursor: pointer; text-decoration: none;
+  font-weight: 500; transition: all 0.2s;
+}
+.btn-primary-hero:hover { background: var(--accent2); transform: translateY(-1px); }
+.btn-secondary-hero {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 2px;
+  text-transform: uppercase; padding: 14px 32px;
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border2); border-radius: 3px;
+  cursor: pointer; text-decoration: none; transition: all 0.2s;
+}
+.btn-secondary-hero:hover { border-color: var(--text); }
+
+.hero-scroll {
+  position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase; cursor: pointer;
+  animation: fadeUp 1.2s 0.6s ease both; text-decoration: none;
+}
+.scroll-line {
+  width: 1px; height: 40px; background: linear-gradient(to bottom, var(--accent), transparent);
+  animation: scroll-pulse 2s ease infinite;
+}
+@keyframes scroll-pulse { 0%,100%{opacity:1;transform:scaleY(1)} 50%{opacity:0.3;transform:scaleY(0.6)} }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ââ TICKER ââ */
+.ticker-bar {
+  margin-top: 48px; position: relative; z-index: 1; overflow: hidden;
+  background: var(--panel); border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+}
+.ticker-inner {
+  display: flex; gap: 0; white-space: nowrap;
+  animation: ticker 30s linear infinite;
+}
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.tick-item {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+  color: var(--muted); text-transform: uppercase; padding: 0 36px;
+  flex-shrink: 0;
+}
+.tick-sep { color: var(--faint); }
+.tick-item.hi { color: var(--accent); }
+.tick-item.warn { color: var(--amber); }
+.tick-item.ok { color: var(--green); }
+
+/* ââ SECTION SHARED ââ */
+section { position: relative; z-index: 1; }
+.section-wrap { max-width: 1160px; margin: 0 auto; padding: 0 48px; }
+.section-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 12px;
+}
+.section-title {
+  font-family: var(--serif); font-size: clamp(32px, 4vw, 52px);
+  font-weight: 400; color: #fff; line-height: 1.15; margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+.section-title em { font-style: italic; color: var(--accent2); }
+.section-body {
+  font-size: 16px; font-weight: 300; color: var(--muted);
+  line-height: 1.8; max-width: 560px;
+}
+
+/* ââ REVEAL ANIMATION ââ */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* ââ MISSION SECTION ââ */
+#mission { padding: 120px 0; }
+.mission-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+}
+.mission-visual {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  height: 400px; overflow: visible;
+}
+.mission-globe {
+  width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #1a4a7a, #0a1f3a 60%, #060e1a);
+  box-shadow:
+    0 0 0 1px rgba(74,158,255,0.2),
+    0 0 60px rgba(74,158,255,0.08),
+    inset 0 0 40px rgba(0,0,0,0.6);
+  position: relative; overflow: hidden;
+}
+.globe-grid-line {
+  position: absolute; border: 1px solid rgba(74,158,255,0.1);
+}
+.globe-lat { width: 100%; height: 0; top: var(--t); left: 0; }
+.globe-lon {
+  width: 0; height: 100%;
+  left: var(--l); top: 0;
+  border: none; border-left: 1px solid rgba(74,158,255,0.1);
+}
+.globe-glow {
+  position: absolute; width: 80px; height: 80px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,158,255,0.25) 0%, transparent 70%);
+  top: 10px; left: 20px;
+}
+.orbit-path {
+  position: absolute; border-radius: 50%; border: 1px solid;
+  width: var(--w); height: var(--w);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.orbit-path-1 { --w:296px; border-color: rgba(74,158,255,0.35); animation: orb 8s linear infinite; }
+.orbit-path-2 { --w:366px; border-color: rgba(52,211,153,0.22); animation: orb2 12s linear infinite; }
+.orbit-path-3 { --w:436px; border-color: rgba(245,158,11,0.18); animation: orb3 18s linear infinite; }
+@keyframes orb  { from { transform: translate(-50%,-50%) rotate(0deg); }   to { transform: translate(-50%,-50%) rotate(360deg); } }
+@keyframes orb2 { from { transform: translate(-50%,-50%) rotate(45deg); }  to { transform: translate(-50%,-50%) rotate(405deg); } }
+@keyframes orb3 { from { transform: translate(-50%,-50%) rotate(-30deg); } to { transform: translate(-50%,-50%) rotate(330deg); } }
+.orb-sat {
+  position: absolute; width: 8px; height: 8px; border-radius: 50%;
+  top: -4px; left: calc(50% - 4px); box-shadow: 0 0 12px currentColor;
+}
+
+.mission-stats {
+  display: flex; flex-direction: column; gap: 24px; margin-top: 48px;
+}
+.mission-stat {
+  display: flex; gap: 20px; align-items: flex-start;
+  padding: 20px 24px; background: var(--panel);
+  border: 1px solid var(--border); border-radius: 6px;
+  transition: border-color 0.2s;
+}
+.mission-stat:hover { border-color: var(--border2); }
+.mission-stat-num {
+  font-family: var(--serif); font-size: 36px; color: var(--accent);
+  line-height: 1; flex-shrink: 0; width: 80px; text-align: right;
+}
+.mission-stat-label { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.mission-stat-label strong { color: var(--text); display: block; font-size: 14px; margin-bottom: 2px; }
+
+/* ââ SSA SECTION ââ */
+#ssa { padding: 120px 0; background: linear-gradient(180deg, transparent 0%, rgba(74,158,255,0.02) 50%, transparent 100%); }
+.ssa-header { text-align: center; margin-bottom: 72px; }
+.ssa-header .section-body { margin: 0 auto; text-align: center; max-width: 640px; }
+.ssa-pillars {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.ssa-pillar {
+  background: var(--ink2); padding: 36px 32px;
+  position: relative; overflow: hidden; transition: background 0.2s;
+}
+.ssa-pillar::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--pillar-color, var(--accent));
+  transform: scaleX(0); transition: transform 0.35s ease;
+}
+.ssa-pillar:hover { background: var(--panel); }
+.ssa-pillar:hover::before { transform: scaleX(1); }
+.ssa-pillar-icon {
+  font-size: 28px; margin-bottom: 20px; display: block;
+  filter: drop-shadow(0 0 8px var(--pillar-color, var(--accent)));
+}
+.ssa-pillar-title {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 2px;
+  text-transform: uppercase; color: #fff; margin-bottom: 12px;
+}
+.ssa-pillar-body { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.ssa-pillar-tag {
+  display: inline-block; font-family: var(--mono); font-size: 8px;
+  letter-spacing: 1px; padding: 3px 8px; border-radius: 2px;
+  margin-top: 14px; text-transform: uppercase;
+  background: rgba(74,158,255,0.08); color: var(--accent);
+  border: 1px solid rgba(74,158,255,0.2);
+}
+
+/* ââ KESSLER SECTION ââ */
+#kessler { padding: 120px 0; }
+.kessler-inner {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start;
+}
+.kessler-cascade {
+  display: flex; flex-direction: column; gap: 0;
+}
+.cascade-step {
+  display: flex; gap: 20px; position: relative;
+  padding-bottom: 32px; cursor: default;
+}
+.cascade-step:last-child { padding-bottom: 0; }
+.cascade-step::before {
+  content: ''; position: absolute;
+  left: 19px; top: 40px; bottom: 0; width: 1px;
+  background: linear-gradient(to bottom, var(--step-color, var(--border2)), transparent);
+}
+.cascade-step:last-child::before { display: none; }
+.cascade-num {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: var(--ink3); border: 1px solid var(--step-color, var(--border));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; color: var(--step-color, var(--muted));
+  transition: all 0.2s; position: relative; z-index: 1;
+}
+.cascade-step:hover .cascade-num {
+  background: color-mix(in srgb, var(--step-color, var(--accent)), transparent 85%);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--step-color, var(--accent)), transparent 88%);
+}
+.cascade-title {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
+  color: #fff; margin-bottom: 6px; padding-top: 9px;
+  transition: color 0.2s;
+}
+.cascade-step:hover .cascade-title { color: var(--step-color, var(--accent)); }
+.cascade-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+.kessler-data {
+  display: flex; flex-direction: column; gap: 16px;
+  position: sticky; top: 100px;
+}
+.kd-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; padding: 24px; position: relative; overflow: hidden;
+}
+.kd-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 60%, var(--card-tint, rgba(74,158,255,0.03)) 100%);
+}
+.kd-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 8px;
+}
+.kd-value {
+  font-family: var(--serif); font-size: 36px; color: #fff; line-height: 1;
+  margin-bottom: 4px;
+}
+.kd-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.kd-bar {
+  margin-top: 14px; height: 4px; background: var(--ink3); border-radius: 2px; overflow: hidden;
+}
+.kd-bar-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(to right, var(--bar-color, var(--accent)), color-mix(in srgb, var(--bar-color, var(--accent)), transparent 30%));
+  animation: bar-fill 1.6s 0.5s ease both;
+  transform-origin: left;
+}
+@keyframes bar-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ââ SIMULATION CAPABILITIES ââ */
+#simulation { padding: 120px 0; }
+.sim-header { margin-bottom: 64px; }
+.sim-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  margin-bottom: 40px;
+}
+.sim-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; padding: 28px 24px; transition: all 0.2s; position: relative;
+}
+.sim-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.sim-card-tag {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 2px;
+  margin-bottom: 16px; display: inline-block;
+  background: rgba(74,158,255,0.08); color: var(--accent);
+  border: 1px solid rgba(74,158,255,0.2);
+}
+.sim-card-tag.green {
+  background: rgba(52,211,153,0.08); color: var(--green);
+  border-color: rgba(52,211,153,0.2);
+}
+.sim-card-tag.amber {
+  background: rgba(245,158,11,0.08); color: var(--amber);
+  border-color: rgba(245,158,11,0.2);
+}
+.sim-card-tag.red {
+  background: rgba(248,113,113,0.08); color: var(--red);
+  border-color: rgba(248,113,113,0.2);
+}
+.sim-card-icon { font-size: 22px; margin-bottom: 14px; }
+.sim-card-title {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
+  color: #fff; margin-bottom: 8px; text-transform: uppercase;
+}
+.sim-card-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
+.sim-card-stat {
+  margin-top: 16px; font-family: var(--mono); font-size: 10px;
+  color: var(--faint); letter-spacing: 1px;
+}
+.sim-card-stat span { color: var(--accent); }
+
+.sim-terminal {
+  background: #060c14; border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
+  box-shadow: 0 0 80px rgba(74,158,255,0.06), 0 40px 80px rgba(0,0,0,0.6);
+}
+.sim-terminal-bar {
+  background: #0a111c; border-bottom: 1px solid var(--border);
+  padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+}
+.terminal-dots { display: flex; gap: 7px; }
+.terminal-dots span { width: 10px; height: 10px; border-radius: 50%; }
+.td-r { background: #ff5f57; } .td-y { background: #febc2e; } .td-g { background: #28c840; }
+.terminal-title {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase; margin-left: auto;
+}
+.sim-terminal-body {
+  padding: 24px 28px; font-family: var(--mono); font-size: 11px;
+  line-height: 2.0;
+}
+.tl { display: block; }
+.tp { color: var(--accent); } .tc { color: var(--text); }
+.to { color: var(--muted); } .tok { color: var(--green); }
+.tw { color: var(--amber); } .tv { color: var(--accent2); }
+.te { color: var(--red); }
+.cursor-blink { display: inline-block; width: 8px; height: 14px; background: var(--accent); animation: cursor-blink 1s step-end infinite; vertical-align: middle; }
+@keyframes cursor-blink { 50% { opacity: 0; } }
+
+/* ââ LEARN SECTION ââ */
+#learn { padding: 120px 0; background: linear-gradient(180deg, transparent 0%, rgba(74,158,255,0.015) 50%, transparent 100%); }
+.learn-header { text-align: center; margin-bottom: 72px; }
+.learn-header .section-body { margin: 0 auto; text-align: center; }
+.chapters-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+}
+.chapter-card {
+  display: block; text-decoration: none;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden; transition: all 0.25s;
+  position: relative;
+}
+.chapter-card:hover {
+  border-color: var(--ch-color, var(--accent));
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4), 0 0 0 0.5px var(--ch-color, var(--accent));
+}
+.chapter-card-accent {
+  height: 3px; background: var(--ch-color, var(--accent));
+  transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease;
+}
+.chapter-card:hover .chapter-card-accent { transform: scaleX(1); }
+.chapter-card-body { padding: 32px; }
+.chapter-number {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--ch-color, var(--accent)); text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.chapter-title {
+  font-family: var(--serif); font-size: 26px; font-weight: 400;
+  color: #fff; line-height: 1.2; margin-bottom: 12px;
+  letter-spacing: -0.3px;
+}
+.chapter-desc { font-size: 13px; color: var(--muted); line-height: 1.65; }
+.chapter-topics {
+  margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px;
+}
+.topic-pill {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+  padding: 3px 10px; border-radius: 20px;
+  background: rgba(255,255,255,0.04); color: var(--muted);
+  border: 1px solid var(--border); text-transform: uppercase;
+  transition: all 0.2s;
+}
+.chapter-card:hover .topic-pill { border-color: rgba(255,255,255,0.12); color: var(--text); }
+.chapter-footer {
+  border-top: 1px solid var(--border); padding: 16px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+}
+.chapter-read-link {
+  color: var(--ch-color, var(--accent)); letter-spacing: 1.5px;
+  text-transform: uppercase; font-size: 9px;
+  display: flex; align-items: center; gap: 6px;
+}
+.chapter-read-link::after {
+  content: 'â'; transition: transform 0.2s;
+}
+.chapter-card:hover .chapter-read-link::after { transform: translateX(4px); }
+
+/* ââ CHAPTER PROGRESS TRACKING ââ */
+.chapter-card { position: relative; }
+.chapter-progress-badge {
+  position: absolute; top: 14px; right: 14px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--green, #34d399); display: none;
+  align-items: center; justify-content: center;
+  font-size: 12px; z-index: 2;
+  box-shadow: 0 0 12px rgba(52,211,153,0.4);
+}
+.chapter-card.completed .chapter-progress-badge { display: flex; }
+.chapter-card.completed .chapter-card-accent { transform: scaleX(1); background: var(--green, #34d399); }
+.chapter-card.completed { border-color: rgba(52,211,153,0.2); }
+
+/* Learning progress bar strip */
+.learn-progress-strip {
+  max-width: 480px; margin: 0 auto 56px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px 24px;
+  display: none;
+}
+.learn-progress-strip.show { display: block; }
+.lps-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  display: flex; justify-content: space-between;
+}
+.lps-bar-track {
+  height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+}
+.lps-bar-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--green) 100%);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ââ DATA SECTION ââ */
+#data { padding: 100px 0; }
+.data-metrics {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.data-metric {
+  background: var(--panel); padding: 40px 32px; text-align: center;
+  position: relative; overflow: hidden; transition: background 0.2s;
+}
+.data-metric:hover { background: var(--ink3); }
+.data-metric-glyph {
+  position: absolute; bottom: -10px; right: -10px;
+  font-family: var(--serif); font-size: 80px; color: rgba(255,255,255,0.02);
+  line-height: 1; pointer-events: none;
+}
+.data-metric-val {
+  font-family: var(--serif); font-size: 48px; color: var(--accent);
+  line-height: 1; margin-bottom: 8px; display: block;
+}
+.c2 .data-metric-val { color: var(--green); }
+.c3 .data-metric-val { color: var(--amber); }
+.c4 .data-metric-val { color: #a78bfa; }
+.data-metric-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase;
+}
+
+/* ââ SATELLITE OF THE DAY ââ */
+#satod { padding: 40px 0 80px; }
+.satod-card {
+  max-width: 900px; margin: 0 auto;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+  overflow: hidden; position: relative;
+}
+.satod-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--satod-color, var(--accent)) 0%, transparent 100%);
+}
+.satod-header {
+  padding: 28px 36px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;
+}
+.satod-eyebrow {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  color: var(--green); text-transform: uppercase; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.satod-live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.satod-name {
+  font-family: var(--serif); font-size: 28px; color: #fff;
+  font-weight: 400; letter-spacing: -0.3px; line-height: 1.2;
+}
+.satod-type-badge {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  padding: 5px 12px; border-radius: 20px; border: 1px solid;
+  text-transform: uppercase; white-space: nowrap; align-self: flex-start;
+  color: var(--satod-color, var(--accent));
+  border-color: var(--satod-color, var(--accent));
+  background: rgba(74,158,255,0.07);
+}
+.satod-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--border);
+}
+.satod-stat {
+  padding: 24px 28px; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.satod-stat:last-child { border-right: none; }
+.satod-stat-val {
+  font-family: var(--serif); font-size: 32px; color: var(--satod-color, var(--accent));
+  line-height: 1; letter-spacing: -0.5px;
+}
+.satod-stat-unit {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.satod-stat-label {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase; margin-top: 2px;
+}
+.satod-footer {
+  padding: 20px 36px; border-top: 1px solid var(--border);
+  display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
+}
+.satod-fact-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.satod-fact {
+  font-size: 14px; color: var(--muted); line-height: 1.7; flex: 1;
+  font-style: italic;
+}
+.satod-operator {
+  font-family: var(--mono); font-size: 9px; color: var(--faint);
+  letter-spacing: 1px; text-transform: uppercase; padding: 20px 36px 0;
+}
+.satod-loading {
+  padding: 60px 36px; text-align: center;
+  font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 1px;
+}
+
+/* ââ CTA SECTION ââ */
+#cta { padding: 100px 0; }
+.cta-box {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, rgba(74,158,255,0.08) 0%, rgba(74,158,255,0.02) 100%);
+  border: 1px solid rgba(74,158,255,0.2); border-radius: 20px;
+  padding: 80px 64px; text-align: center;
+}
+.cta-glow {
+  position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+  width: 500px; height: 300px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(74,158,255,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta-eyebrow {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+}
+.cta-title {
+  font-family: var(--serif); font-size: clamp(30px, 4vw, 52px);
+  font-weight: 400; color: #fff; line-height: 1.15; letter-spacing: -0.5px;
+  margin-bottom: 20px;
+}
+.cta-title em { font-style: italic; color: var(--accent2); }
+.cta-body {
+  font-size: 16px; color: var(--muted); line-height: 1.8;
+  max-width: 580px; margin: 0 auto 40px;
+}
+.cta-buttons {
+  display: flex; gap: 14px; justify-content: center;
+  flex-wrap: wrap; align-items: center;
+}
+
+/* ââ FOOTER ââ */
+footer {
+  padding: 60px 48px 40px;
+  border-top: 1px solid var(--border);
+  position: relative; z-index: 1;
+}
+.footer-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 40px; margin-bottom: 40px; flex-wrap: wrap;
+}
+.footer-brand {
+  font-family: var(--serif); font-size: 18px; font-style: italic;
+  color: #fff; letter-spacing: -0.2px; text-decoration: none;
+}
+.footer-brand em { color: var(--accent); font-style: normal; }
+.footer-links {
+  display: flex; gap: 6px 24px; flex-wrap: wrap; list-style: none;
+  max-width: 420px;
+}
+.footer-links a {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted); text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--text); }
+.footer-contact {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;
+  color: var(--muted); line-height: 1.8;
+}
+.footer-contact a { color: var(--accent); text-decoration: none; }
+.footer-contact a:hover { text-decoration: underline; }
+.footer-copy {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+  color: var(--faint); border-top: 1px solid var(--border); padding-top: 20px;
+}
+
+@media (max-width: 600px) {
+  .satod-stats { grid-template-columns: 1fr; }
+  .satod-stat { border-right: none; border-bottom: 1px solid var(--border); }
+  .satod-stat:last-child { border-bottom: none; }
+  .satod-header { padding: 24px 20px 16px; }
+  .satod-footer, .satod-operator { padding-left: 20px; padding-right: 20px; }
+}
+
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââ
+   RESPONSIVE â TABLET  (â¤960px)
+   âââââââââââââââââââââââââââââââââââââââââââââââââââ */
+@media (max-width: 960px) {
+  nav { padding: 0 16px; }
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-cta { display: none; }
+  .nav-signin { display: none; }
+  .section-wrap { padding: 0 20px; }
+  .mission-grid, .kessler-inner { grid-template-columns: 1fr; gap: 40px; }
+  .ssa-pillars { grid-template-columns: 1fr 1fr; }
+  .sim-grid { grid-template-columns: 1fr 1fr; }
+  .chapters-grid { grid-template-columns: 1fr; }
+  .data-metrics { grid-template-columns: repeat(2, 1fr); }
+  .mission-visual { height: 260px; }
+  footer { flex-direction: column; gap: 20px; text-align: center; }
+  .kessler-data { position: static; }
+  #contact .container { padding: 0 20px !important; }
+  #contact .reveal > div { padding: 40px 32px !important; }
+  /* Why cards â 2 col on tablet */
+  #why .why-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  /* Howto strip â stack on tablet */
+  #howto .howto-inner { flex-direction: column !important; gap: 0 !important; }
+  #howto .howto-step { border-right: none !important; border-bottom: 1px solid var(--border) !important; padding: 20px 0 !important; }
+  #howto .howto-step:last-child { border-bottom: none !important; }
+}
+
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââ
+   RESPONSIVE â MOBILE  (â¤600px)
+   âââââââââââââââââââââââââââââââââââââââââââââââââââ */
+@media (max-width: 600px) {
+  /* ââ Nav ââ */
+  nav { padding: 0 16px; height: 54px; }
+
+  /* ââ Hero ââ */
+  #hero { padding: 88px 16px 60px; min-height: auto; }
+  .hero-orbit-system { display: none; }
+  .hero-title { font-size: clamp(38px, 11vw, 56px); letter-spacing: -1px; }
+  .hero-title-line2 { font-size: clamp(22px, 7vw, 32px); }
+  .hero-desc { font-size: 15px; margin: 20px auto 32px; }
+  /* Social proof strip â 2x2 grid on mobile */
+  .hero-proof { flex-wrap: wrap !important; gap: 16px !important; }
+  .hero-proof-divider { display: none !important; }
+  .hero-proof-item { min-width: calc(50% - 8px) !important; }
+  .hero-actions { flex-direction: column; gap: 10px; width: 100%; }
+  .btn-primary-hero, .btn-secondary-hero { width: 100%; text-align: center; }
+  .hero-scroll { display: none; }
+
+  /* ââ Ticker ââ */
+  #tle-ticker { display: none; }
+  .ticker-bar { margin-top: 16px; }
+
+  /* ââ Section wrap ââ */
+  .section-wrap { padding: 0 16px; }
+
+  /* ââ Why cards â single column ââ */
+  #why { padding: 60px 0 40px !important; }
+  #why .why-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+
+  /* ââ Howto strip ââ */
+  #howto { padding: 12px 0 60px !important; }
+  #howto .howto-inner {
+    flex-direction: column !important;
+    padding: 28px 20px !important;
+    gap: 0 !important;
+  }
+  #howto .howto-step {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 20px 0 !important;
+  }
+  #howto .howto-step:last-child { border-bottom: none !important; padding-bottom: 0 !important; }
+
+  /* ââ Chapters ââ */
+  .chapters-grid { grid-template-columns: 1fr; gap: 14px; }
+  .chapter-card-body { padding: 20px 16px; }
+  .chapter-footer { padding: 12px 16px; }
+  .chapter-topics { gap: 5px; }
+  .topic-pill { font-size: 8px; padding: 3px 8px; }
+
+  /* ââ Simulation grid ââ */
+  .sim-grid { grid-template-columns: 1fr; }
+  .tools-strip { flex-direction: column; }
+  .tool-card { min-width: 0; }
+
+  /* ââ Data metrics ââ */
+  .data-metrics { grid-template-columns: 1fr 1fr; }
+
+  /* ââ CTA ââ */
+  .cta-box { padding: 40px 20px; }
+  .cta-title { font-size: clamp(22px, 6vw, 34px); }
+  .cta-body { font-size: 14px; }
+  .cta-buttons { flex-direction: column; gap: 10px; }
+  .cta-buttons a { width: 100%; text-align: center; }
+
+  /* ââ SSA pillars ââ */
+  .ssa-pillars { grid-template-columns: 1fr; }
+
+  /* ââ Contact ââ */
+  #contact { padding: 60px 0 !important; }
+  /* Team cards: horizontal scroll on mobile */
+  .team-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  .team-grid > div { min-width: 240px; }
+  #contact .container { padding: 0 16px !important; }
+  #contact .reveal > div { padding: 28px 16px !important; }
+  .contact-bio-row { flex-direction: column !important; gap: 20px !important; align-items: center !important; text-align: center !important; }
+  #contact .reveal [style*="font-size:26px"] { font-size: 18px !important; }
+  #contact .reveal [style*="font-size:clamp(22px"] { font-size: 18px !important; }
+  #contact .reveal [style*="max-width:520px"] { max-width: 100% !important; }
+  #contact a[href^="mailto"] { width: 100%; justify-content: center !important; font-size: 9px !important; padding: 12px 12px !important; box-sizing: border-box; }
+  /* Team cards â stack on mobile */
+  #contact .reveal > div > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ââ Footer ââ */
+  footer { padding: 28px 16px; }
+  .footer-top { flex-direction: column; align-items: flex-start; gap: 24px; margin-bottom: 24px; }
+  .footer-top { flex-direction: column; align-items: center; text-align: center; }
+  .footer-links { flex-wrap: wrap; justify-content: center; gap: 6px 14px; }
+  .footer-contact { text-align: center; }
+  .footer-copy { font-size: 10px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- STARFIELD -->
+<div id="starfield"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="/" class="nav-brand">
+    <span class="nav-brand-name">Vectra<em>Space</em></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#mission">Mission</a></li>
+    <li><a href="#learn">Chapters</a></li>
+    <li><a href="/scenarios">Scenarios</a></li>
+        <li><a href="/glossary">Resources</a></li>
+    <li><a href="/calculator">Calculator</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="/api/tools/trajectory" style="color:var(--green);border:1px solid rgba(52,211,153,0.3);border-radius:4px;padding:4px 10px;">Trajectory â</a></li>
+  </ul>
+  <div class="nav-right">
+        <a href="/dashboard" class="nav-cta">Dashboard â</a>
+  </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div id="mobile-nav">
+  <a href="#mission">Mission <span>â</span></a>
+  <a href="#learn">Chapters <span>â</span></a>
+  <a href="/scenarios">Scenarios <span>â</span></a>
+  <a href="/glossary">Resources <span>â</span></a>
+  <a href="/calculator">Calculator <span>â</span></a>
+  <a href="#contact">Contact <span>â</span></a>
+  <a href="/api/tools/trajectory">Trajectory Simulator <span>â</span></a>
+    <a href="/dashboard" class="cta-link">Open Dashboard â</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-orbit-system">
+    <div class="orbit-ring orbit-ring-1"><div class="orbit-sat" style="color:#4a9eff;"></div></div>
+    <div class="orbit-ring orbit-ring-2"><div class="orbit-sat orbit-sat-2" style="top:-4px;left:calc(50% - 4px);"></div></div>
+    <div class="orbit-ring orbit-ring-3"><div class="orbit-sat orbit-sat-3" style="top:calc(50% - 4px);left:-4px;"></div></div>
+  </div>
+
+  <div class="hero-eyebrow">
+    <span class="eyebrow-dot"></span>
+    Space Situational Awareness &amp; Education Platform
+  </div>
+
+  <h1 class="hero-title">
+    <span class="hero-title-italic">Understanding</span>
+    <span class="hero-title-line2">the Crowded Cosmos</span>
+  </h1>
+
+  <p class="hero-desc">
+    <strong>27,000+ tracked objects.</strong> A debris field that could trigger an irreversible
+    cascade. VectraSpace gives you the physics, the data, and the tools to understand it â
+    from Kepler to Kessler, in four chapters.
+  </p>
+
+  <!-- Social proof strip -->
+  <div class="hero-proof" style="display:flex;gap:32px;margin:28px 0 36px;flex-wrap:wrap;">
+    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
+      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:#fff;letter-spacing:-1px;">4</span>
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Technical Chapters</span>
+    </div>
+    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>
+    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
+      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:#fff;letter-spacing:-1px;">27k+</span>
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Tracked Objects</span>
+    </div>
+    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>
+    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
+      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:var(--green);letter-spacing:-1px;">Live</span>
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">SGP4 Scanner</span>
+    </div>
+    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>
+    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
+      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:var(--amber);letter-spacing:-1px;">Free</span>
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">No account needed</span>
+    </div>
+  </div>
+
+  <div class="hero-actions">
+    <a href="#learn" class="btn-primary-hero">Start Learning &darr;</a>
+    <a href="/dashboard" class="btn-secondary-hero">Live Scanner &rarr;</a>
+  </div>
+
+  <a href="#why" class="hero-scroll">
+    <div class="scroll-line"></div>
+    Scroll
+  </a>
+</section>
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-inner" id="ticker">
+    <span class="tick-item ok"><span class="tick-sep">â</span> Tracked Objects: 27,000+</span>
+    <span class="tick-item warn"><span class="tick-sep">â</span> Estimated Debris &gt;1mm: 130 Million</span>
+    <span class="tick-item hi"><span class="tick-sep">â</span> ISS Altitude: 408 km LEO</span>
+    <span class="tick-item"><span class="tick-sep">â</span> Collision Risk Method: Foster-Alfano Pc</span>
+    <span class="tick-item warn"><span class="tick-sep">â</span> Fengyun-1C 2007: Largest Single Debris Event</span>
+    <span class="tick-item ok"><span class="tick-sep">â</span> SGP4 Propagation: 1-Minute Resolution</span>
+    <span class="tick-item"><span class="tick-sep">â</span> Sun-Synchronous i â 97.8Â° â RAAN Drifts +0.9856Â°/day</span>
+    <span class="tick-item hi"><span class="tick-sep">â</span> Kessler Syndrome: Self-Sustaining Cascade</span>
+    <span class="tick-item"><span class="tick-sep">â</span> Jâ Coefficient: 1.08263 Ã 10â»Â³</span>
+    <span class="tick-item ok"><span class="tick-sep">â</span> Tracked Objects: 27,000+</span>
+    <span class="tick-item warn"><span class="tick-sep">â</span> Estimated Debris &gt;1mm: 130 Million</span>
+    <span class="tick-item hi"><span class="tick-sep">â</span> ISS Altitude: 408 km LEO</span>
+    <span class="tick-item"><span class="tick-sep">â</span> Collision Risk Method: Foster-Alfano Pc</span>
+    <span class="tick-item warn"><span class="tick-sep">â</span> Fengyun-1C 2007: Largest Single Debris Event</span>
+    <span class="tick-item ok"><span class="tick-sep">â</span> SGP4 Propagation: 1-Minute Resolution</span>
+    <span class="tick-item"><span class="tick-sep">â</span> Sun-Synchronous i â 97.8Â° â RAAN Drifts +0.9856Â°/day</span>
+    <span class="tick-item hi"><span class="tick-sep">â</span> Kessler Syndrome: Self-Sustaining Cascade</span>
+    <span class="tick-item"><span class="tick-sep">â</span> Jâ Coefficient: 1.08263 Ã 10â»Â³</span>
+  </div>
+</div>
+
+<!-- MISSION / WHY IT MATTERS -->
+<div id="mission" style="position:relative;top:-60px;pointer-events:none;"></div>
+<section id="why"  style="padding:80px 0 60px;">
+  <div class="section-wrap">
+    <!-- ââ WHY WE EXIST ââ -->
+    <div class="reveal" style="text-align:center;margin-bottom:56px;">
+      <div class="section-label" style="justify-content:center;">// Our Mission</div>
+      <h2 class="section-title" style="margin-bottom:20px;">Built because the physics<br><em>deserves to be understood</em></h2>
+      <p style="font-size:15px;color:var(--muted);max-width:600px;margin:0 auto 40px;line-height:1.85;">
+        VectraSpace exists because orbital safety is one of the most consequential engineering
+        problems of our generation â and almost no one outside the industry understands it.
+        We built a platform where anyone can engage with the real mathematics: not simplified
+        metaphors, but the actual SGP4 propagation, Foster-Alfano probability of collision,
+        and Kessler cascade physics that real SSA operators use every day.
+      </p>
+      <div style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--accent);">Free</span>
+          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Always &amp; Forever</span>
+        </div>
+        <div style="width:1px;background:var(--border);"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--green);">Real</span>
+          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Physics &amp; Data</span>
+        </div>
+        <div style="width:1px;background:var(--border);"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--amber);">Open</span>
+          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">No Account Needed</span>
+        </div>
+      </div>
+      <div class="section-label" style="justify-content:center;margin-bottom:8px;">// Why orbital safety matters</div>
+      <h2 class="section-title">The orbital environment<br>is <em>running out of time</em></h2>
+    </div>
+    <div class="why-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+
+      <div class="reveal" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);"></div>
+        <div style="font-family:var(--serif);font-size:48px;font-style:italic;color:var(--accent);letter-spacing:-2px;margin-bottom:10px;">27,000+</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Tracked Objects</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.75;">The US Space Surveillance Network tracks 27,000+ objects larger than 10cm. Hundreds of thousands of smaller fragments â invisible to radar â travel at 7.8 km/s through crowded orbital shells.</p>
+      </div>
+
+      <div class="reveal reveal-delay-1" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--amber),transparent);"></div>
+        <div style="font-family:var(--serif);font-size:48px;font-style:italic;color:var(--amber);letter-spacing:-2px;margin-bottom:10px;">10Ã</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Collision Energy Multiplier</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.75;">Orbital velocities of ~7.8 km/s mean a 10 cm debris fragment carries the kinetic energy of a hand grenade. Even a 1 cm fragment can destroy a satellite â and generate thousands more pieces.</p>
+      </div>
+
+      <div class="reveal reveal-delay-2" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent);"></div>
+        <div style="font-family:var(--serif);font-size:48px;font-style:italic;color:var(--red);letter-spacing:-2px;margin-bottom:10px;">Cascade</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Kessler Syndrome Risk</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.75;">Above a critical density threshold, collisions generate debris faster than drag removes it. The cascade becomes self-sustaining â rendering entire orbital shells permanently unusable.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- 3-step onboarding strip -->
+<section id="howto" style="padding:20px 0 80px;">
+  <div class="section-wrap">
+    <div class="reveal howto-inner" style="background:var(--ink2);border:1px solid var(--border);border-radius:16px;padding:40px 48px;display:flex;align-items:center;gap:0;flex-wrap:wrap;">
+      <div class="howto-step" style="flex:1;min-width:160px;padding:0 24px 0 0;border-right:1px solid var(--border);">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">Step 01</div>
+        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Read the Chapters</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Four technical deep dives â orbital mechanics, collision prediction, perturbations, debris modeling.</div>
+      </div>
+      <div class="howto-step" style="flex:1;min-width:160px;padding:0 24px;border-right:1px solid var(--border);">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:10px;">Step 02</div>
+        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Run a Simulation</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Explore the Kessler cascade, IridiumâCosmos collision, and ASAT events in interactive 3D.</div>
+      </div>
+      <div class="howto-step" style="flex:1;min-width:160px;padding:0 0 0 24px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">Step 03</div>
+        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Scan Live Orbits</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Run the live SGP4 conjunction scanner on real TLE data and generate a downloadable CDM report.</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- DEEP DIVE CHAPTERS -->
+<section id="learn">
+  <div class="section-wrap">
+    <div class="learn-header">
+      <div class="reveal">
+        <div class="section-label">// Technical Deep Dives</div>
+        <h2 class="section-title">The physics behind<br><em>every orbit</em></h2>
+        <p class="section-body">
+          Four comprehensive chapters covering the mathematics, algorithms, and engineering principles
+          that power modern Space Situational Awareness â from Kepler to Kessler.
+        </p>
+      </div>
+    </div>
+
+    <div class="learn-progress-strip" id="learn-progress-strip">
+      <div class="lps-label"><span>Your Progress</span><span id="lps-text">0 / 4 Chapters</span></div>
+      <div class="lps-bar-track"><div class="lps-bar-fill" id="lps-fill" style="width:0%"></div></div>
+    </div>
+    <div class="chapters-grid">
+      <!-- Chapter 01 -->
+      <a href="/education/orbital-mechanics" class="chapter-card reveal" id="chcard-1" style="--ch-color:#4a9eff;">
+        <div class="chapter-card-accent"></div>
+        <div class="chapter-progress-badge">â</div>
+        <div class="chapter-card-body">
+          <div class="chapter-number">Chapter 01 â Foundations</div>
+          <h3 class="chapter-title">Orbital Mechanics &amp; the Two-Body Problem</h3>
+          <p class="chapter-desc">
+            From Newton's universal gravitation to Kepler's three laws, vis-viva equation,
+            orbital elements, TLE format, and the SGP4 propagator that powers every conjunction
+            screening system on Earth.
+          </p>
+          <div class="chapter-topics">
+            <span class="topic-pill">Kepler's Laws</span>
+            <span class="topic-pill">Six Orbital Elements</span>
+            <span class="topic-pill">TLE Format</span>
+            <span class="topic-pill">SGP4 Model</span>
+            <span class="topic-pill">Vis-Viva Equation</span>
+          </div>
+        </div>
+        <div class="chapter-footer">
+          <span>~25 min read Â· 12 equations</span>
+          <span class="chapter-read-link">Read chapter</span>
+        </div>
+      </a>
+
+      <!-- Chapter 02 -->
+      <a href="/education/collision-prediction" class="chapter-card reveal reveal-delay-1" id="chcard-2" style="--ch-color:#34d399;">
+        <div class="chapter-card-accent"></div>
+        <div class="chapter-progress-badge">â</div>
+        <div class="chapter-card-body">
+          <div class="chapter-number">Chapter 02 â Collision Analysis</div>
+          <h3 class="chapter-title">Conjunction Prediction &amp; Probability of Collision</h3>
+          <p class="chapter-desc">
+            How operators screen 350 million possible object pairs daily, compute Time of Closest
+            Approach, model covariance ellipsoids, and apply the Foster-Alfano method to estimate
+            whether a maneuver is warranted.
+          </p>
+          <div class="chapter-topics">
+            <span class="topic-pill">TCA Algorithm</span>
+            <span class="topic-pill">Foster-Alfano Pc</span>
+            <span class="topic-pill">CCSDS CDM</span>
+            <span class="topic-pill">Covariance Matrix</span>
+            <span class="topic-pill">CW Maneuver</span>
+          </div>
+        </div>
+        <div class="chapter-footer">
+          <span>~30 min read Â· 18 equations</span>
+          <span class="chapter-read-link">Read chapter</span>
+        </div>
+      </a>
+
+      <!-- Chapter 03 -->
+      <a href="/education/perturbations" class="chapter-card reveal reveal-delay-2" id="chcard-3" style="--ch-color:#f59e0b;">
+        <div class="chapter-card-accent"></div>
+        <div class="chapter-progress-badge">â</div>
+        <div class="chapter-card-body">
+          <div class="chapter-number">Chapter 03 â Perturbation Theory</div>
+          <h3 class="chapter-title">Why Real Orbits Deviate from Kepler</h3>
+          <p class="chapter-desc">
+            Earth's oblateness (Jâ = 1.08263Ã10â»Â³), atmospheric drag, solar radiation pressure,
+            and luni-solar gravity all bend real orbits away from ideal ellipses â and drive
+            sun-synchronous design, station-keeping budgets, and TLE accuracy decay.
+          </p>
+          <div class="chapter-topics">
+            <span class="topic-pill">Jâ Oblateness</span>
+            <span class="topic-pill">Atmospheric Drag</span>
+            <span class="topic-pill">Solar Rad. Pressure</span>
+            <span class="topic-pill">RAAN Precession</span>
+            <span class="topic-pill">TLE Age Error</span>
+          </div>
+        </div>
+        <div class="chapter-footer">
+          <span>~28 min read Â· 15 equations</span>
+          <span class="chapter-read-link">Read chapter</span>
+        </div>
+      </a>
+
+      <!-- Chapter 04 -->
+      <a href="/education/debris-modeling" class="chapter-card reveal reveal-delay-3" id="chcard-4" style="--ch-color:#f87171;">
+        <div class="chapter-card-accent"></div>
+        <div class="chapter-progress-badge">â</div>
+        <div class="chapter-card-body">
+          <div class="chapter-number">Chapter 04 â Debris Physics</div>
+          <h3 class="chapter-title">Debris Modeling &amp; the Kessler Cascade</h3>
+          <p class="chapter-desc">
+            The NASA Standard Breakup Model, power-law fragment distributions, historical events
+            from Fengyun-1C to Iridium-Cosmos, cascade threshold mathematics, Active Debris Removal
+            technologies, and IADC mitigation guidelines.
+          </p>
+          <div class="chapter-topics">
+            <span class="topic-pill">NASA SBM</span>
+            <span class="topic-pill">Fragment Velocity</span>
+            <span class="topic-pill">Cascade Physics</span>
+            <span class="topic-pill">ADR Technologies</span>
+            <span class="topic-pill">IADC Guidelines</span>
+          </div>
+        </div>
+        <div class="chapter-footer">
+          <span>~32 min read Â· 10 equations</span>
+          <span class="chapter-read-link">Read chapter</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- SIMULATION -->
+<section id="simulation">
+  <div class="section-wrap">
+    <div class="sim-header reveal">
+      <div class="section-label">// Live Simulation Platform</div>
+      <h2 class="section-title">See the math <em>in motion</em></h2>
+      <p class="section-body">
+        The VectraSpace dashboard runs real SGP4 propagation on live TLE data, screens
+        every orbit pair for conjunctions, and visualizes the results on a photorealistic
+        CesiumJS globe â all in your browser.
+      </p>
+    </div>
+
+    <div class="sim-grid">
+      <div class="sim-card reveal">
+        <span class="sim-card-tag">SGP4 / SDP4</span>
+        <div class="sim-card-icon">â¡</div>
+        <div class="sim-card-title">Live Propagation</div>
+        <p class="sim-card-body">NumPy-vectorized SGP4 propagates thousands of satellites simultaneously across a 12â72 hour window at 1-minute resolution. Regime-specific filters for LEO, MEO, and GEO.</p>
+        <div class="sim-card-stat">Step size: <span>60 s</span> Â· Batch: <span>50 sats</span></div>
+      </div>
+      <div class="sim-card reveal reveal-delay-1">
+        <span class="sim-card-tag green">Conjunction</span>
+        <div class="sim-card-icon">ð¯</div>
+        <div class="sim-card-title">Conjunction Screening</div>
+        <p class="sim-card-body">Ellipsoid pre-filter eliminates 95%+ of pairs before refinement. Bounded golden-section search finds exact TCA. Foster-Alfano Pc with real CDM covariance when Space-Track credentials are set.</p>
+        <div class="sim-card-stat">Filter rate: <span>~95%</span> Â· Pc method: <span>Foster-Alfano</span></div>
+      </div>
+      <div class="sim-card reveal reveal-delay-2">
+        <span class="sim-card-tag amber">Debris</span>
+        <div class="sim-card-icon">ð¥</div>
+        <div class="sim-card-title">Fragmentation Model</div>
+        <p class="sim-card-body">Simulate a collision or explosion using the NASA Standard Breakup Model. Lognormal velocity distributions, isotropic ejection directions, and real conjunction screening of the resulting debris cloud.</p>
+        <div class="sim-card-stat">Max fragments: <span>200</span> Â· Lc range: <span>1â50 cm</span></div>
+      </div>
+      <div class="sim-card reveal">
+        <span class="sim-card-tag">CCSDS CDM</span>
+        <div class="sim-card-icon">ð</div>
+        <div class="sim-card-title">CDM Export</div>
+        <p class="sim-card-body">Standards-compliant Conjunction Data Messages (CCSDS 508.0-B-1) generated per event. Individual download or bulk ZIP. Includes Clohessy-Wiltshire minimum-ÎV maneuver advisory for each conjunction.</p>
+        <div class="sim-card-stat">Format: <span>CCSDS 508.0</span> Â· Maneuver: <span>CW Linear</span></div>
+      </div>
+      <div class="sim-card reveal reveal-delay-1">
+        <span class="sim-card-tag red">Alerting</span>
+        <div class="sim-card-icon">ð</div>
+        <div class="sim-card-title">Real-time Alerts</div>
+        <p class="sim-card-body">Threshold-based alert routing: email (Gmail, SendGrid, SES, Postmark), Pushover mobile push, and HTTP webhooks. Per-user Pc threshold and miss-distance configuration. Styled HTML email with full conjunction data.</p>
+        <div class="sim-card-stat">Channels: <span>4 email + Pushover + webhook</span></div>
+      </div>
+      <div class="sim-card reveal reveal-delay-2">
+        <span class="sim-card-tag">CesiumJS</span>
+        <div class="sim-card-icon">ð</div>
+        <div class="sim-card-title">3D Globe Visualization</div>
+        <p class="sim-card-body">Photorealistic Cesium World Terrain + Imagery, animated orbital tracks, conjunction markers, time-scrubbing, and adjustable simulation speed. Click any object for satellite info powered by the Anthropic API.</p>
+        <div class="sim-card-stat">Engine: <span>CesiumJS 1.114</span> Â· Mode: <span>WebGL 2</span></div>
+      </div>
+    </div>
+
+    <!-- Interactive Tools Strip -->
+    <div class="tools-strip reveal" style="margin-top:40px;">
+      <a href="/scenarios" class="tool-card">
+        <div class="tool-card-icon">ð¥</div>
+        <div class="tool-card-body">
+          <div class="tool-card-title">Scenario Modules</div>
+          <div class="tool-card-desc">Iridium-Cosmos Â· Kessler Â· ASAT Â· Maneuver</div>
+        </div>
+      </a>
+
+      <a href="/calculator" class="tool-card">
+        <div class="tool-card-icon amber">â¡</div>
+        <div class="tool-card-body">
+          <div class="tool-card-title">Impact Calculator</div>
+          <div class="tool-card-desc">KE, Pc, fragment counts, Kessler risk</div>
+        </div>
+      </a>
+      <a href="/glossary" class="tool-card">
+        <div class="tool-card-icon purple">ð</div>
+        <div class="tool-card-body">
+          <div class="tool-card-title">Resources</div>
+          <div class="tool-card-desc">50+ terms Â· searchable Â· deep-link ready</div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Terminal -->
+    <div class="sim-terminal reveal" style="margin-top:36px;">
+      <div class="sim-terminal-bar">
+        <div class="terminal-dots"><span class="td-r"></span><span class="td-y"></span><span class="td-g"></span></div>
+        <div class="terminal-title">VectraSpace v11 â Orbital Scan</div>
+      </div>
+      <div class="sim-terminal-body">
+        <span class="tl"><span class="tp">$ </span><span class="tc">python vectraspace.py</span></span>
+        <span class="tl"><span class="to">[INFO] Loading environment from .env</span></span>
+        <span class="tl"><span class="tok">â Space-Track authenticated â 4,812 TLEs downloaded</span></span>
+        <span class="tl"><span class="to">  LEO: <span class="tv">3,204</span> Â· MEO: <span class="tv">891</span> Â· GEO: <span class="tv">717</span></span></span>
+        <span class="tl"> </span>
+        <span class="tl"><span class="to">Propagating 170 satellites â 12h @ 1 min resolution</span></span>
+        <span class="tl"><span class="tok">â Vectorized propagation complete (1,240 timesteps Ã 170 sats)</span></span>
+        <span class="tl"><span class="to">Screening 14,365 pairs â ellipsoid pre-filter active</span></span>
+        <span class="tl"><span class="tok">â 13,642 pairs rejected (94.9%) â 723 refined</span></span>
+        <span class="tl"> </span>
+        <span class="tl"><span class="tw">â  CONJUNCTION DETECTED</span></span>
+        <span class="tl"><span class="to">  STARLINK-4521 â COSMOS-1408 DEB  [LEO/LEO]</span></span>
+        <span class="tl"><span class="to">  Miss dist: <span class="tv">3.214 km</span> Â· Pc: <span class="tw">4.1e-04</span> Â· TCA: <span class="tv">+2h 14m</span></span></span>
+        <span class="tl"><span class="to">  Îv advisory: <span class="tv">0.082 m/s</span> radial Â· <span class="tv">0.341 m/s</span> transverse</span></span>
+        <span class="tl"> </span>
+        <span class="tl"><span class="tok">â 3 conjunctions found Â· CDMs generated Â· Alerts dispatched</span></span>
+        <span class="tl"><span class="tp">$ </span><span class="cursor-blink"></span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- SATELLITE OF THE DAY -->
+<section id="satod">
+  <div class="section-wrap">
+    <div class="section-label reveal" style="margin-bottom:28px;">// Featured Object</div>
+    <div class="satod-card reveal" id="satod-card">
+      <div class="satod-loading">â Loading today's featured satellite...</div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function loadSatOD() {
+  fetch('/satellite-of-the-day')
+    .then(r => r.json())
+    .then(sat => {
+      const card = document.getElementById('satod-card');
+      const color = sat.color || '#4a9eff';
+      card.style.setProperty('--satod-color', color);
+      const liveTag = sat.live
+        ? '<span class="satod-live-dot"></span> Live Data'
+        : 'Estimated Orbital Data';
+      card.innerHTML = `
+        <div class="satod-header">
+          <div>
+            <div class="satod-eyebrow">${liveTag} Â· Satellite of the Day</div>
+            <div class="satod-name">${sat.name}</div>
+            <div class="satod-operator">${sat.operator || ''}</div>
+          </div>
+          <div class="satod-type-badge">${sat.type}</div>
+        </div>
+        <div class="satod-stats">
+          <div class="satod-stat">
+            <div class="satod-stat-val">${(sat.alt_km||0).toLocaleString()}</div>
+            <div class="satod-stat-unit">km</div>
+            <div class="satod-stat-label">Current Altitude</div>
+          </div>
+          <div class="satod-stat">
+            <div class="satod-stat-val">${sat.velocity_kms}</div>
+            <div class="satod-stat-unit">km/s</div>
+            <div class="satod-stat-label">Orbital Velocity</div>
+          </div>
+          <div class="satod-stat">
+            <div class="satod-stat-val">${sat.period_min}</div>
+            <div class="satod-stat-unit">min</div>
+            <div class="satod-stat-label">Orbital Period</div>
+          </div>
+        </div>
+        <div class="satod-footer">
+          <div class="satod-fact-icon">ð¡</div>
+          <div class="satod-fact">${sat.fun_fact}</div>
+        </div>
+      `;
+    })
+    .catch(() => {
+      const card = document.getElementById('satod-card');
+      if (card) card.innerHTML = '<div class="satod-loading">Satellite data unavailable â run a scan to populate the TLE cache.</div>';
+    });
+})();
+</script>
+
+<div class="section-divider"></div>
+
+<!-- DATA METRICS -->
+<section id="data" style="padding:80px 0;">
+  <div class="section-wrap">
+    <div class="data-metrics reveal">
+      <div class="data-metric">
+        <div class="data-metric-glyph">â</div>
+        <span class="data-metric-val" id="count-1">0</span>
+        <div class="data-metric-label">Tracked Objects in Catalog</div>
+      </div>
+      <div class="data-metric c2">
+        <div class="data-metric-glyph">â¬</div>
+        <span class="data-metric-val" id="count-2">0</span>
+        <div class="data-metric-label">Conjunction Screens per Day (global)</div>
+      </div>
+      <div class="data-metric c3">
+        <div class="data-metric-glyph">â</div>
+        <span class="data-metric-val" id="count-3">0</span>
+        <div class="data-metric-label">Years to Self-Clear Above 800 km</div>
+      </div>
+      <div class="data-metric c4">
+        <div class="data-metric-glyph">â¦</div>
+        <span class="data-metric-val" id="count-4">0</span>
+        <div class="data-metric-label">kJ Energy: 10 cm Fragment at 10 km/s</div>
+      </div>
+    </div>
+  </div>
+  <!-- TLE Ticker embedded in data section -->
+  <div style="padding: 0 48px 48px; position:relative; z-index:1;">
+    <div id="tle-ticker">
+      <div class="ticker-label">â¬¤ LIVE</div>
+      <div class="ticker-scroll">
+        <div class="ticker-track" id="ticker-track">
+          <span class="ticker-sat"><div class="ticker-dot"></div><span class="t-name">Loading...</span></span>
+        </div>
+      </div>
+      <div class="ticker-status" id="ticker-status">â connecting</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="section-wrap">
+    <div class="cta-box reveal">
+      <div class="cta-glow"></div>
+      <div class="cta-eyebrow">â¬¡ Start Exploring</div>
+      <h2 class="cta-title">The cosmos doesn't wait.<br><em>Neither should your education.</em></h2>
+      <p class="cta-body">
+        Dive into the physics chapters, run a live conjunction scan against 4,000+ active satellites,
+        or simulate a debris fragmentation event â all backed by the same math used by real SSA operators.
+      </p>
+      <div class="cta-buttons">
+        <a href="/education/orbital-mechanics" class="btn-primary-hero">Begin Chapter 01</a>
+        <a href="/scenarios" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:14px 28px;border:1px solid var(--border2);border-radius:6px;color:var(--muted);text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">Try Scenarios â</a>
+        <a href="/dashboard" class="btn-secondary-hero">Open Live Dashboard</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT & CONTACT -->
+
+<div class="section-divider"></div>
+
+<section id="contact" style="padding:100px 0; position:relative; z-index:1;">
+  <div class="container" style="max-width:1080px; margin:0 auto; padding:0 48px;">
+
+    <!-- section eyebrow -->
+    <div style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:10px;">
+      <span style="display:inline-block; width:14px; height:1px; background:var(--green);"></span>The Team
+    </div>
+    <div style="font-family:var(--serif); font-size:clamp(28px,3.5vw,44px); color:#fff; font-weight:400; line-height:1.15; letter-spacing:-0.4px; margin-bottom:52px;">
+      The people behind<br><em style="font-style:italic; color:var(--accent2);">VectraSpace</em>
+    </div>
+
+    <!-- two-card grid -->
+    <div class="team-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:60px;">
+
+      <!-- ââ Truman card ââ -->
+      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
+        <div style="height:2px; background:linear-gradient(90deg, var(--accent) 0%, var(--green) 60%, transparent 100%);"></div>
+        <div style="padding:40px 44px;">
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:24px;">Founder &amp; Builder</div>
+          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
+            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--accent) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(74,158,255,0.2);">T</div>
+            <div>
+              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Truman Heaston</div>
+              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--accent); text-transform:uppercase;">Builder Â· Student Â· Orbital Mechanics Nerd</div>
+            </div>
+          </div>
+          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
+            Passionate about space, orbital mechanics, and the belief that great education can change the world. VectraSpace started as a personal obsession â I wanted to understand the real math behind satellite conjunction events, so I built the platform I wished existed.
+          </p>
+          <a href="mailto:trumanheaston@gmail.com"
+             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
+                    background:var(--accent); color:#fff; border-radius:6px;
+                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
+                    text-decoration:none; transition:all 0.2s; font-weight:500;
+                    box-shadow:0 4px 20px rgba(74,158,255,0.25);"
+             onmouseover="this.style.background='#6ab4ff'; this.style.transform='translateY(-2px)';"
+             onmouseout="this.style.background='var(--accent)'; this.style.transform='';">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            trumanheaston@gmail.com
+          </a>
+          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(74,158,255,0.05) 0%, transparent 70%); pointer-events:none;"></div>
+        </div>
+      </div>
+
+      <!-- ââ Will card ââ -->
+      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
+        <div style="height:2px; background:linear-gradient(90deg, var(--amber) 0%, var(--green) 60%, transparent 100%);"></div>
+        <div style="padding:40px 44px;">
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--amber); text-transform:uppercase; margin-bottom:24px;">Marketing &amp; Outreach</div>
+          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
+            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--amber) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(245,158,11,0.2);">W</div>
+            <div>
+              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Will Lovelace</div>
+              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--amber); text-transform:uppercase;">Marketing Â· Outreach Â· Growth</div>
+            </div>
+          </div>
+          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
+            Leading marketing and outreach for VectraSpace â connecting the platform with researchers, educators, and operators across the space industry. If you're interested in partnerships, press, or collaboration opportunities, Will is your contact.
+          </p>
+          <a href="mailto:Will.s.lovelace@gmail.com"
+             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
+                    background:var(--amber); color:#000; border-radius:6px;
+                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
+                    text-decoration:none; transition:all 0.2s; font-weight:500;
+                    box-shadow:0 4px 20px rgba(245,158,11,0.25);"
+             onmouseover="this.style.background='#fbbf24'; this.style.transform='translateY(-2px)';"
+             onmouseout="this.style.background='var(--amber)'; this.style.transform='';">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            Will.s.lovelace@gmail.com
+          </a>
+          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(245,158,11,0.05) 0%, transparent 70%); pointer-events:none;"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- get in touch strip -->
+    <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
+      <div style="height:2px; background:linear-gradient(90deg, var(--green) 0%, var(--accent) 50%, transparent 100%);"></div>
+      <div style="padding:48px 56px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:32px;">
+        <div>
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:14px;">Get in Touch</div>
+          <div style="font-family:var(--serif); font-size:clamp(20px,2.5vw,30px); color:#fff; font-weight:400; line-height:1.25; letter-spacing:-0.3px;">Have feedback, questions,<br>or want to collaborate?</div>
+        </div>
+        <p style="font-size:14px; color:var(--muted); line-height:1.8; max-width:380px;">Whether you're a researcher, operator, educator, or fellow student â we'd genuinely love to hear from you. Technical critique, curriculum suggestions, partnership ideas â all of it is welcome.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">Vectra<em>Space</em></div>
+    <ul class="footer-links">
+      <li><a href="/education/orbital-mechanics">Orbital Mechanics</a></li>
+      <li><a href="/education/collision-prediction">Collision Prediction</a></li>
+      <li><a href="/education/perturbations">Perturbations</a></li>
+      <li><a href="/education/debris-modeling">Debris Modeling</a></li>
+      <li><a href="/dashboard">Dashboard</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="footer-contact">Built by Truman Heaston Â· <a href="mailto:trumanheaston@gmail.com">trumanheaston@gmail.com</a></div>
+  </div>
+  <div class="footer-copy">Â© 2026 VectraSpace Â· Educational Orbital Platform</div>
+</footer>
+
+<script>
+// ââ STARFIELD ââââââââââââââââââââââââââââââââââââââââââââââââ
+(function() {
+  const container = document.getElementById('starfield');
+  for (let i = 0; i < 220; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 1.8 + 0.4;
+    star.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --a1:${(Math.random()*0.5+0.2).toFixed(2)};
+      --a2:${(Math.random()*0.1+0.03).toFixed(2)};
+      --dur:${(Math.random()*5+3).toFixed(1)}s;
+      --delay:-${(Math.random()*8).toFixed(1)}s;
+    `;
+    container.appendChild(star);
+  }
+})();
+
+// ââ MOBILE NAV TOGGLE ââââââââââââââââââââââââââââââââââââââââ
+function toggleMobileNav() {
+  const drawer = document.getElementById('mobile-nav');
+  const btn    = document.getElementById('nav-hamburger');
+  const isOpen = drawer.classList.contains('open');
+  if (isOpen) {
+    drawer.classList.remove('open');
+    btn.classList.remove('open');
+    setTimeout(() => { drawer.style.display = 'none'; }, 220);
+  } else {
+    drawer.style.display = 'flex';
+    requestAnimationFrame(() => {
+      drawer.classList.add('open');
+      btn.classList.add('open');
+    });
+  }
+}
+document.querySelectorAll('#mobile-nav a').forEach(a => {
+  a.addEventListener('click', () => {
+    const drawer = document.getElementById('mobile-nav');
+    const btn    = document.getElementById('nav-hamburger');
+    drawer.classList.remove('open');
+    btn.classList.remove('open');
+    setTimeout(() => { drawer.style.display = 'none'; }, 220);
+  });
+});
+
+// ââ LIVE TLE TICKER ââââââââââââââââââââââââââââââââââââââââââ
+(async function loadTicker() {
+  try {
+    const res  = await fetch('/api/live-sats?limit=60&regime=LEO');
+    const data = await res.json();
+    if (!data.sats || data.sats.length === 0) throw new Error('empty');
+    const track = document.getElementById('ticker-track');
+    const html  = data.sats.map(s =>
+      '<span class="ticker-sat"><div class="ticker-dot"></div>' +
+      '<span class="t-name">' + s.name + '</span>' +
+      '<span class="t-alt">' + Math.round(s.alt) + ' km</span></span>'
+    ).join('');
+    track.innerHTML = html + html; // duplicate for seamless loop
+    const w = track.scrollWidth / 2;
+    track.style.animationDuration = Math.max(30, w / 80) + 's';
+    document.getElementById('ticker-status').textContent =
+      data.count + ' sats Â· ' + (data.utc || '').slice(11, 16) + ' UTC';
+  } catch(e) {
+    // Static fallback so ticker always shows something
+    const fallback = [
+      'ISS (ZARYA)|418', 'STARLINK-1007|550', 'COSMOS 2251 DEB|789',
+      'STARLINK-3004|553', 'SENTINEL-2A|786', 'TERRA|705', 'AQUA|709',
+      'LANDSAT 8|705', 'NOAA 18|854', 'METOP-B|817', 'FENGYUN 3D|836',
+      'SUOMI NPP|824', 'STARLINK-2488|548', 'ONEWEB-0012|1200',
+      'IRIDIUM 33 DEB|782', 'COSMOS 1408 DEB|760',
+    ];
+    const track = document.getElementById('ticker-track');
+    const html  = fallback.map(s => {
+      const [name, alt] = s.split('|');
+      return '<span class="ticker-sat"><div class="ticker-dot" style="background:var(--faint)"></div>' +
+             '<span class="t-name">' + name + '</span>' +
+             '<span class="t-alt">' + alt + ' km</span></span>';
+    }).join('');
+    track.innerHTML = html + html;
+    document.getElementById('ticker-status').textContent = 'Sample data';
+  }
+})();
+
+// ââ NAV SCROLL ââââââââââââââââââââââââââââââââââââââââââââââââ
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 30);
+}, { passive: true });
+
+// ââ REVEAL ON SCROLL ââââââââââââââââââââââââââââââââââââââââââ
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ââ COUNTER ANIMATION âââââââââââââââââââââââââââââââââââââââââ
+const counters = [
+  { id: 'count-1', target: 27000, suffix: '+', format: n => n >= 1000 ? Math.round(n/1000)*1000 : n },
+  { id: 'count-2', target: 350, suffix: 'M', format: n => Math.round(n) },
+  { id: 'count-3', target: 100, suffix: '+', format: n => Math.round(n) },
+  { id: 'count-4', target: 500, suffix: ' kJ', format: n => Math.round(n) },
+];
+let countersStarted = false;
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && !countersStarted) {
+      countersStarted = true;
+      counters.forEach(({ id, target, suffix, format }) => {
+        const el = document.getElementById(id);
+        const start = performance.now();
+        const dur = 1800;
+        function step(now) {
+          const t = Math.min((now - start) / dur, 1);
+          const ease = 1 - Math.pow(1 - t, 3);
+          el.textContent = format(target * ease) + suffix;
+          if (t < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      });
+    }
+  });
+}, { threshold: 0.4 });
+const metricsEl = document.querySelector('.data-metrics');
+if (metricsEl) counterObserver.observe(metricsEl);
+
+// ââ CHAPTER PROGRESS ââââââââââââââââââââââââââââââââââââââââââ
+(function() {
+  const CHAPTERS = [
+    { id: 'chcard-1', key: 'vs_ch1_done' },
+    { id: 'chcard-2', key: 'vs_ch2_done' },
+    { id: 'chcard-3', key: 'vs_ch3_done' },
+    { id: 'chcard-4', key: 'vs_ch4_done' },
+  ];
+  let completed = 0;
+  CHAPTERS.forEach(({ id, key }) => {
+    try {
+      if (localStorage.getItem(key) === '1') {
+        const card = document.getElementById(id);
+        if (card) { card.classList.add('completed'); completed++; }
+      }
+    } catch(e) {}
+  });
+  if (completed > 0) {
+    const strip = document.getElementById('learn-progress-strip');
+    const fill  = document.getElementById('lps-fill');
+    const text  = document.getElementById('lps-text');
+    if (strip) strip.classList.add('show');
+    if (fill)  setTimeout(() => fill.style.width = (completed/4*100) + '%', 100);
+    if (text)  text.textContent = completed + ' / 4 Chapters';
+  }
+})();
+
+</script>
+</body>
+</html>
+
+'''
+
+# ── Patch: GitHub link + Grant Gill card ─────────────────────────────────────
 _GITHUB_FOOTER_LINK = (
     '<li><a href="https://github.com/trumanheaston-lab/VectraSpace" '
     'target="_blank" rel="noopener">GitHub</a></li>'
 )
 
-# ── Patch 2: Grant Gill — Hardware Lead contact card ─────────────────────────
 _GRANT_CARD = """
       <!-- ── Grant card ── -->
       <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
@@ -85,12 +9109,9 @@ _GRANT_CARD = """
       </div>
 """
 
-# ── Apply patches ─────────────────────────────────────────────────────────────
-# NOTE: The marker strings below must exist verbatim in _LANDING_BASE.
-# They reference stable anchor points in the original HTML.
 
 def _patch_landing(html: str) -> str:
-    # Patch 1 — insert GitHub link into footer <ul class="footer-links">
+    # Patch 1 — insert GitHub link into footer nav
     FOOTER_ANCHOR = '<li><a href="/education/orbital-mechanics">Orbital Mechanics</a></li>'
     if FOOTER_ANCHOR in html:
         html = html.replace(
@@ -99,7 +9120,6 @@ def _patch_landing(html: str) -> str:
         )
 
     # Patch 2 — insert Grant card after Will Lovelace card
-    # Anchor = the closing </div> of the team-grid container (after Will card)
     WILL_CARD_END = "<!-- get in touch strip -->"
     if WILL_CARD_END in html:
         html = html.replace(
@@ -107,7 +9127,7 @@ def _patch_landing(html: str) -> str:
             _GRANT_CARD + "\n    " + WILL_CARD_END,
         )
 
-    # Patch 3 — add GitHub link to nav mobile drawer
+    # Patch 3 — add GitHub link to mobile nav
     MOBILE_NAV_ANCHOR = '<a href="#contact">Contact <span>→</span></a>'
     GITHUB_MOBILE = (
         '<a href="https://github.com/trumanheaston-lab/VectraSpace" '
@@ -132,34 +9152,6 @@ def _patch_landing(html: str) -> str:
         )
 
     return html
-# templates_loader.py (excerpt – add the patch below)
-
-# ------------------------------------------------------------------
-# 1️⃣  Import the tool‑section helper
-# ------------------------------------------------------------------
-try:
-    from tools import TOOLS_HTML
-except Exception:
-    TOOLS_HTML = ""
-
-# ------------------------------------------------------------------
-# 2️⃣  Insert the tool‑section after the hero block.
-#     We look for the first closing </section> of the hero banner
-#     and insert the snippet right after it.
-# ------------------------------------------------------------------
-def _patch_landing(html: str) -> str:
-    # Find the end of the hero section (assumes a </section> close)
-    end_hero = html.find("</section>")
-    if end_hero >= 0:
-        return html[: end_hero + len("</section>")] + "\n" + TOOLS_HTML + html[end_hero + len("</section>") :]
-    # Fallback – simply prepend
-    return TOOLS_HTML + html
-
-# ------------------------------------------------------------------
-# 3️⃣  Apply the patch to the base landing HTML
-# ------------------------------------------------------------------
-# ─────── original line ──────────────────────
-# LANDING_HTML = _patch_landing(_LANDING_BASE)
 
 
 LANDING_HTML = _patch_landing(_LANDING_BASE)
