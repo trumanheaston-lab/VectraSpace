@@ -7,15 +7,13 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from contextlib import asynccontextmanager   # ← THIS LINE FIXES THE ERROR
+from contextlib import asynccontextmanager
 
 from config import CFG
 from database import init_db
-from users import create_user, load_users, save_users
 
 from security import SecurityMiddleware, log_security_startup, config_router
 from pages import router as pages_router
-from auth_routes import router as auth_router
 from satellites import router as sat_router
 from admin import router as admin_router
 from trajectory import router as trajectory_router
@@ -48,27 +46,16 @@ async def _auto_scan_loop():
 
         await asyncio.sleep(AUTO_SCAN_INTERVAL_H * 3600)
 
-def _ensure_admin():
-    admin_user = os.environ.get("ADMIN_USER", "admin").lower().strip()
-    admin_pass = os.environ.get("ADMIN_PASS") or ""
-
-    try:
-        users = load_users(CFG)
-        if admin_user not in users:
-            create_user(admin_user, admin_pass, "admin", cfg=CFG)
-            log.info(f"Created admin '{admin_user}'")
-    except Exception as e:
-        log.exception(f"Admin init error: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db(CFG)
-    _ensure_admin()
     log_security_startup()
     task = asyncio.create_task(_auto_scan_loop())
     log.info("[startup] ready")
     yield
     task.cancel()
+
 
 def create_app() -> FastAPI:
     app = FastAPI(lifespan=lifespan)
@@ -94,7 +81,6 @@ def create_app() -> FastAPI:
         )
 
     app.include_router(pages_router)
-    app.include_router(auth_router)
     app.include_router(sat_router)
     app.include_router(admin_router)
     app.include_router(config_router)
