@@ -1,7 +1,8 @@
 """
-VectraSpace v11 — satellites.py
+VectraSpace — satellites.py
 /run (SSE scan), /conjunctions, /cdm, /sat-info, /debris/simulate,
 /demo-results, /feedback, /history.
+All routes are publicly accessible — no auth required.
 """
 
 import asyncio
@@ -23,8 +24,7 @@ from fastapi.responses import (JSONResponse, PlainTextResponse,
 
 from config import CFG, Config
 from database import (init_db, log_conjunctions_to_db, fetch_covariance_cache,
-                      generate_cdm, get_user_prefs)
-from users import get_current_user, check_run_rate_limit
+                      generate_cdm)
 from conjunction import check_conjunctions, Conjunction
 from debris import generate_debris_cloud
 
@@ -32,7 +32,7 @@ log    = logging.getLogger("VectraSpace")
 router = APIRouter()
 
 
-# ── /me (convenience alias also on sat router) ───────────────────────────────
+# ── /scan-running ─────────────────────────────────────────────────────────────
 
 @router.get("/scan-running")
 def scan_running():
@@ -55,34 +55,22 @@ async def run_scan(
     alert_email: Optional[str] = None,
     pushover_user_key: Optional[str] = None,
 ):
-    user = get_current_user(request, CFG)
-
     async def event_stream():
         def _ev(payload: dict) -> str:
             return f"data: {json.dumps(payload)}\n\n"
 
-        if not user:
-            yield _ev({"type": "auth_error", "text": "Authentication required"})
-            return
-
-        if not check_run_rate_limit(user["username"]):
-            yield _ev({"type": "rate_limit", "text": "Max 1 scan per 5 minutes."})
-            return
-
         try:
-            user_prefs = get_user_prefs(user["username"], CFG)
-            run_cfg    = Config(
+            run_cfg = Config(
                 num_leo=num_leo, num_meo=num_meo, num_geo=num_geo,
                 time_window_hours=time_window_hours,
                 collision_alert_km=collision_alert_km,
                 refine_threshold_km=refine_threshold_km,
                 pc_alert_threshold=pc_alert_threshold,
-                alert_email_to=alert_email or user_prefs.get("email") or CFG.alert_email_to,
+                alert_email_to=alert_email or CFG.alert_email_to,
                 alert_email_from=CFG.alert_email_from,
                 alert_smtp_host=CFG.alert_smtp_host,
                 pushover_token=CFG.pushover_token,
-                pushover_user_key=(pushover_user_key or user_prefs.get("pushover_key")
-                                   or CFG.pushover_user_key),
+                pushover_user_key=(pushover_user_key or CFG.pushover_user_key),
             )
 
             yield _ev({"type": "progress", "pct": 5,
@@ -121,8 +109,8 @@ async def run_scan(
                     functools.partial(run_pipeline, run_cfg,
                                       covariance_cache=cov_data,
                                       run_mode="interactive",
-                                      user_id=user["username"],
-                                      user_prefs=user_prefs),
+                                      user_id="public",
+                                      user_prefs={}),
                 )
 
                 pct_steps = [30, 45, 60, 72, 82]
@@ -210,12 +198,10 @@ async def run_scan(
 
             serialised = {"tracks": tracks_json, "conjunctions": conj_json}
 
-            # Store for demo mode
             try:
                 from main import app as _app
                 _app.state.demo_result  = serialised
                 _app.state.last_result  = result
-                _app.state.user_results[user["username"]] = result
             except Exception:
                 pass
 
@@ -233,18 +219,11 @@ async def run_scan(
 # ── /conjunctions ─────────────────────────────────────────────────────────────
 
 @router.get("/conjunctions")
-def get_conjunctions(request: Request):
-    user = get_current_user(request, CFG)
+def get_conjunctions():
     con  = sqlite3.connect(CFG.db_path)
-    if user:
-        rows = con.execute(
-            "SELECT * FROM conjunctions WHERE user_id=? ORDER BY run_time DESC LIMIT 200",
-            (user["username"],),
-        ).fetchall()
-    else:
-        rows = con.execute(
-            "SELECT * FROM conjunctions WHERE user_id IS NULL ORDER BY run_time DESC LIMIT 50"
-        ).fetchall()
+    rows = con.execute(
+        "SELECT * FROM conjunctions ORDER BY run_time DESC LIMIT 200"
+    ).fetchall()
     cols = ["id","run_time","sat1","sat2","regime1","regime2",
             "min_dist_km","time_min","pc_estimate","user_id"]
     return JSONResponse([dict(zip(cols, r)) for r in rows])
@@ -261,14 +240,13 @@ def demo_results():
     try:
         con    = sqlite3.connect(CFG.db_path)
         latest = con.execute(
-            "SELECT run_time FROM conjunctions WHERE user_id IS NULL "
-            "ORDER BY run_time DESC LIMIT 1"
+            "SELECT run_time FROM conjunctions ORDER BY run_time DESC LIMIT 1"
         ).fetchone()
         if not latest:
             return JSONResponse({}, status_code=404)
         rows = con.execute(
             "SELECT sat1,sat2,regime1,regime2,min_dist_km,time_min,pc_estimate "
-            "FROM conjunctions WHERE run_time=? AND user_id IS NULL",
+            "FROM conjunctions WHERE run_time=?",
             (latest[0],),
         ).fetchall()
         conj = [{"sat1":r[0],"sat2":r[1],"regime1":r[2],"regime2":r[3],
@@ -276,30 +254,25 @@ def demo_results():
                  "covariance_source":"assumed","debris":False,"maneuver":None,
                  "midpoint":[0,0,400000]} for r in rows]
         return JSONResponse({"tracks": [], "conjunctions": conj})
-    except Exception as e:
+    except Exception:
         return JSONResponse({}, status_code=404)
 
 
 @router.get("/history")
-def get_history(request: Request):
-    user = get_current_user(request, CFG)
+def get_history():
     con  = sqlite3.connect(CFG.db_path)
-    if user:
-        f, p = "WHERE user_id=?", (user["username"],)
-    else:
-        f, p = "WHERE user_id IS NULL", ()
 
     daily = con.execute(
-        f"SELECT substr(run_time,1,10) day, COUNT(*) cnt FROM conjunctions "
-        f"{f} GROUP BY day ORDER BY day DESC LIMIT 30", p
+        "SELECT substr(run_time,1,10) day, COUNT(*) cnt FROM conjunctions "
+        "GROUP BY day ORDER BY day DESC LIMIT 30"
     ).fetchall()
     pairs = con.execute(
-        f"SELECT sat1,sat2,COUNT(*) cnt,MIN(min_dist_km) closest FROM conjunctions "
-        f"{f} GROUP BY sat1,sat2 ORDER BY cnt DESC LIMIT 10", p
+        "SELECT sat1,sat2,COUNT(*) cnt,MIN(min_dist_km) closest FROM conjunctions "
+        "GROUP BY sat1,sat2 ORDER BY cnt DESC LIMIT 10"
     ).fetchall()
     regimes = con.execute(
-        f"SELECT regime1||'/'||regime2 pair,COUNT(*) cnt FROM conjunctions "
-        f"{f} GROUP BY pair ORDER BY cnt DESC", p
+        "SELECT regime1||'/'||regime2 pair,COUNT(*) cnt FROM conjunctions "
+        "GROUP BY pair ORDER BY cnt DESC"
     ).fetchall()
     return JSONResponse({
         "daily":     [{"day": r[0], "count": r[1]} for r in daily],
@@ -311,18 +284,11 @@ def get_history(request: Request):
 # ── /cdm ──────────────────────────────────────────────────────────────────────
 
 @router.get("/cdm/{idx}")
-def download_cdm(idx: int, request: Request):
-    user = get_current_user(request, CFG)
+def download_cdm(idx: int):
     con  = sqlite3.connect(CFG.db_path)
-    if user:
-        rows = con.execute(
-            "SELECT * FROM conjunctions WHERE user_id=? ORDER BY run_time DESC LIMIT 50",
-            (user["username"],),
-        ).fetchall()
-    else:
-        rows = con.execute(
-            "SELECT * FROM conjunctions WHERE user_id IS NULL ORDER BY run_time DESC LIMIT 50"
-        ).fetchall()
+    rows = con.execute(
+        "SELECT * FROM conjunctions ORDER BY run_time DESC LIMIT 50"
+    ).fetchall()
     cols = ["id","run_time","sat1","sat2","regime1","regime2",
             "min_dist_km","time_min","pc_estimate","user_id"]
     if idx >= len(rows):
@@ -339,30 +305,17 @@ def download_cdm(idx: int, request: Request):
 
 
 @router.get("/cdm/zip/all")
-def download_all_cdms(request: Request):
-    user = get_current_user(request, CFG)
+def download_all_cdms():
     con  = sqlite3.connect(CFG.db_path)
-    if user:
-        latest = con.execute(
-            "SELECT run_time FROM conjunctions WHERE user_id=? ORDER BY run_time DESC LIMIT 1",
-            (user["username"],),
-        ).fetchone()
-        if not latest:
-            return JSONResponse({"error": "No conjunctions yet"}, status_code=404)
-        rows = con.execute(
-            "SELECT * FROM conjunctions WHERE run_time=? AND user_id=?",
-            (latest[0], user["username"]),
-        ).fetchall()
-    else:
-        latest = con.execute(
-            "SELECT run_time FROM conjunctions WHERE user_id IS NULL ORDER BY run_time DESC LIMIT 1"
-        ).fetchone()
-        if not latest:
-            return JSONResponse({"error": "No public conjunctions"}, status_code=404)
-        rows = con.execute(
-            "SELECT * FROM conjunctions WHERE run_time=? AND user_id IS NULL",
-            (latest[0],),
-        ).fetchall()
+    latest = con.execute(
+        "SELECT run_time FROM conjunctions ORDER BY run_time DESC LIMIT 1"
+    ).fetchone()
+    if not latest:
+        return JSONResponse({"error": "No conjunctions yet"}, status_code=404)
+    rows = con.execute(
+        "SELECT * FROM conjunctions WHERE run_time=?",
+        (latest[0],),
+    ).fetchall()
     cols = ["id","run_time","sat1","sat2","regime1","regime2",
             "min_dist_km","time_min","pc_estimate","user_id"]
     buf = io.BytesIO()
@@ -441,7 +394,6 @@ async def satellite_info(sat_name: str):
 
 @router.get("/debris/simulate")
 async def simulate_debris(
-    request: Request,
     sat_name: str = "",
     event_type: str = "COLLISION",
     n_debris: int = 50,
