@@ -1,6 +1,5 @@
 import os
 import logging
-import time
 import asyncio
 
 from fastapi import FastAPI, Request
@@ -23,6 +22,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 _scan_state = {"time": 0, "running": False, "count": 0}
 AUTO_SCAN_INTERVAL_H = 6
+
 
 async def _auto_scan_loop():
     import functools
@@ -87,5 +87,6 @@ def create_app() -> FastAPI:
     app.include_router(trajectory_router, prefix="/api/tools", tags=["tools"])
 
     return app
+
 
 app = create_app()
