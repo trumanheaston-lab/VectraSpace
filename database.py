@@ -1,14 +1,13 @@
 """
-VectraSpace v11 — database.py
+VectraSpace — database.py
 SQLite schema, migration, CDM generation, covariance ingestion.
+Auth/user tables removed.
 """
 
 import datetime
-import json
 import logging
 import os
 import sqlite3
-from pathlib import Path
 from typing import Optional
 
 import numpy as np
@@ -25,7 +24,7 @@ SPACETRACK_CDM_URL = (
 )
 
 
-# ── Schema init + auto-migration ─────────────────────────────────────────────
+# ── Schema init ───────────────────────────────────────────────────────────────
 
 def init_db(cfg: Config) -> sqlite3.Connection:
     con = sqlite3.connect(cfg.db_path)
@@ -40,70 +39,13 @@ def init_db(cfg: Config) -> sqlite3.Connection:
             regime2     TEXT,
             min_dist_km REAL,
             time_min    REAL,
-            pc_estimate REAL
+            pc_estimate REAL,
+            user_id     TEXT
         )
     """)
 
-    existing_cols = [r[1] for r in con.execute("PRAGMA table_info(conjunctions)").fetchall()]
-    if "user_id" not in existing_cols:
-        con.execute("ALTER TABLE conjunctions ADD COLUMN user_id TEXT")
-        log.info("DB migration: added user_id column")
-
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS user_preferences (
-            user_id              TEXT PRIMARY KEY,
-            email                TEXT,
-            phone                TEXT,
-            pushover_key         TEXT,
-            pc_alert_threshold   REAL DEFAULT 0.0001,
-            collision_alert_km   REAL DEFAULT 10.0,
-            updated_at           TEXT
-        )
-    """)
-
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            username      TEXT PRIMARY KEY,
-            password_hash TEXT NOT NULL,
-            role          TEXT NOT NULL DEFAULT 'operator',
-            email         TEXT DEFAULT '',
-            approved      INTEGER DEFAULT 1,
-            created_at    TEXT
-        )
-    """)
-
-    _migrate_users_json(con, cfg)
     con.commit()
     return con
-
-
-def _migrate_users_json(con: sqlite3.Connection, cfg: Config):
-    """One-time migration: users.json → SQLite users table."""
-    uj = Path(cfg.users_file)
-    if not uj.exists():
-        return
-    try:
-        raw = json.loads(uj.read_text())
-        users_list = raw if isinstance(raw, list) else list(raw.values())
-        migrated = 0
-        for u in users_list:
-            un = u.get("username", "").strip().lower()
-            ph = u.get("password_hash", "")
-            if not un or not ph:
-                continue
-            if not con.execute("SELECT 1 FROM users WHERE username=?", (un,)).fetchone():
-                con.execute(
-                    "INSERT INTO users (username, password_hash, role, email, approved, created_at) "
-                    "VALUES (?,?,?,?,?,?)",
-                    (un, ph, u.get("role", "operator"), u.get("email", ""),
-                     1 if u.get("approved", True) else 0, u.get("created_at", "")),
-                )
-                migrated += 1
-        if migrated:
-            log.info(f"DB migration: migrated {migrated} users from users.json")
-            uj.rename(str(uj) + ".migrated")
-    except Exception as e:
-        log.warning(f"users.json migration error: {e}")
 
 
 # ── Conjunction logging ──────────────────────────────────────────────────────
@@ -212,42 +154,3 @@ def fetch_covariance_cache(cfg: Config) -> dict:
     except Exception as e:
         log.warning(f"Covariance ingestion failed ({e}) — using assumed sigmas")
         return {}
-
-
-# ── User preferences ─────────────────────────────────────────────────────────
-
-def get_user_prefs(username: str, cfg: Config) -> dict:
-    try:
-        con = sqlite3.connect(cfg.db_path)
-        row = con.execute(
-            "SELECT email, phone, pushover_key, pc_alert_threshold, collision_alert_km "
-            "FROM user_preferences WHERE user_id=?",
-            (username,),
-        ).fetchone()
-        if row:
-            return {"email": row[0], "phone": row[1], "pushover_key": row[2],
-                    "pc_alert_threshold": row[3] or 1e-4,
-                    "collision_alert_km": row[4] or 10.0}
-    except Exception:
-        pass
-    return {}
-
-
-def save_user_prefs(username: str, prefs: dict, cfg: Config):
-    con = sqlite3.connect(cfg.db_path)
-    con.execute("""
-        INSERT INTO user_preferences
-            (user_id, email, phone, pushover_key, pc_alert_threshold, collision_alert_km, updated_at)
-        VALUES (?,?,?,?,?,?,?)
-        ON CONFLICT(user_id) DO UPDATE SET
-            email=excluded.email, phone=excluded.phone,
-            pushover_key=excluded.pushover_key,
-            pc_alert_threshold=excluded.pc_alert_threshold,
-            collision_alert_km=excluded.collision_alert_km,
-            updated_at=excluded.updated_at
-    """, (username, prefs.get("email",""), prefs.get("phone",""),
-          prefs.get("pushover_key",""),
-          float(prefs.get("pc_alert_threshold", 1e-4)),
-          float(prefs.get("collision_alert_km", 10.0)),
-          datetime.datetime.utcnow().isoformat()))
-    con.commit()
