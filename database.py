@@ -1,7 +1,8 @@
 """
 VectraSpace — database.py
-SQLite schema, migration, CDM generation, covariance ingestion.
-Auth/user tables removed.
+SQLite schema, CDM generation, covariance ingestion.
+Users, user_preferences, and auth-related tables/functions removed.
+All routes are now public.
 """
 
 import datetime
@@ -39,10 +40,14 @@ def init_db(cfg: Config) -> sqlite3.Connection:
             regime2     TEXT,
             min_dist_km REAL,
             time_min    REAL,
-            pc_estimate REAL,
-            user_id     TEXT
+            pc_estimate REAL
         )
     """)
+
+    existing_cols = [r[1] for r in con.execute("PRAGMA table_info(conjunctions)").fetchall()]
+    if "user_id" not in existing_cols:
+        con.execute("ALTER TABLE conjunctions ADD COLUMN user_id TEXT")
+        log.info("DB migration: added user_id column")
 
     con.commit()
     return con
