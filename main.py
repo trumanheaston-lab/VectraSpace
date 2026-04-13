@@ -41,10 +41,22 @@ async def _auto_scan_loop():
             try:
                 log.info("[auto-scan] starting")
                 loop = asyncio.get_event_loop()
-                await loop.run_in_executor(
+                # FIX Bug 3: use keyword args so positional order doesn't matter
+                result = await loop.run_in_executor(
                     None,
-                    functools.partial(run_pipeline, CFG, "scheduled", "__auto__")
+                    functools.partial(
+                        run_pipeline, CFG,
+                        covariance_cache={},
+                        run_mode="scheduled",
+                        user_id="__auto__",
+                        user_prefs={},
+                    )
                 )
+                # Store result for demo mode
+                try:
+                    app.state.last_result = result
+                except Exception:
+                    pass
             except Exception as e:
                 log.exception(f"[auto-scan] failed: {e}")
             finally:
@@ -57,6 +69,9 @@ async def _auto_scan_loop():
 async def lifespan(app: FastAPI):
     init_db(CFG)
     log_security_startup()
+    # FIX Bug 2: initialise app.state so satellites.py can write to it safely
+    app.state.demo_result = None
+    app.state.last_result = None
     task = asyncio.create_task(_auto_scan_loop())
     log.info("[startup] ready")
     yield
