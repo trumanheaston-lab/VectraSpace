@@ -107,6 +107,14 @@ def health():
             "version": "v11"}
 
 
+# FIX Bug 1: /me endpoint — auth was removed, so all visitors are "public".
+# The dashboard JS calls /me to decide whether to show the scan button.
+# Returning a public user object means the button is always visible.
+@router.get("/me")
+def me():
+    return {"username": "public", "role": "public"}
+
+
 @router.get("/tle-status")
 def tle_status():
     import os, json
