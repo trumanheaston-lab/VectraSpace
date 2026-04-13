@@ -87,5 +87,5 @@ CFG = Config(
     pushover_token=os.environ.get("PUSHOVER_TOKEN"),
     pushover_user_key=os.environ.get("PUSHOVER_USER_KEY"),
     session_secret=os.environ.get("SESSION_SECRET", secrets.token_hex(32)),
-    collision_alert_km=float(os.environ.get("COLLISION_ALERT_KM", "10000.0")),
+    collision_alert_km=float(os.environ.get("COLLISION_ALERT_KM", "10.0")),
 )
