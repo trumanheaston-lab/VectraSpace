@@ -8639,32 +8639,6 @@ footer {
       </a>
     </div>
 
-    <!-- Terminal -->
-    <div class="sim-terminal reveal" style="margin-top:36px;">
-      <div class="sim-terminal-bar">
-        <div class="terminal-dots"><span class="td-r"></span><span class="td-y"></span><span class="td-g"></span></div>
-        <div class="terminal-title">VectraSpace v11 — Orbital Scan</div>
-      </div>
-      <div class="sim-terminal-body">
-        <span class="tl"><span class="tp">$ </span><span class="tc">python vectraspace.py</span></span>
-        <span class="tl"><span class="to">[INFO] Loading environment from .env</span></span>
-        <span class="tl"><span class="tok">✓ Space-Track authenticated — 4,812 TLEs downloaded</span></span>
-        <span class="tl"><span class="to">  LEO: <span class="tv">3,204</span> · MEO: <span class="tv">891</span> · GEO: <span class="tv">717</span></span></span>
-        <span class="tl"> </span>
-        <span class="tl"><span class="to">Propagating 170 satellites — 12h @ 1 min resolution</span></span>
-        <span class="tl"><span class="tok">✓ Vectorized propagation complete (1,240 timesteps × 170 sats)</span></span>
-        <span class="tl"><span class="to">Screening 14,365 pairs — ellipsoid pre-filter active</span></span>
-        <span class="tl"><span class="tok">✓ 13,642 pairs rejected (94.9%) — 723 refined</span></span>
-        <span class="tl"> </span>
-        <span class="tl"><span class="tw">⚠ CONJUNCTION DETECTED</span></span>
-        <span class="tl"><span class="to">  STARLINK-4521 ↔ COSMOS-1408 DEB  [LEO/LEO]</span></span>
-        <span class="tl"><span class="to">  Miss dist: <span class="tv">3.214 km</span> · Pc: <span class="tw">4.1e-04</span> · TCA: <span class="tv">+2h 14m</span></span></span>
-        <span class="tl"><span class="to">  Δv advisory: <span class="tv">0.082 m/s</span> radial · <span class="tv">0.341 m/s</span> transverse</span></span>
-        <span class="tl"> </span>
-        <span class="tl"><span class="tok">✓ 3 conjunctions found · CDMs generated · Alerts dispatched</span></span>
-        <span class="tl"><span class="tp">$ </span><span class="cursor-blink"></span></span>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -8758,19 +8732,20 @@ footer {
       </div>
     </div>
   </div>
-  <!-- TLE Ticker embedded in data section -->
-  <div style="padding: 0 48px 48px; position:relative; z-index:1;">
-    <div id="tle-ticker">
-      <div class="ticker-label">⬤ LIVE</div>
-      <div class="ticker-scroll">
-        <div class="ticker-track" id="ticker-track">
-          <span class="ticker-sat"><div class="ticker-dot"></div><span class="t-name">Loading...</span></span>
-        </div>
-      </div>
-      <div class="ticker-status" id="ticker-status">— connecting</div>
-    </div>
-  </div>
+  <!-- TLE Ticker moved below stats card -->
 </section>
+
+<div style="padding: 0 48px 48px; position:relative; z-index:1; max-width:1280px; margin:0 auto;">
+  <div id="tle-ticker">
+    <div class="ticker-label">⬤ LIVE</div>
+    <div class="ticker-scroll">
+      <div class="ticker-track" id="ticker-track">
+        <span class="ticker-sat"><div class="ticker-dot"></div><span class="t-name">Loading...</span></span>
+      </div>
+    </div>
+    <div class="ticker-status" id="ticker-status">— connecting</div>
+  </div>
+</div>
 
 <div class="section-divider"></div>
 
@@ -8874,19 +8849,7 @@ footer {
 
     </div>
 
-    <!-- get in touch strip -->
-    <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
-      <div style="height:2px; background:linear-gradient(90deg, var(--green) 0%, var(--accent) 50%, transparent 100%);"></div>
-      <div style="padding:48px 56px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:32px;">
-        <div>
-          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:14px;">Get in Touch</div>
-          <div style="font-family:var(--serif); font-size:clamp(20px,2.5vw,30px); color:#fff; font-weight:400; line-height:1.25; letter-spacing:-0.3px;">Have feedback, questions,<br>or want to collaborate?</div>
-        </div>
-        <p style="font-size:14px; color:var(--muted); line-height:1.8; max-width:380px;">Whether you're a researcher, operator, educator, or fellow student — we'd genuinely love to hear from you. Technical critique, curriculum suggestions, partnership ideas — all of it is welcome.</p>
       </div>
-    </div>
-
-  </div>
 </section>
 
 <!-- FOOTER -->
