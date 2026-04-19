@@ -8784,47 +8784,49 @@ footer {
       The people behind<br><em style="font-style:italic; color:var(--accent2);">VectraSpace</em>
     </div>
 
-    <!-- two-card grid -->
+    <!-- 2x2 card grid -->
     <div class="team-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:60px;">
 
       <!-- ── Truman card ── -->
       <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
         <div style="height:2px; background:linear-gradient(90deg, var(--accent) 0%, var(--green) 60%, transparent 100%);"></div>
         <div style="padding:40px 44px;">
-          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:24px;">Founder &amp; Builder</div>
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:24px;">CEO &amp; Founder</div>
           <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
             <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--accent) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(74,158,255,0.2);">T</div>
             <div>
               <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Truman Heaston</div>
-              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--accent); text-transform:uppercase;">Builder · Student · Orbital Mechanics Nerd</div>
+              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--accent); text-transform:uppercase;">CEO · Product Vision · Orbital Mechanics</div>
             </div>
           </div>
           <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
-            Passionate about space, orbital mechanics, and the belief that great education can change the world. VectraSpace started as a personal obsession — I wanted to understand the real math behind satellite conjunction events, so I built the platform I wished existed.
+            Owns the product vision and technical direction — roadmap, physics accuracy, LinkedIn presence, and university outreach. Runs the team, keeps alignment tight, and makes sure VectraSpace moves fast without losing credibility.
           </p>
-          <a href="mailto:trumanheaston@gmail.com"
-             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
-                    background:var(--accent); color:#fff; border-radius:6px;
-                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
-                    text-decoration:none; transition:all 0.2s; font-weight:500;
-                    box-shadow:0 4px 20px rgba(74,158,255,0.25);"
-             onmouseover="this.style.background='#6ab4ff'; this.style.transform='translateY(-2px)';"
-             onmouseout="this.style.background='var(--accent)'; this.style.transform='';">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-            trumanheaston@gmail.com
-          </a>
-          <a href="https://github.com/trumanheaston-lab/PropulsionDemos/tree/main"
-             target="_blank" rel="noopener noreferrer"
-             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
-                    background:transparent; color:var(--accent); border-radius:6px;
-                    border:1px solid rgba(74,158,255,0.4);
-                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
-                    text-decoration:none; transition:all 0.2s; font-weight:500; margin-left:10px;"
-             onmouseover="this.style.background='rgba(74,158,255,0.08)'; this.style.borderColor='var(--accent)'; this.style.transform='translateY(-2px)';"
-             onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(74,158,255,0.4)'; this.style.transform='';">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-            Propulsion Demos ↗
-          </a>
+          <div style="display:flex; flex-wrap:wrap; gap:10px;">
+            <a href="mailto:trumanheaston@gmail.com"
+               style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
+                      background:var(--accent); color:#fff; border-radius:6px;
+                      font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
+                      text-decoration:none; transition:all 0.2s; font-weight:500;
+                      box-shadow:0 4px 20px rgba(74,158,255,0.25);"
+               onmouseover="this.style.background='#6ab4ff'; this.style.transform='translateY(-2px)';"
+               onmouseout="this.style.background='var(--accent)'; this.style.transform='';">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              trumanheaston@gmail.com
+            </a>
+            <a href="https://github.com/trumanheaston-lab/PropulsionDemos/tree/main"
+               target="_blank" rel="noopener noreferrer"
+               style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
+                      background:transparent; color:var(--accent); border-radius:6px;
+                      border:1px solid rgba(74,158,255,0.4);
+                      font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
+                      text-decoration:none; transition:all 0.2s; font-weight:500;"
+               onmouseover="this.style.background='rgba(74,158,255,0.08)'; this.style.borderColor='var(--accent)'; this.style.transform='translateY(-2px)';"
+               onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(74,158,255,0.4)'; this.style.transform='';">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              Propulsion Demos ↗
+            </a>
+          </div>
           <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(74,158,255,0.05) 0%, transparent 70%); pointer-events:none;"></div>
         </div>
       </div>
@@ -8833,16 +8835,16 @@ footer {
       <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
         <div style="height:2px; background:linear-gradient(90deg, var(--amber) 0%, var(--green) 60%, transparent 100%);"></div>
         <div style="padding:40px 44px;">
-          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--amber); text-transform:uppercase; margin-bottom:24px;">Marketing &amp; Outreach</div>
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--amber); text-transform:uppercase; margin-bottom:24px;">Marketing &amp; Community</div>
           <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
             <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--amber) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(245,158,11,0.2);">W</div>
             <div>
               <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Will Lovelace</div>
-              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--amber); text-transform:uppercase;">Marketing · Outreach · Growth</div>
+              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--amber); text-transform:uppercase;">Marketing · Discord · Aerospace Outreach</div>
             </div>
           </div>
           <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
-            Leading marketing and outreach for VectraSpace — connecting the platform with researchers, educators, and operators across the space industry. If you're interested in partnerships, press, or collaboration opportunities, Will is your contact.
+            Owns marketing — LinkedIn content that shows what the platform actually does, building the Discord, running outreach to aerospace clubs and professors, and turning early users into advocates. Not just posting — building a community.
           </p>
           <a href="mailto:Will.s.lovelace@gmail.com"
              style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
@@ -8859,9 +8861,69 @@ footer {
         </div>
       </div>
 
+      <!-- ── Advay card ── -->
+      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
+        <div style="height:2px; background:linear-gradient(90deg, #a78bfa 0%, var(--accent) 60%, transparent 100%);"></div>
+        <div style="padding:40px 44px;">
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:#a78bfa; text-transform:uppercase; margin-bottom:24px;">Strategy &amp; Growth</div>
+          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
+            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, #a78bfa 0%, var(--accent) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(167,139,250,0.2);">A</div>
+            <div>
+              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Advay Marwah</div>
+              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:#a78bfa; text-transform:uppercase;">Metrics · Growth Model · Sustainability</div>
+            </div>
+          </div>
+          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
+            Owns the numbers — user growth modeling, key metric tracking, and long-term sustainability thinking. Whether that means a Pro tier, grants, or donations, Advay keeps the team grounded in data and thinking ahead.
+          </p>
+          <a href="mailto:advaymarwah@gmail.com"
+             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
+                    background:#a78bfa; color:#fff; border-radius:6px;
+                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
+                    text-decoration:none; transition:all 0.2s; font-weight:500;
+                    box-shadow:0 4px 20px rgba(167,139,250,0.25);"
+             onmouseover="this.style.background='#c4b5fd'; this.style.transform='translateY(-2px)';"
+             onmouseout="this.style.background='#a78bfa'; this.style.transform='';">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            advaymarwah@gmail.com
+          </a>
+          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(167,139,250,0.05) 0%, transparent 70%); pointer-events:none;"></div>
+        </div>
+      </div>
+
+      <!-- ── Grant card ── -->
+      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
+        <div style="height:2px; background:linear-gradient(90deg, var(--green) 0%, var(--accent) 60%, transparent 100%);"></div>
+        <div style="padding:40px 44px;">
+          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:24px;">Hardware &amp; Performance</div>
+          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
+            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--green) 0%, var(--accent) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(52,211,153,0.2);">G</div>
+            <div>
+              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Grant Gill</div>
+              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--green); text-transform:uppercase;">Hardware · Performance · 3D Rendering</div>
+            </div>
+          </div>
+          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
+            Brings the hardware and real-world perspective — testing the dashboard across devices, giving honest feedback on where 3D rendering bogs down, and bridging the gap between software simulation and actual space hardware realities. Keeps us credible.
+          </p>
+          <a href="mailto:jellycatgrant@gmail.com"
+             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
+                    background:var(--green); color:#000; border-radius:6px;
+                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
+                    text-decoration:none; transition:all 0.2s; font-weight:500;
+                    box-shadow:0 4px 20px rgba(52,211,153,0.25);"
+             onmouseover="this.style.background='#6ee7b7'; this.style.transform='translateY(-2px)';"
+             onmouseout="this.style.background='var(--green)'; this.style.transform='';">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            jellycatgrant@gmail.com
+          </a>
+          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(52,211,153,0.05) 0%, transparent 70%); pointer-events:none;"></div>
+        </div>
+      </div>
+
     </div>
 
-      </div>
+  </div>
 </section>
 
 <!-- FOOTER -->
