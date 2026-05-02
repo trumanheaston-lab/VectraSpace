@@ -4151,6 +4151,765 @@ loadData();
 </body>
 </html>'''
 
+EDU_PREREQUISITES_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prerequisites — VectraSpace Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #070c14;
+  --ink-2:      #0d1520;
+  --ink-3:      #111d2b;
+  --border:     #1a2e42;
+  --border-2:   #243d54;
+  --accent:     #3b82f6;
+  --accent-glow:rgba(59,130,246,0.18);
+  --amber:      #f59e0b;
+  --amber-dim:  rgba(245,158,11,0.12);
+  --green:      #10b981;
+  --green-dim:  rgba(16,185,129,0.10);
+  --teal:       #14b8a6;
+  --teal-dim:   rgba(20,184,166,0.10);
+  --red:        #ef4444;
+  --red-dim:    rgba(239,68,68,0.10);
+  --text:       #c9ddef;
+  --text-2:     #9dbbd4;
+  --text-3:     #6d92ad;
+  --mono:       'Space Mono', monospace;
+  --math:       'STIX Two Math','Latin Modern Math',Georgia,serif;
+  --sans:       'Space Grotesk', sans-serif;
+  --display:    'Syne', sans-serif;
+  --toc-w:      230px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body { background: var(--ink); color: var(--text); font-family: var(--sans); line-height: 1.7; overflow-x: hidden; }
+#progress-bar { position: fixed; top: 0; left: 0; height: 2px; width: 0%; background: linear-gradient(90deg, var(--teal), var(--accent)); z-index: 200; transition: width 0.1s linear; }
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; background: rgba(7,12,20,0.92); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); }
+.nav-brand { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; text-decoration: none; }
+.nav-back { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--text-3); text-decoration: none; text-transform: uppercase; transition: color 0.2s; padding: 6px 14px; border: 1px solid var(--border); border-radius: 4px; }
+.nav-back:hover { color: var(--accent); border-color: var(--border-2); }
+.hero { padding: 120px 48px 64px; max-width: 900px; margin: 0 auto; }
+.hero-breadcrumb { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--text-3); text-transform: uppercase; margin-bottom: 16px; }
+.hero-breadcrumb a { color: var(--text-3); text-decoration: none; }
+.hero-breadcrumb a:hover { color: var(--accent); }
+.chapter-label { display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--teal); text-transform: uppercase; background: var(--teal-dim); border: 1px solid rgba(20,184,166,0.25); padding: 4px 10px; border-radius: 2px; margin-bottom: 20px; }
+.hero h1 { font-family: var(--display); font-size: clamp(36px,5vw,58px); font-weight: 800; line-height: 1.1; color: #fff; margin-bottom: 16px; }
+.hero-accent { color: var(--teal); }
+.hero-intro { font-size: 17px; font-weight: 300; color: var(--text-2); line-height: 1.8; max-width: 680px; margin-bottom: 32px; }
+.hero-meta { display: flex; gap: 24px; flex-wrap: wrap; font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: var(--text-3); text-transform: uppercase; }
+.hero-meta span { display: flex; align-items: center; gap: 6px; }
+.hero-meta-dot { width: 4px; height: 4px; background: var(--teal); border-radius: 50%; }
+.page-wrap { max-width: 1140px; margin: 0 auto; padding: 48px 48px 120px; display: grid; grid-template-columns: var(--toc-w) 1fr; gap: 64px; align-items: start; }
+.toc { position: sticky; top: 72px; background: var(--ink-2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; max-height: calc(100vh - 88px); overflow-y: auto; }
+.toc::-webkit-scrollbar { width: 3px; }
+.toc::-webkit-scrollbar-thumb { background: var(--border); }
+.toc-label { font-family: var(--mono); font-size: 8px; letter-spacing: 3px; color: var(--text-3); text-transform: uppercase; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.toc-list a { display: block; font-size: 12px; color: var(--text-3); text-decoration: none; padding: 5px 8px; border-radius: 4px; transition: all 0.2s; border-left: 2px solid transparent; }
+.toc-list a:hover { color: var(--text); background: var(--ink-3); }
+.toc-list a.active { color: var(--teal); background: var(--teal-dim); border-left-color: var(--teal); }
+.content { min-width: 0; }
+article { min-width: 0; }
+.content-section { margin-bottom: 80px; scroll-margin-top: 80px; }
+.section-number { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--teal); text-transform: uppercase; margin-bottom: 12px; }
+.content h2 { font-family: var(--display); font-size: clamp(22px,3vw,30px); font-weight: 700; color: #fff; margin-bottom: 20px; line-height: 1.2; }
+.content h3 { font-family: var(--sans); font-size: 16px; font-weight: 600; color: var(--text); margin: 28px 0 12px; }
+.content p { margin-bottom: 16px; color: var(--text-2); font-size: 15px; line-height: 1.85; }
+.content strong { color: var(--text); font-weight: 600; }
+.content em { color: var(--teal); font-style: normal; }
+.eq-block { background: var(--ink-2); border: 1px solid var(--border); border-left: 3px solid var(--teal); border-radius: 6px; padding: 20px 24px; margin: 24px 0; font-family: var(--mono); font-size: 13px; color: var(--text); overflow-x: auto; }
+.eq-block .eq-label { font-size: 8px; letter-spacing: 3px; color: var(--text-3); text-transform: uppercase; margin-bottom: 10px; }
+.eq-block .eq-main { font-family: var(--math); font-size: 18px; color: #fff; margin-bottom: 8px; font-style: italic; letter-spacing: 0.02em; }
+.eq-block .eq-vars { font-size: 12px; color: var(--text-2); line-height: 1.9; }
+.eq-block .eq-var-name { color: var(--amber); }
+.eq-block code { font-family: var(--mono); font-size: 11.5px; color: var(--teal); }
+.callout { border-radius: 6px; padding: 16px 20px; margin: 24px 0; border-left: 3px solid; font-size: 14px; line-height: 1.75; }
+.callout.info { background: rgba(59,130,246,0.07); border-color: var(--accent); color: var(--text); }
+.callout.warning { background: var(--amber-dim); border-color: var(--amber); color: var(--text); }
+.callout.success { background: var(--teal-dim); border-color: var(--teal); color: var(--text); }
+.callout-label { font-family: var(--mono); font-size: 8px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; display: block; }
+.callout.info .callout-label { color: var(--accent); }
+.callout.warning .callout-label { color: var(--amber); }
+.callout.success .callout-label { color: var(--teal); }
+.check-block { background: var(--ink-2); border: 1px solid rgba(20,184,166,0.25); border-top: 3px solid var(--teal); border-radius: 6px; padding: 22px 24px; margin: 40px 0 0; }
+.check-label { font-family: var(--mono); font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.check-label::before { content: '?'; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: var(--teal-dim); border: 1px solid rgba(20,184,166,0.4); border-radius: 50%; font-size: 10px; font-weight: 700; color: var(--teal); }
+.check-q { font-size: 14px; color: var(--text); line-height: 1.7; font-style: italic; }
+.check-hint { margin-top: 10px; font-size: 12px; color: var(--text-3); font-family: var(--mono); letter-spacing: 0.5px; }
+.data-table-wrap { overflow-x: auto; margin: 24px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; font-family: var(--mono); }
+thead th { background: var(--ink-3); color: var(--text-3); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+tbody td { padding: 10px 14px; border-bottom: 1px solid rgba(26,46,66,0.5); color: var(--text-2); }
+tbody tr:hover td { background: var(--ink-2); }
+.td-teal { color: var(--teal); }
+.td-amber { color: var(--amber); }
+.td-white { color: #fff; font-weight: 600; }
+.formula-inline { display: inline-block; background: var(--ink-3); border: 1px solid var(--border); border-radius: 3px; padding: 1px 7px; font-family: var(--math); font-size: 14px; font-style: italic; color: #e8f0f8; }
+.concept-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin: 24px 0; }
+.concept-card { background: var(--ink-3); border: 1px solid var(--border); border-radius: 6px; padding: 18px; transition: border-color 0.2s; }
+.concept-card:hover { border-color: var(--teal); }
+.concept-card-icon { font-size: 22px; margin-bottom: 10px; }
+.concept-card-title { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--teal); text-transform: uppercase; margin-bottom: 6px; }
+.concept-card-body { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.unit-row { display: flex; gap: 0; margin: 24px 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.unit-cell { flex: 1; padding: 16px 14px; border-right: 1px solid var(--border); background: var(--ink-2); }
+.unit-cell:last-child { border-right: none; }
+.unit-sym { font-family: var(--math); font-size: 22px; font-style: italic; color: #fff; margin-bottom: 6px; }
+.unit-name { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
+.unit-note { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+.chapter-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--border); }
+.chapter-nav-card { padding: 20px 24px; background: var(--ink-2); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; transition: all 0.2s; display: block; }
+.chapter-nav-card:hover { border-color: var(--border-2); transform: translateY(-1px); }
+.cnc-dir { font-family: var(--mono); font-size: 8px; letter-spacing: 3px; color: var(--text-3); text-transform: uppercase; margin-bottom: 6px; }
+.cnc-title { font-family: var(--display); font-size: 16px; font-weight: 700; color: #fff; }
+.cnc-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+.chapter-nav-card.next { text-align: right; }
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+.exercises-section{margin-top:80px;padding-top:48px;border-top:2px solid rgba(20,184,166,0.3);}
+.exercises-header{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
+.exercises-badge{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;background:rgba(20,184,166,0.12);color:var(--teal);border:1px solid rgba(20,184,166,0.3);padding:4px 10px;border-radius:4px;}
+.exercises-title{font-family:var(--display);font-size:26px;font-weight:700;color:#fff;letter-spacing:-0.4px;margin-bottom:6px;}
+.exercises-intro{font-size:14px;color:var(--text-2);line-height:1.7;margin-bottom:40px;}
+.exercise-card{background:var(--ink-2);border:1px solid var(--border);border-radius:10px;margin-bottom:32px;overflow:hidden;}
+.exercise-card-header{padding:20px 28px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.exercise-num{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:6px;}
+.exercise-card-header h3{font-family:var(--display);font-size:18px;font-weight:700;color:#fff;margin-bottom:16px;}
+.exercise-body{padding:24px 28px;}
+.ex-block{margin-bottom:18px;}
+.ex-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.ex-content{font-size:14px;color:#d4dde8;line-height:1.75;}
+.ex-content code{font-family:var(--mono);font-size:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);padding:1px 6px;border-radius:3px;color:#93c5fd;}
+.solution-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;background:rgba(20,184,166,0.06);border:1px solid rgba(20,184,166,0.2);border-radius:6px;padding:10px 16px;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--teal);margin-top:18px;transition:background 0.2s;user-select:none;}
+.solution-toggle:hover{background:rgba(20,184,166,0.12);}
+.solution-toggle-icon{font-size:14px;transition:transform 0.25s;}
+.solution-body{display:none;margin-top:16px;padding:20px;background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.15);border-radius:8px;}
+.solution-body.open{display:block;}
+.solution-step{display:flex;gap:14px;margin-bottom:14px;}
+.solution-step-num{flex-shrink:0;width:24px;height:24px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:#10b981;font-weight:700;}
+.solution-step-text{font-size:13px;color:var(--text-2);line-height:1.75;}
+.solution-step-text strong{color:#fff;}
+.solution-step-text code{font-family:var(--mono);font-size:11.5px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);padding:1px 6px;border-radius:3px;color:#6ee7b7;}
+.solution-answer{margin-top:14px;padding:14px 16px;background:rgba(20,184,166,0.08);border-left:3px solid var(--teal);border-radius:0 6px 6px 0;}
+.solution-answer-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--teal);text-transform:uppercase;margin-bottom:4px;}
+.solution-answer-val{font-family:var(--display);font-size:18px;font-weight:700;color:#fff;}
+.relevance-block{margin-top:14px;padding:12px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:6px;font-size:12.5px;color:#93c5fd;line-height:1.65;}
+.relevance-block strong{color:#60a5fa;}
+dfn { font-style: normal; border-bottom: 1px dashed rgba(20,184,166,0.4); cursor: help; color: inherit; transition: color 0.15s, border-color 0.15s; }
+dfn:hover { color: var(--teal); border-color: var(--teal); }
+.gtooltip { position: fixed; z-index: 9999; max-width: 300px; pointer-events: none; background: #0d1320; border: 1px solid rgba(20,184,166,0.3); border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); padding: 14px 16px; opacity: 0; transform: translateY(4px); transition: opacity 0.15s, transform 0.15s; }
+.gtooltip.show { opacity: 1; transform: translateY(0); }
+.gtooltip-term { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
+.gtooltip-def { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+@media (max-width: 900px) {
+  .page-wrap { grid-template-columns: 1fr; padding: 32px 24px 80px; }
+  .toc { display: none; }
+  .hero { padding: 100px 24px 48px; }
+  .concept-grid { grid-template-columns: 1fr; }
+  .unit-row { flex-direction: column; }
+  .unit-cell { border-right: none; border-bottom: 1px solid var(--border); }
+  .unit-cell:last-child { border-bottom: none; }
+  .chapter-nav { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<nav>
+  <a href="/" class="nav-brand">VectraSpace</a>
+  <div style="display:flex;gap:8px;">
+    <a href="/#deep-dives" class="nav-back">&#8592; All Chapters</a>
+    <a href="/glossary" class="nav-back">Resources</a>
+    <a href="/calculator" class="nav-back">Calculator</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Prerequisites</div>
+  <div class="chapter-label">Chapter 00 &middot; Prerequisites</div>
+  <h1><span class="hero-accent">The Math You Need</span><br>Before Chapter One</h1>
+  <p class="hero-intro">Vectors, Newton&#8217;s laws, reference frames, and just enough calculus to read an equation of motion without panic. No prior calculus required &#8212; but high school physics and a willingness to think carefully will take you a long way.</p>
+  <div class="hero-meta">
+    <span><div class="hero-meta-dot"></div>~20 min read</span>
+    <span><div class="hero-meta-dot"></div>5 sections</span>
+    <span><div class="hero-meta-dot"></div>High school physics</span>
+    <span><div class="hero-meta-dot"></div>No calculations required</span>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <aside class="toc">
+    <div class="toc-label">On This Page</div>
+    <ul class="toc-list">
+      <li><a href="#vectors">Vectors &amp; Notation</a></li>
+      <li><a href="#newton">Newton&#8217;s Three Laws</a></li>
+      <li><a href="#frames">Reference Frames</a></li>
+      <li><a href="#calculus">Calculus Intuition</a></li>
+      <li><a href="#units">Units &amp; Conventions</a></li>
+    </ul>
+  </aside>
+
+  <article class="content">
+
+    <!-- ===== SECTION 01 — VECTORS ===== -->
+    <section id="vectors" class="content-section reveal">
+      <div class="section-number">// 01</div>
+      <h2>Vectors and Vector Notation</h2>
+
+      <p>Most quantities in orbital mechanics are <strong>vectors</strong> &#8212; they have both a magnitude (a size) and a direction. Contrast this with a <strong>scalar</strong>, which has only magnitude. The ISS&#8217;s altitude above Earth is a scalar: 420 km. The ISS&#8217;s velocity is a vector: 7.66 km/s in a specific direction tangent to its orbit. These are fundamentally different things, and confusing them leads to wrong answers fast.</p>
+
+      <p>Throughout VectraSpace, vectors are written in <strong>bold</strong> or with an arrow: <strong>r</strong> or r&#x20D7;. When you see <em>r</em> without bold, it typically means the <em>magnitude</em> of that vector &#8212; just the size, stripped of direction. So if <strong>r</strong> is the position vector from Earth&#8217;s center to the ISS, then <span style="font-family:Georgia,serif;font-style:italic;">r = |r|</span> is the scalar distance: roughly 6,791 km.</p>
+
+      <h3>Position, Velocity, and Acceleration</h3>
+
+      <p>A satellite&#8217;s state at any moment is completely described by three vectors. Picture the ISS at a specific instant: it&#8217;s sitting at a certain point in space relative to Earth&#8217;s center, it&#8217;s moving in a specific direction at a specific speed, and gravity is pulling it toward Earth at a specific rate. Those are its <em>position</em>, <em>velocity</em>, and <em>acceleration</em> vectors.</p>
+
+      <div class="eq-block">
+        <div class="eq-label">The Three State Vectors</div>
+        <div class="eq-main">r, &#775;r, &#776;r</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">r</span> = position vector from Earth&#8217;s center to satellite (km)<br>
+          <span class="eq-var-name">&#775;r</span> = velocity vector &#8212; how position is changing per second (km/s)<br>
+          <span class="eq-var-name">&#776;r</span> = acceleration vector &#8212; how velocity is changing per second (km/s&#178;)<br>
+          The dot notation (&#775;r, &#776;r) means &#8220;time derivative&#8221; &#8212; more on this in Section 04.
+        </div>
+      </div>
+
+      <p>For the ISS, <span style="font-family:Georgia,serif;font-style:italic;">|r| &#8776; 6,791 km</span>, <span style="font-family:Georgia,serif;font-style:italic;">|&#775;r| &#8776; 7.66 km/s</span>, and <span style="font-family:Georgia,serif;font-style:italic;">|&#776;r| &#8776; 0.0089 km/s&#178;</span>. The position vector points from Earth&#8217;s center out toward wherever the station currently is. The velocity vector points roughly sideways &#8212; tangent to the orbit, not toward Earth. The acceleration vector points almost directly toward Earth&#8217;s center, because gravity is the dominant force.</p>
+
+      <h3>Adding Vectors and Why It Matters</h3>
+
+      <p>Vectors add tip-to-tail. If you push a satellite in the direction it&#8217;s already moving, you add a velocity vector aligned with its current velocity &#8212; and the orbit gets bigger. If you push perpendicular to its motion, you change direction without immediately changing speed &#8212; and the orbit tilts. This geometry is not intuitive at first, but it&#8217;s why orbital maneuvers work the way they do: the direction of your burn matters just as much as the size.</p>
+
+      <p>The magnitude of a 3D vector is computed from its components using the 3D extension of the Pythagorean theorem: if <strong>r</strong> has components (x, y, z), then <span style="font-family:Georgia,serif;font-style:italic;">r = &radic;(x&sup2; + y&sup2; + z&sup2;)</span>. When Chapter 01 writes <span style="font-family:Georgia,serif;font-style:italic;">r = |r|</span>, this is what it means.</p>
+
+      <div class="callout success">
+        <span class="callout-label">Satellite Example</span>
+        Suppose the ISS position vector in a particular coordinate system is <strong>r</strong> = (&#8722;2,436, 5,892, 2,714) km. Its magnitude is <span style="font-family:Georgia,serif;font-style:italic;">r = &radic;(2,436&sup2; + 5,892&sup2; + 2,714&sup2;) = &radic;(5,934,000 + 34,716,000 + 7,366,000) = &radic;48,016,000 &#8776; 6,929 km</span>. That distance from Earth&#8217;s center corresponds to roughly 558 km altitude &#8212; squarely in the ISS operating band.
+      </div>
+
+      <div class="check-block">
+        <div class="check-label">Check Your Understanding</div>
+        <p class="check-q">A satellite has velocity vector <strong>v</strong> = (3, &#8722;6, 2) km/s. A ground controller describes this satellite as &#8220;moving at 6 km/s.&#8221; Is that statement correct? What has she likely confused?</p>
+        <p class="check-hint">Hint: Compute |v| = &radic;(3&sup2; + 6&sup2; + 2&sup2;) &#8212; is the magnitude equal to any single component?</p>
+      </div>
+    </section>
+
+    <!-- ===== SECTION 02 — NEWTON'S THREE LAWS ===== -->
+    <section id="newton" class="content-section reveal">
+      <div class="section-number">// 02</div>
+      <h2>Newton&#8217;s Three Laws in Orbit</h2>
+
+      <p>You&#8217;ve probably seen Newton&#8217;s laws written as dry axioms. In orbit, they aren&#8217;t axioms &#8212; they&#8217;re literal operating constraints that determine everything from station-keeping costs to how debris fragments spread after a collision. Let&#8217;s go through each one in the context of a satellite.</p>
+
+      <h3>First Law &#8212; Objects in Motion Stay in Motion</h3>
+      <p>An object with no net force acting on it moves in a straight line at constant speed forever. This sounds irrelevant to a satellite that&#8217;s clearly curving around Earth &#8212; but it isn&#8217;t. The satellite <em>wants</em> to fly in a straight line. It is only the continuous gravitational force from Earth that bends its path into a curve. Remove that force (imagine Earth&#8217;s gravity suddenly switching off), and the satellite departs in the straight-line direction it was traveling at that instant. This is called the <strong>tangential escape direction</strong>, and it&#8217;s exactly the direction you burn your engine if you want to leave orbit efficiently.</p>
+
+      <p>In deep space, between planets, the first law is nearly literal: the Voyager probes have been coasting in an almost straight line at nearly constant speed for 45+ years, with only tiny gravitational nudges from passing planets along the way.</p>
+
+      <h3>Second Law &#8212; Force Equals Mass Times Acceleration</h3>
+      <p><span style="font-family:Georgia,serif;font-style:italic;">F = ma</span> &#8212; or equivalently, <span style="font-family:Georgia,serif;font-style:italic;">a = F/m</span>. The acceleration of a satellite equals the net force on it divided by its mass. In the idealized <strong>two-body problem</strong> (covered in Chapter 01), the only force is Earth&#8217;s gravity:</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Gravitational Force on a Satellite</div>
+        <div class="eq-main">F = &#8722;(GMm / r&sup2;) &middot; r&#x0302;</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">G</span> = universal gravitational constant = 6.674 &#215; 10&#8315;&#178;&#8304; km&#179;/(kg&#183;s&#178;)<br>
+          <span class="eq-var-name">M</span> = Earth&#8217;s mass = 5.972 &#215; 10&#178;&#8308; kg<br>
+          <span class="eq-var-name">m</span> = satellite mass (cancels out &#8212; see below)<br>
+          <span class="eq-var-name">r</span> = distance from Earth&#8217;s center to satellite (km)<br>
+          <span class="eq-var-name">r&#x0302;</span> = unit vector pointing from Earth toward satellite (direction only, magnitude 1)
+        </div>
+      </div>
+
+      <p>Dividing both sides by <span style="font-family:Georgia,serif;font-style:italic;">m</span> to get acceleration: the satellite mass cancels completely. This is why a 500 kg Starlink and the 420,000 kg ISS at the same altitude follow identical orbital trajectories &#8212; their mass is irrelevant to their path through space. (It matters enormously for the propellant cost of changing that trajectory, but not for the trajectory itself.) What remains after the cancellation is the <em>gravitational parameter</em> <span style="font-family:Georgia,serif;font-style:italic;">&#956; = GM = 398,600.4418 km&#179;/s&#178;</span> &#8212; a single constant that carries all the information you need.</p>
+
+      <div class="callout info">
+        <span class="callout-label">Why &#956; Instead of G and M Separately?</span>
+        G and M are each known to only about 4&#8211;5 significant figures separately, because measuring absolute gravitational force in a laboratory is genuinely hard. But their product &#956; can be measured from satellite orbital periods to 10+ significant figures. VectraSpace uses &#956; = 398,600.4418 km&#179;/s&#178; throughout &#8212; that last decimal place matters when predicting positions hours ahead.
+      </div>
+
+      <h3>Third Law &#8212; Every Action Has an Equal and Opposite Reaction</h3>
+      <p>When a satellite fires a thruster, it ejects propellant at high velocity in one direction and the spacecraft accelerates in the opposite direction. This is the only mechanism available for changing orbits in the vacuum of space &#8212; there is nothing to push against except the propellant you carry with you. The <strong>Tsiolkovsky rocket equation</strong> quantifies how much propellant you need for a given velocity change (&#916;v):</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Tsiolkovsky Rocket Equation</div>
+        <div class="eq-main">&#916;v = I<sub>sp</sub> &middot; g&#8320; &middot; ln(m&#8320; / m<sub>f</sub>)</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">&#916;v</span> = velocity change achieved (km/s)<br>
+          <span class="eq-var-name">I<sub>sp</sub></span> = specific impulse (seconds) &#8212; a measure of engine efficiency<br>
+          <span class="eq-var-name">g&#8320;</span> = 0.00981 km/s&#178; (standard gravity)<br>
+          <span class="eq-var-name">m&#8320;</span> = initial mass (spacecraft + propellant)<br>
+          <span class="eq-var-name">m<sub>f</sub></span> = final mass (spacecraft after burn, without consumed propellant)
+        </div>
+      </div>
+
+      <p>You won&#8217;t need to evaluate this in VectraSpace &#8212; the maneuver module does it &#8212; but notice the logarithm. Propellant cost is <em>exponential</em> in &#916;v: doubling the velocity change more than doubles the propellant required. This is why catching a conjunction 24 hours before closest approach (requiring ~0.1 m/s) is drastically cheaper than catching it 2 hours before (requiring 2+ m/s), and why early warning is the single most valuable asset in collision avoidance operations.</p>
+
+      <div class="check-block">
+        <div class="check-label">Check Your Understanding</div>
+        <p class="check-q">Two satellites at exactly the same altitude &#8212; one weighing 200 kg, one weighing 1,200 kg &#8212; are given the same tiny nudge by a micrometeorite impact (same force, same duration). Which satellite ends up in a different orbit from the other, and why does the heavier satellite respond differently to the same force?</p>
+        <p class="check-hint">Hint: F = ma means a = F/m. Same force on different masses gives different accelerations. But does the satellite&#8217;s own mass affect its natural orbit due to gravity?</p>
+      </div>
+    </section>
+
+    <!-- ===== SECTION 03 — REFERENCE FRAMES ===== -->
+    <section id="frames" class="content-section reveal">
+      <div class="section-number">// 03</div>
+      <h2>What Is a Reference Frame?</h2>
+
+      <p>A reference frame is an agreed-upon coordinate system &#8212; a set of axes and an origin &#8212; from which you measure positions and velocities. This sounds like bookkeeping, but it is one of the most consequential choices in orbital mechanics. The <em>same physical satellite</em>, described in different reference frames, has completely different position and velocity numbers. Mixing up frames produces conjunction predictions that are garbage in a way that may not be immediately obvious.</p>
+
+      <h3>The Merry-Go-Round Problem</h3>
+      <p>Imagine you&#8217;re sitting at the center of a spinning merry-go-round, and your friend is standing on a horse at the edge. From your perspective, your friend is stationary &#8212; always at the same position relative to you. From the perspective of someone standing on the ground watching, your friend is tracing a circle, constantly moving.</p>
+
+      <p>Who is right? Both, completely. They&#8217;re just describing motion in different reference frames. The ground observer is in an <strong>inertial frame</strong> &#8212; one that isn&#8217;t rotating or accelerating. You, at the center of the spinning merry-go-round, are in a <strong>rotating frame</strong>. Neither is more &#8220;correct,&#8221; but they are not interchangeable: Newton&#8217;s <span style="font-family:Georgia,serif;font-style:italic;">F = ma</span> only works cleanly in an inertial frame. In a rotating frame, fictitious forces (like the Coriolis force) must be added to make the physics come out right.</p>
+
+      <p>Earth is the merry-go-round. It completes one rotation every 24 hours. If you describe satellite positions in a coordinate system fixed to Earth&#8217;s surface (like longitude and latitude), you&#8217;re in a rotating frame, and Newton&#8217;s laws don&#8217;t apply directly. That&#8217;s fine for plotting a satellite&#8217;s ground track on a map &#8212; but not for propagating its orbit forward in time.</p>
+
+      <h3>The Three Frames You Will Encounter</h3>
+
+      <div class="concept-grid">
+        <div class="concept-card">
+          <div class="concept-card-icon">&#127759;</div>
+          <div class="concept-card-title">ECEF Frame</div>
+          <div class="concept-card-body">Earth-Centered, Earth-Fixed. Rotates with Earth. X-axis points toward the Prime Meridian. The frame used by GPS coordinates and ground tracks. Useful for knowing <em>where over Earth</em> a satellite is right now.</div>
+        </div>
+        <div class="concept-card">
+          <div class="concept-card-icon">&#11088;</div>
+          <div class="concept-card-title">ECI Frame</div>
+          <div class="concept-card-body">Earth-Centered Inertial. Fixed to the stars &#8212; does not rotate with Earth. X-axis points toward the vernal equinox. Newton&#8217;s laws apply directly here. Used by SGP4, conjunction analysis, and VectraSpace&#8217;s entire propagation engine.</div>
+        </div>
+        <div class="concept-card">
+          <div class="concept-card-icon">&#128752;</div>
+          <div class="concept-card-title">RTN Frame</div>
+          <div class="concept-card-body">Radial-Transverse-Normal (the Hill frame). Centered on a specific satellite. R = toward Earth, T = along-track, N = out-of-plane. Maneuver burn directions in VectraSpace are given in RTN.</div>
+        </div>
+        <div class="concept-card">
+          <div class="concept-card-icon">&#127919;</div>
+          <div class="concept-card-title">Collision Plane</div>
+          <div class="concept-card-body">A 2D frame perpendicular to the relative velocity vector at closest approach. Probability of collision is computed in this plane &#8212; the combined position uncertainty ellipse is projected here and integrated numerically.</div>
+        </div>
+      </div>
+
+      <p>The key habit to build: always ask <em>&#8220;which frame are these coordinates in?&#8221;</em> before using them. A velocity of (&#8722;2.3, 6.8, 3.2) km/s in ECI looks nothing like the same satellite&#8217;s velocity in ECEF. VectraSpace labels every output with its frame explicitly. If you see a maneuver &#916;v listed as (0.0, 0.12, 0.0) km/s, it&#8217;s in RTN &#8212; a purely along-track burn.</p>
+
+      <div class="callout warning">
+        <span class="callout-label">A Common Mistake</span>
+        Never add an ECI velocity vector to an ECEF position vector &#8212; the frames are different and the result is physically meaningless. This is equivalent to adding kilometers to degrees. The math will execute without error, and the answer will be wrong in a way that&#8217;s difficult to detect. Frame mistakes are among the most common sources of subtle bugs in astrodynamics software.
+      </div>
+
+      <div class="check-block">
+        <div class="check-label">Check Your Understanding</div>
+        <p class="check-q">A satellite is in geostationary orbit &#8212; it stays above the same point on the equator at all times. Describe this satellite&#8217;s motion in the ECEF frame and in the ECI frame. In which frame does it appear to be &#8220;not moving&#8221;?</p>
+        <p class="check-hint">Hint: A geostationary satellite&#8217;s orbital period equals Earth&#8217;s rotation period. Consider what each frame&#8217;s axes are anchored to.</p>
+      </div>
+    </section>
+
+    <!-- ===== SECTION 04 — CALCULUS INTUITION ===== -->
+    <section id="calculus" class="content-section reveal">
+      <div class="section-number">// 04</div>
+      <h2>Calculus Intuition: Reading &#776;r = &#8722;(&#956;/r&#179;)&#183;r</h2>
+
+      <p>When Chapter 01 opens with <span style="font-family:Georgia,serif;font-style:italic;">&#776;r = &#8722;(&#956;/r&#179;)&#183;r</span>, the algebra is simple &#8212; a scalar multiplied by a vector &#8212; but the dot notation carries a layer of calculus. You don&#8217;t need to <em>solve</em> that equation. You need to understand what it&#8217;s <em>saying</em>. Two concepts get you there: the derivative and the integral.</p>
+
+      <h3>Derivatives &#8212; The Rate of Change</h3>
+
+      <p>The <strong>derivative</strong> of a quantity with respect to time is its instantaneous rate of change. If a satellite is at altitude 420 km at midnight and 421.5 km at 12:01 AM (one minute later), its altitude is changing at roughly 1.5 km/min at that moment. That rate <em>is</em> the derivative of altitude with respect to time.</p>
+
+      <p>In the dot notation used throughout this platform, one dot means &#8220;take the time derivative once&#8221;:</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Dot Notation &#8212; Time Derivatives</div>
+        <div class="eq-main">&#775;r = dr/dt &nbsp;&nbsp;&nbsp; &#776;r = d&sup2;r/dt&sup2;</div>
+        <div class="eq-vars">
+          <span class="eq-var-name">&#775;r</span> (r-dot) = first derivative of position with respect to time = <em>velocity</em><br>
+          <span class="eq-var-name">&#776;r</span> (r-double-dot) = second derivative of position with respect to time = <em>acceleration</em><br>
+          This notation was introduced by Newton himself and is standard throughout astrodynamics.
+        </div>
+      </div>
+
+      <p>So <span style="font-family:Georgia,serif;font-style:italic;">&#776;r = &#8722;(&#956;/r&#179;)&#183;r</span> is simply a statement: <em>&#8220;the satellite&#8217;s acceleration equals negative &#956; divided by the cube of its distance from Earth, multiplied by its position vector.&#8221;</em> The negative sign means acceleration points <em>opposite</em> to the direction of <strong>r</strong> &#8212; pulling the satellite toward Earth rather than away from it.</p>
+
+      <p>If you&#8217;ve seen <span style="font-family:Georgia,serif;font-style:italic;">v = ds/dt</span> and <span style="font-family:Georgia,serif;font-style:italic;">a = dv/dt</span> in high school physics, you already know this concept. The dot notation is just a more compact way to write the same thing.</p>
+
+      <h3>Integrals &#8212; Accumulated Change</h3>
+
+      <p>The <strong>integral</strong> is the reverse operation: it tells you the accumulated total when you add up a rate of change over time. If an object accelerates at 10 m/s&#178; for 5 seconds from rest, integrating that acceleration gives a final velocity of 50 m/s. Integrating that velocity over time gives the distance traveled.</p>
+
+      <p>In orbital mechanics, this is exactly how propagation works: given the equation of motion <span style="font-family:Georgia,serif;font-style:italic;">&#776;r = &#8722;(&#956;/r&#179;)&#183;r</span>, a numerical integrator starts from a known position and velocity at time <span style="font-family:Georgia,serif;font-style:italic;">t&#8320;</span> and steps forward in tiny time increments &#8212; computing the acceleration at each step, adding it to the velocity, adding that updated velocity to the position &#8212; until it reaches the desired future time. What SGP4 approximates analytically, high-fidelity numerical propagators do step by step with explicit integration.</p>
+
+      <div class="callout success">
+        <span class="callout-label">What You Need to Take Away</span>
+        When you see &#776;r in an equation: acceleration. When you see &#775;r: velocity. When an equation contains an integral sign &#8747;: it is accumulating a quantity over time or space &#8212; for example, integrating a 2D probability density function over the conjunction plane gives the total probability of collision. VectraSpace evaluates these integrals; you just need to recognize what the notation is asking for.
+      </div>
+
+      <h3>The Equation of Motion, Decoded</h3>
+
+      <div class="eq-block">
+        <div class="eq-label">Newton&#8217;s Equation of Motion &#8212; Plain Language</div>
+        <div class="eq-main">&#776;r = &#8722;(&#956; / r&#179;) &middot; r</div>
+        <div class="eq-vars">
+          <em>&#8220;The satellite&#8217;s acceleration (&#776;r) equals the gravitational parameter (&#956; = 398,600.4418 km&#179;/s&#178;) divided by the cube of the distance from Earth&#8217;s center (r&#179;), multiplied by the position vector (r), with a minus sign because the acceleration points toward Earth.&#8221;</em><br><br>
+          Nothing here depends on the satellite&#8217;s mass. Everything depends on how far it is from Earth&#8217;s center. Double the distance &#8594; acceleration drops by a factor of 4. This inverse-square relationship is hidden in the r&#179;/r = r&#178; term.
+        </div>
+      </div>
+
+      <div class="check-block">
+        <div class="check-label">Check Your Understanding</div>
+        <p class="check-q">A satellite&#8217;s altitude is recorded every minute for an hour. A scientist computes the derivative of altitude with respect to time and gets a value that is negative and growing larger in magnitude over time. What physical situation does this describe, and what force is most likely responsible?</p>
+        <p class="check-hint">Hint: Negative rate of change of altitude = altitude is decreasing. Increasing magnitude = losing altitude faster each minute. What perturbation from Chapter 03 causes this?</p>
+      </div>
+    </section>
+
+    <!-- ===== SECTION 05 — UNITS ===== -->
+    <section id="units" class="content-section reveal">
+      <div class="section-number">// 05</div>
+      <h2>Units and Conventions</h2>
+
+      <p>Orbital mechanics uses a specific set of units that can surprise newcomers used to SI (meters, kilograms, seconds). The reasons are practical: satellites move large distances, and working in meters produces unwieldy 7-digit numbers. VectraSpace is consistent about its unit system throughout.</p>
+
+      <div class="unit-row">
+        <div class="unit-cell">
+          <div class="unit-sym">km</div>
+          <div class="unit-name">Kilometers</div>
+          <div class="unit-note">Distance. Altitudes, semi-major axes, miss distances. The ISS is 6,791 km from Earth&#8217;s center, not 6,791,000 m.</div>
+        </div>
+        <div class="unit-cell">
+          <div class="unit-sym">km/s</div>
+          <div class="unit-name">km per second</div>
+          <div class="unit-note">Velocity. Orbital speeds (~7&#8211;8 km/s LEO), &#916;v maneuver sizes (0.0001&#8211;0.001 km/s typical). Never km/h in orbital mechanics.</div>
+        </div>
+        <div class="unit-cell">
+          <div class="unit-sym">km&#179;/s&#178;</div>
+          <div class="unit-name">Grav. parameter</div>
+          <div class="unit-note">Units of &#956; = GM. Follows directly from using km for distance and s for time in Newton&#8217;s gravitational law.</div>
+        </div>
+        <div class="unit-cell">
+          <div class="unit-sym">s</div>
+          <div class="unit-name">Seconds</div>
+          <div class="unit-note">Time. Orbital periods internally in seconds (ISS period &#8776; 5,567 s) even when displayed as minutes or hours in the interface.</div>
+        </div>
+      </div>
+
+      <h3>Degrees vs. Radians</h3>
+
+      <p>Angles appear everywhere: inclination, RAAN, argument of perigee, true anomaly. VectraSpace displays angles in <strong>degrees</strong> &#8212; saying &#8220;inclination 51.6&#176;&#8221; is immediately intuitive. Internally, all trigonometric calculations use <strong>radians</strong>, where a full circle is 2&#960; &#8776; 6.283 radians instead of 360&#176;.</p>
+
+      <div class="eq-block">
+        <div class="eq-label">Degrees &#8596; Radians Conversion</div>
+        <div class="eq-main">&#952;<sub>rad</sub> = &#952;<sub>deg</sub> &middot; (&#960; / 180) &nbsp;&nbsp;&nbsp; &#952;<sub>deg</sub> = &#952;<sub>rad</sub> &middot; (180 / &#960;)</div>
+        <div class="eq-vars">
+          90&#176; = &#960;/2 &#8776; 1.5708 rad &nbsp;&middot;&nbsp; 180&#176; = &#960; &#8776; 3.1416 rad &nbsp;&middot;&nbsp; 360&#176; = 2&#960; &#8776; 6.2832 rad<br>
+          ISS inclination: 51.6&#176; &#8776; 0.9005 rad
+        </div>
+      </div>
+
+      <p>Radians are used internally because calculus formulas involving trigonometry only work cleanly in radians: the derivative of sin(&#952;) is cos(&#952;) only when &#952; is in radians. In degrees, a correction factor of &#960;/180 appears everywhere. Since orbital mechanics involves constant differentiation and integration, radians are the natural unit for computation.</p>
+
+      <h3>A Quick Reference: Numbers to Recognize</h3>
+
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr><th>Quantity</th><th>Value</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-white">&#956; (Earth)</td><td class="td-teal">398,600.4418 km&#179;/s&#178;</td><td>The most important constant on this platform. Memorize the first four digits: 3986.</td></tr>
+            <tr><td class="td-white">R&#8853; (mean)</td><td class="td-teal">6,371 km</td><td>Add altitude to get distance from Earth&#8217;s center (semi-major axis for circular orbits).</td></tr>
+            <tr><td class="td-white">LEO velocity</td><td class="td-teal">~7.5&#8211;7.9 km/s</td><td>Faster at lower altitude. ISS: 7.66 km/s. Starlink: 7.59 km/s.</td></tr>
+            <tr><td class="td-white">GEO altitude</td><td class="td-amber">35,786 km</td><td>Orbital period equals Earth&#8217;s rotation (23h 56m). The geostationary belt.</td></tr>
+            <tr><td class="td-white">ISS orbit</td><td class="td-teal">420 km / 6,791 km / 92.8 min</td><td>Altitude / semi-major axis / period. Inclination 51.64&#176;.</td></tr>
+            <tr><td class="td-white">Starlink (shell 1)</td><td class="td-teal">550 km / 6,921 km / 95.5 min</td><td>Altitude / semi-major axis / period. Inclination 53&#176;.</td></tr>
+            <tr><td class="td-white">Typical avoidance &#916;v</td><td class="td-amber">0.05&#8211;1 m/s = 0.00005&#8211;0.001 km/s</td><td>Small burns. VectraSpace outputs &#916;v in m/s for readability at these scales.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-label">The Unit Mistake That Destroyed a Spacecraft</span>
+        In 1999, NASA&#8217;s Mars Climate Orbiter was lost because one engineering team reported thruster data in pound-force&#183;seconds while the navigation software expected newton&#183;seconds. The spacecraft entered the Martian atmosphere 170 km lower than planned and was destroyed. The conversion factor &#8212; 4.45 &#8212; is not large, but it accumulated over months of flight. Unit consistency is not a pedantic concern. In VectraSpace, every quantity label includes its units explicitly.
+      </div>
+
+      <div class="check-block">
+        <div class="check-label">Check Your Understanding</div>
+        <p class="check-q">A collision avoidance system recommends a &#916;v of 0.15 m/s. An engineer converts this to km/s by multiplying by 1,000 and gets 150 km/s. He concludes the maneuver is impossible and ignores the alert. What did he do wrong, and what is the correct value in km/s?</p>
+        <p class="check-hint">Hint: 1 m = 0.001 km, so 1 m/s = 0.001 km/s. Is the conversion factor multiplied or divided?</p>
+      </div>
+    </section>
+
+    <!-- ===== EXERCISES ===== -->
+    <div class="exercises-section" id="exercises">
+      <div class="exercises-header">
+        <div class="exercises-badge">Practice Problems</div>
+      </div>
+      <h2 class="exercises-title">Chapter 00 &#8212; Worked Exercises</h2>
+      <p class="exercises-intro">Three problems bridging prerequisite material to Chapter 01. No formulas beyond those introduced above. These test your understanding of vector magnitude, Newton&#8217;s Second Law, and unit conversion.</p>
+
+      <!-- Exercise 1 -->
+      <div class="exercise-card">
+        <div class="exercise-card-header">
+          <div class="exercise-num">Exercise 01 &middot; Vector Magnitude</div>
+          <h3>Computing the Distance from Earth&#8217;s Center to the ISS</h3>
+        </div>
+        <div class="exercise-body">
+          <div class="ex-block">
+            <div class="ex-label">Problem</div>
+            <div class="ex-content">At a particular instant, the ISS position vector in ECI coordinates is <strong>r</strong> = (&#8722;4,182, 4,716, 2,411) km. (a) Compute the magnitude r = |<strong>r</strong>| in km. (b) What is the approximate altitude of the ISS at this moment? (c) Is this a plausible ISS position?</div>
+          </div>
+          <div class="ex-block">
+            <div class="ex-label">Given</div>
+            <div class="ex-content">
+              <code>r = &radic;(x&sup2; + y&sup2; + z&sup2;)</code><br>
+              <code>Earth mean radius R&#8853; = 6,371 km</code><br>
+              <code>Altitude h = r &#8722; R&#8853;</code>
+            </div>
+          </div>
+          <div class="ex-block">
+            <div class="ex-label">Find</div>
+            <div class="ex-content">Scalar magnitude r (km), altitude h (km), and a sanity check against known ISS altitude range.</div>
+          </div>
+          <div class="solution-toggle" onclick="toggleSolution(this)">
+            <span class="solution-toggle-icon">&#9658;</span> Show Solution
+          </div>
+          <div class="solution-body">
+            <div class="solution-step">
+              <div class="solution-step-num">1</div>
+              <div class="solution-step-text"><strong>Square each component:</strong><br>
+              <code>x&sup2; = (&#8722;4,182)&sup2; = 17,488,724 km&sup2;</code><br>
+              <code>y&sup2; = (4,716)&sup2; = 22,240,656 km&sup2;</code><br>
+              <code>z&sup2; = (2,411)&sup2; = 5,812,921 km&sup2;</code></div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">2</div>
+              <div class="solution-step-text"><strong>Sum and take the square root:</strong><br>
+              <code>r = &radic;(17,488,724 + 22,240,656 + 5,812,921) = &radic;45,542,301 &#8776; 6,749 km</code></div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">3</div>
+              <div class="solution-step-text"><strong>Altitude:</strong><br>
+              <code>h = r &#8722; R&#8853; = 6,749 &#8722; 6,371 = 378 km</code></div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">4</div>
+              <div class="solution-step-text"><strong>Sanity check:</strong> The ISS nominal altitude is 400&#8211;420 km, with natural decay of ~2 km/day between reboosts. An altitude of 378 km is plausible at the trough of a reboost cycle &#8212; the station would be due for an orbit-raising maneuver soon.</div>
+            </div>
+            <div class="solution-answer">
+              <div class="solution-answer-label">Answer</div>
+              <div class="solution-answer-val">r &#8776; 6,749 km &nbsp;&middot;&nbsp; h &#8776; 378 km &nbsp;&middot;&nbsp; Plausible (pre-reboost altitude)</div>
+            </div>
+            <div class="relevance-block"><strong>Operational relevance:</strong> VectraSpace computes |r| thousands of times per second during catalog propagation &#8212; it appears in every major orbital formula including vis-viva, the equation of motion, and the conjunction Pc integrand.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exercise 2 -->
+      <div class="exercise-card">
+        <div class="exercise-card-header">
+          <div class="exercise-num">Exercise 02 &middot; Newton&#8217;s Second Law</div>
+          <h3>Gravitational Acceleration at LEO vs. GEO</h3>
+        </div>
+        <div class="exercise-body">
+          <div class="ex-block">
+            <div class="ex-label">Problem</div>
+            <div class="ex-content">Using the gravitational acceleration formula <code>a = &#956;/r&sup2;</code>, compute the acceleration at (a) ISS altitude of 420 km and (b) GEO altitude of 35,786 km. By what factor is GEO gravity weaker than ISS gravity? Does the satellite&#8217;s own mass affect either answer?</div>
+          </div>
+          <div class="ex-block">
+            <div class="ex-label">Given</div>
+            <div class="ex-content">
+              <code>&#956; = 398,600.4418 km&#179;/s&#178;</code><br>
+              ISS: <code>r&#8321; = 6,371 + 420 = 6,791 km</code><br>
+              GEO: <code>r&#8322; = 6,371 + 35,786 = 42,157 km</code><br>
+              <code>a = &#956; / r&sup2;</code> (magnitude only)
+            </div>
+          </div>
+          <div class="ex-block">
+            <div class="ex-label">Find</div>
+            <div class="ex-content">Gravitational acceleration at ISS and GEO (km/s&sup2; and m/s&sup2;), their ratio, and whether satellite mass affects either result.</div>
+          </div>
+          <div class="solution-toggle" onclick="toggleSolution(this)">
+            <span class="solution-toggle-icon">&#9658;</span> Show Solution
+          </div>
+          <div class="solution-body">
+            <div class="solution-step">
+              <div class="solution-step-num">1</div>
+              <div class="solution-step-text"><strong>ISS gravitational acceleration:</strong><br>
+              <code>a&#8321; = 398,600.4 / (6,791)&sup2; = 398,600.4 / 46,117,681 = 0.008643 km/s&sup2; = 8.64 m/s&sup2;</code><br>
+              About 88% of surface gravity (9.81 m/s&sup2;). Astronauts are not weightless because gravity is weak &#8212; they are in free fall.</div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">2</div>
+              <div class="solution-step-text"><strong>GEO gravitational acceleration:</strong><br>
+              <code>a&#8322; = 398,600.4 / (42,157)&sup2; = 398,600.4 / 1,777,213,249 = 0.0002243 km/s&sup2; = 0.224 m/s&sup2;</code><br>
+              About 2.3% of surface gravity.</div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">3</div>
+              <div class="solution-step-text"><strong>Ratio:</strong><br>
+              <code>a&#8321;/a&#8322; = 8.64 / 0.224 &#8776; 38.6</code><br>
+              ISS gravity is roughly 38&#215; stronger than GEO gravity. Yet both satellites are in free fall &#8212; both are &#8220;weightless&#8221; despite very different gravitational field strengths.</div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">4</div>
+              <div class="solution-step-text"><strong>Does satellite mass matter?</strong> No. <code>a = &#956;/r&sup2;</code> contains no mass term &#8212; it cancelled when we divided F = GMm/r&sup2; by m. A 1 kg cubesat and the 420,000 kg ISS at the same altitude experience identical gravitational acceleration and follow identical trajectories.</div>
+            </div>
+            <div class="solution-answer">
+              <div class="solution-answer-label">Answer</div>
+              <div class="solution-answer-val">a_ISS = 8.64 m/s&sup2; &nbsp;&middot;&nbsp; a_GEO = 0.22 m/s&sup2; &nbsp;&middot;&nbsp; Ratio &#8776; 38.6&#215; &nbsp;&middot;&nbsp; Mass: irrelevant</div>
+            </div>
+            <div class="relevance-block"><strong>Operational relevance:</strong> The steep falloff of gravity at GEO means perturbation forces (solar radiation pressure, luni-solar gravity) are relatively stronger there &#8212; GEO satellites spend proportionally more fuel on station-keeping against these forces than LEO satellites, despite their much larger maneuver intervals.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exercise 3 -->
+      <div class="exercise-card">
+        <div class="exercise-card-header">
+          <div class="exercise-num">Exercise 03 &middot; Unit Conversion</div>
+          <h3>Translating VectraSpace Outputs Into Operational Terms</h3>
+        </div>
+        <div class="exercise-body">
+          <div class="ex-block">
+            <div class="ex-label">Problem</div>
+            <div class="ex-content">VectraSpace outputs the following for a conjunction event: miss distance = <code>0.182 km</code>, relative velocity = <code>11.2 km/s</code>, recommended avoidance &#916;v = <code>0.00024 km/s</code>, time to TCA = <code>5.4 hours</code>. Convert each to the most operationally intuitive unit and write a one-sentence threat summary.</div>
+          </div>
+          <div class="ex-block">
+            <div class="ex-label">Given</div>
+            <div class="ex-content">
+              <code>1 km = 1,000 m</code> &nbsp;&middot;&nbsp; <code>1 km/s = 1,000 m/s</code> &nbsp;&middot;&nbsp; <code>1 hour = 60 minutes</code><br>
+              Reference: Conjunction concern threshold &#8776; 200 m miss distance; hypervelocity defined as &gt;3 km/s
+            </div>
+          </div>
+          <div class="ex-block">
+            <div class="ex-label">Find</div>
+            <div class="ex-content">Miss distance in meters, relative velocity interpretation, &#916;v in m/s, TCA in minutes, and a one-sentence operational summary.</div>
+          </div>
+          <div class="solution-toggle" onclick="toggleSolution(this)">
+            <span class="solution-toggle-icon">&#9658;</span> Show Solution
+          </div>
+          <div class="solution-body">
+            <div class="solution-step">
+              <div class="solution-step-num">1</div>
+              <div class="solution-step-text"><strong>Miss distance:</strong><br>
+              <code>0.182 km &#215; 1,000 = 182 m</code><br>
+              Below the 200 m informal threshold &#8212; this is a close conjunction that warrants action.</div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">2</div>
+              <div class="solution-step-text"><strong>Relative velocity:</strong><br>
+              <code>11.2 km/s</code> is already in standard orbital units. Hypervelocity (&gt;3 km/s). A collision would be catastrophic, converting both objects to debris clouds. No conversion needed &#8212; but understanding the scale matters.</div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">3</div>
+              <div class="solution-step-text"><strong>Avoidance &#916;v:</strong><br>
+              <code>0.00024 km/s &#215; 1,000 = 0.24 m/s</code><br>
+              A small, routine burn. Well within thruster capability for any maneuverable satellite.</div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">4</div>
+              <div class="solution-step-text"><strong>Time to TCA:</strong><br>
+              <code>5.4 h &#215; 60 = 324 minutes</code><br>
+              Over 5 hours of planning window &#8212; sufficient for maneuver approval, upload, and execution with margin.</div>
+            </div>
+            <div class="solution-step">
+              <div class="solution-step-num">5</div>
+              <div class="solution-step-text"><strong>Threat summary:</strong> A high-risk, hypervelocity conjunction at 182 m miss distance occurs in 324 minutes, but a routine 0.24 m/s avoidance burn executed now will safely resolve it with time to spare.</div>
+            </div>
+            <div class="solution-answer">
+              <div class="solution-answer-label">Answer</div>
+              <div class="solution-answer-val">182 m &nbsp;&middot;&nbsp; 11.2 km/s (hypervelocity) &nbsp;&middot;&nbsp; 0.24 m/s &#916;v &nbsp;&middot;&nbsp; 324 min to TCA</div>
+            </div>
+            <div class="relevance-block"><strong>Operational relevance:</strong> Real Conjunction Data Messages (CDMs) from Space-Track mix units in exactly this way &#8212; analysts must fluently convert between km and m, km/s and m/s, and seconds and hours to make rapid maneuver decisions under operational time pressure.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end exercises-section -->
+
+    <!-- CHAPTER NAV -->
+    <div class="chapter-nav">
+      <div></div>
+      <a href="/education/orbital-mechanics" class="chapter-nav-card next">
+        <div class="cnc-dir">Next &#8594;</div>
+        <div class="cnc-title">Chapter 01</div>
+        <div class="cnc-sub">Orbital Mechanics &#8212; Kepler to SGP4</div>
+      </a>
+    </div>
+
+  </article>
+</div>
+
+<script>
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  bar.style.width = pct + '%';
+});
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+const sections = document.querySelectorAll('.content-section');
+const tocLinks = document.querySelectorAll('.toc-list a');
+const tocObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      tocLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => tocObs.observe(s));
+
+function toggleSolution(btn) {
+  const body = btn.nextElementSibling;
+  const icon = btn.querySelector('.solution-toggle-icon');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+  btn.childNodes.forEach(n => {
+    if (n.nodeType === 3) n.textContent = n.textContent
+      .replace(isOpen ? 'Hide Solution' : 'Show Solution',
+               isOpen ? 'Show Solution' : 'Hide Solution');
+  });
+}
+
+const glossDefs = {
+  'vernal equinox': 'The point in the sky where the Sun crosses the celestial equator heading northward (around March 20). Used as the X-axis reference for ECI coordinates because it is a fixed inertial direction.'
+};
+document.querySelectorAll('dfn[data-term]').forEach(el => {
+  const tip = document.createElement('div');
+  tip.className = 'gtooltip';
+  const term = el.getAttribute('data-term');
+  const def = glossDefs[term] || 'Definition in the glossary.';
+  tip.innerHTML = '<div class="gtooltip-term">' + term + '</div><div class="gtooltip-def">' + def + '</div>';
+  document.body.appendChild(tip);
+  el.addEventListener('mouseenter', ev => {
+    tip.style.left = Math.min(ev.clientX + 12, window.innerWidth - 320) + 'px';
+    tip.style.top = (ev.clientY + 20) + 'px';
+    tip.classList.add('show');
+  });
+  el.addEventListener('mouseleave', () => tip.classList.remove('show'));
+  el.addEventListener('mousemove', ev => {
+    tip.style.left = Math.min(ev.clientX + 12, window.innerWidth - 320) + 'px';
+    tip.style.top = (ev.clientY + 20) + 'px';
+  });
+});
+</script>
+</body>
+</html>
+'''
+
+
 EDU_ORBITAL_HTML = '''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9124,7 +9883,7 @@ footer {
   <p class="hero-desc">
     <strong>27,000+ tracked objects.</strong> A debris field that could trigger an irreversible
     cascade. VectraSpace gives you the physics, the data, and the tools to understand it —
-    from Kepler to Kessler, in four chapters.
+    from Kepler to Kessler, in five chapters.
   </p>
 
   <!-- Social proof strip -->
@@ -9275,17 +10034,43 @@ footer {
         <div class="section-label">// Technical Deep Dives</div>
         <h2 class="section-title">The physics behind<br><em>every orbit</em></h2>
         <p class="section-body">
-          Four comprehensive chapters covering the mathematics, algorithms, and engineering principles
+          Five chapters covering the prerequisites, mathematics, algorithms, and engineering principles
           that power modern Space Situational Awareness — from Kepler to Kessler.
         </p>
       </div>
     </div>
 
     <div class="learn-progress-strip" id="learn-progress-strip">
-      <div class="lps-label"><span>Your Progress</span><span id="lps-text">0 / 4 Chapters</span></div>
+      <div class="lps-label"><span>Your Progress</span><span id="lps-text">0 / 5 Chapters</span></div>
       <div class="lps-bar-track"><div class="lps-bar-fill" id="lps-fill" style="width:0%"></div></div>
     </div>
     <div class="chapters-grid">
+      <!-- Chapter 00 -->
+      <a href="/education/prerequisites" class="chapter-card reveal" id="chcard-0" style="--ch-color:#a78bfa;">
+        <div class="chapter-card-accent"></div>
+        <div class="chapter-progress-badge">✓</div>
+        <div class="chapter-card-body">
+          <div class="chapter-number">Chapter 00 — Prerequisites</div>
+          <h3 class="chapter-title">The Math You Need Before Chapter One</h3>
+          <p class="chapter-desc">
+            Vectors, Newton's laws, reference frames, and just enough calculus to read an
+            equation of motion without panic. Start here if you have high school physics
+            but haven't yet met r̈ = −(μ/r³)·r.
+          </p>
+          <div class="chapter-topics">
+            <span class="topic-pill">Vectors</span>
+            <span class="topic-pill">Newton's Laws</span>
+            <span class="topic-pill">Reference Frames</span>
+            <span class="topic-pill">Calculus Intuition</span>
+            <span class="topic-pill">Units &amp; Conventions</span>
+          </div>
+        </div>
+        <div class="chapter-footer">
+          <span>~20 min read · No calculus required</span>
+          <span class="chapter-read-link">Read chapter</span>
+        </div>
+      </a>
+
       <!-- Chapter 01 -->
       <a href="/education/orbital-mechanics" class="chapter-card reveal" id="chcard-1" style="--ch-color:#4a9eff;">
         <div class="chapter-card-accent"></div>
@@ -9913,6 +10698,7 @@ if (metricsEl) counterObserver.observe(metricsEl);
 // ── CHAPTER PROGRESS ──────────────────────────────────────────
 (function() {
   const CHAPTERS = [
+    { id: 'chcard-0', key: 'vs_ch0_done' },
     { id: 'chcard-1', key: 'vs_ch1_done' },
     { id: 'chcard-2', key: 'vs_ch2_done' },
     { id: 'chcard-3', key: 'vs_ch3_done' },
@@ -9932,8 +10718,8 @@ if (metricsEl) counterObserver.observe(metricsEl);
     const fill  = document.getElementById('lps-fill');
     const text  = document.getElementById('lps-text');
     if (strip) strip.classList.add('show');
-    if (fill)  setTimeout(() => fill.style.width = (completed/4*100) + '%', 100);
-    if (text)  text.textContent = completed + ' / 4 Chapters';
+    if (fill)  setTimeout(() => fill.style.width = (completed/5*100) + '%', 100);
+    if (text)  text.textContent = completed + ' / 5 Chapters';
   }
 })();
 
