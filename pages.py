@@ -74,6 +74,12 @@ def research():
     return HTMLResponse(RESEARCH_HTML)
 
 
+@router.get("/education/prerequisites", response_class=HTMLResponse)
+def edu_prerequisites():
+    from templates_loader import EDU_PREREQUISITES_HTML
+    return HTMLResponse(EDU_PREREQUISITES_HTML)
+
+
 @router.get("/education/orbital-mechanics", response_class=HTMLResponse)
 def edu_orbital():
     from templates_loader import EDU_ORBITAL_HTML
