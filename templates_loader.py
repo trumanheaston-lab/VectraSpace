@@ -3836,7 +3836,6 @@ tbody td { padding: 9px 14px; color: var(--text); white-space: nowrap; }
 <div id="hero">
   <div style="margin-bottom:12px;">
     <span class="badge">OPEN DATA</span>
-    <span class="badge" style="color:var(--green);border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.05);">UTD CSS COLLABORATION</span>
   </div>
   <h1>Orbital Conjunction Research Portal</h1>
   <p>Real-time and historical conjunction data from VectraSpace's SGP4 propagation engine. All data is derived from public TLE catalogs via CelesTrak. Probability of collision estimates use the Alfriend-Akella covariance model. For research inquiries contact <a href="mailto:trumanheaston@gmail.com">trumanheaston@gmail.com</a>.</p>
@@ -10807,6 +10806,13 @@ footer {
         <div class="tool-card-body">
           <div class="tool-card-title">Resources</div>
           <div class="tool-card-desc">50+ terms · searchable · deep-link ready</div>
+        </div>
+      </a>
+      <a href="/instructor-guide" class="tool-card" download>
+        <div class="tool-card-icon" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.25);">🎓</div>
+        <div class="tool-card-body">
+          <div class="tool-card-title">Instructor Guide</div>
+          <div class="tool-card-desc">Course mappings · HW prompts · faculty PDF</div>
         </div>
       </a>
     </div>
