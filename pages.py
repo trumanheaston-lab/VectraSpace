@@ -12,7 +12,7 @@ import os
 from typing import Optional
 
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, FileResponse
 
 from config import CFG
 from templates_loader import (
@@ -312,3 +312,21 @@ def research_tle_csv():
         except Exception:
             pass
     return PlainTextResponse("No TLE data", status_code=404)
+
+
+@router.get("/instructor-guide")
+def instructor_guide():
+    """Serves the VectraSpace instructor guide PDF/docx for download."""
+    import os
+    # Look for the file in the repo root or a static/ subfolder
+    for candidate in [
+        "vectraspace_instructor_guide.docx",
+        "static/vectraspace_instructor_guide.docx",
+    ]:
+        if os.path.exists(candidate):
+            return FileResponse(
+                candidate,
+                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                filename="VectraSpace_Instructor_Guide.docx",
+            )
+    return HTMLResponse("<h2>Instructor guide not found on server.</h2>", status_code=404)
