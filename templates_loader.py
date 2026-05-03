@@ -4316,6 +4316,96 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
   .unit-cell:last-child { border-bottom: none; }
   .chapter-nav { grid-template-columns: 1fr; }
 }
+/* ===== TRY IT NOW CALLOUT ===== */
+.try-it{
+  margin:32px 0;
+  background:linear-gradient(135deg,rgba(74,158,255,0.06) 0%,rgba(74,158,255,0.02) 100%);
+  border:1px solid rgba(74,158,255,0.25);
+  border-top:3px solid #4a9eff;
+  border-radius:8px;
+  overflow:hidden;
+}
+.try-it-header{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 20px 0;
+}
+.try-it-pill{
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;
+  background:rgba(74,158,255,0.12);color:#4a9eff;
+  border:1px solid rgba(74,158,255,0.3);
+  padding:3px 9px;border-radius:3px;white-space:nowrap;
+}
+.try-it-tool{
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#7bc4ff;
+}
+.try-it-body{padding:16px 20px 20px;}
+.try-it-bridge{
+  font-size:14px;color:#9dbbd4;line-height:1.8;margin-bottom:16px;
+}
+.try-it-bridge strong{color:#e8f0f8;}
+.try-it-params{
+  background:rgba(7,12,20,0.5);
+  border:1px solid rgba(74,158,255,0.15);
+  border-radius:6px;
+  padding:14px 16px;
+  margin-bottom:16px;
+}
+.try-it-params-label{
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;
+  text-transform:uppercase;color:#4a9eff;margin-bottom:10px;
+}
+.try-it-param-row{
+  display:flex;gap:8px;align-items:baseline;
+  font-size:12.5px;color:#8aaac5;
+  margin-bottom:6px;line-height:1.5;
+}
+.try-it-param-row:last-child{margin-bottom:0;}
+.try-it-param-key{
+  font-family:'Space Mono',monospace;font-size:10px;color:#4a9eff;
+  white-space:nowrap;min-width:140px;
+}
+.try-it-param-val{
+  font-family:'Space Mono',monospace;font-size:10px;color:#fff;
+  background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.2);
+  padding:1px 7px;border-radius:3px;
+}
+.try-it-question{
+  padding:13px 16px;
+  background:rgba(245,158,11,0.06);
+  border:1px solid rgba(245,158,11,0.2);
+  border-radius:6px;
+  margin-bottom:12px;
+}
+.try-it-question-label{
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;
+  text-transform:uppercase;color:#f59e0b;margin-bottom:6px;
+}
+.try-it-question p{
+  font-size:13px;color:#ccd6e0;line-height:1.7;margin:0;font-style:italic;
+}
+.try-it-notice{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:11px 14px;
+  background:rgba(16,185,129,0.05);
+  border:1px solid rgba(16,185,129,0.18);
+  border-radius:6px;
+  font-size:12.5px;color:#8aaac5;line-height:1.65;
+}
+.try-it-notice-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.try-it-notice strong{color:#34d399;}
+.try-it-cta{
+  display:inline-flex;align-items:center;gap:6px;margin-top:14px;
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;
+  color:#fff;background:rgba(74,158,255,0.12);
+  border:1px solid rgba(74,158,255,0.35);
+  padding:8px 18px;border-radius:5px;
+  text-decoration:none;transition:all 0.2s;
+}
+.try-it-cta:hover{background:rgba(74,158,255,0.22);border-color:#4a9eff;}
+.try-it-cta-arrow{font-size:12px;}
+/* ===== END TRY IT NOW ===== */
+
 </style>
 </head>
 <body>
@@ -5043,6 +5133,30 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 .relevance-block{margin-top:14px;padding:12px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:6px;font-size:12.5px;color:#93c5fd;line-height:1.65;}
 .relevance-block strong{color:#60a5fa;}
 /* ===== END EXERCISE STYLES ===== */
+/* ===== TRY IT NOW CALLOUT ===== */
+.try-it{margin:32px 0;background:linear-gradient(135deg,rgba(74,158,255,0.06) 0%,rgba(74,158,255,0.02) 100%);border:1px solid rgba(74,158,255,0.25);border-top:3px solid #4a9eff;border-radius:8px;overflow:hidden;}
+.try-it-header{display:flex;align-items:center;gap:10px;padding:14px 20px 0;}
+.try-it-pill{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;background:rgba(74,158,255,0.12);color:#4a9eff;border:1px solid rgba(74,158,255,0.3);padding:3px 9px;border-radius:3px;white-space:nowrap;}
+.try-it-tool{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#7bc4ff;}
+.try-it-body{padding:16px 20px 20px;}
+.try-it-bridge{font-size:14px;color:#9dbbd4;line-height:1.8;margin-bottom:16px;}
+.try-it-bridge strong{color:#e8f0f8;}
+.try-it-params{background:rgba(7,12,20,0.5);border:1px solid rgba(74,158,255,0.15);border-radius:6px;padding:14px 16px;margin-bottom:16px;}
+.try-it-params-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#4a9eff;margin-bottom:10px;}
+.try-it-param-row{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:#8aaac5;margin-bottom:6px;line-height:1.5;}
+.try-it-param-row:last-child{margin-bottom:0;}
+.try-it-param-key{font-family:'Space Mono',monospace;font-size:10px;color:#4a9eff;white-space:nowrap;min-width:140px;}
+.try-it-param-val{font-family:'Space Mono',monospace;font-size:10px;color:#fff;background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.2);padding:1px 7px;border-radius:3px;}
+.try-it-question{padding:13px 16px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:6px;margin-bottom:12px;}
+.try-it-question-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#f59e0b;margin-bottom:6px;}
+.try-it-question p{font-size:13px;color:#ccd6e0;line-height:1.7;margin:0;font-style:italic;}
+.try-it-notice{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.18);border-radius:6px;font-size:12.5px;color:#8aaac5;line-height:1.65;}
+.try-it-notice-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.try-it-notice strong{color:#34d399;}
+.try-it-cta{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#fff;background:rgba(74,158,255,0.12);border:1px solid rgba(74,158,255,0.35);padding:8px 18px;border-radius:5px;text-decoration:none;transition:all 0.2s;}
+.try-it-cta:hover{background:rgba(74,158,255,0.22);border-color:#4a9eff;}
+.try-it-cta-arrow{font-size:12px;}
+/* ===== END TRY IT NOW ===== */
 </style>
 </head>
 <body>
@@ -5178,6 +5292,67 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
         <p>The vis-viva equation underlies all delta-v calculations in the maneuver planning module. When a conjunction is detected, the Clohessy-Wiltshire model computes the minimum Δv needed — and vis-viva tells us how that translates to an altitude change.</p>
       </div>
     </div>
+
+    <!-- ===== TRY IT NOW: Vis-Viva ===== -->
+    <div class="try-it">
+      <div class="try-it-header">
+        <div class="try-it-pill">Try It Now</div>
+        <div class="try-it-tool">// Impact Calculator</div>
+      </div>
+      <div class="try-it-body">
+        <p class="try-it-bridge">
+          You just learned that orbital speed comes directly from <strong>distance from Earth's center</strong>,
+          not satellite mass — and that vis-viva gives us the speed at any point in any orbit.
+          Now see that speed turned into kinetic energy: use the Impact Calculator to feel exactly
+          how much destructive force is locked inside a routine LEO crossing velocity.
+        </p>
+        <div class="try-it-params">
+          <div class="try-it-params-label">Enter These Values</div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Object A — Mass</span>
+            <span class="try-it-param-val">560 kg</span>
+            <span style="color:#6d92ad;font-size:11px;">(Iridium-33 mass)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Object B — Mass</span>
+            <span class="try-it-param-val">900 kg</span>
+            <span style="color:#6d92ad;font-size:11px;">(Cosmos-2251 mass)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Relative Velocity</span>
+            <span class="try-it-param-val">11.7 km/s</span>
+            <span style="color:#6d92ad;font-size:11px;">(crossing at 789 km)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Altitude</span>
+            <span class="try-it-param-val">789 km</span>
+            <span style="color:#6d92ad;font-size:11px;">(or use the Iridium-Cosmos preset)</span>
+          </div>
+        </div>
+        <div class="try-it-question">
+          <div class="try-it-question-label">Question to Answer</div>
+          <p>The vis-viva equation says circular orbital speed at 789 km is roughly 7.47 km/s. Yet the
+          relative velocity here is 11.7 km/s — over 50% higher than either satellite's individual speed.
+          What geometry makes the <em>relative</em> velocity so much larger than either object's
+          absolute velocity? And what does the kinetic energy figure tell you that speed alone does not?</p>
+        </div>
+        <div class="try-it-notice">
+          <span class="try-it-notice-icon">👁</span>
+          <div>
+            <strong>What to notice:</strong> Look at the <em>Reduced Mass</em> cell in the results panel —
+            it is always smaller than either individual mass. This is the <em>effective</em> mass for
+            energy purposes, because both objects are destroyed simultaneously and each absorbs the
+            other's kinetic energy. Then check the energy equivalents panel: at 11.7 km/s,
+            the collision equivalent dwarfs any conventional explosive. Speed, squared, is where
+            the physics lives.
+          </div>
+        </div>
+        <a href="/calculator?mA=560&mB=900&v=11.7&alt=789" class="try-it-cta" target="_blank">
+          Open Impact Calculator <span class="try-it-cta-arrow">↗</span>
+        </a>
+      </div>
+    </div>
+    <!-- ===== END TRY IT NOW ===== -->
 
     <div class="section-block" id="elements">
       <h2>Classical Orbital Elements</h2>
@@ -5595,6 +5770,30 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 .solution-answer-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#fff;}
 .relevance-block{margin-top:14px;padding:12px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:6px;font-size:12.5px;color:#93c5fd;line-height:1.65;}
 .relevance-block strong{color:#60a5fa;}
+/* ===== TRY IT NOW CALLOUT ===== */
+.try-it{margin:32px 0;background:linear-gradient(135deg,rgba(74,158,255,0.06) 0%,rgba(74,158,255,0.02) 100%);border:1px solid rgba(74,158,255,0.25);border-top:3px solid #4a9eff;border-radius:8px;overflow:hidden;}
+.try-it-header{display:flex;align-items:center;gap:10px;padding:14px 20px 0;}
+.try-it-pill{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;background:rgba(74,158,255,0.12);color:#4a9eff;border:1px solid rgba(74,158,255,0.3);padding:3px 9px;border-radius:3px;white-space:nowrap;}
+.try-it-tool{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#7bc4ff;}
+.try-it-body{padding:16px 20px 20px;}
+.try-it-bridge{font-size:14px;color:#9dbbd4;line-height:1.8;margin-bottom:16px;}
+.try-it-bridge strong{color:#e8f0f8;}
+.try-it-params{background:rgba(7,12,20,0.5);border:1px solid rgba(74,158,255,0.15);border-radius:6px;padding:14px 16px;margin-bottom:16px;}
+.try-it-params-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#4a9eff;margin-bottom:10px;}
+.try-it-param-row{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:#8aaac5;margin-bottom:6px;line-height:1.5;}
+.try-it-param-row:last-child{margin-bottom:0;}
+.try-it-param-key{font-family:'Space Mono',monospace;font-size:10px;color:#4a9eff;white-space:nowrap;min-width:140px;}
+.try-it-param-val{font-family:'Space Mono',monospace;font-size:10px;color:#fff;background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.2);padding:1px 7px;border-radius:3px;}
+.try-it-question{padding:13px 16px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:6px;margin-bottom:12px;}
+.try-it-question-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#f59e0b;margin-bottom:6px;}
+.try-it-question p{font-size:13px;color:#ccd6e0;line-height:1.7;margin:0;font-style:italic;}
+.try-it-notice{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.18);border-radius:6px;font-size:12.5px;color:#8aaac5;line-height:1.65;}
+.try-it-notice-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.try-it-notice strong{color:#34d399;}
+.try-it-cta{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#fff;background:rgba(74,158,255,0.12);border:1px solid rgba(74,158,255,0.35);padding:8px 18px;border-radius:5px;text-decoration:none;transition:all 0.2s;}
+.try-it-cta:hover{background:rgba(74,158,255,0.22);border-color:#4a9eff;}
+.try-it-cta-arrow{font-size:12px;}
+/* ===== END TRY IT NOW ===== */
 </style>
 </head>
 <body>
@@ -5666,6 +5865,73 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
       </div>
       <p>Relative velocity at TCA determines collision energy. For LEO-crossing conjunctions, relative speeds of <strong>0–15 km/s</strong> are possible — even a 10 cm fragment at 10 km/s carries 500+ kJ of kinetic energy, catastrophic for any spacecraft.</p>
     </div>
+
+    <!-- ===== TRY IT NOW: TCA & Miss Distance ===== -->
+    <div class="try-it">
+      <div class="try-it-header">
+        <div class="try-it-pill">Try It Now</div>
+        <div class="try-it-tool">// Live Conjunction Dashboard</div>
+      </div>
+      <div class="try-it-body">
+        <p class="try-it-bridge">
+          You just learned that TCA is the single instant at which two propagated trajectories come
+          closest — and that <strong>miss distance at TCA</strong> is what conjunction analysis is
+          ultimately minimizing. The dashboard computes TCA for every satellite pair in real time;
+          run a scan now and observe those numbers directly against live orbital data.
+        </p>
+        <div class="try-it-params">
+          <div class="try-it-params-label">Scan Settings to Use</div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">LEO Satellites</span>
+            <span class="try-it-param-val">200</span>
+            <span style="color:#6d92ad;font-size:11px;">(keeps scan fast; real screen covers 27,000+)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">MEO / GEO</span>
+            <span class="try-it-param-val">0</span>
+            <span style="color:#6d92ad;font-size:11px;">(focus on LEO crossing geometry)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Time Window</span>
+            <span class="try-it-param-val">24 hours</span>
+            <span style="color:#6d92ad;font-size:11px;">(gives TCA spread across a full day)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Alert Threshold (km)</span>
+            <span class="try-it-param-val">5</span>
+            <span style="color:#6d92ad;font-size:11px;">(tighter than default — more conjunctions shown)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Risk Level</span>
+            <span class="try-it-param-val">LOW (Pc ≥ 1×10⁻⁶)</span>
+            <span style="color:#6d92ad;font-size:11px;">(maximum sensitivity)</span>
+          </div>
+        </div>
+        <div class="try-it-question">
+          <div class="try-it-question-label">Question to Answer</div>
+          <p>Pick any conjunction from the results list and note its miss distance and TCA time offset
+          (the <code>+Xh YYm</code> field). Now look at the Pc value next to it.
+          Find a second conjunction with a <em>larger</em> miss distance but a <em>higher</em> Pc.
+          Can you explain — in terms of what you just read about TCA and uncertainty — why a farther
+          miss distance can produce a more dangerous Pc?</p>
+        </div>
+        <div class="try-it-notice">
+          <span class="try-it-notice-icon">👁</span>
+          <div>
+            <strong>What to notice:</strong> The conjunction cards show miss distance in km alongside
+            Pc in scientific notation — watch how these two numbers do not move together. A
+            miss distance of 2 km might carry Pc 10<sup>−6</sup>, while a 0.5 km pass
+            might show Pc 10<sup>−4</sup>. The difference is entirely in the uncertainty
+            covariance: a low-quality TLE inflates σ, which spreads the uncertainty ellipse
+            over a larger area and raises Pc even when the nominal miss looks comfortable.
+          </div>
+        </div>
+        <a href="/dashboard" class="try-it-cta" target="_blank">
+          Open Live Dashboard <span class="try-it-cta-arrow">↗</span>
+        </a>
+      </div>
+    </div>
+    <!-- ===== END TRY IT NOW ===== -->
 
     <div class="section-block" id="covariance">
       <h2>Uncertainty & Covariance</h2>
@@ -6402,6 +6668,30 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
 .solution-answer-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#fff;}
 .relevance-block{margin-top:14px;padding:12px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:6px;font-size:12.5px;color:#93c5fd;line-height:1.65;}
 .relevance-block strong{color:#60a5fa;}
+/* ===== TRY IT NOW CALLOUT ===== */
+.try-it{margin:32px 0;background:linear-gradient(135deg,rgba(74,158,255,0.06) 0%,rgba(74,158,255,0.02) 100%);border:1px solid rgba(74,158,255,0.25);border-top:3px solid #4a9eff;border-radius:8px;overflow:hidden;}
+.try-it-header{display:flex;align-items:center;gap:10px;padding:14px 20px 0;}
+.try-it-pill{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;background:rgba(74,158,255,0.12);color:#4a9eff;border:1px solid rgba(74,158,255,0.3);padding:3px 9px;border-radius:3px;white-space:nowrap;}
+.try-it-tool{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#7bc4ff;}
+.try-it-body{padding:16px 20px 20px;}
+.try-it-bridge{font-size:14px;color:#9dbbd4;line-height:1.8;margin-bottom:16px;}
+.try-it-bridge strong{color:#e8f0f8;}
+.try-it-params{background:rgba(7,12,20,0.5);border:1px solid rgba(74,158,255,0.15);border-radius:6px;padding:14px 16px;margin-bottom:16px;}
+.try-it-params-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#4a9eff;margin-bottom:10px;}
+.try-it-param-row{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:#8aaac5;margin-bottom:6px;line-height:1.5;}
+.try-it-param-row:last-child{margin-bottom:0;}
+.try-it-param-key{font-family:'Space Mono',monospace;font-size:10px;color:#4a9eff;white-space:nowrap;min-width:140px;}
+.try-it-param-val{font-family:'Space Mono',monospace;font-size:10px;color:#fff;background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.2);padding:1px 7px;border-radius:3px;}
+.try-it-question{padding:13px 16px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:6px;margin-bottom:12px;}
+.try-it-question-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#f59e0b;margin-bottom:6px;}
+.try-it-question p{font-size:13px;color:#ccd6e0;line-height:1.7;margin:0;font-style:italic;}
+.try-it-notice{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.18);border-radius:6px;font-size:12.5px;color:#8aaac5;line-height:1.65;}
+.try-it-notice-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.try-it-notice strong{color:#34d399;}
+.try-it-cta{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#fff;background:rgba(74,158,255,0.12);border:1px solid rgba(74,158,255,0.35);padding:8px 18px;border-radius:5px;text-decoration:none;transition:all 0.2s;}
+.try-it-cta:hover{background:rgba(74,158,255,0.22);border-color:#4a9eff;}
+.try-it-cta-arrow{font-size:12px;}
+/* ===== END TRY IT NOW ===== */
 </style>
 </head>
 <body>
@@ -6620,6 +6910,81 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
         by Landsat, Sentinel, and hundreds of optical imaging satellites.
       </div>
     </section>
+
+    <!-- ===== TRY IT NOW: J₂ RAAN Precession ===== -->
+    <div class="try-it">
+      <div class="try-it-header">
+        <div class="try-it-pill">Try It Now</div>
+        <div class="try-it-tool">// Trajectory Simulator</div>
+      </div>
+      <div class="try-it-body">
+        <p class="try-it-bridge">
+          You just learned that J₂ drives RAAN regression at rates that depend on
+          <strong>inclination</strong> — and that inclination is set at launch by the
+          azimuth of the rocket's ascent. The Trajectory Simulator lets you see that
+          geometry concretely: change launch azimuth and watch the ground track tilt
+          on the globe, which is exactly how orbital plane orientation is chosen on real missions.
+        </p>
+        <div class="try-it-params">
+          <div class="try-it-params-label">Run 1 — ISS-Equivalent Inclination</div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Launch Site (Lat / Lon)</span>
+            <span class="try-it-param-val">28.6° / −80.6°</span>
+            <span style="color:#6d92ad;font-size:11px;">(Cape Canaveral, FL)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Azimuth</span>
+            <span class="try-it-param-val">45°</span>
+            <span style="color:#6d92ad;font-size:11px;">(northeast — produces ~51° inclination)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Motor preset</span>
+            <span class="try-it-param-val">J (1,280 N·s)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Launch Angle</span>
+            <span class="try-it-param-val">20°</span>
+            <span style="color:#6d92ad;font-size:11px;">(tilted for range)</span>
+          </div>
+        </div>
+        <div class="try-it-params" style="margin-top:8px;">
+          <div class="try-it-params-label">Run 2 — Sun-Synchronous Inclination</div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Same site, same motor</span>
+            <span class="try-it-param-val">—</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Azimuth</span>
+            <span class="try-it-param-val">349°</span>
+            <span style="color:#6d92ad;font-size:11px;">(retrograde — produces ~97–98° inclination)</span>
+          </div>
+        </div>
+        <div class="try-it-question">
+          <div class="try-it-question-label">Question to Answer</div>
+          <p>Compare the ground tracks of both runs on the globe. The SSO launch travels nearly
+          due north and curves westward across the pole — the ISS-inclination launch curves
+          northeast over the Atlantic. Now apply the RAAN drift table from this section:
+          the ISS orbit drifts at −6°/day; an SSO drifts at +0.9856°/day. If these two orbits
+          were in operation for 30 days from the same initial RAAN, how far apart would
+          their ascending node longitudes be? Would they still cross over the same ground stations?</p>
+        </div>
+        <div class="try-it-notice">
+          <span class="try-it-notice-icon">👁</span>
+          <div>
+            <strong>What to notice:</strong> Watch the <em>surface range</em> and <em>landing zone</em>
+            outputs change between the two azimuth runs — they're nearly identical, because launch azimuth
+            changes orbital plane without changing energy. This is the real-world constraint operators
+            work with: you can choose your orbital plane (and therefore your J₂ RAAN drift rate)
+            purely through launch direction, at almost no energy cost. The azimuth you pick on launch
+            day determines your plane for the satellite's entire operational life.
+          </div>
+        </div>
+        <a href="/api/tools/trajectory" class="try-it-cta" target="_blank">
+          Open Trajectory Simulator <span class="try-it-cta-arrow">↗</span>
+        </a>
+      </div>
+    </div>
+    <!-- ===== END TRY IT NOW ===== -->
 
     <!-- APSIDAL PRECESSION -->
     <section id="apsidal-precession" class="content-section reveal">
@@ -7494,6 +7859,97 @@ tbody tr:hover td { background:var(--ink-2); }
 .solution-answer-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#fff;}
 .relevance-block{margin-top:14px;padding:12px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:6px;font-size:12.5px;color:#93c5fd;line-height:1.65;}
 .relevance-block strong{color:#60a5fa;}
+
+/* ===== TRY IT NOW CALLOUT ===== */
+.try-it{
+  margin:32px 0;
+  background:linear-gradient(135deg,rgba(74,158,255,0.06) 0%,rgba(74,158,255,0.02) 100%);
+  border:1px solid rgba(74,158,255,0.25);
+  border-top:3px solid #4a9eff;
+  border-radius:8px;
+  overflow:hidden;
+}
+.try-it-header{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 20px 0;
+}
+.try-it-pill{
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;
+  background:rgba(74,158,255,0.12);color:#4a9eff;
+  border:1px solid rgba(74,158,255,0.3);
+  padding:3px 9px;border-radius:3px;white-space:nowrap;
+}
+.try-it-tool{
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#7bc4ff;
+}
+.try-it-body{padding:16px 20px 20px;}
+.try-it-bridge{
+  font-size:14px;color:#9dbbd4;line-height:1.8;margin-bottom:16px;
+}
+.try-it-bridge strong{color:#e8f0f8;}
+.try-it-params{
+  background:rgba(7,12,20,0.5);
+  border:1px solid rgba(74,158,255,0.15);
+  border-radius:6px;
+  padding:14px 16px;
+  margin-bottom:16px;
+}
+.try-it-params-label{
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;
+  text-transform:uppercase;color:#4a9eff;margin-bottom:10px;
+}
+.try-it-param-row{
+  display:flex;gap:8px;align-items:baseline;
+  font-size:12.5px;color:#8aaac5;
+  margin-bottom:6px;line-height:1.5;
+}
+.try-it-param-row:last-child{margin-bottom:0;}
+.try-it-param-key{
+  font-family:'Space Mono',monospace;font-size:10px;color:#4a9eff;
+  white-space:nowrap;min-width:140px;
+}
+.try-it-param-val{
+  font-family:'Space Mono',monospace;font-size:10px;color:#fff;
+  background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.2);
+  padding:1px 7px;border-radius:3px;
+}
+.try-it-question{
+  padding:13px 16px;
+  background:rgba(245,158,11,0.06);
+  border:1px solid rgba(245,158,11,0.2);
+  border-radius:6px;
+  margin-bottom:12px;
+}
+.try-it-question-label{
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;
+  text-transform:uppercase;color:#f59e0b;margin-bottom:6px;
+}
+.try-it-question p{
+  font-size:13px;color:#ccd6e0;line-height:1.7;margin:0;font-style:italic;
+}
+.try-it-notice{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:11px 14px;
+  background:rgba(16,185,129,0.05);
+  border:1px solid rgba(16,185,129,0.18);
+  border-radius:6px;
+  font-size:12.5px;color:#8aaac5;line-height:1.65;
+}
+.try-it-notice-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.try-it-notice strong{color:#34d399;}
+.try-it-cta{
+  display:inline-flex;align-items:center;gap:6px;margin-top:14px;
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;
+  color:#fff;background:rgba(74,158,255,0.12);
+  border:1px solid rgba(74,158,255,0.35);
+  padding:8px 18px;border-radius:5px;
+  text-decoration:none;transition:all 0.2s;
+}
+.try-it-cta:hover{background:rgba(74,158,255,0.22);border-color:#4a9eff;}
+.try-it-cta-arrow{font-size:12px;}
+/* ===== END TRY IT NOW ===== */
+
 </style>
 </head>
 <body>
@@ -7765,6 +8221,97 @@ tbody tr:hover td { background:var(--ink-2); }
         </div>
       </div>
     </section>
+
+    <!-- ===== TRY IT NOW: NASA SBM ===== -->
+    <div class="try-it">
+      <div class="try-it-header">
+        <div class="try-it-pill">Try It Now</div>
+        <div class="try-it-tool">// Impact Calculator + Fragmentation Scenario</div>
+      </div>
+      <div class="try-it-body">
+        <p class="try-it-bridge">
+          You just learned that the SBM's power-law exponent of −1.6 means fragment counts
+          explode as characteristic length shrinks — roughly 10,000× more 1 mm fragments than
+          10 cm ones from the same event. Now run two contrasting scenarios in the Impact Calculator
+          to see how the SBM output changes when the <strong>smaller object's mass</strong> changes,
+          and then trigger the dashboard's live fragmentation simulation to see that debris cloud
+          propagate across real orbital mechanics.
+        </p>
+        <div class="try-it-params">
+          <div class="try-it-params-label">Run 1 — Small Debris vs. Large Satellite</div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Object A (satellite)</span>
+            <span class="try-it-param-val">500 kg</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Object B (debris)</span>
+            <span class="try-it-param-val">0.01 kg</span>
+            <span style="color:#6d92ad;font-size:11px;">(10 g paint fleck / bolt fragment)</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Relative Velocity</span>
+            <span class="try-it-param-val">7.7 km/s</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Altitude</span>
+            <span class="try-it-param-val">500 km</span>
+          </div>
+        </div>
+        <div class="try-it-params" style="margin-top:8px;">
+          <div class="try-it-params-label">Run 2 — Satellite vs. Satellite (Use Iridium-Cosmos Preset)</div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Object A</span>
+            <span class="try-it-param-val">560 kg</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Object B</span>
+            <span class="try-it-param-val">900 kg</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Relative Velocity</span>
+            <span class="try-it-param-val">11.7 km/s</span>
+          </div>
+          <div class="try-it-param-row">
+            <span class="try-it-param-key">Then (on Dashboard)</span>
+            <span class="try-it-param-val">Run a scan → select a satellite → Simulate Fragmentation</span>
+          </div>
+        </div>
+        <div class="try-it-question">
+          <div class="try-it-question-label">Question to Answer</div>
+          <p>In Run 1, the 10 g fragment is too small to catastrophically destroy the 500 kg satellite
+          (check the Collision Type output). In Run 2, both satellites are fully destroyed. Compare
+          the trackable fragment counts (≥10 cm) between the two runs. The SBM formula uses the
+          <em>smaller body's effective diameter</em> — so why does a full satellite-on-satellite
+          collision produce dramatically more trackable debris than a tiny fragment hit, even though
+          the tiny fragment hit is already not survivable?</p>
+        </div>
+        <div class="try-it-notice">
+          <span class="try-it-notice-icon">👁</span>
+          <div>
+            <strong>What to notice:</strong> After running the fragmentation simulation on the
+            Dashboard, zoom out on the globe and watch the debris cloud over a few minutes.
+            The fragments do not stay at the collision altitude — they spread into a shell whose
+            thickness grows with time, because each fragment received a slightly different Δv
+            at ejection. Faster fragments shift to higher orbits; slower ones drop lower.
+            This is the altitude-spreading effect from the SBM velocity distribution,
+            visible in real time. The conjunction checker will then screen the new fragments
+            against the existing catalog — watch how Pc values for nearby satellites jump.
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a href="/calculator?mA=500&mB=0.01&v=7.7&alt=500" class="try-it-cta" target="_blank">
+            Run 1: Small Fragment <span class="try-it-cta-arrow">↗</span>
+          </a>
+          <a href="/calculator?mA=560&mB=900&v=11.7&alt=789" class="try-it-cta" target="_blank">
+            Run 2: Iridium-Cosmos <span class="try-it-cta-arrow">↗</span>
+          </a>
+          <a href="/dashboard" class="try-it-cta" target="_blank" style="border-color:rgba(239,68,68,0.4);color:#f87171;background:rgba(239,68,68,0.06);">
+            Dashboard Fragmentation <span class="try-it-cta-arrow">↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <!-- ===== END TRY IT NOW ===== -->
 
     <!-- FRAGMENT DISTRIBUTIONS -->
     <section id="fragment-distribution" class="content-section reveal">
