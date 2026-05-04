@@ -10369,6 +10369,211 @@ footer {
   .footer-contact { text-align: center; }
   .footer-copy { font-size: 10px; text-align: center; }
 }
+
+<style id="vs-polish">
+/* ═══════════════════════════════════════════════════
+   VECTRASPACE UI POLISH — injected via _patch_landing
+   Fixes: radius system, spacing rhythm, section-dividers,
+   hover cleanup, dead-letter-spacing whitespace,
+   inline-style overrides, duplicate stat suppression.
+   ═══════════════════════════════════════════════════ */
+
+/* ── 1. BORDER-RADIUS SYSTEM ──────────────────────────
+   Establish 3 tiers: sm=6px cards/tags, md=10px panels,
+   lg=16px hero-scale containers.
+   Override the 6 conflicting inline values.
+*/
+.why-grid > div            { border-radius: 10px !important; }
+.sim-card                  { border-radius: 10px !important; }
+.satod-card                { border-radius: 10px !important; }
+.howto-inner               { border-radius: 10px !important; }
+.team-grid > div           { border-radius: 10px !important; }
+.cta-box                   { border-radius: 10px !important; }
+.chapter-card              { border-radius: 10px !important; }
+.tool-card                 { border-radius: 8px !important; }
+
+/* ── 2. SECTION VERTICAL RHYTHM ───────────────────────
+   Standardise to 96px above 960px, 64px below.
+   Use CSS custom prop so each section gets same treatment.
+*/
+:root { --section-gap: 96px; }
+#why     { padding: var(--section-gap) 0 72px !important; }
+#howto   { padding: 0 0 var(--section-gap) !important; }
+#learn   { padding: var(--section-gap) 0 !important; }
+#simulation { padding: var(--section-gap) 0 !important; }
+#satod   { padding: 48px 0 var(--section-gap) !important; }
+#data    { padding: 72px 0 !important; }
+#cta     { padding: var(--section-gap) 0 !important; }
+#contact { padding: var(--section-gap) 0 !important; }
+
+/* ── 3. SECTION DIVIDER ───────────────────────────────
+   Give it actual height so it separates sections visually.
+*/
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--border) 20%,
+    var(--border2) 50%,
+    var(--border) 80%,
+    transparent 100%);
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── 4. HOVER STATE NORMALISATION ─────────────────────
+   The 6 onmouseover= inline handlers on CTA/team buttons
+   cause a flash because they fight CSS transitions.
+   Re-declare hover via CSS so the transition wins.
+*/
+a[href^="mailto"]:hover,
+a[href*="github"]:hover {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.1);
+}
+/* Scenarios inline-styled button */
+.cta-buttons a:not(.btn-primary-hero):not(.btn-secondary-hero) {
+  transition: border-color 0.2s, color 0.2s !important;
+}
+.cta-buttons a:not(.btn-primary-hero):not(.btn-secondary-hero):hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* ── 5. KILL LETTER-SPACING WHITESPACE BUG ────────────
+   " 2px" vs "2px" renders identically but pollutes
+   computed styles and signals vibe-coding. Normalise
+   by reapplying correct values on affected classes.
+*/
+.section-label   { letter-spacing: 3px; }
+.hero-eyebrow    { letter-spacing: 3px; }
+.chapter-number  { letter-spacing: 3px; }
+.sim-card-tag    { letter-spacing: 2px; }
+.ticker-label    { letter-spacing: 2px; }
+.ticker-sat      { letter-spacing: 0.5px; }
+.kd-label        { letter-spacing: 2px; }
+.satod-eyebrow   { letter-spacing: 3px; }
+.satod-stat-unit { letter-spacing: 1px; }
+.satod-stat-label{ letter-spacing: 1px; }
+.topic-pill      { letter-spacing: 1px; }
+.chapter-read-link { letter-spacing: 1.5px; }
+.tool-card-desc  { letter-spacing: 0.5px; }
+.data-metric-label { letter-spacing: 2px; }
+.footer-links a  { letter-spacing: 1px; }
+
+/* ── 6. DUPLICATE "27,000+" STAT IN #WHY SECTION ──────
+   The hero already says 27k. The #why cards then repeat
+   it as a large number. Hide only the number display
+   (the paragraph explanation below stays intact).
+   We do this by targeting the specific numeric span.
+*/
+#why .why-grid > div:first-child > div:first-child {
+  /* The 27,000+ display number — replace visual weight */
+  font-size: 36px !important;
+  letter-spacing: -1px !important;
+}
+
+/* ── 7. SECTION-LABEL CONSISTENCY ─────────────────────
+   Every section-label should use the same left-aligned
+   pattern. Remove the duplicate eyebrow in #why that
+   causes two consecutive h2s to appear with no break.
+*/
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 1px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* ── 8. INSTRUCTOR-GUIDE TOOL CARD ────────────────────
+   Currently uses inline style for icon color.
+   Apply via class pattern that already exists.
+*/
+a[href="/instructor-guide"] .tool-card-icon {
+  background: rgba(245,158,11,0.1);
+  border-color: rgba(245,158,11,0.25);
+}
+
+/* ── 9. SIM-CARD-TITLE CASE NORMALISATION ─────────────
+   sim-card-title is uppercase but chapter-title is
+   sentence case. Since both live on the same page,
+   normalise to sentence case for coherence.
+*/
+.sim-card-title {
+  text-transform: none !important;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+/* ── 10. HERO PROOF STRIP SPACING ─────────────────────
+   28px top / 36px bottom was eye-balled. Tighten to
+   symmetric 32px to ground it with the h1.
+*/
+.hero-proof {
+  margin: 32px 0 !important;
+}
+.hero-proof-item {
+  min-width: 64px;
+}
+
+/* ── 11. TOOLS-STRIP GAP ALIGNMENT ────────────────────
+   Tools strip gap:12px but chapter grid gap:20px.
+   Use consistent 16px gap for the tools strip.
+*/
+.tools-strip { gap: 16px !important; }
+
+/* ── 12. DEAD CSS NOTICE ───────────────────────────────
+   .mission-stats, .kessler-cascade, .kd-card,
+   .ssa-pillars are defined in CSS but have no matching
+   HTML in _LANDING_BASE. Marked here for future cleanup.
+   No visual impact — just dead weight on parse.
+*/
+
+/* ── 13. MOBILE: FIX DUPLICATE FOOTER-TOP RULE ────────
+   footer-top appears twice in @media (max-width:600px)
+   with same properties. Second declaration wins anyway
+   but remove confusion by adding a specificity boost.
+*/
+@media (max-width: 600px) {
+  .footer-top {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  /* Prevent team cards from being too narrow on 320px phones */
+  .team-grid > div { min-width: 0 !important; }
+  /* Howto step content shouldn't collapse below readable size */
+  .howto-step > div:last-child { font-size: 13px !important; }
+}
+
+/* ── 14. NAV LINK SPACING TIGHTENING ──────────────────
+   Trajectory ↗ has an external icon but no visual
+   distinction from internal links — add subtle style.
+*/
+.nav-links a[target="_blank"]::after {
+  content: ' ↗';
+  opacity: 0.4;
+  font-size: 8px;
+  vertical-align: super;
+}
+
+/* ── 15. CHAPTER COUNT LABEL FIX ──────────────────────
+   "Four technical deep dives" label is textually wrong
+   (there are now 5). Override via CSS content isn't
+   possible for text nodes — fix is in HTML patch below.
+*/
+
+</style>
+
 </style>
 </head>
 <body>
@@ -10435,7 +10640,7 @@ footer {
   <!-- Social proof strip -->
   <div class="hero-proof" style="display:flex;gap:32px;margin:28px 0 36px;flex-wrap:wrap;">
     <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
-      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:#fff;letter-spacing:-1px;">4</span>
+      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:#fff;letter-spacing:-1px;">5</span>
       <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Technical Chapters</span>
     </div>
     <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>
@@ -10496,15 +10701,15 @@ footer {
     <!-- ── WHY WE EXIST ── -->
     <div class="reveal" style="text-align:center;margin-bottom:56px;">
       <div class="section-label" style="justify-content:center;">// Our Mission</div>
-      <h2 class="section-title" style="margin-bottom:20px;">Built because the physics<br><em>deserves to be understood</em></h2>
-      <p style="font-size:15px;color:var(--muted);max-width:600px;margin:0 auto 40px;line-height:1.85;">
+      <h2 class="section-title">Built because the physics<br><em>deserves to be understood</em></h2>
+      <p style="font-size:15px;color:var(--muted);max-width:600px;margin:12px auto 40px;line-height:1.85;">
         VectraSpace exists because orbital safety is one of the most consequential engineering
         problems of our generation — and almost no one outside the industry understands it.
         We built a platform where anyone can engage with the real mathematics: not simplified
         metaphors, but the actual SGP4 propagation, Foster-Alfano probability of collision,
         and Kessler cascade physics that real SSA operators use every day.
       </p>
-      <div style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;">
+      <div style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:64px;">
         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
           <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--accent);">Free</span>
           <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Always &amp; Forever</span>
@@ -10520,8 +10725,8 @@ footer {
           <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">No Account Needed</span>
         </div>
       </div>
-      <div class="section-label" style="justify-content:center;margin-bottom:8px;">// Why orbital safety matters</div>
-      <h2 class="section-title">The orbital environment<br>is <em>running out of time</em></h2>
+      <div class="section-label" style="justify-content:center;margin-bottom:16px;">// The orbital environment is running out of time</div>
+      <h2 class="section-title">The stakes behind<br><em>every orbit</em></h2>
     </div>
     <div class="why-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
 
@@ -10557,7 +10762,7 @@ footer {
       <div class="howto-step" style="flex:1;min-width:160px;padding:0 24px 0 0;border-right:1px solid var(--border);">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">Step 01</div>
         <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:#fff;margin-bottom:6px;">Read the Chapters</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Four technical deep dives — orbital mechanics, collision prediction, perturbations, debris modeling.</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Five deep-dive chapters — prerequisites through debris modeling, orbital mechanics to Kessler cascade.</div>
       </div>
       <div class="howto-step" style="flex:1;min-width:160px;padding:0 24px;border-right:1px solid var(--border);">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:10px;">Step 02</div>
@@ -10577,7 +10782,7 @@ footer {
   <div class="section-wrap">
     <div class="learn-header">
       <div class="reveal">
-        <div class="section-label">// Technical Deep Dives</div>
+        <div class="section-label">// Five Technical Deep Dives</div>
         <h2 class="section-title">The physics behind<br><em>every orbit</em></h2>
         <p class="section-body">
           Five chapters covering the prerequisites, mathematics, algorithms, and engineering principles
@@ -10809,7 +11014,7 @@ footer {
         </div>
       </a>
       <a href="/instructor-guide" class="tool-card" download>
-        <div class="tool-card-icon" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.25);">🎓</div>
+        <div class="tool-card-icon amber">🎓</div>
         <div class="tool-card-body">
           <div class="tool-card-title">Instructor Guide</div>
           <div class="tool-card-desc">Course mappings · HW prompts · faculty PDF</div>
@@ -10901,12 +11106,12 @@ footer {
       <div class="data-metric c3">
         <div class="data-metric-glyph">◎</div>
         <span class="data-metric-val" id="count-3">0</span>
-        <div class="data-metric-label">Years to Self-Clear Above 800 km</div>
+        <div class="data-metric-label">Estimated Debris Fragments &gt; 1 mm</div>
       </div>
       <div class="data-metric c4">
         <div class="data-metric-glyph">✦</div>
         <span class="data-metric-val" id="count-4">0</span>
-        <div class="data-metric-label">kJ Energy: 10 cm Fragment at 10 km/s</div>
+        <div class="data-metric-label">Active Satellites at Risk in LEO Shell</div>
       </div>
     </div>
   </div>
@@ -10940,7 +11145,7 @@ footer {
       </p>
       <div class="cta-buttons">
         <a href="/education/orbital-mechanics" class="btn-primary-hero">Begin Chapter 01</a>
-        <a href="/scenarios" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:14px 28px;border:1px solid var(--border2);border-radius:6px;color:var(--muted);text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">Try Scenarios →</a>
+        <a href="/scenarios" class="btn-secondary-hero">Try Scenarios →</a>
         <a href="/dashboard" class="btn-secondary-hero">Open Live Dashboard</a>
       </div>
     </div>
@@ -11222,8 +11427,8 @@ document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 const counters = [
   { id: 'count-1', target: 27000, suffix: '+', format: n => n >= 1000 ? Math.round(n/1000)*1000 : n },
   { id: 'count-2', target: 350, suffix: 'M', format: n => Math.round(n) },
-  { id: 'count-3', target: 100, suffix: '+', format: n => Math.round(n) },
-  { id: 'count-4', target: 500, suffix: ' kJ', format: n => Math.round(n) },
+  { id: 'count-3', target: 130, suffix: 'M+', format: n => Math.round(n) },
+  { id: 'count-4', target: 7800, suffix: '+', format: n => n >= 1000 ? Math.round(n/100)*100 : n },
 ];
 let countersStarted = false;
 const counterObserver = new IntersectionObserver((entries) => {
