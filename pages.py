@@ -330,3 +330,9 @@ def instructor_guide():
                 filename="VectraSpace_Instructor_Guide.docx",
             )
     return HTMLResponse("<h2>Instructor guide not found on server.</h2>", status_code=404)
+
+
+@router.get("/space-weather", response_class=HTMLResponse)
+def space_weather():
+    from templates_loader import SPACE_WEATHER_HTML
+    return HTMLResponse(SPACE_WEATHER_HTML)
