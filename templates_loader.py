@@ -8918,6 +8918,1874 @@ function toggleSolution(btn) {
 
 '''
 
+SPACE_WEATHER_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>Space Weather Explorer — VectraSpace</title>
+<meta name="description" content="Explore how solar storms, Kp index, and space weather affect satellites in real time. Five interactive simulations with shareable result cards.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:    #080c12;
+  --ink2:   #0d1320;
+  --ink3:   #111b2b;
+  --panel:  #0f1925;
+  --border: rgba(255,255,255,0.07);
+  --bord2:  rgba(255,255,255,0.13);
+  --text:   #ccd6e0;
+  --muted:  #8aaac5;
+  --faint:  #2a3d50;
+  --accent: #4a9eff;
+  --acc2:   #7bc4ff;
+  --green:  #34d399;
+  --amber:  #f59e0b;
+  --red:    #f87171;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --serif:  'Instrument Serif', Georgia, serif;
+  --mono:   'DM Mono', monospace;
+  --sans:   'Outfit', sans-serif;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ── */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 54px; padding: 0 24px;
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(8,12,18,0.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+}
+.tb-brand {
+  font-family: var(--serif); font-size: 16px; font-style: italic;
+  color: #fff; text-decoration: none; white-space: nowrap;
+}
+.tb-brand em { color: var(--accent); font-style: normal; }
+.tb-sep { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+.tb-page {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--amber); white-space: nowrap;
+}
+.tb-back {
+  margin-left: auto;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+  color: var(--muted); text-decoration: none; padding: 5px 12px;
+  border: 1px solid var(--border); border-radius: 4px; transition: all 0.15s;
+  white-space: nowrap;
+}
+.tb-back:hover { color: var(--text); border-color: var(--bord2); }
+
+/* ── HERO ── */
+#hero {
+  padding: 96px 24px 48px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.hero-glow {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 300px; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0%, rgba(251,146,60,0.12) 0%, transparent 70%);
+}
+.hero-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--amber);
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 20px;
+}
+.hero-label::before, .hero-label::after {
+  content: ''; width: 24px; height: 1px; background: var(--amber); opacity: 0.5;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(38px, 8vw, 72px);
+  font-weight: 400; color: #fff; line-height: 1.05;
+  letter-spacing: -1.5px; margin-bottom: 16px;
+}
+.hero-title em { font-style: italic; color: var(--amber); }
+.hero-sub {
+  font-size: 16px; font-weight: 300; color: var(--muted);
+  line-height: 1.75; max-width: 520px; margin: 0 auto 40px;
+}
+.hero-kp-strip {
+  display: inline-flex; gap: 0; border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden; margin-bottom: 48px;
+}
+.kp-cell {
+  width: 36px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  border-right: 1px solid var(--border); transition: all 0.3s;
+  cursor: default;
+}
+.kp-cell:last-child { border-right: none; }
+.kp-0 { background: rgba(52,211,153,0.08);  color: #34d399; }
+.kp-1 { background: rgba(74,158,255,0.08);  color: #4a9eff; }
+.kp-2 { background: rgba(123,196,255,0.08); color: #7bc4ff; }
+.kp-3 { background: rgba(167,139,250,0.1);  color: #a78bfa; }
+.kp-4 { background: rgba(245,158,11,0.1);   color: #f59e0b; }
+.kp-5 { background: rgba(251,146,60,0.12);  color: #fb923c; }
+.kp-6 { background: rgba(248,113,113,0.12); color: #f87171; }
+.kp-7 { background: rgba(239,68,68,0.15);   color: #ef4444; }
+.kp-8 { background: rgba(220,38,38,0.18);   color: #dc2626; }
+.kp-9 { background: rgba(185,28,28,0.22);   color: #b91c1c; }
+.kp-cell.active { outline: 2px solid currentColor; outline-offset: -2px; transform: scaleY(1.15); z-index: 1; }
+
+/* ── EXPLORER GRID ── */
+#explorer {
+  max-width: 1080px; margin: 0 auto;
+  padding: 0 20px 80px;
+}
+.sim-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 28px; justify-content: center;
+}
+.sim-tab {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 8px 18px;
+  border: 1px solid var(--border); border-radius: 5px;
+  color: var(--muted); background: transparent; cursor: pointer;
+  transition: all 0.18s;
+}
+.sim-tab:hover { border-color: var(--bord2); color: var(--text); }
+.sim-tab.active {
+  border-color: var(--amber); color: var(--amber);
+  background: rgba(245,158,11,0.07);
+}
+
+/* ── SIM CARDS ── */
+.sim-panel {
+  display: none; animation: sim-in 0.35s ease both;
+}
+.sim-panel.visible { display: block; }
+@keyframes sim-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sim-layout {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 20px; align-items: start;
+}
+
+/* Canvas card */
+.sim-canvas-card {
+  background: var(--ink2); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; position: relative;
+}
+.sim-canvas-header {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sim-canvas-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
+}
+.sim-live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--amber); animation: ldot 2s ease infinite;
+}
+@keyframes ldot { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+canvas.sim-canvas {
+  display: block; width: 100%; aspect-ratio: 4/3;
+  background: var(--ink);
+}
+
+/* Controls card */
+.sim-ctrl-card {
+  background: var(--ink2); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+.sim-ctrl-header {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+}
+.sim-ctrl-title {
+  font-family: var(--serif); font-size: 20px; color: #fff;
+  font-style: italic; margin-bottom: 4px;
+}
+.sim-ctrl-desc {
+  font-size: 12px; color: var(--muted); line-height: 1.65;
+}
+.sim-ctrl-body { padding: 20px; }
+
+/* Slider control */
+.ctrl-group { margin-bottom: 22px; }
+.ctrl-group:last-child { margin-bottom: 0; }
+.ctrl-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
+  display: flex; justify-content: space-between; margin-bottom: 8px;
+}
+.ctrl-val { color: var(--text); }
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; border-radius: 2px;
+  background: var(--bord2); outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--amber); cursor: pointer;
+  box-shadow: 0 0 10px rgba(245,158,11,0.5);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--amber); cursor: pointer; border: none;
+}
+
+/* Insight box */
+.insight-box {
+  margin-top: 20px; padding: 16px 18px;
+  background: rgba(245,158,11,0.05);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-left: 3px solid var(--amber);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px; color: var(--muted); line-height: 1.7;
+  transition: all 0.4s;
+}
+.insight-box strong { color: var(--text); }
+.insight-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--amber); margin-bottom: 6px;
+}
+
+/* Result strip */
+.result-strip {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: 8px;
+  overflow: hidden; margin-top: 20px;
+}
+.result-cell {
+  background: var(--ink3); padding: 16px 18px; text-align: center;
+}
+.result-val {
+  font-family: var(--serif); font-size: 26px; font-style: italic;
+  line-height: 1; margin-bottom: 4px;
+}
+.result-lbl {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+}
+
+/* Share button */
+.share-row {
+  display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;
+}
+.btn-share {
+  flex: 1; min-width: 120px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; padding: 11px 20px;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 6px; color: var(--amber); cursor: pointer;
+  transition: all 0.18s; display: flex; align-items: center;
+  justify-content: center; gap: 8px;
+}
+.btn-share:hover {
+  background: rgba(245,158,11,0.14);
+  border-color: var(--amber);
+}
+.btn-share svg { flex-shrink: 0; }
+.btn-explore {
+  flex: 1; min-width: 120px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; padding: 11px 20px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px; color: var(--muted); cursor: pointer;
+  transition: all 0.18s; text-decoration: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-explore:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── SHARE MODAL ── */
+#share-modal {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(8,12,18,0.85); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+#share-modal.open { opacity: 1; pointer-events: all; }
+.share-card {
+  background: var(--panel); border: 1px solid var(--bord2);
+  border-radius: 14px; width: 100%; max-width: 440px;
+  overflow: hidden; transform: translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#share-modal.open .share-card { transform: translateY(0); }
+.share-card-header {
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.share-card-title {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
+}
+.share-close {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.share-close:hover { border-color: var(--bord2); color: var(--text); }
+
+/* The generated result card */
+#result-card {
+  margin: 0; padding: 28px 24px;
+  background: linear-gradient(135deg, var(--ink3) 0%, var(--ink) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.rc-brand {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rc-brand::before {
+  content: ''; width: 12px; height: 1px; background: var(--amber);
+}
+.rc-sim-name {
+  font-family: var(--serif); font-size: 22px; color: #fff;
+  font-style: italic; margin-bottom: 8px;
+}
+.rc-insight {
+  font-size: 13px; color: var(--muted); line-height: 1.65;
+  margin-bottom: 20px;
+}
+.rc-insight strong { color: var(--text); }
+.rc-metrics {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 16px;
+}
+.rc-metric {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px; text-align: center;
+}
+.rc-metric-val {
+  font-family: var(--serif); font-size: 18px; font-style: italic;
+  color: var(--amber); line-height: 1; margin-bottom: 3px;
+}
+.rc-metric-lbl {
+  font-family: var(--mono); font-size: 7px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted);
+}
+.rc-url {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 1px;
+  color: var(--faint);
+}
+.share-actions {
+  padding: 20px 24px; display: flex; flex-direction: column; gap: 10px;
+}
+.share-action-btn {
+  width: 100%; padding: 12px 20px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; border-radius: 6px; cursor: pointer;
+  transition: all 0.18s; border: 1px solid; display: flex;
+  align-items: center; justify-content: center; gap: 10px;
+}
+.sab-copy {
+  background: rgba(245,158,11,0.08);
+  border-color: rgba(245,158,11,0.3); color: var(--amber);
+}
+.sab-copy:hover { background: rgba(245,158,11,0.15); border-color: var(--amber); }
+.sab-x {
+  background: transparent; border-color: var(--border); color: var(--muted);
+}
+.sab-x:hover { border-color: var(--bord2); color: var(--text); }
+.sab-done {
+  background: transparent; border-color: transparent; color: var(--faint);
+  font-size: 9px;
+}
+
+/* ── STREAK / RETURN HOOK ── */
+#streak-banner {
+  margin: 0 20px 28px;
+  padding: 14px 20px;
+  background: rgba(52,211,153,0.05);
+  border: 1px solid rgba(52,211,153,0.15);
+  border-radius: 8px; display: none;
+  align-items: center; gap: 12px;
+  font-size: 13px; color: var(--muted);
+  max-width: 1080px; margin-left: auto; margin-right: auto;
+}
+#streak-banner.show { display: flex; }
+#streak-banner strong { color: var(--green); }
+.streak-icon { font-size: 20px; flex-shrink: 0; }
+
+/* ── FOOTER NAV ── */
+.page-footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 24px;
+  text-align: center;
+}
+.footer-links-row {
+  display: flex; gap: 8px; justify-content: center;
+  flex-wrap: wrap; margin-bottom: 16px;
+}
+.footer-link {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+  color: var(--muted); text-decoration: none; padding: 5px 12px;
+  border: 1px solid var(--border); border-radius: 4px;
+  transition: all 0.15s;
+}
+.footer-link:hover { color: var(--text); border-color: var(--bord2); }
+.footer-copy {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+  color: var(--faint);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .sim-layout { grid-template-columns: 1fr; }
+  .sim-canvas-card { order: 1; }
+  .sim-ctrl-card { order: 2; }
+  .result-strip { grid-template-columns: 1fr 1fr; }
+  .result-strip .result-cell:last-child {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border);
+  }
+  .hero-title { letter-spacing: -1px; }
+  #topbar { gap: 8px; }
+  .tb-page { display: none; }
+  .share-row { flex-direction: column; }
+}
+@media (max-width: 420px) {
+  .sim-tabs { gap: 6px; }
+  .sim-tab { font-size: 8px; padding: 7px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <a href="/" class="tb-brand">Vectra<em>Space</em></a>
+  <div class="tb-sep"></div>
+  <span class="tb-page">Space Weather</span>
+  <a href="/" class="tb-back">← Hub</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-label" aria-label="Interactive tool">Live Explorer</div>
+  <h1 class="hero-title">Space <em>Weather</em><br>Explorer</h1>
+  <p class="hero-sub">
+    Five interactive simulations showing how solar activity, geomagnetic storms,
+    and space weather directly affect satellites in orbit — with the real physics.
+  </p>
+  <!-- Kp index scale — purely decorative, updates to show current sim level -->
+  <div class="hero-kp-strip" id="kp-strip" aria-label="Kp-index scale 0-9" role="img">
+    <div class="kp-cell kp-0" title="Kp 0 — Quiet">0</div>
+    <div class="kp-cell kp-1" title="Kp 1 — Quiet">1</div>
+    <div class="kp-cell kp-2" title="Kp 2 — Quiet">2</div>
+    <div class="kp-cell kp-3" title="Kp 3 — Unsettled">3</div>
+    <div class="kp-cell kp-4" title="Kp 4 — Active">4</div>
+    <div class="kp-cell kp-5" title="Kp 5 — G1 Storm">5</div>
+    <div class="kp-cell kp-6" title="Kp 6 — G2 Storm">6</div>
+    <div class="kp-cell kp-7" title="Kp 7 — G3 Storm">7</div>
+    <div class="kp-cell kp-8" title="Kp 8 — G4 Storm">8</div>
+    <div class="kp-cell kp-9" title="Kp 9 — G5 Extreme">9</div>
+  </div>
+</section>
+
+<!-- STREAK BANNER (shown after return visit) -->
+<div id="streak-banner" role="status" aria-live="polite">
+  <span class="streak-icon">🔥</span>
+  <div><strong id="streak-text">Day 2 streak!</strong> You're building a daily habit around space weather. Most engineers check Kp daily during operations.</div>
+</div>
+
+<!-- EXPLORER -->
+<div id="explorer">
+
+  <!-- TAB BAR -->
+  <nav class="sim-tabs" role="tablist" aria-label="Simulation selector">
+    <button class="sim-tab active" role="tab" aria-selected="true"  aria-controls="sim-drag"    onclick="switchSim('drag')"    id="tab-drag">Atmospheric Drag</button>
+    <button class="sim-tab"        role="tab" aria-selected="false" aria-controls="sim-aurora"  onclick="switchSim('aurora')"  id="tab-aurora">Aurora Boundary</button>
+    <button class="sim-tab"        role="tab" aria-selected="false" aria-controls="sim-comm"    onclick="switchSim('comm')"    id="tab-comm">Comm Blackout</button>
+    <button class="sim-tab"        role="tab" aria-selected="false" aria-controls="sim-saa"     onclick="switchSim('saa')"     id="tab-saa">SAA Radiation</button>
+    <button class="sim-tab"        role="tab" aria-selected="false" aria-controls="sim-kessler" onclick="switchSim('kessler')" id="tab-kessler">Solar Cycle</button>
+  </nav>
+
+  <!-- ── SIM 1: ATMOSPHERIC DRAG ── -->
+  <div class="sim-panel visible" id="sim-drag" role="tabpanel" aria-labelledby="tab-drag">
+    <div class="sim-layout">
+      <div class="sim-canvas-card">
+        <div class="sim-canvas-header">
+          <span class="sim-canvas-label">Orbit Decay Simulation</span>
+          <span class="sim-live-dot" aria-hidden="true"></span>
+        </div>
+        <canvas class="sim-canvas" id="cv-drag" aria-label="Animated orbit decay simulation"></canvas>
+      </div>
+      <div class="sim-ctrl-card">
+        <div class="sim-ctrl-header">
+          <div class="sim-ctrl-title">Atmospheric Drag & Solar Activity</div>
+          <div class="sim-ctrl-desc">
+            During solar maximum, Earth's upper atmosphere expands, increasing drag on LEO satellites.
+            Adjust the Kp index and solar flux to see how orbital altitude decays.
+          </div>
+        </div>
+        <div class="sim-ctrl-body">
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Kp Index (Geomagnetic Activity)</span>
+              <span class="ctrl-val" id="drag-kp-val">3</span>
+            </div>
+            <input type="range" id="drag-kp" min="0" max="9" step="1" value="3"
+                   aria-label="Kp Index" oninput="updateDrag()">
+          </div>
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Solar Flux (F10.7 index)</span>
+              <span class="ctrl-val" id="drag-flux-val">150</span>
+            </div>
+            <input type="range" id="drag-flux" min="70" max="300" step="5" value="150"
+                   aria-label="Solar Flux F10.7" oninput="updateDrag()">
+          </div>
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Initial Altitude</span>
+              <span class="ctrl-val" id="drag-alt-val">500 km</span>
+            </div>
+            <input type="range" id="drag-alt" min="200" max="800" step="10" value="500"
+                   aria-label="Satellite altitude in km" oninput="updateDrag()">
+          </div>
+
+          <div class="result-strip" id="drag-results" role="region" aria-live="polite" aria-label="Simulation results">
+            <div class="result-cell">
+              <div class="result-val" id="drag-lifetime" style="color:var(--accent)">—</div>
+              <div class="result-lbl">Lifetime (yrs)</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="drag-decay" style="color:var(--amber)">—</div>
+              <div class="result-lbl">m/day decay</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="drag-rho" style="color:var(--green)">—</div>
+              <div class="result-lbl">ρ (kg/m³ ×10⁻¹²)</div>
+            </div>
+          </div>
+
+          <div class="insight-box" id="drag-insight">
+            <div class="insight-label">// Key Insight</div>
+            <span id="drag-insight-text">Adjust the sliders to run the simulation.</span>
+          </div>
+
+          <div class="share-row">
+            <button class="btn-share" onclick="openShare('drag')" aria-label="Share result card">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share Result
+            </button>
+            <a href="/education/perturbations#atmospheric-drag" class="btn-explore">Read Chapter →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SIM 2: AURORA BOUNDARY ── -->
+  <div class="sim-panel" id="sim-aurora" role="tabpanel" aria-labelledby="tab-aurora">
+    <div class="sim-layout">
+      <div class="sim-canvas-card">
+        <div class="sim-canvas-header">
+          <span class="sim-canvas-label">Auroral Oval Simulation</span>
+          <span class="sim-live-dot" aria-hidden="true"></span>
+        </div>
+        <canvas class="sim-canvas" id="cv-aurora" aria-label="Animated auroral oval boundary expanding with geomagnetic activity"></canvas>
+      </div>
+      <div class="sim-ctrl-card">
+        <div class="sim-ctrl-header">
+          <div class="sim-ctrl-title">Auroral Oval & Polar Orbit Exposure</div>
+          <div class="sim-ctrl-desc">
+            Geomagnetic storms expand the auroral oval equatorward.
+            High-inclination satellites pass through the oval more often —
+            increasing radiation dose on crew and electronics.
+          </div>
+        </div>
+        <div class="sim-ctrl-body">
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Kp Index</span>
+              <span class="ctrl-val" id="aurora-kp-val">3</span>
+            </div>
+            <input type="range" id="aurora-kp" min="0" max="9" step="1" value="3"
+                   aria-label="Kp Index" oninput="updateAurora()">
+          </div>
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Orbital Inclination (°)</span>
+              <span class="ctrl-val" id="aurora-inc-val">51.6°</span>
+            </div>
+            <input type="range" id="aurora-inc" min="0" max="98" step="0.5" value="51.6"
+                   aria-label="Orbital inclination" oninput="updateAurora()">
+          </div>
+
+          <div class="result-strip" role="region" aria-live="polite">
+            <div class="result-cell">
+              <div class="result-val" id="aurora-lat" style="color:var(--purple)">—</div>
+              <div class="result-lbl">Oval boundary (°N)</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="aurora-passes" style="color:var(--amber)">—</div>
+              <div class="result-lbl">Passes/day in oval</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="aurora-dose" style="color:var(--red)">—</div>
+              <div class="result-lbl">Relative dose ×</div>
+            </div>
+          </div>
+
+          <div class="insight-box" id="aurora-insight">
+            <div class="insight-label">// Key Insight</div>
+            <span id="aurora-insight-text">Adjust Kp to see the aurora expand.</span>
+          </div>
+
+          <div class="share-row">
+            <button class="btn-share" onclick="openShare('aurora')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share Result
+            </button>
+            <a href="/education/perturbations" class="btn-explore">Read Chapter →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SIM 3: COMM BLACKOUT ── -->
+  <div class="sim-panel" id="sim-comm" role="tabpanel" aria-labelledby="tab-comm">
+    <div class="sim-layout">
+      <div class="sim-canvas-card">
+        <div class="sim-canvas-header">
+          <span class="sim-canvas-label">Ionospheric Signal Path</span>
+          <span class="sim-live-dot" aria-hidden="true"></span>
+        </div>
+        <canvas class="sim-canvas" id="cv-comm" aria-label="Signal path through ionosphere showing blackout zones"></canvas>
+      </div>
+      <div class="sim-ctrl-card">
+        <div class="sim-ctrl-header">
+          <div class="sim-ctrl-title">Radio Blackout & Ionospheric Scintillation</div>
+          <div class="sim-ctrl-desc">
+            Solar X-ray flares and CMEs ionise the D-layer of Earth's ionosphere,
+            absorbing radio waves and causing GPS errors of tens of metres or
+            complete HF blackout over entire hemispheres.
+          </div>
+        </div>
+        <div class="sim-ctrl-body">
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Solar Flare Class</span>
+              <span class="ctrl-val" id="comm-flare-val">M2</span>
+            </div>
+            <input type="range" id="comm-flare" min="0" max="10" step="0.5" value="4"
+                   aria-label="Solar flare class" oninput="updateComm()">
+          </div>
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Frequency Band (MHz)</span>
+              <span class="ctrl-val" id="comm-freq-val">15 MHz</span>
+            </div>
+            <input type="range" id="comm-freq" min="1" max="30" step="1" value="15"
+                   aria-label="Frequency in MHz" oninput="updateComm()">
+          </div>
+
+          <div class="result-strip" role="region" aria-live="polite">
+            <div class="result-cell">
+              <div class="result-val" id="comm-atten" style="color:var(--red)">—</div>
+              <div class="result-lbl">Attenuation (dB)</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="comm-gps" style="color:var(--amber)">—</div>
+              <div class="result-lbl">GPS error (m)</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="comm-status" style="color:var(--green)">OK</div>
+              <div class="result-lbl">Link status</div>
+            </div>
+          </div>
+
+          <div class="insight-box" id="comm-insight">
+            <div class="insight-label">// Key Insight</div>
+            <span id="comm-insight-text">Choose a flare class to simulate blackout conditions.</span>
+          </div>
+
+          <div class="share-row">
+            <button class="btn-share" onclick="openShare('comm')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share Result
+            </button>
+            <a href="/education/perturbations" class="btn-explore">Read Chapter →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SIM 4: SAA RADIATION ── -->
+  <div class="sim-panel" id="sim-saa" role="tabpanel" aria-labelledby="tab-saa">
+    <div class="sim-layout">
+      <div class="sim-canvas-card">
+        <div class="sim-canvas-header">
+          <span class="sim-canvas-label">South Atlantic Anomaly</span>
+          <span class="sim-live-dot" aria-hidden="true"></span>
+        </div>
+        <canvas class="sim-canvas" id="cv-saa" aria-label="South Atlantic Anomaly radiation map with satellite orbit overlay"></canvas>
+      </div>
+      <div class="sim-ctrl-card">
+        <div class="sim-ctrl-header">
+          <div class="sim-ctrl-title">South Atlantic Anomaly & Single-Event Upsets</div>
+          <div class="sim-ctrl-desc">
+            The SAA is a region where Earth's inner Van Allen belt dips closest to the surface.
+            Satellites crossing it absorb intense proton radiation — causing bit-flips, sensor
+            noise, and in rare cases permanent component damage.
+          </div>
+        </div>
+        <div class="sim-ctrl-body">
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Solar Activity (F10.7)</span>
+              <span class="ctrl-val" id="saa-flux-val">150</span>
+            </div>
+            <input type="range" id="saa-flux" min="70" max="300" step="5" value="150"
+                   aria-label="Solar flux F10.7" oninput="updateSAA()">
+          </div>
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Orbital Altitude (km)</span>
+              <span class="ctrl-val" id="saa-alt-val">550 km</span>
+            </div>
+            <input type="range" id="saa-alt" min="300" max="1000" step="10" value="550"
+                   aria-label="Orbital altitude" oninput="updateSAA()">
+          </div>
+
+          <div class="result-strip" role="region" aria-live="polite">
+            <div class="result-cell">
+              <div class="result-val" id="saa-dose" style="color:var(--red)">—</div>
+              <div class="result-lbl">Dose rate (mrad/pass)</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="saa-seu" style="color:var(--amber)">—</div>
+              <div class="result-lbl">SEU risk per day</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="saa-passes" style="color:var(--purple)">—</div>
+              <div class="result-lbl">SAA passes/day</div>
+            </div>
+          </div>
+
+          <div class="insight-box" id="saa-insight">
+            <div class="insight-label">// Key Insight</div>
+            <span id="saa-insight-text">Adjust altitude to see SAA exposure change.</span>
+          </div>
+
+          <div class="share-row">
+            <button class="btn-share" onclick="openShare('saa')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share Result
+            </button>
+            <a href="/education/perturbations" class="btn-explore">Read Chapter →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SIM 5: SOLAR CYCLE ── -->
+  <div class="sim-panel" id="sim-kessler" role="tabpanel" aria-labelledby="tab-kessler">
+    <div class="sim-layout">
+      <div class="sim-canvas-card">
+        <div class="sim-canvas-header">
+          <span class="sim-canvas-label">Solar Cycle × Debris Population</span>
+          <span class="sim-live-dot" aria-hidden="true"></span>
+        </div>
+        <canvas class="sim-canvas" id="cv-kessler" aria-label="Solar cycle and debris population interaction graph"></canvas>
+      </div>
+      <div class="sim-ctrl-card">
+        <div class="sim-ctrl-header">
+          <div class="sim-ctrl-title">Solar Cycle & Debris Belt Density</div>
+          <div class="sim-ctrl-desc">
+            Near solar maximum, enhanced atmospheric drag pulls debris to lower altitudes and
+            shortens orbital lifetimes. This is one of the few natural mechanisms for
+            debris removal — but it only works below ~600 km.
+          </div>
+        </div>
+        <div class="sim-ctrl-body">
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>Year in Solar Cycle</span>
+              <span class="ctrl-val" id="kess-year-val">2024</span>
+            </div>
+            <input type="range" id="kess-year" min="2010" max="2035" step="1" value="2024"
+                   aria-label="Year" oninput="updateKessler()">
+          </div>
+          <div class="ctrl-group">
+            <div class="ctrl-label">
+              <span>New Satellites Launched / Year</span>
+              <span class="ctrl-val" id="kess-launch-val">2000</span>
+            </div>
+            <input type="range" id="kess-launch" min="0" max="6000" step="100" value="2000"
+                   aria-label="Satellites launched per year" oninput="updateKessler()">
+          </div>
+
+          <div class="result-strip" role="region" aria-live="polite">
+            <div class="result-cell">
+              <div class="result-val" id="kess-ssn" style="color:var(--amber)">—</div>
+              <div class="result-lbl">Sunspot number</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="kess-pop" style="color:var(--red)">—</div>
+              <div class="result-lbl">LEO object Δ</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-val" id="kess-life" style="color:var(--green)">—</div>
+              <div class="result-lbl">500 km lifetime (yrs)</div>
+            </div>
+          </div>
+
+          <div class="insight-box" id="kess-insight">
+            <div class="insight-label">// Key Insight</div>
+            <span id="kess-insight-text">Drag the year slider to move through the solar cycle.</span>
+          </div>
+
+          <div class="share-row">
+            <button class="btn-share" onclick="openShare('kessler')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share Result
+            </button>
+            <a href="/education/debris-modeling" class="btn-explore">Read Chapter →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /explorer -->
+
+<!-- FOOTER NAV -->
+<footer class="page-footer">
+  <div class="footer-links-row">
+    <a href="/dashboard" class="footer-link">Live Dashboard</a>
+    <a href="/scenarios" class="footer-link">Scenarios</a>
+    <a href="/calculator" class="footer-link">Calculator</a>
+    <a href="/education/orbital-mechanics" class="footer-link">Chapters</a>
+    <a href="/glossary" class="footer-link">Resources</a>
+  </div>
+  <div class="footer-copy">VectraSpace · Space Weather Explorer · Free, no account</div>
+</footer>
+
+<!-- SHARE MODAL -->
+<div id="share-modal" role="dialog" aria-modal="true" aria-label="Share your result" onclick="if(event.target===this)closeShare()">
+  <div class="share-card">
+    <div class="share-card-header">
+      <span class="share-card-title">Your Result Card</span>
+      <button class="share-close" onclick="closeShare()" aria-label="Close">×</button>
+    </div>
+    <div id="result-card">
+      <!-- dynamically populated -->
+    </div>
+    <div class="share-actions">
+      <button class="share-action-btn sab-copy" id="copy-btn" onclick="copyCard()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Link + Result
+      </button>
+      <a class="share-action-btn sab-x" id="x-share-btn" href="#" target="_blank" rel="noopener">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.618 5.905-5.618zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Share on X / Twitter
+      </a>
+      <p class="share-action-btn sab-done">Results vary in real time — run again to compare</p>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════
+//  ANALYTICS STUB — replace with your analytics SDK
+// ═══════════════════════════════════════════════════
+const track = (event, props = {}) => {
+  try {
+    // window.gtag?.('event', event, props);
+    // window.plausible?.(event, { props });
+    console.debug('[vs-weather]', event, props);
+  } catch(e) {}
+};
+
+// ═══════════════════════════════════════════════════
+//  STREAK / RETURN HOOK
+// ═══════════════════════════════════════════════════
+(function() {
+  try {
+    const today = new Date().toDateString();
+    const stored = JSON.parse(localStorage.getItem('vs_wx_streak') || '{}');
+    const lastVisit = stored.lastVisit;
+    const streak = stored.streak || 0;
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+    let newStreak = 1;
+    if (lastVisit === today) {
+      newStreak = streak; // same day, no change
+    } else if (lastVisit === yesterday) {
+      newStreak = streak + 1; // consecutive day
+    }
+    localStorage.setItem('vs_wx_streak', JSON.stringify({ lastVisit: today, streak: newStreak }));
+
+    if (newStreak >= 2 && lastVisit !== today) {
+      const banner = document.getElementById('streak-banner');
+      document.getElementById('streak-text').textContent =
+        newStreak === 2 ? 'Day 2 streak! You\'re building a habit.' :
+        newStreak < 7  ? `${newStreak}-day streak — keep it up!` :
+        `${newStreak}-day streak 🔥 Real operators check space weather daily.`;
+      banner.classList.add('show');
+      track('streak_shown', { streak: newStreak });
+    }
+  } catch(e) {}
+})();
+
+// ═══════════════════════════════════════════════════
+//  SIM SWITCHER
+// ═══════════════════════════════════════════════════
+let activeSim = 'drag';
+const simIds = ['drag','aurora','comm','saa','kessler'];
+
+function switchSim(id) {
+  activeSim = id;
+  simIds.forEach(s => {
+    document.getElementById('sim-' + s).classList.toggle('visible', s === id);
+    const tab = document.getElementById('tab-' + s);
+    tab.classList.toggle('active', s === id);
+    tab.setAttribute('aria-selected', s === id ? 'true' : 'false');
+  });
+  track('sim_switch', { sim: id });
+  // Highlight Kp strip for sims that use it
+  const kpSims = { drag: dragKpVal(), aurora: auroraKpVal() };
+  const kp = kpSims[id];
+  updateKpStrip(kp !== undefined ? kp : null);
+  // Run update for the active sim
+  if (id === 'drag')    updateDrag();
+  if (id === 'aurora')  updateAurora();
+  if (id === 'comm')    updateComm();
+  if (id === 'saa')     updateSAA();
+  if (id === 'kessler') updateKessler();
+}
+
+function updateKpStrip(kp) {
+  document.querySelectorAll('.kp-cell').forEach((el, i) => {
+    el.classList.toggle('active', kp !== null && i === kp);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  CANVAS HELPERS
+// ═══════════════════════════════════════════════════
+function getCtx(id) {
+  const cv = document.getElementById(id);
+  if (!cv) return null;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const rect = cv.getBoundingClientRect();
+  if (cv.width !== Math.round(rect.width * dpr)) {
+    cv.width  = Math.round(rect.width  * dpr);
+    cv.height = Math.round(rect.height * dpr);
+  }
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w: rect.width, h: rect.height };
+};
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// ═══════════════════════════════════════════════════
+//  SIM 1 — ATMOSPHERIC DRAG
+// ═══════════════════════════════════════════════════
+let dragAnim = null;
+let dragPhase = 0;
+function dragKpVal() { return +document.getElementById('drag-kp').value; }
+
+function updateDrag() {
+  const kp   = +document.getElementById('drag-kp').value;
+  const flux = +document.getElementById('drag-flux').value;
+  const alt  = +document.getElementById('drag-alt').value;
+
+  document.getElementById('drag-kp-val').textContent   = kp;
+  document.getElementById('drag-flux-val').textContent = flux;
+  document.getElementById('drag-alt-val').textContent  = alt + ' km';
+
+  updateKpStrip(kp);
+
+  // Physics-grounded model (simplified NRLMSISE-00 proxy)
+  // Base density at altitude in kg/m^3
+  const h = alt;
+  const rho0 = Math.exp(-h / 60) * 2.5e-10;  // rough scale height model
+  const solarMult = 1 + (flux - 150) / 150 * 0.8;
+  const geoMult   = 1 + kp * 0.12;
+  const rho = rho0 * solarMult * geoMult;
+
+  // drag decay: da/dt ≈ -rho * v * a / beta  (beta ~60 kg/m^2 small sat)
+  const beta = 60;
+  const r = 6371 + h;
+  const v = Math.sqrt(398600.4 / r) * 1000; // m/s
+  const dadt_ms  = rho * v * r * 1000 / beta; // m/s
+  const dadt_mday = dadt_ms * 86400;
+
+  // Lifetime in years
+  const decayToReentry = h - 150; // km to decay
+  const lifetimeYears = (decayToReentry * 1000) / dadt_mday / 365;
+
+  document.getElementById('drag-lifetime').textContent =
+    lifetimeYears < 1 ? '<1' : lifetimeYears > 100 ? '>100' : lifetimeYears.toFixed(1);
+  document.getElementById('drag-decay').textContent = dadt_mday.toFixed(1);
+  document.getElementById('drag-rho').textContent = (rho * 1e12).toFixed(2);
+
+  // Insight
+  let insight = '';
+  if (kp >= 7 && flux > 200) {
+    insight = '<strong>Extreme conditions:</strong> During the 2003 Halloween storms (Kp 9), Starlink lost ~40 satellites due to enhanced drag. Operators filed emergency maneuver requests.';
+  } else if (kp >= 5) {
+    insight = `<strong>Storm-enhanced drag:</strong> At Kp ${kp}, atmospheric density at ${h} km is elevated ~${(geoMult*100-100).toFixed(0)}% above quiet conditions — your lifetime estimate drops significantly.`;
+  } else if (flux > 200) {
+    insight = `<strong>Solar maximum effect:</strong> With F10.7 = ${flux}, the thermosphere has expanded measurably. Even small satellites at ${h} km may need station-keeping burns to maintain altitude.`;
+  } else if (h < 300) {
+    insight = `<strong>Very low orbit:</strong> At ${h} km, even during quiet conditions drag is severe — the ISS requires ~2 km/s of reboost per year just to maintain its orbit.`;
+  } else {
+    insight = `At ${h} km with Kp ${kp} and F10.7 ${flux}, estimated lifetime is <strong>${lifetimeYears > 100 ? '>100' : lifetimeYears.toFixed(1)} years</strong>. FCC regulations require deorbit within 5 years for US operators.`;
+  }
+  document.getElementById('drag-insight-text').innerHTML = insight;
+
+  track('sim_update', { sim: 'drag', kp, flux, alt, lifetime: Math.round(lifetimeYears) });
+
+  // Restart animation if needed
+  if (activeSim === 'drag') animDrag();
+}
+
+// Drag canvas: orbit decay visualisation
+let dragAnimId = null;
+function animDrag() {
+  if (dragAnimId) cancelAnimationFrame(dragAnimId);
+  dragPhase = 0;
+  const kp   = +document.getElementById('drag-kp').value;
+  const flux = +document.getElementById('drag-flux').value;
+  const alt  = +document.getElementById('drag-alt').value;
+  const decayRate = clamp((kp * 0.08 + (flux - 70) / 300 * 0.3 + (1 - alt / 800) * 0.2), 0.02, 0.8);
+
+  function frame() {
+    const cv = document.getElementById('cv-drag');
+    if (!cv) return;
+    const q = getCtx('cv-drag');
+    if (!q) return;
+    const { ctx, w, h: H } = q;
+
+    ctx.clearRect(0, 0, w, H);
+    // Background
+    ctx.fillStyle = '#080c12';
+    ctx.fillRect(0, 0, w, H);
+
+    const cx = w / 2, cy = H * 0.52;
+    const earthR = Math.min(w, H) * 0.22;
+
+    // Earth glow
+    const eg = ctx.createRadialGradient(cx, cy, earthR * 0.5, cx, cy, earthR * 1.8);
+    eg.addColorStop(0, 'rgba(26,60,120,0.15)');
+    eg.addColorStop(1, 'transparent');
+    ctx.fillStyle = eg;
+    ctx.fillRect(0, 0, w, H);
+
+    // Earth
+    const eg2 = ctx.createRadialGradient(cx - earthR * 0.3, cy - earthR * 0.3, 0, cx, cy, earthR);
+    eg2.addColorStop(0, '#2a5a9a');
+    eg2.addColorStop(0.6, '#1a3a6a');
+    eg2.addColorStop(1, '#0a1a3a');
+    ctx.beginPath(); ctx.arc(cx, cy, earthR, 0, Math.PI * 2);
+    ctx.fillStyle = eg2; ctx.fill();
+
+    // Grid lines on Earth
+    ctx.strokeStyle = 'rgba(74,158,255,0.12)'; ctx.lineWidth = 0.5;
+    for (let i = 1; i < 4; i++) {
+      const y = cy - earthR + (2 * earthR / 4) * i;
+      const halfW = Math.sqrt(Math.max(0, earthR * earthR - (y - cy) * (y - cy)));
+      ctx.beginPath(); ctx.moveTo(cx - halfW, y); ctx.lineTo(cx + halfW, y); ctx.stroke();
+    }
+
+    // Atmosphere haze
+    const atm = ctx.createRadialGradient(cx, cy, earthR, cx, cy, earthR * 1.12);
+    atm.addColorStop(0, 'rgba(74,158,255,0.12)');
+    atm.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(cx, cy, earthR * 1.12, 0, Math.PI * 2);
+    ctx.fillStyle = atm; ctx.fill();
+
+    // Orbit trails — 4 orbits showing decay
+    const maxOrbitR = earthR * (1 + (alt / 800) * 1.2);
+    const numOrbits = 4;
+    for (let o = 0; o < numOrbits; o++) {
+      const progress = (dragPhase + o * 0.18) % 1;
+      const decayFactor = 1 - progress * decayRate;
+      const orbitR = maxOrbitR * clamp(decayFactor, 0.1, 1.0);
+      const opacity = 0.12 + (o / numOrbits) * 0.18;
+      const c = o < 2 ? `rgba(74,158,255,${opacity})` : `rgba(248,113,113,${opacity * 0.8})`;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, orbitR, orbitR * 0.9, -0.2, 0, Math.PI * 2);
+      ctx.strokeStyle = c; ctx.lineWidth = 1; ctx.stroke();
+    }
+
+    // Active satellite
+    const satProgress = (dragPhase * 3) % 1;
+    const satDecay = 1 - satProgress * decayRate * 0.4;
+    const satOrbitR = maxOrbitR * clamp(satDecay, 0.15, 1.0);
+    const satOrbitRY = satOrbitR * 0.9;
+    const angle = satProgress * Math.PI * 2 - Math.PI / 2;
+    const sx = cx + Math.cos(angle) * satOrbitR;
+    const sy = cy + Math.sin(angle) * satOrbitRY;
+    // Sat trail
+    ctx.beginPath();
+    for (let i = 0; i < 20; i++) {
+      const a = angle - i * 0.08;
+      const tr = satOrbitR * (1 + i * 0.002);
+      const trY = tr * 0.9;
+      const tx = cx + Math.cos(a) * tr;
+      const ty = cy + Math.sin(a) * trY;
+      if (i === 0) ctx.moveTo(tx, ty); else ctx.lineTo(tx, ty);
+    }
+    ctx.strokeStyle = `rgba(74,158,255,${0.3})`; ctx.lineWidth = 1.5; ctx.stroke();
+    // Sat dot
+    const kpColor = kp >= 7 ? '#f87171' : kp >= 5 ? '#f59e0b' : '#4a9eff';
+    ctx.beginPath(); ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+    ctx.fillStyle = kpColor; ctx.fill();
+    const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, 10);
+    g.addColorStop(0, kpColor.replace(')', ',0.4)').replace('rgb', 'rgba'));
+    g.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(sx, sy, 10, 0, Math.PI * 2);
+    ctx.fillStyle = g; ctx.fill();
+
+    // Altitude label
+    const currentAlt = Math.round(alt * clamp(1 - (satProgress * decayRate * 0.4), 0.15, 1));
+    ctx.font = `600 10px 'DM Mono', monospace`;
+    ctx.fillStyle = 'rgba(139,170,197,0.8)'; ctx.textAlign = 'center';
+    ctx.fillText(currentAlt + ' km', cx, cy - earthR * 1.35);
+
+    dragPhase += 0.003;
+    if (activeSim === 'drag') dragAnimId = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ═══════════════════════════════════════════════════
+//  SIM 2 — AURORA BOUNDARY
+// ═══════════════════════════════════════════════════
+let auroraAnimId = null;
+function auroraKpVal() { return +document.getElementById('aurora-kp').value; }
+
+function updateAurora() {
+  const kp  = +document.getElementById('aurora-kp').value;
+  const inc = +document.getElementById('aurora-inc').value;
+
+  document.getElementById('aurora-kp-val').textContent  = kp;
+  document.getElementById('aurora-inc-val').textContent = inc.toFixed(1) + '°';
+  updateKpStrip(kp);
+
+  // Auroral oval boundary: Kp 0 → ~68°N, Kp 9 → ~42°N
+  const ovalBoundary = Math.round(68 - kp * 2.8);
+  document.getElementById('aurora-lat').textContent = ovalBoundary + '°';
+
+  // Passes inside oval: depends on inclination vs boundary
+  const orbitPasses = 14.4; // LEO passes per day
+  const inOval = inc > ovalBoundary ? clamp((inc - ovalBoundary) / 20, 0, 1) : 0;
+  const passesInOval = Math.round(orbitPasses * inOval * 2);
+  document.getElementById('aurora-passes').textContent = passesInOval;
+
+  const doseMultiplier = (1 + kp * 0.3) * (1 + inOval * 2);
+  document.getElementById('aurora-dose').textContent = doseMultiplier.toFixed(1) + '×';
+
+  let insight = '';
+  if (kp >= 7) {
+    insight = `<strong>Severe storm:</strong> The aurora is visible as far south as ${ovalBoundary}°N — even mid-latitude cities. ISS astronauts are directed to shelter in the most shielded module.`;
+  } else if (kp >= 5 && inc > ovalBoundary - 5) {
+    insight = `<strong>Your orbit crosses the oval:</strong> With inclination ${inc.toFixed(1)}° and the oval boundary at ${ovalBoundary}°N, this satellite enters the auroral zone ~${passesInOval} times/day — increasing cumulative radiation dose.`;
+  } else if (kp === 0) {
+    insight = `<strong>Quiet conditions:</strong> The auroral oval is tightly confined above ${ovalBoundary}°N. Only polar-orbit satellites (i > 80°) experience significant exposure.`;
+  } else {
+    insight = `Auroral boundary at <strong>${ovalBoundary}°N</strong>. Satellites with inclination &gt;${ovalBoundary}° cross through particle precipitation on every polar pass.`;
+  }
+  document.getElementById('aurora-insight-text').innerHTML = insight;
+
+  track('sim_update', { sim: 'aurora', kp, inc, boundary: ovalBoundary });
+  if (activeSim === 'aurora') animAurora();
+}
+
+let auroraPhase = 0;
+function animAurora() {
+  if (auroraAnimId) cancelAnimationFrame(auroraAnimId);
+  auroraPhase = 0;
+  const kp  = +document.getElementById('aurora-kp').value;
+  const inc = +document.getElementById('aurora-inc').value;
+  const ovalBoundary = 68 - kp * 2.8;
+
+  function frame() {
+    const q = getCtx('cv-aurora');
+    if (!q) return;
+    const { ctx, w, h: H } = q;
+    ctx.clearRect(0, 0, w, H);
+
+    // Background
+    ctx.fillStyle = '#080c12';
+    ctx.fillRect(0, 0, w, H);
+
+    // Map background — simple lat/lon grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 0.5;
+    for (let lat = -80; lat <= 80; lat += 20) {
+      const y = H * 0.5 - (lat / 90) * H * 0.45;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+    for (let lon = 0; lon <= 360; lon += 30) {
+      const x = (lon / 360) * w;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+
+    // Pole markers
+    ctx.font = '9px DM Mono, monospace';
+    ctx.fillStyle = 'rgba(138,170,197,0.4)';
+    ctx.textAlign = 'center';
+    ctx.fillText('90°N', w / 2, 12);
+    ctx.fillText('0°', w / 2, H * 0.5);
+    ctx.fillText('90°S', w / 2, H - 4);
+
+    // Auroral oval (approximated as band near poles)
+    const ovY = H * 0.5 - (ovalBoundary / 90) * H * 0.45;
+    const kpColors = ['#34d399','#4a9eff','#7bc4ff','#a78bfa','#f59e0b','#fb923c','#f87171','#ef4444','#dc2626','#b91c1c'];
+    const ac = kpColors[clamp(Math.floor(kp), 0, 9)];
+
+    // Animated aurora shimmer
+    ctx.save();
+    for (let x = 0; x < w; x += 4) {
+      const wave = Math.sin(x * 0.04 + auroraPhase) * 6 + Math.sin(x * 0.02 + auroraPhase * 0.7) * 4;
+      const bandH = 8 + kp * 2;
+      const opacity = (0.1 + kp * 0.04) * (0.7 + 0.3 * Math.sin(x * 0.08 + auroraPhase * 1.3));
+      const g = ctx.createLinearGradient(x, ovY + wave - bandH, x, ovY + wave + bandH);
+      g.addColorStop(0, 'transparent');
+      g.addColorStop(0.5, ac.replace(')', `,${opacity})`).replace('#', 'rgba(').replace('rgba(', 'rgba(').slice(0, -1) + ')');
+      // Hex to rgba workaround:
+      ctx.fillStyle = ac + Math.round(opacity * 255).toString(16).padStart(2, '0');
+      ctx.fillRect(x, ovY + wave - bandH, 4, bandH * 2);
+    }
+    ctx.restore();
+
+    // Southern oval (mirrored)
+    const ovYS = H * 0.5 + (ovalBoundary / 90) * H * 0.45;
+    for (let x = 0; x < w; x += 4) {
+      const wave = Math.sin(x * 0.04 + auroraPhase + 1) * 6;
+      const bandH = 8 + kp * 2;
+      const opacity = (0.08 + kp * 0.03);
+      ctx.fillStyle = ac + Math.round(opacity * 200).toString(16).padStart(2, '0');
+      ctx.fillRect(x, ovYS + wave - bandH, 4, bandH * 2);
+    }
+
+    // Orbit track
+    const orbitY = H * 0.5 - (inc / 90) * H * 0.45;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = 'rgba(74,158,255,0.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, orbitY); ctx.lineTo(w, orbitY); ctx.stroke();
+    ctx.strokeStyle = 'rgba(74,158,255,0.5)';
+    ctx.beginPath(); ctx.moveTo(0, H - orbitY); ctx.lineTo(w, H - orbitY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Satellite dot moving along track
+    const satX = (auroraPhase * 60) % w;
+    const inOval = Math.abs(inc) > Math.abs(ovalBoundary) - 5;
+    const satCol = inOval ? '#f87171' : '#4a9eff';
+    ctx.beginPath(); ctx.arc(satX, orbitY, 5, 0, Math.PI * 2);
+    ctx.fillStyle = satCol; ctx.fill();
+
+    // Label
+    ctx.setLineDash([]);
+    ctx.font = '9px DM Mono, monospace'; ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(138,170,197,0.7)';
+    ctx.fillText(`Oval: ${Math.round(ovalBoundary)}°N`, 8, ovY - 8);
+    ctx.fillStyle = 'rgba(74,158,255,0.8)';
+    ctx.fillText(`Orbit: ${inc.toFixed(0)}°`, 8, orbitY - 8);
+
+    auroraPhase += 0.015;
+    if (activeSim === 'aurora') auroraAnimId = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ═══════════════════════════════════════════════════
+//  SIM 3 — COMM BLACKOUT
+// ═══════════════════════════════════════════════════
+const FLARE_CLASSES = ['A1','A5','B1','B5','C1','M1','M5','X1','X5','X10','X50'];
+let commAnimId = null;
+
+function updateComm() {
+  const flareIdx = +document.getElementById('comm-flare').value;
+  const freq     = +document.getElementById('comm-freq').value;
+
+  document.getElementById('comm-flare-val').textContent = FLARE_CLASSES[Math.floor(flareIdx * 1.0)] || 'X50';
+  document.getElementById('comm-freq-val').textContent  = freq + ' MHz';
+
+  // X-ray flux proxy: A=10^-8, C=10^-6, M=10^-5, X=10^-4
+  const fluxLog = -8 + flareIdx * 0.8;
+  const fluxW   = Math.pow(10, fluxLog);
+
+  // Shortwave fadeout: HF absorption ∝ sqrt(flux) / freq^2 (rough model)
+  const absFactor = Math.sqrt(fluxW * 1e7) * (1 / (freq * freq)) * 500;
+  const attenuationdB = clamp(absFactor * 10, 0, 60);
+
+  // GPS TEC scintillation: increases with flux
+  const gpsDrift = clamp(Math.sqrt(fluxW * 1e7) * 0.8, 0.1, 50);
+
+  // Status
+  let status = 'OK';
+  let statusColor = 'var(--green)';
+  if (attenuationdB > 40) { status = 'BLACKOUT'; statusColor = 'var(--red)'; }
+  else if (attenuationdB > 20) { status = 'DEGRADED'; statusColor = 'var(--amber)'; }
+  else if (attenuationdB > 5)  { status = 'DISTURBED'; statusColor = 'var(--purple)'; }
+
+  document.getElementById('comm-atten').textContent = attenuationdB.toFixed(0);
+  document.getElementById('comm-gps').textContent   = gpsDrift.toFixed(1);
+  const statusEl = document.getElementById('comm-status');
+  statusEl.textContent = status;
+  statusEl.style.color = statusColor;
+
+  const fc = FLARE_CLASSES[Math.round(flareIdx)];
+  let insight = '';
+  if (attenuationdB > 40) {
+    insight = `<strong>Complete blackout:</strong> An ${fc} flare produces enough X-ray flux to absorb ${attenuationdB.toFixed(0)} dB of HF signal at ${freq} MHz. Aviation and maritime operators lose all contact with HF-dependent systems. GPS errors exceed ${gpsDrift.toFixed(0)} m.`;
+  } else if (attenuationdB > 15) {
+    insight = `<strong>Significant degradation:</strong> The ${fc} flare ionises the D-layer, absorbing ${attenuationdB.toFixed(0)} dB on your ${freq} MHz link. GPS TEC errors of ~${gpsDrift.toFixed(1)} m affect precision navigation.`;
+  } else {
+    insight = `At ${freq} MHz, an ${fc} flare causes <strong>${attenuationdB.toFixed(1)} dB attenuation</strong> — mostly manageable with margin. Higher frequency bands (UHF, S-band) are far less affected by ionospheric absorption.`;
+  }
+  document.getElementById('comm-insight-text').innerHTML = insight;
+
+  track('sim_update', { sim: 'comm', flare: fc, freq, attenuation: Math.round(attenuationdB) });
+  if (activeSim === 'comm') animComm();
+}
+
+let commPhase = 0;
+function animComm() {
+  if (commAnimId) cancelAnimationFrame(commAnimId);
+  commPhase = 0;
+  const flareIdx = +document.getElementById('comm-flare').value;
+  const freq     = +document.getElementById('comm-freq').value;
+
+  function frame() {
+    const q = getCtx('cv-comm');
+    if (!q) return;
+    const { ctx, w, h: H } = q;
+    ctx.clearRect(0, 0, w, H);
+
+    ctx.fillStyle = '#080c12';
+    ctx.fillRect(0, 0, w, H);
+
+    const cx = w / 2, earthY = H * 0.75;
+    const earthR = 40;
+    const satY = H * 0.15, satX = cx;
+    const groundX = cx * 0.35, groundY = earthY;
+
+    // Earth
+    const eg = ctx.createRadialGradient(cx - 15, earthY - 15, 5, cx, earthY, earthR);
+    eg.addColorStop(0, '#2a5a9a');
+    eg.addColorStop(1, '#0a1a3a');
+    ctx.beginPath(); ctx.arc(cx, earthY, earthR, 0, Math.PI * 2);
+    ctx.fillStyle = eg; ctx.fill();
+
+    // Ionosphere layers
+    const fluxLog = -8 + flareIdx * 0.8;
+    const fluxNorm = clamp(flareIdx / 10, 0, 1);
+    const dLayerOpacity = fluxNorm * 0.7;
+    const dLayerR = earthR + 30 + fluxNorm * 15;
+
+    // D-layer (absorbs HF during flares)
+    const dg = ctx.createRadialGradient(cx, earthY, earthR + 20, cx, earthY, dLayerR + 20);
+    dg.addColorStop(0, `rgba(248,113,113,${dLayerOpacity * 0.4})`);
+    dg.addColorStop(1, `transparent`);
+    ctx.beginPath(); ctx.arc(cx, earthY, dLayerR + 10, 0, Math.PI * 2);
+    ctx.fillStyle = dg; ctx.fill();
+
+    // F-layer label
+    ctx.font = '8px DM Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(138,170,197,0.5)';
+    ctx.fillText('F-layer', cx + 65, earthY - 90);
+    ctx.fillStyle = dLayerOpacity > 0.3 ? 'rgba(248,113,113,0.7)' : 'rgba(138,170,197,0.4)';
+    ctx.fillText('D-layer', cx + 65, earthY - 45);
+
+    // Satellite
+    ctx.beginPath(); ctx.arc(satX, satY, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#4a9eff'; ctx.fill();
+
+    // Signal beam from satellite to ground
+    // Check if signal is blocked
+    const attFrac = clamp(fluxNorm * (20 / freq), 0, 1);
+    const signalT = (commPhase % 1);
+    const x1 = satX, y1 = satY, x2 = groundX, y2 = groundY;
+    const sx = lerp(x1, x2, signalT);
+    const sy = lerp(y1, y2, signalT);
+
+    // Draw beam
+    const blocked = attFrac > 0.7;
+    const beamColor = blocked ? 'rgba(248,113,113,0.4)' :
+                      attFrac > 0.3 ? 'rgba(245,158,11,0.4)' : 'rgba(74,158,255,0.3)';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    ctx.strokeStyle = beamColor; ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+
+    // Signal pulse dot
+    if (!blocked) {
+      ctx.beginPath(); ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#4a9eff'; ctx.fill();
+    } else {
+      // Scatter/absorb in D-layer
+      const dY = lerp(y1, y2, 0.5) + 10;
+      if (sy < dY + 20 && sy > dY - 20) {
+        for (let i = 0; i < 4; i++) {
+          const ang = (i / 4) * Math.PI * 2 + commPhase * 5;
+          const scx = sx + Math.cos(ang) * 6;
+          const scy = sy + Math.sin(ang) * 6;
+          ctx.beginPath(); ctx.arc(scx, scy, 2, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(248,113,113,0.7)'; ctx.fill();
+        }
+      } else {
+        ctx.beginPath(); ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(248,113,113,0.4)'; ctx.fill();
+      }
+    }
+
+    // Ground station
+    ctx.beginPath(); ctx.arc(groundX, groundY, 5, 0, Math.PI * 2);
+    ctx.fillStyle = blocked ? '#f87171' : '#34d399'; ctx.fill();
+
+    // Status label
+    ctx.font = '600 10px DM Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = blocked ? '#f87171' : attFrac > 0.3 ? '#f59e0b' : '#34d399';
+    ctx.fillText(blocked ? 'BLACKOUT' : attFrac > 0.3 ? 'DEGRADED' : 'NOMINAL', cx, H - 12);
+
+    commPhase += 0.008;
+    if (activeSim === 'comm') commAnimId = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ═══════════════════════════════════════════════════
+//  SIM 4 — SAA RADIATION
+// ═══════════════════════════════════════════════════
+let saaAnimId = null;
+
+function updateSAA() {
+  const flux = +document.getElementById('saa-flux').value;
+  const alt  = +document.getElementById('saa-alt').value;
+
+  document.getElementById('saa-flux-val').textContent = flux;
+  document.getElementById('saa-alt-val').textContent  = alt + ' km';
+
+  // SAA proton flux increases with altitude up to ~1000 km (inner belt peak ~3000 km)
+  // Simplified: dose ∝ altitude factor * solar cycle factor
+  const altFactor = Math.pow(alt / 400, 1.5);
+  const solarFactor = 1 - (flux - 70) / (300 - 70) * 0.4; // paradoxically less during solar max (expansion shields)
+  const baseDose = 8; // mrad/pass baseline
+  const dose = baseDose * altFactor * solarFactor;
+
+  // SEU risk: proportional to dose, inversely to shielding (assume standard Al shielding)
+  const seuRisk = clamp(dose / 20, 0.1, 10);
+
+  // Passes per day: ~14 at LEO
+  const passesPerDay = Math.round(86400 / (2 * Math.PI * Math.sqrt(Math.pow(6371 + alt, 3) / 398600.4) / 60));
+  const saaFraction = 0.15; // SAA subtends ~15% of mid-inclination orbital passes
+  const saaPasses = Math.round(passesPerDay * saaFraction);
+
+  document.getElementById('saa-dose').textContent   = dose.toFixed(1);
+  document.getElementById('saa-seu').textContent    = seuRisk.toFixed(2);
+  document.getElementById('saa-passes').textContent = saaPasses;
+
+  let insight = '';
+  if (alt > 700) {
+    insight = `<strong>High radiation zone:</strong> Above 700 km, proton flux in the SAA is significantly elevated. The Hubble Space Telescope (547 km) routinely shuts instruments during SAA crossings — your orbit at ${alt} km is worse.`;
+  } else if (seuRisk > 3) {
+    insight = `<strong>Elevated single-event upset risk:</strong> At ${dose.toFixed(1)} mrad/pass, your satellite crosses the SAA ${saaPasses} times/day. Mission designers use radiation-hardened ICs or error correction to handle this.`;
+  } else {
+    insight = `At ${alt} km, the SAA delivers ~<strong>${dose.toFixed(1)} mrad per crossing</strong> (${saaPasses} crossings/day). The Starlink fleet flies Ku/Ka transponders with error-correcting firmware specifically for SAA transits.`;
+  }
+  document.getElementById('saa-insight-text').innerHTML = insight;
+
+  track('sim_update', { sim: 'saa', flux, alt, dose: Math.round(dose), seu: seuRisk.toFixed(2) });
+  if (activeSim === 'saa') animSAA();
+}
+
+let saaPhase = 0;
+function animSAA() {
+  if (saaAnimId) cancelAnimationFrame(saaAnimId);
+  saaPhase = 0;
+  const flux = +document.getElementById('saa-flux').value;
+  const alt  = +document.getElementById('saa-alt').value;
+
+  function frame() {
+    const q = getCtx('cv-saa');
+    if (!q) return;
+    const { ctx, w, h: H } = q;
+    ctx.clearRect(0, 0, w, H);
+    ctx.fillStyle = '#080c12';
+    ctx.fillRect(0, 0, w, H);
+
+    // World map grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 0.5;
+    for (let lat = -80; lat <= 80; lat += 20) {
+      const y = H / 2 - (lat / 90) * H * 0.46;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+    for (let lon = 0; lon <= 360; lon += 30) {
+      const x = (lon / 360) * w;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+
+    // SAA region — centered ~-30°lat, -50°lon (approx 230° in 0-360)
+    const saaCx = (230 / 360) * w;
+    const saaCy = H / 2 + (30 / 90) * H * 0.46;
+    const saaRx = w * 0.18;
+    const saaRy = H * 0.22;
+
+    const altFactor = Math.pow(alt / 400, 1.5);
+    const saaIntensity = clamp(altFactor * 0.7, 0.1, 0.9);
+
+    // SAA glow layers
+    for (let layer = 4; layer >= 0; layer--) {
+      const scale = 1 + layer * 0.25;
+      const opacity = saaIntensity * (0.15 - layer * 0.025);
+      const g = ctx.createRadialGradient(saaCx, saaCy, 0, saaCx, saaCy, saaRx * scale);
+      g.addColorStop(0, `rgba(248,113,113,${opacity * 2})`);
+      g.addColorStop(0.5, `rgba(245,158,11,${opacity})`);
+      g.addColorStop(1, 'transparent');
+      ctx.save();
+      ctx.scale(1, saaRy / saaRx);
+      ctx.beginPath(); ctx.arc(saaCx, saaCy * saaRx / saaRy, saaRx * scale, 0, Math.PI * 2);
+      ctx.fillStyle = g; ctx.fill();
+      ctx.restore();
+    }
+
+    // SAA label
+    ctx.font = '9px DM Mono, monospace';
+    ctx.fillStyle = 'rgba(248,113,113,0.7)'; ctx.textAlign = 'center';
+    ctx.fillText('SAA', saaCx, saaCy);
+
+    // Orbit track — ~28° inclination for Starlink, ~51.6° for ISS
+    const orbInc = 51.6;
+    const orbitOffset = (saaPhase * 40) % w;
+    ctx.strokeStyle = 'rgba(74,158,255,0.5)'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    for (let x = -w; x < 2 * w; x += 2) {
+      const lon_norm = (x / w);
+      const lat = Math.sin(lon_norm * Math.PI * 3 + saaPhase * 0.5) * orbInc;
+      const y = H / 2 - (lat / 90) * H * 0.46;
+      if (x === -w) ctx.moveTo(x + orbitOffset, y);
+      else ctx.lineTo(x + orbitOffset, y);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // Satellite
+    const satLonNorm = ((saaPhase * 0.8) % 1);
+    const satLat = Math.sin(satLonNorm * Math.PI * 3 + saaPhase * 0.5) * orbInc;
+    const satX2 = satLonNorm * w;
+    const satY2 = H / 2 - (satLat / 90) * H * 0.46;
+    const dx = satX2 - saaCx, dy = (satY2 - saaCy) * (saaRx / saaRy);
+    const inSAA = Math.sqrt(dx * dx + dy * dy) < saaRx * 1.3;
+    const satC = inSAA ? '#f87171' : '#4a9eff';
+    ctx.beginPath(); ctx.arc(satX2, satY2, 5, 0, Math.PI * 2);
+    ctx.fillStyle = satC; ctx.fill();
+    if (inSAA) {
+      // Radiation burst
+      for (let i = 0; i < 6; i++) {
+        const ang = (i / 6) * Math.PI * 2 + saaPhase * 4;
+        ctx.beginPath();
+        ctx.moveTo(satX2, satY2);
+        ctx.lineTo(satX2 + Math.cos(ang) * 10, satY2 + Math.sin(ang) * 10);
+        ctx.strokeStyle = 'rgba(248,113,113,0.4)'; ctx.lineWidth = 1; ctx.stroke();
+      }
+    }
+
+    // Lat/lon labels
+    ctx.font = '8px DM Mono, monospace'; ctx.fillStyle = 'rgba(138,170,197,0.35)';
+    ctx.textAlign = 'center';
+    ctx.fillText('0°', 8, H / 2);
+    ctx.fillText('-30°S', 8, H / 2 + (30 / 90) * H * 0.46);
+
+    saaPhase += 0.006;
+    if (activeSim === 'saa') saaAnimId = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ═══════════════════════════════════════════════════
+//  SIM 5 — SOLAR CYCLE × DEBRIS
+// ═══════════════════════════════════════════════════
+let kessAnimId = null;
+
+// Smoothed sunspot number approximation for SC24-SC25
+function ssnForYear(yr) {
+  // SC24 max ~2014, SC25 max ~2025, simplified sine
+  const sc24 = 116 * Math.max(0, Math.sin((yr - 2008) / 11 * Math.PI));
+  const sc25 = 150 * Math.max(0, Math.sin((yr - 2019) / 11 * Math.PI));
+  const sc26 = 140 * Math.max(0, Math.sin((yr - 2030) / 11 * Math.PI));
+  return Math.round(Math.max(sc24, sc25, sc26));
+}
+
+function updateKessler() {
+  const year   = +document.getElementById('kess-year').value;
+  const launch = +document.getElementById('kess-launch').value;
+
+  document.getElementById('kess-year-val').textContent   = year;
+  document.getElementById('kess-launch-val').textContent = launch.toLocaleString();
+
+  const ssn = ssnForYear(year);
+  document.getElementById('kess-ssn').textContent = ssn;
+
+  // Debris population change: launches add, solar removes at LEO
+  const f107 = 70 + ssn * 1.5;
+  // Lifetime at 500 km scales with solar activity
+  const rho500 = Math.exp(-500 / 60) * 2.5e-10 * (1 + (f107 - 150) / 150 * 0.8);
+  const beta = 60, r = 6871e3, v = Math.sqrt(398600400 / r);
+  const dadt = rho500 * v * r / beta;
+  const lifetimeYears = (350000) / (dadt * 86400 * 365);
+
+  document.getElementById('kess-life').textContent = lifetimeYears.toFixed(1);
+
+  // Net population change: launches - natural decay (rough)
+  const decayRate = 2000 / lifetimeYears; // objects/year naturally removed
+  const netDelta = launch - decayRate;
+  const deltaStr = (netDelta >= 0 ? '+' : '') + Math.round(netDelta).toLocaleString();
+  document.getElementById('kess-pop').textContent = deltaStr;
+  document.getElementById('kess-pop').style.color = netDelta > 0 ? 'var(--red)' : 'var(--green)';
+
+  let insight = '';
+  if (ssn > 130) {
+    insight = `<strong>Solar maximum:</strong> SSN ~${ssn} in ${year}. Atmospheric drag naturally removes ~${Math.round(decayRate).toLocaleString()} objects/year from LEO — but launches of ${launch.toLocaleString()}/year still add <strong>${Math.round(netDelta).toLocaleString()}</strong> net objects.`;
+  } else if (launch > 4000 && netDelta > 0) {
+    insight = `<strong>Congestion warning:</strong> At ${launch.toLocaleString()} launches/year during solar minimum (SSN ${ssn}), the LEO population is growing by ~${Math.round(netDelta).toLocaleString()} objects/year. Kessler cascade risk in the 550 km shell is statistically non-trivial within 10 years.`;
+  } else if (netDelta < 0) {
+    insight = `<strong>Net improvement:</strong> At SSN ${ssn}, solar drag removes more objects than launches add. This is the only scenario where LEO self-cleans — but only lasts ~${(11 - Math.abs(year - (year < 2025 ? 2025 : 2036))) * 1}yr per cycle peak.`;
+  } else {
+    insight = `In ${year} (SSN ~${ssn}), 500 km orbital lifetime is ~<strong>${lifetimeYears.toFixed(1)} years</strong>. At ${launch.toLocaleString()} launches/year, the LEO object count is ${netDelta >= 0 ? 'growing' : 'shrinking'}.`;
+  }
+  document.getElementById('kess-insight-text').innerHTML = insight;
+
+  track('sim_update', { sim: 'kessler', year, ssn, launch, lifetime: lifetimeYears.toFixed(1) });
+  if (activeSim === 'kessler') animKessler();
+}
+
+let kessPhase = 0;
+function animKessler() {
+  if (kessAnimId) cancelAnimationFrame(kessAnimId);
+  kessPhase = 0;
+  const year   = +document.getElementById('kess-year').value;
+  const launch = +document.getElementById('kess-launch').value;
+
+  function frame() {
+    const q = getCtx('cv-kessler');
+    if (!q) return;
+    const { ctx, w, h: H } = q;
+    ctx.clearRect(0, 0, w, H);
+    ctx.fillStyle = '#080c12';
+    ctx.fillRect(0, 0, w, H);
+
+    // Draw solar cycle curve
+    const graphL = 40, graphR = w - 20, graphT = 20, graphB = H - 40;
+    const gW = graphR - graphL, gH = graphB - graphT;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 0.5;
+    for (let i = 0; i <= 4; i++) {
+      const y = graphT + (gH / 4) * i;
+      ctx.beginPath(); ctx.moveTo(graphL, y); ctx.lineTo(graphR, y); ctx.stroke();
+    }
+
+    // SSN curve (2010–2035)
+    const yearMin = 2010, yearMax = 2035;
+    ctx.beginPath();
+    for (let yr = yearMin; yr <= yearMax; yr += 0.2) {
+      const ssn = ssnForYear(yr);
+      const x = graphL + ((yr - yearMin) / (yearMax - yearMin)) * gW;
+      const y = graphB - (ssn / 160) * gH;
+      if (yr === yearMin) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(245,158,11,0.6)'; ctx.lineWidth = 2; ctx.stroke();
+
+    // Launch rate overlay (normalised)
+    const launchNorm = launch / 6000;
+    const launchY = graphB - launchNorm * gH * 0.8;
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = 'rgba(248,113,113,0.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(graphL, launchY); ctx.lineTo(graphR, launchY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Current year marker
+    const currentX = graphL + ((year - yearMin) / (yearMax - yearMin)) * gW;
+    const currentSSN = ssnForYear(year);
+    const currentY = graphB - (currentSSN / 160) * gH;
+    ctx.beginPath(); ctx.moveTo(currentX, graphT); ctx.lineTo(currentX, graphB);
+    ctx.strokeStyle = 'rgba(74,158,255,0.4)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(currentX, currentY, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#f59e0b'; ctx.fill();
+
+    // Axis labels
+    ctx.font = '8px DM Mono, monospace'; ctx.fillStyle = 'rgba(138,170,197,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText('2010', graphL, graphB + 14);
+    ctx.fillText('2025', graphL + gW * 0.6, graphB + 14);
+    ctx.fillText('2035', graphR, graphB + 14);
+    ctx.fillText(`${year}`, currentX, graphT - 6);
+    ctx.textAlign = 'left';
+    ctx.fillText(`SSN: ${currentSSN}`, graphL + 4, graphT + 14);
+
+    // Legend
+    ctx.fillStyle = 'rgba(245,158,11,0.7)'; ctx.fillRect(graphL, graphB - 16, 14, 2);
+    ctx.fillStyle = 'rgba(138,170,197,0.5)'; ctx.fillText('Sunspot no.', graphL + 18, graphB - 12);
+    ctx.fillStyle = 'rgba(248,113,113,0.7)'; ctx.fillRect(graphL + 100, graphB - 16, 14, 2);
+    ctx.fillStyle = 'rgba(138,170,197,0.5)'; ctx.fillText(`Launches/${(launch/1000).toFixed(1)}k/yr`, graphL + 118, graphB - 12);
+
+    kessPhase += 0.01;
+    if (activeSim === 'kessler') kessAnimId = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ═══════════════════════════════════════════════════
+//  SHARE MODAL
+// ═══════════════════════════════════════════════════
+const SIM_META = {
+  drag: {
+    name: 'Atmospheric Drag Explorer',
+    getMetrics: () => ({
+      m1: { val: document.getElementById('drag-lifetime').textContent + ' yrs', lbl: 'Satellite Lifetime' },
+      m2: { val: document.getElementById('drag-decay').textContent + ' m/day', lbl: 'Altitude Decay' },
+      m3: { val: 'Kp ' + document.getElementById('drag-kp').value, lbl: 'Geomagnetic Kp' },
+    }),
+    getInsight: () => document.getElementById('drag-insight-text').innerHTML,
+  },
+  aurora: {
+    name: 'Auroral Oval Explorer',
+    getMetrics: () => ({
+      m1: { val: document.getElementById('aurora-lat').textContent, lbl: 'Oval Boundary' },
+      m2: { val: document.getElementById('aurora-passes').textContent + '/day', lbl: 'Oval Passes' },
+      m3: { val: document.getElementById('aurora-dose').textContent, lbl: 'Radiation Dose' },
+    }),
+    getInsight: () => document.getElementById('aurora-insight-text').innerHTML,
+  },
+  comm: {
+    name: 'Radio Blackout Simulator',
+    getMetrics: () => ({
+      m1: { val: document.getElementById('comm-atten').textContent + ' dB', lbl: 'HF Attenuation' },
+      m2: { val: document.getElementById('comm-gps').textContent + ' m', lbl: 'GPS Error' },
+      m3: { val: document.getElementById('comm-status').textContent, lbl: 'Link Status' },
+    }),
+    getInsight: () => document.getElementById('comm-insight-text').innerHTML,
+  },
+  saa: {
+    name: 'SAA Radiation Mapper',
+    getMetrics: () => ({
+      m1: { val: document.getElementById('saa-dose').textContent + ' mrad', lbl: 'Dose / Pass' },
+      m2: { val: document.getElementById('saa-seu').textContent + '/day', lbl: 'SEU Risk' },
+      m3: { val: document.getElementById('saa-passes').textContent + '/day', lbl: 'SAA Passes' },
+    }),
+    getInsight: () => document.getElementById('saa-insight-text').innerHTML,
+  },
+  kessler: {
+    name: 'Solar Cycle × Debris',
+    getMetrics: () => ({
+      m1: { val: 'SSN ' + document.getElementById('kess-ssn').textContent, lbl: 'Sunspot Number' },
+      m2: { val: document.getElementById('kess-pop').textContent + '/yr', lbl: 'LEO Δ Objects' },
+      m3: { val: document.getElementById('kess-life').textContent + ' yrs', lbl: '500km Lifetime' },
+    }),
+    getInsight: () => document.getElementById('kess-insight-text').innerHTML,
+  },
+};
+
+function openShare(simId) {
+  const meta = SIM_META[simId];
+  const metrics = meta.getMetrics();
+  const insight = meta.getInsight().replace(/<[^>]+>/g, '');
+
+  document.getElementById('result-card').innerHTML = `
+    <div class="rc-brand">VectraSpace · Space Weather Explorer</div>
+    <div class="rc-sim-name">${meta.name}</div>
+    <div class="rc-insight">${insight.length > 160 ? insight.slice(0, 157) + '...' : insight}</div>
+    <div class="rc-metrics">
+      <div class="rc-metric"><div class="rc-metric-val">${metrics.m1.val}</div><div class="rc-metric-lbl">${metrics.m1.lbl}</div></div>
+      <div class="rc-metric"><div class="rc-metric-val">${metrics.m2.val}</div><div class="rc-metric-lbl">${metrics.m2.lbl}</div></div>
+      <div class="rc-metric"><div class="rc-metric-val">${metrics.m3.val}</div><div class="rc-metric-lbl">${metrics.m3.lbl}</div></div>
+    </div>
+    <div class="rc-url">vectraspace.onrender.com/space-weather</div>
+  `;
+
+  // Build X/Twitter share text
+  const shareText = encodeURIComponent(
+    `I just ran "${meta.name}" on VectraSpace — ${insight.slice(0, 100)}...\n\nvectraspace.onrender.com/space-weather`
+  );
+  document.getElementById('x-share-btn').href =
+    `https://x.com/intent/tweet?text=${shareText}`;
+
+  document.getElementById('share-modal').classList.add('open');
+  track('share_open', { sim: simId });
+}
+
+function closeShare() {
+  document.getElementById('share-modal').classList.remove('open');
+}
+
+function copyCard() {
+  const meta = SIM_META[activeSim];
+  const metrics = meta.getMetrics();
+  const insight = meta.getInsight().replace(/<[^>]+>/g, '');
+  const text = `${meta.name} — VectraSpace Space Weather Explorer\n\n${insight}\n\n${metrics.m1.val} ${metrics.m1.lbl} · ${metrics.m2.val} ${metrics.m2.lbl} · ${metrics.m3.val} ${metrics.m3.lbl}\n\nvectraspace.onrender.com/space-weather`;
+  navigator.clipboard?.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ Copied to clipboard';
+    setTimeout(() => { btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link + Result'; }, 2000);
+  });
+  track('share_copy', { sim: activeSim });
+}
+
+// Esc to close modal
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeShare(); });
+
+// ═══════════════════════════════════════════════════
+//  CANVAS RESIZE HANDLER
+// ═══════════════════════════════════════════════════
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    // Force redraws by clearing canvas width
+    ['cv-drag','cv-aurora','cv-comm','cv-saa','cv-kessler'].forEach(id => {
+      const cv = document.getElementById(id);
+      if (cv) cv.width = 0; // forces recalc in getCtx
+    });
+    if (activeSim === 'drag')    animDrag();
+    if (activeSim === 'aurora')  animAurora();
+    if (activeSim === 'comm')    animComm();
+    if (activeSim === 'saa')     animSAA();
+    if (activeSim === 'kessler') animKessler();
+  }, 150);
+});
+
+// ═══════════════════════════════════════════════════
+//  INIT — run first simulation
+// ═══════════════════════════════════════════════════
+updateDrag();
+track('page_view', { page: 'space_weather' });
+</script>
+</body>
+</html>'''
+
 ADMIN_HTML = '''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10590,7 +12458,8 @@ a[href="/instructor-guide"] .tool-card-icon {
     <li><a href="#mission">Mission</a></li>
     <li><a href="#learn">Chapters</a></li>
     <li><a href="/scenarios">Scenarios</a></li>
-        <li><a href="/glossary">Resources</a></li>
+    <li><a href="/space-weather">Space Weather</a></li>
+    <li><a href="/glossary">Resources</a></li>
     <li><a href="/calculator">Calculator</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="/api/tools/trajectory">Trajectory ↗</a></li>
@@ -10606,6 +12475,7 @@ a[href="/instructor-guide"] .tool-card-icon {
   <a href="#mission">Mission <span>→</span></a>
   <a href="#learn">Chapters <span>→</span></a>
   <a href="/scenarios">Scenarios <span>→</span></a>
+  <a href="/space-weather">Space Weather <span>→</span></a>
   <a href="/glossary">Resources <span>→</span></a>
   <a href="/calculator">Calculator <span>→</span></a>
   <a href="#contact">Contact <span>→</span></a>
@@ -11011,6 +12881,13 @@ a[href="/instructor-guide"] .tool-card-icon {
         <div class="tool-card-body">
           <div class="tool-card-title">Resources</div>
           <div class="tool-card-desc">50+ terms · searchable · deep-link ready</div>
+        </div>
+      </a>
+      <a href="/space-weather" class="tool-card">
+        <div class="tool-card-icon" style="background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.25);">🌞</div>
+        <div class="tool-card-body">
+          <div class="tool-card-title">Space Weather</div>
+          <div class="tool-card-desc">5 live sims · drag · aurora · blackout · SAA</div>
         </div>
       </a>
       <a href="/instructor-guide" class="tool-card" download>
