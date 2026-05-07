@@ -1,5 +1,5 @@
 """
-VectraSpace — main.py
+DrogueWorks — main.py
 Application factory. Auth removed — all routes are public.
 users.py and auth_routes.py deleted from project.
 """
@@ -23,7 +23,7 @@ from satellites import router as sat_router
 from admin import router as admin_router
 from trajectory import router as trajectory_router
 
-log = logging.getLogger("VectraSpace")
+log = logging.getLogger("DrogueWorks")
 logging.basicConfig(level=logging.DEBUG)
 
 _scan_state = {"time": 0, "running": False, "count": 0}
