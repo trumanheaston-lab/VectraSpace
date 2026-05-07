@@ -1,5 +1,5 @@
 """
-VectraSpace v11 — pages.py
+DrogueWorks v11 — pages.py
 Static HTML page routes. No auth required for most.
 HTML content is imported from templates_loader.py.
 """
@@ -17,10 +17,10 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Fil
 from config import CFG
 from templates_loader import (
     LANDING_HTML, DASHBOARD_HTML, SCENARIOS_HTML, CALC_HTML,
-    GLOSSARY_HTML, RESEARCH_HTML,
+    GLOSSARY_HTML, RESEARCH_HTML, HARDWARE_HTML,
 )
 
-log    = logging.getLogger("VectraSpace")
+log    = logging.getLogger("DrogueWorks")
 router = APIRouter()
 
 
@@ -274,7 +274,7 @@ async def news_api(content_type: str = "articles", limit: int = 12,
         if search:
             params += "&search=" + _up.quote(search[:200])
         url = f"https://api.spaceflightnewsapi.net/v4/{ct}/{params}"
-        req = _ur.Request(url, headers={"User-Agent": "VectraSpace/1.0"})
+        req = _ur.Request(url, headers={"User-Agent": "DrogueWorks/1.0"})
         with _ur.urlopen(req, timeout=10) as resp:
             data = _j.loads(resp.read().decode())
         return JSONResponse(data)
@@ -316,7 +316,7 @@ def research_tle_csv():
 
 @router.get("/instructor-guide")
 def instructor_guide():
-    """Serves the VectraSpace instructor guide PDF/docx for download."""
+    """Serves the DrogueWorks instructor guide PDF/docx for download."""
     import os
     # Look for the file in the repo root or a static/ subfolder
     for candidate in [
@@ -327,7 +327,7 @@ def instructor_guide():
             return FileResponse(
                 candidate,
                 media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                filename="VectraSpace_Instructor_Guide.docx",
+                filename="DrogueWorks_Instructor_Guide.docx",
             )
     return HTMLResponse("<h2>Instructor guide not found on server.</h2>", status_code=404)
 
@@ -336,3 +336,7 @@ def instructor_guide():
 def space_weather():
     from templates_loader import SPACE_WEATHER_HTML
     return HTMLResponse(SPACE_WEATHER_HTML)
+
+@router.get("/hardware", response_class=HTMLResponse)
+def hardware():
+    return HTMLResponse(HARDWARE_HTML)
