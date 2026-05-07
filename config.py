@@ -1,5 +1,5 @@
 """
-VectraSpace v11 — config.py
+DrogueWorks v11 — config.py
 Single source of truth for all runtime configuration.
 Values are read from environment variables (set in Render dashboard or .env).
 """
@@ -80,7 +80,7 @@ class Config:
 
 # ── Singleton built from environment ────────────────────────────────────────
 CFG = Config(
-    alert_email_from=os.environ.get("ALERT_EMAIL_FROM", "trumanheaston@gmail.com"),
+    alert_email_from=os.environ.get("ALERT_EMAIL_FROM", "truman@drogueworks.com"),
     alert_email_to=os.environ.get("ALERT_EMAIL_TO", ""),
     alert_smtp_host=os.environ.get("ALERT_SMTP_HOST", "smtp.gmail.com"),
     alert_phone=os.environ.get("ALERT_PHONE"),
