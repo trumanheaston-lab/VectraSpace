@@ -1,5 +1,5 @@
 """
-VectraSpace — templates_loader.py
+DrogueWorks — templates_loader.py
 All HTML page constants. Loaded at import time.
 Auth, login, logout, signup, and quiz UI removed. All routes public.
 """
@@ -9,7 +9,7 @@ DASHBOARD_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>VectraSpace — Orbital Safety Platform</title>
+<title>DrogueWorks — Orbital Safety Platform</title>
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -656,7 +656,7 @@ DASHBOARD_HTML = '''<!DOCTYPE html>
         </a>
       </div>
       <div class="brand">
-        <a href="/" class="brand-name" style="text-decoration:none;" title="VectraSpace Home">Vectra<em>Space</em></a>
+        <a href="/" class="brand-name" style="text-decoration:none;" title="DrogueWorks Home">Drogue<em>Works</em></a>
         <div class="brand-tag">Platform</div>
       </div>
       <div class="sub">Orbital Safety Dashboard</div>
@@ -878,7 +878,7 @@ DASHBOARD_HTML = '''<!DOCTYPE html>
         pointer-events:none;">
       <div style="font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;
                   letter-spacing:4px;color:#00d4ff;text-transform:uppercase;">
-        VectraSpace
+        DrogueWorks
       </div>
       <div style="width:220px;">
         <div style="font-family:'Share Tech Mono',monospace;font-size:9px;
@@ -2016,7 +2016,7 @@ SCENARIOS_HTML = r'''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<title>Interactive Scenarios — VectraSpace</title>
+<title>Interactive Scenarios — DrogueWorks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -2095,7 +2095,7 @@ html,body{background:var(--ink);color:var(--text);font-family:var(--sans);overfl
 </head>
 <body>
 <div id="topbar">
-  <a href="/" class="tb-brand">Vectra<em>Space</em></a>
+  <a href="/" class="tb-brand">Drogue<em>Works</em></a>
   <div class="tb-links">
     <a href="/" class="tb-link back-link">← Hub</a>
     <a href="/scenarios" class="tb-link active">Scenarios</a>
@@ -2765,7 +2765,7 @@ CALC_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Impact Calculator — VectraSpace</title>
+<title>Impact Calculator — DrogueWorks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2947,7 +2947,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:60px;d
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Drogue<em>Works</em></span></a>
   <div class="nav-links">
     <a href="/" class="nav-link">Hub</a>
     <a href="/glossary" class="nav-link">Resources</a>
@@ -3347,7 +3347,7 @@ GLOSSARY_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resources — VectraSpace</title>
+<title>Resources — DrogueWorks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -3444,7 +3444,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;padding:0 40px;d
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Drogue<em>Works</em></span></a>
   <div class="nav-right">
     <a href="/" class="nav-back">&larr; Hub</a>
     <a href="/dashboard" class="nav-back">Dashboard &rarr;</a>
@@ -3600,7 +3600,7 @@ var RESOURCES = [
 
   { cat:"courses", org:"ESA Academy", free:true,
     title:"ESA Space Debris Training Course",
-    desc:"ESA's dedicated training program on space debris — environment models, mitigation measures, debris removal technologies, and regulatory landscape. Offered periodically as in-person and online formats. Directly relevant to VectraSpace's domain.",
+    desc:"ESA's dedicated training program on space debris — environment models, mitigation measures, debris removal technologies, and regulatory landscape. Offered periodically as in-person and online formats. Directly relevant to DrogueWorks's domain.",
     url:"https://www.esa.int/Enabling_Support/Space_Engineering_Technology/Space_Debris_Training_Course" },
 
   { cat:"courses", org:"Coursera / University of Colorado", free:false,
@@ -3718,7 +3718,7 @@ RESEARCH_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VectraSpace — Research Data Portal</title>
+<title>DrogueWorks — Research Data Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -3822,7 +3822,7 @@ tbody td { padding: 9px 14px; color: var(--text); white-space: nowrap; }
 
 <div id="header">
   <div>
-    <div class="logo">VectraSpace // Research Portal</div>
+    <div class="logo">DrogueWorks // Research Portal</div>
     <div style="font-size:10px;color:var(--muted);margin-top:4px;font-family:'Share Tech Mono',monospace;">
       Public Data Access — No Authentication Required
     </div>
@@ -3838,7 +3838,7 @@ tbody td { padding: 9px 14px; color: var(--text); white-space: nowrap; }
     <span class="badge">OPEN DATA</span>
   </div>
   <h1>Orbital Conjunction Research Portal</h1>
-  <p>Real-time and historical conjunction data from VectraSpace's SGP4 propagation engine. All data is derived from public TLE catalogs via CelesTrak. Probability of collision estimates use the Alfriend-Akella covariance model. For research inquiries contact <a href="mailto:trumanheaston@gmail.com">trumanheaston@gmail.com</a>.</p>
+  <p>Real-time and historical conjunction data from DrogueWorks's SGP4 propagation engine. All data is derived from public TLE catalogs via CelesTrak. Probability of collision estimates use the Alfriend-Akella covariance model. For research inquiries contact <a href="mailto:truman@drogueworks.com">truman@drogueworks.com</a>.</p>
 </div>
 
 <div id="main">
@@ -4132,7 +4132,7 @@ function exportCSV() {
   const blob = new Blob([hdr+rows], {type:'text/csv'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `vectraspace_conjunctions_${new Date().toISOString().slice(0,10)}.csv`;
+  a.download = `drogueworks_conjunctions_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
 
@@ -4141,7 +4141,7 @@ function exportJSON() {
   const blob = new Blob([JSON.stringify(conjData, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `vectraspace_conjunctions_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `drogueworks_conjunctions_${new Date().toISOString().slice(0,10)}.json`;
   a.click();
 }
 
@@ -4155,7 +4155,7 @@ EDU_PREREQUISITES_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prerequisites — VectraSpace Learn</title>
+<title>Prerequisites — DrogueWorks Learn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
@@ -4410,7 +4410,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
 <body>
 <div id="progress-bar"></div>
 <nav>
-  <a href="/" class="nav-brand">VectraSpace</a>
+  <a href="/" class="nav-brand">DrogueWorks</a>
   <div style="display:flex;gap:8px;">
     <a href="/#deep-dives" class="nav-back">&#8592; All Chapters</a>
     <a href="/glossary" class="nav-back">Resources</a>
@@ -4419,7 +4419,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
 </nav>
 
 <div class="hero">
-  <div class="hero-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Prerequisites</div>
+  <div class="hero-breadcrumb"><a href="/">DrogueWorks</a> / <a href="/#deep-dives">Learn</a> / Prerequisites</div>
   <div class="chapter-label">Chapter 00 &middot; Prerequisites</div>
   <h1><span class="hero-accent">The Math You Need</span><br>Before Chapter One</h1>
   <p class="hero-intro">Vectors, Newton&#8217;s laws, reference frames, and just enough calculus to read an equation of motion without panic. No prior calculus required &#8212; but high school physics and a willingness to think carefully will take you a long way.</p>
@@ -4452,7 +4452,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
 
       <p>Most quantities in orbital mechanics are <strong>vectors</strong> &#8212; they have both a magnitude (a size) and a direction. Contrast this with a <strong>scalar</strong>, which has only magnitude. The ISS&#8217;s altitude above Earth is a scalar: 420 km. The ISS&#8217;s velocity is a vector: 7.66 km/s in a specific direction tangent to its orbit. These are fundamentally different things, and confusing them leads to wrong answers fast.</p>
 
-      <p>Throughout VectraSpace, vectors are written in <strong>bold</strong> or with an arrow: <strong>r</strong> or r&#x20D7;. When you see <em>r</em> without bold, it typically means the <em>magnitude</em> of that vector &#8212; just the size, stripped of direction. So if <strong>r</strong> is the position vector from Earth&#8217;s center to the ISS, then <span style="font-family:Georgia,serif;font-style:italic;">r = |r|</span> is the scalar distance: roughly 6,791 km.</p>
+      <p>Throughout DrogueWorks, vectors are written in <strong>bold</strong> or with an arrow: <strong>r</strong> or r&#x20D7;. When you see <em>r</em> without bold, it typically means the <em>magnitude</em> of that vector &#8212; just the size, stripped of direction. So if <strong>r</strong> is the position vector from Earth&#8217;s center to the ISS, then <span style="font-family:Georgia,serif;font-style:italic;">r = |r|</span> is the scalar distance: roughly 6,791 km.</p>
 
       <h3>Position, Velocity, and Acceleration</h3>
 
@@ -4520,7 +4520,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
 
       <div class="callout info">
         <span class="callout-label">Why &#956; Instead of G and M Separately?</span>
-        G and M are each known to only about 4&#8211;5 significant figures separately, because measuring absolute gravitational force in a laboratory is genuinely hard. But their product &#956; can be measured from satellite orbital periods to 10+ significant figures. VectraSpace uses &#956; = 398,600.4418 km&#179;/s&#178; throughout &#8212; that last decimal place matters when predicting positions hours ahead.
+        G and M are each known to only about 4&#8211;5 significant figures separately, because measuring absolute gravitational force in a laboratory is genuinely hard. But their product &#956; can be measured from satellite orbital periods to 10+ significant figures. DrogueWorks uses &#956; = 398,600.4418 km&#179;/s&#178; throughout &#8212; that last decimal place matters when predicting positions hours ahead.
       </div>
 
       <h3>Third Law &#8212; Every Action Has an Equal and Opposite Reaction</h3>
@@ -4538,7 +4538,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
         </div>
       </div>
 
-      <p>You won&#8217;t need to evaluate this in VectraSpace &#8212; the maneuver module does it &#8212; but notice the logarithm. Propellant cost is <em>exponential</em> in &#916;v: doubling the velocity change more than doubles the propellant required. This is why catching a conjunction 24 hours before closest approach (requiring ~0.1 m/s) is drastically cheaper than catching it 2 hours before (requiring 2+ m/s), and why early warning is the single most valuable asset in collision avoidance operations.</p>
+      <p>You won&#8217;t need to evaluate this in DrogueWorks &#8212; the maneuver module does it &#8212; but notice the logarithm. Propellant cost is <em>exponential</em> in &#916;v: doubling the velocity change more than doubles the propellant required. This is why catching a conjunction 24 hours before closest approach (requiring ~0.1 m/s) is drastically cheaper than catching it 2 hours before (requiring 2+ m/s), and why early warning is the single most valuable asset in collision avoidance operations.</p>
 
       <div class="check-block">
         <div class="check-label">Check Your Understanding</div>
@@ -4572,12 +4572,12 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
         <div class="concept-card">
           <div class="concept-card-icon">&#11088;</div>
           <div class="concept-card-title">ECI Frame</div>
-          <div class="concept-card-body">Earth-Centered Inertial. Fixed to the stars &#8212; does not rotate with Earth. X-axis points toward the vernal equinox. Newton&#8217;s laws apply directly here. Used by SGP4, conjunction analysis, and VectraSpace&#8217;s entire propagation engine.</div>
+          <div class="concept-card-body">Earth-Centered Inertial. Fixed to the stars &#8212; does not rotate with Earth. X-axis points toward the vernal equinox. Newton&#8217;s laws apply directly here. Used by SGP4, conjunction analysis, and DrogueWorks&#8217;s entire propagation engine.</div>
         </div>
         <div class="concept-card">
           <div class="concept-card-icon">&#128752;</div>
           <div class="concept-card-title">RTN Frame</div>
-          <div class="concept-card-body">Radial-Transverse-Normal (the Hill frame). Centered on a specific satellite. R = toward Earth, T = along-track, N = out-of-plane. Maneuver burn directions in VectraSpace are given in RTN.</div>
+          <div class="concept-card-body">Radial-Transverse-Normal (the Hill frame). Centered on a specific satellite. R = toward Earth, T = along-track, N = out-of-plane. Maneuver burn directions in DrogueWorks are given in RTN.</div>
         </div>
         <div class="concept-card">
           <div class="concept-card-icon">&#127919;</div>
@@ -4586,7 +4586,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
         </div>
       </div>
 
-      <p>The key habit to build: always ask <em>&#8220;which frame are these coordinates in?&#8221;</em> before using them. A velocity of (&#8722;2.3, 6.8, 3.2) km/s in ECI looks nothing like the same satellite&#8217;s velocity in ECEF. VectraSpace labels every output with its frame explicitly. If you see a maneuver &#916;v listed as (0.0, 0.12, 0.0) km/s, it&#8217;s in RTN &#8212; a purely along-track burn.</p>
+      <p>The key habit to build: always ask <em>&#8220;which frame are these coordinates in?&#8221;</em> before using them. A velocity of (&#8722;2.3, 6.8, 3.2) km/s in ECI looks nothing like the same satellite&#8217;s velocity in ECEF. DrogueWorks labels every output with its frame explicitly. If you see a maneuver &#916;v listed as (0.0, 0.12, 0.0) km/s, it&#8217;s in RTN &#8212; a purely along-track burn.</p>
 
       <div class="callout warning">
         <span class="callout-label">A Common Mistake</span>
@@ -4635,7 +4635,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
 
       <div class="callout success">
         <span class="callout-label">What You Need to Take Away</span>
-        When you see &#776;r in an equation: acceleration. When you see &#775;r: velocity. When an equation contains an integral sign &#8747;: it is accumulating a quantity over time or space &#8212; for example, integrating a 2D probability density function over the conjunction plane gives the total probability of collision. VectraSpace evaluates these integrals; you just need to recognize what the notation is asking for.
+        When you see &#776;r in an equation: acceleration. When you see &#775;r: velocity. When an equation contains an integral sign &#8747;: it is accumulating a quantity over time or space &#8212; for example, integrating a 2D probability density function over the conjunction plane gives the total probability of collision. DrogueWorks evaluates these integrals; you just need to recognize what the notation is asking for.
       </div>
 
       <h3>The Equation of Motion, Decoded</h3>
@@ -4661,7 +4661,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
       <div class="section-number">// 05</div>
       <h2>Units and Conventions</h2>
 
-      <p>Orbital mechanics uses a specific set of units that can surprise newcomers used to SI (meters, kilograms, seconds). The reasons are practical: satellites move large distances, and working in meters produces unwieldy 7-digit numbers. VectraSpace is consistent about its unit system throughout.</p>
+      <p>Orbital mechanics uses a specific set of units that can surprise newcomers used to SI (meters, kilograms, seconds). The reasons are practical: satellites move large distances, and working in meters produces unwieldy 7-digit numbers. DrogueWorks is consistent about its unit system throughout.</p>
 
       <div class="unit-row">
         <div class="unit-cell">
@@ -4688,7 +4688,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
 
       <h3>Degrees vs. Radians</h3>
 
-      <p>Angles appear everywhere: inclination, RAAN, argument of perigee, true anomaly. VectraSpace displays angles in <strong>degrees</strong> &#8212; saying &#8220;inclination 51.6&#176;&#8221; is immediately intuitive. Internally, all trigonometric calculations use <strong>radians</strong>, where a full circle is 2&#960; &#8776; 6.283 radians instead of 360&#176;.</p>
+      <p>Angles appear everywhere: inclination, RAAN, argument of perigee, true anomaly. DrogueWorks displays angles in <strong>degrees</strong> &#8212; saying &#8220;inclination 51.6&#176;&#8221; is immediately intuitive. Internally, all trigonometric calculations use <strong>radians</strong>, where a full circle is 2&#960; &#8776; 6.283 radians instead of 360&#176;.</p>
 
       <div class="eq-block">
         <div class="eq-label">Degrees &#8596; Radians Conversion</div>
@@ -4715,14 +4715,14 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
             <tr><td class="td-white">GEO altitude</td><td class="td-amber">35,786 km</td><td>Orbital period equals Earth&#8217;s rotation (23h 56m). The geostationary belt.</td></tr>
             <tr><td class="td-white">ISS orbit</td><td class="td-teal">420 km / 6,791 km / 92.8 min</td><td>Altitude / semi-major axis / period. Inclination 51.64&#176;.</td></tr>
             <tr><td class="td-white">Starlink (shell 1)</td><td class="td-teal">550 km / 6,921 km / 95.5 min</td><td>Altitude / semi-major axis / period. Inclination 53&#176;.</td></tr>
-            <tr><td class="td-white">Typical avoidance &#916;v</td><td class="td-amber">0.05&#8211;1 m/s = 0.00005&#8211;0.001 km/s</td><td>Small burns. VectraSpace outputs &#916;v in m/s for readability at these scales.</td></tr>
+            <tr><td class="td-white">Typical avoidance &#916;v</td><td class="td-amber">0.05&#8211;1 m/s = 0.00005&#8211;0.001 km/s</td><td>Small burns. DrogueWorks outputs &#916;v in m/s for readability at these scales.</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="callout warning">
         <span class="callout-label">The Unit Mistake That Destroyed a Spacecraft</span>
-        In 1999, NASA&#8217;s Mars Climate Orbiter was lost because one engineering team reported thruster data in pound-force&#183;seconds while the navigation software expected newton&#183;seconds. The spacecraft entered the Martian atmosphere 170 km lower than planned and was destroyed. The conversion factor &#8212; 4.45 &#8212; is not large, but it accumulated over months of flight. Unit consistency is not a pedantic concern. In VectraSpace, every quantity label includes its units explicitly.
+        In 1999, NASA&#8217;s Mars Climate Orbiter was lost because one engineering team reported thruster data in pound-force&#183;seconds while the navigation software expected newton&#183;seconds. The spacecraft entered the Martian atmosphere 170 km lower than planned and was destroyed. The conversion factor &#8212; 4.45 &#8212; is not large, but it accumulated over months of flight. Unit consistency is not a pedantic concern. In DrogueWorks, every quantity label includes its units explicitly.
       </div>
 
       <div class="check-block">
@@ -4792,7 +4792,7 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
               <div class="solution-answer-label">Answer</div>
               <div class="solution-answer-val">r &#8776; 6,749 km &nbsp;&middot;&nbsp; h &#8776; 378 km &nbsp;&middot;&nbsp; Plausible (pre-reboost altitude)</div>
             </div>
-            <div class="relevance-block"><strong>Operational relevance:</strong> VectraSpace computes |r| thousands of times per second during catalog propagation &#8212; it appears in every major orbital formula including vis-viva, the equation of motion, and the conjunction Pc integrand.</div>
+            <div class="relevance-block"><strong>Operational relevance:</strong> DrogueWorks computes |r| thousands of times per second during catalog propagation &#8212; it appears in every major orbital formula including vis-viva, the equation of motion, and the conjunction Pc integrand.</div>
           </div>
         </div>
       </div>
@@ -4860,12 +4860,12 @@ dfn:hover { color: var(--teal); border-color: var(--teal); }
       <div class="exercise-card">
         <div class="exercise-card-header">
           <div class="exercise-num">Exercise 03 &middot; Unit Conversion</div>
-          <h3>Translating VectraSpace Outputs Into Operational Terms</h3>
+          <h3>Translating DrogueWorks Outputs Into Operational Terms</h3>
         </div>
         <div class="exercise-body">
           <div class="ex-block">
             <div class="ex-label">Problem</div>
-            <div class="ex-content">VectraSpace outputs the following for a conjunction event: miss distance = <code>0.182 km</code>, relative velocity = <code>11.2 km/s</code>, recommended avoidance &#916;v = <code>0.00024 km/s</code>, time to TCA = <code>5.4 hours</code>. Convert each to the most operationally intuitive unit and write a one-sentence threat summary.</div>
+            <div class="ex-content">DrogueWorks outputs the following for a conjunction event: miss distance = <code>0.182 km</code>, relative velocity = <code>11.2 km/s</code>, recommended avoidance &#916;v = <code>0.00024 km/s</code>, time to TCA = <code>5.4 hours</code>. Convert each to the most operationally intuitive unit and write a one-sentence threat summary.</div>
           </div>
           <div class="ex-block">
             <div class="ex-label">Given</div>
@@ -5004,7 +5004,7 @@ EDU_ORBITAL_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Orbital Mechanics — VectraSpace Learn</title>
+<title>Orbital Mechanics — DrogueWorks Learn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -5162,17 +5162,17 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 
 <nav>
   <a href="/" class="nav-brand">
-    <span class="nav-brand-name">Vectra<em>Space</em></span>
+    <span class="nav-brand-name">Drogue<em>Works</em></span>
   </a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
   <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="learn-hero">
-  <div class="learn-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Orbital Mechanics</div>
+  <div class="learn-breadcrumb"><a href="/">DrogueWorks</a> / <a href="/#deep-dives">Learn</a> / Orbital Mechanics</div>
   <div class="learn-chapter">Chapter 01 · Foundations</div>
   <h1 class="learn-title">Orbital Mechanics</h1>
-  <p class="learn-intro">From Kepler's laws to <dfn data-term="SGP4">SGP4</dfn> propagation — the classical physics governing every object in Earth orbit. This is the mathematical foundation beneath VectraSpace's entire simulation engine.</p>
+  <p class="learn-intro">From Kepler's laws to <dfn data-term="SGP4">SGP4</dfn> propagation — the classical physics governing every object in Earth orbit. This is the mathematical foundation beneath DrogueWorks's entire simulation engine.</p>
   <div class="learn-meta">
     <span class="meta-item">📖 ~15 min read</span>
     <span class="meta-item">🧮 8 equations</span>
@@ -5287,7 +5287,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
       </div>
       <p>For a <strong>circular orbit</strong>, <code>r = a</code> everywhere, giving <code>v = √(μ/r)</code>. This is why lower satellites move faster — they're in a deeper gravitational well. A 1 m/s increase in speed at ISS altitude raises the opposite side of the orbit by ~1.75 km.</p>
       <div class="callout amber">
-        <div class="callout-title">VectraSpace Application</div>
+        <div class="callout-title">DrogueWorks Application</div>
         <p>The vis-viva equation underlies all delta-v calculations in the maneuver planning module. When a conjunction is detected, the Clohessy-Wiltshire model computes the minimum Δv needed — and vis-viva tells us how that translates to an altitude change.</p>
       </div>
     </div>
@@ -5396,26 +5396,26 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
           Line 2: Inclination · RAAN · Eccentricity (assumed decimal) · Arg of Perigee · Mean Anomaly · Mean Motion (rev/day) · Rev number
         </div>
       </div>
-      <p>TLE accuracy degrades over time as unmodeled perturbations accumulate. A fresh LEO TLE is typically accurate to ~1 km; after 7 days it may be off by 10+ km. This is why <strong>VectraSpace refreshes TLEs every 6 hours</strong> from CelesTrak and Space-Track.</p>
+      <p>TLE accuracy degrades over time as unmodeled perturbations accumulate. A fresh LEO TLE is typically accurate to ~1 km; after 7 days it may be off by 10+ km. This is why <strong>DrogueWorks refreshes TLEs every 6 hours</strong> from CelesTrak and Space-Track.</p>
     </div>
 
     <div class="section-block" id="sgp4">
       <h2>SGP4 / SDP4 Propagation</h2>
       <p>The <strong>Simplified General Perturbations 4 (SGP4)</strong> model is the standard algorithm for propagating TLE sets forward in time. It analytically approximates the most significant orbital perturbations — Earth's oblateness (J₂, J₃, J₄), atmospheric drag, and solar/lunar effects (SDP4 for deep-space orbits).</p>
-      <p>SGP4 takes a TLE and a time offset Δt, and returns an ECI position and velocity vector. The computation is fast — thousands of satellites can be propagated per second on modern hardware — making it ideal for VectraSpace's vectorized batch processing.</p>
+      <p>SGP4 takes a TLE and a time offset Δt, and returns an ECI position and velocity vector. The computation is fast — thousands of satellites can be propagated per second on modern hardware — making it ideal for DrogueWorks's vectorized batch processing.</p>
       <div class="callout">
-        <div class="callout-title">SGP4 in VectraSpace</div>
-        <p>VectraSpace uses the Skyfield Python library's SGP4 implementation, propagating position arrays over 12–72 hour windows at 1-minute resolution. NumPy batching allows all satellites in a regime to be processed simultaneously, achieving 50× speedup over sequential loops.</p>
+        <div class="callout-title">SGP4 in DrogueWorks</div>
+        <p>DrogueWorks uses the Skyfield Python library's SGP4 implementation, propagating position arrays over 12–72 hour windows at 1-minute resolution. NumPy batching allows all satellites in a regime to be processed simultaneously, achieving 50× speedup over sequential loops.</p>
       </div>
       <div class="callout red">
         <div class="callout-title">Important Limitation</div>
-        <p>SGP4 is a <em>mean element</em> theory — it models average perturbations, not instantaneous forces. For high-precision conjunction analysis (Pc &lt; 10⁻⁶), higher-fidelity numerical propagators with real atmospheric density models are required. VectraSpace's results should be treated as <strong>screening-level estimates</strong>, not operationally certified predictions.</p>
+        <p>SGP4 is a <em>mean element</em> theory — it models average perturbations, not instantaneous forces. For high-precision conjunction analysis (Pc &lt; 10⁻⁶), higher-fidelity numerical propagators with real atmospheric density models are required. DrogueWorks's results should be treated as <strong>screening-level estimates</strong>, not operationally certified predictions.</p>
       </div>
     </div>
 
     <div class="section-block" id="frames">
       <h2>Reference Frames</h2>
-      <p>Orbital calculations require a clear choice of coordinate system. VectraSpace uses two primary frames:</p>
+      <p>Orbital calculations require a clear choice of coordinate system. DrogueWorks uses two primary frames:</p>
       <h3>ECI — Earth-Centered Inertial</h3>
       <p>Origin at Earth's center. X-axis points to the vernal equinox; Z-axis to the celestial north pole. <strong>Does not rotate with Earth</strong>. Satellite positions and velocities are expressed in ECI for propagation calculations.</p>
       <h3>RTN — Radial-Transverse-Normal (Hill Frame)</h3>
@@ -5548,7 +5548,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
               <div class="solution-answer-label">Answer</div>
               <div class="solution-answer-val">v_ISS = 7.661 km/s · v_Soyuz = 7.602 km/s · Δv ≈ 59 m/s</div>
             </div>
-            <div class="relevance-block"><strong>Operational relevance:</strong> VectraSpace's Δv maneuver advisor uses the vis-viva equation in exactly this form — computing the speed difference between current and target orbits to estimate the propellant cost of a conjunction avoidance burn.</div>
+            <div class="relevance-block"><strong>Operational relevance:</strong> DrogueWorks's Δv maneuver advisor uses the vis-viva equation in exactly this form — computing the speed difference between current and target orbits to estimate the propellant cost of a conjunction avoidance burn.</div>
           </div>
         </div>
       </div>
@@ -5596,7 +5596,7 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
               <div class="solution-answer-label">Answer</div>
               <div class="solution-answer-val">v_c = 7.59 km/s · v_rel (90° crossing) ≈ 10.73 km/s</div>
             </div>
-            <div class="relevance-block"><strong>Operational relevance:</strong> VectraSpace reports relative velocity for every conjunction event — it determines whether a collision would be catastrophic (hypervelocity, >3 km/s) or survivable, and drives the kinetic energy estimate shown in the impact calculator.</div>
+            <div class="relevance-block"><strong>Operational relevance:</strong> DrogueWorks reports relative velocity for every conjunction event — it determines whether a collision would be catastrophic (hypervelocity, >3 km/s) or survivable, and drives the kinetic energy estimate shown in the impact calculator.</div>
           </div>
         </div>
       </div>
@@ -5662,7 +5662,7 @@ EDU_COLLISION_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Collision Prediction — VectraSpace Learn</title>
+<title>Collision Prediction — DrogueWorks Learn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
@@ -5798,13 +5798,13 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
 <body>
 
 <nav>
-  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Drogue<em>Works</em></span></a>
   <div class="chapter-progress"><div class="chapter-progress-fill" id="progress-fill"></div></div>
   <div style="display:flex;gap:8px;"><a href="/#deep-dives" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="learn-hero">
-  <div class="learn-breadcrumb"><a href="/">VectraSpace</a> / <a href="/#deep-dives">Learn</a> / Collision Prediction</div>
+  <div class="learn-breadcrumb"><a href="/">DrogueWorks</a> / <a href="/#deep-dives">Learn</a> / Collision Prediction</div>
   <div class="learn-chapter">Chapter 02 · Risk Analysis</div>
   <h1 class="learn-title">Collision Prediction</h1>
   <p class="learn-intro">How do we calculate the probability that two objects will collide? This chapter covers the mathematics of conjunction analysis — from identifying close approaches to computing Pc and planning avoidance maneuvers.</p>
@@ -5848,12 +5848,12 @@ tbody td:first-child{font-family:'Space Mono',monospace;font-size:11px;color:var
           <code>σ_a, σ_c, σ_r</code> = position uncertainty: along-track, cross-track, radial
         </div>
       </div>
-      <p>VectraSpace uses <strong>NumPy-batched distance matrix computation</strong> — all satellite pairs computed simultaneously in chunks, achieving ~50× speedup over sequential iteration. Typically 85–95% of pairs are eliminated at this stage.</p>
+      <p>DrogueWorks uses <strong>NumPy-batched distance matrix computation</strong> — all satellite pairs computed simultaneously in chunks, achieving ~50× speedup over sequential iteration. Typically 85–95% of pairs are eliminated at this stage.</p>
     </div>
 
     <div class="section-block" id="tca">
       <h2>Time of Closest Approach (TCA)</h2>
-      <p>After coarse screening, the exact <strong>Time of Closest Approach (TCA)</strong> is found by minimizing the inter-satellite distance as a function of time. VectraSpace uses a bounded golden-section search (Brent's method) within a ±1 minute window around the coarse minimum.</p>
+      <p>After coarse screening, the exact <strong>Time of Closest Approach (TCA)</strong> is found by minimizing the inter-satellite distance as a function of time. DrogueWorks uses a bounded golden-section search (Brent's method) within a ±1 minute window around the coarse minimum.</p>
       <div class="eq-block">
         <div class="eq-label">Miss Distance at TCA</div>
         <div class="eq-main">d(t) = |r₁(t) − r₂(t)|<br>TCA = argmin_t d(t)</div>
@@ -5948,7 +5948,7 @@ P = [CR_R   CT_R   CN_R]<br>
           Position uncertainty ellipsoid: principal axes from eigendecomposition of P
         </div>
       </div>
-      <p>When real CDM covariance data is available from Space-Track, VectraSpace uses it. When not, it falls back to <strong>assumed sigma values</strong> — typically σ_along = 500m, σ_cross = 200m, σ_radial = 100m for LEO. The covariance source is flagged in every conjunction report.</p>
+      <p>When real CDM covariance data is available from Space-Track, DrogueWorks uses it. When not, it falls back to <strong>assumed sigma values</strong> — typically σ_along = 500m, σ_cross = 200m, σ_radial = 100m for LEO. The covariance source is flagged in every conjunction report.</p>
       <div class="callout blue">
         <div class="callout-title">Why Covariance Matters</div>
         <p>Two conjunctions with the same 5 km miss distance can have wildly different Pc values — depending on the uncertainty. If position uncertainty is only 100 m (very certain), Pc is near zero. If uncertainty is 10 km (very uncertain), the 5 km miss could represent a high-risk event. Pc collapses miss distance and uncertainty into a single risk metric.</p>
@@ -5957,7 +5957,7 @@ P = [CR_R   CT_R   CN_R]<br>
 
     <div class="section-block" id="pc-method">
       <h2><dfn data-term="Pc">Probability of Collision</dfn> — Foster-Alfano Method</h2>
-      <p>VectraSpace uses the <strong>Foster (1992) / Alfano (1995)</strong> conjunction probability method, which projects the 3D problem onto the 2D collision plane (the plane perpendicular to relative velocity at TCA).</p>
+      <p>DrogueWorks uses the <strong>Foster (1992) / Alfano (1995)</strong> conjunction probability method, which projects the 3D problem onto the 2D collision plane (the plane perpendicular to relative velocity at TCA).</p>
       <p>The combined position PDF (assuming Gaussian) is integrated over a disk of radius <em>R_c</em> — the "hard-body radius," or sum of the two object radii:</p>
       <div class="eq-block">
         <div class="eq-label">2D Collision Probability (Foster-Alfano)</div>
@@ -5969,9 +5969,9 @@ P = [CR_R   CT_R   CN_R]<br>
           Numerically evaluated using chi-squared CDF: Pc ≈ 1 − χ²_CDF(x², df=2)
         </div>
       </div>
-      <p>This integral has no closed form for arbitrary offset — it is computed numerically in VectraSpace using SciPy's chi-squared CDF as an approximation valid for the typical range of operational Pc values.</p>
+      <p>This integral has no closed form for arbitrary offset — it is computed numerically in DrogueWorks using SciPy's chi-squared CDF as an approximation valid for the typical range of operational Pc values.</p>
       <div class="eq-block">
-        <div class="eq-label">VectraSpace Implementation (Simplified)</div>
+        <div class="eq-label">DrogueWorks Implementation (Simplified)</div>
         <div class="eq-main">σ_c = √[(σ_a² + σ_c² + σ_r²)/3] · √2<br>x = ((d_miss − R_c) / σ_c)²<br>Pc = 1 − χ²_CDF(x, df=3)</div>
       </div>
     </div>
@@ -5987,7 +5987,7 @@ P = [CR_R   CT_R   CN_R]<br>
       </div>
       <div class="data-table-wrap">
         <table>
-          <thead><tr><th>Pc Range</th><th>Risk Level</th><th>Typical Response</th><th>VectraSpace Alert</th></tr></thead>
+          <thead><tr><th>Pc Range</th><th>Risk Level</th><th>Typical Response</th><th>DrogueWorks Alert</th></tr></thead>
           <tbody>
             <tr><td>&lt; 1×10⁻⁶</td><td style="color:#10b981">Negligible</td><td>No action required</td><td>No alert</td></tr>
             <tr><td>1×10⁻⁶ – 1×10⁻⁴</td><td style="color:#fbbf24">Low / Watch</td><td>Monitor; gather more data</td><td>Optional</td></tr>
@@ -5997,7 +5997,7 @@ P = [CR_R   CT_R   CN_R]<br>
           </tbody>
         </table>
       </div>
-      <p>The default VectraSpace alert threshold is <strong>Pc ≥ 1×10⁻⁴</strong> (1 in 10,000) — consistent with NASA and ESA operational screening. Users can adjust this in their preferences down to 1×10⁻⁶ for higher sensitivity or up to 1×10⁻² for reduced noise.</p>
+      <p>The default DrogueWorks alert threshold is <strong>Pc ≥ 1×10⁻⁴</strong> (1 in 10,000) — consistent with NASA and ESA operational screening. Users can adjust this in their preferences down to 1×10⁻⁶ for higher sensitivity or up to 1×10⁻² for reduced noise.</p>
       <div class="callout red">
         <div class="callout-title">The False Alarm Problem</div>
         <p>Most conjunction alerts do not lead to actual collisions. The false positive rate at 1×10⁻⁴ is very high — operators must balance the cost of unnecessary maneuvers (fuel, operational complexity) against the risk of inaction. This is fundamentally a decision theory problem, not just a physics problem.</p>
@@ -6006,11 +6006,11 @@ P = [CR_R   CT_R   CN_R]<br>
 
     <div class="section-block" id="cdm">
       <h2><dfn data-term="CDM">Conjunction Data Message</dfn>s (CDM)</h2>
-      <p>The <strong>CCSDS Conjunction Data Message (CDM)</strong> standard (CCSDS 508.0-B-1) is the international format for communicating conjunction events between agencies, operators, and databases. VectraSpace generates a CDM for every detected conjunction.</p>
+      <p>The <strong>CCSDS Conjunction Data Message (CDM)</strong> standard (CCSDS 508.0-B-1) is the international format for communicating conjunction events between agencies, operators, and databases. DrogueWorks generates a CDM for every detected conjunction.</p>
       <p>A CDM contains: time of closest approach, miss distance, Pc estimate, Pc method identifier, and full covariance matrices for both objects. It is the interoperability standard for space traffic management worldwide.</p>
       <div class="callout green">
-        <div class="callout-title">Download CDMs from VectraSpace</div>
-        <p>Every conjunction detected in a VectraSpace scan generates a downloadable CDM file. Individual events can be downloaded from the results panel; the full run can be exported as a ZIP archive. These files follow the CCSDS format and can be imported into other SSA tools.</p>
+        <div class="callout-title">Download CDMs from DrogueWorks</div>
+        <p>Every conjunction detected in a DrogueWorks scan generates a downloadable CDM file. Individual events can be downloaded from the results panel; the full run can be exported as a ZIP archive. These files follow the CCSDS format and can be imported into other SSA tools.</p>
       </div>
     </div>
 
@@ -6039,9 +6039,9 @@ z̈ + n²·z = f_z
           Coriolis terms (−2n·ẏ, +2n·ẋ) couple radial and transverse motion
         </div>
       </div>
-      <p>VectraSpace uses a simplified CW solution to estimate minimum Δv for each conjunction. The advisory assumes an impulsive burn and linear dynamics — appropriate for initial screening. <strong>All maneuver recommendations require verification with a high-fidelity propagator before execution.</strong></p>
+      <p>DrogueWorks uses a simplified CW solution to estimate minimum Δv for each conjunction. The advisory assumes an impulsive burn and linear dynamics — appropriate for initial screening. <strong>All maneuver recommendations require verification with a high-fidelity propagator before execution.</strong></p>
       <div class="eq-block">
-        <div class="eq-label">VectraSpace Minimum Δv Estimate</div>
+        <div class="eq-label">DrogueWorks Minimum Δv Estimate</div>
         <div class="eq-main">Δv_T ≈ (d_safe − d_current) / (2 · t_TCA)<br>Δv_R ≈ −(v_rel · r̂) · 0.1</div>
         <div class="eq-vars">
           <code>d_safe</code> = target safe separation distance (default: 50 km)<br>
@@ -6109,7 +6109,7 @@ z̈ + n²·z = f_z
               <div class="solution-answer-label">Answer</div>
               <div class="solution-answer-val">Threshold ≈ 4.12 km — pair is ELIMINATED (d_miss = 4.20 km just exceeds threshold)</div>
             </div>
-            <div class="relevance-block"><strong>Operational relevance:</strong> VectraSpace eliminates 85–95% of satellite pairs at this stage, making real-time screening of 27,000+ tracked objects computationally tractable on a single server.</div>
+            <div class="relevance-block"><strong>Operational relevance:</strong> DrogueWorks eliminates 85–95% of satellite pairs at this stage, making real-time screening of 27,000+ tracked objects computationally tractable on a single server.</div>
           </div>
         </div>
       </div>
@@ -6123,7 +6123,7 @@ z̈ + n²·z = f_z
         <div class="exercise-body">
           <div class="ex-block">
             <div class="ex-label">Problem</div>
-            <div class="ex-content">A Starlink satellite (hard-body radius <code>r₁ = 3 m</code>) is predicted to pass within <code>d_miss = 120 m</code> of a debris fragment (radius <code>r₂ = 0.05 m</code>). Combined 1σ position uncertainty in the collision plane: <code>σ_x = 800 m</code>, <code>σ_y = 150 m</code>. Use the simplified VectraSpace Pc formula to compute the probability of collision and determine the risk level.</div>
+            <div class="ex-content">A Starlink satellite (hard-body radius <code>r₁ = 3 m</code>) is predicted to pass within <code>d_miss = 120 m</code> of a debris fragment (radius <code>r₂ = 0.05 m</code>). Combined 1σ position uncertainty in the collision plane: <code>σ_x = 800 m</code>, <code>σ_y = 150 m</code>. Use the simplified DrogueWorks Pc formula to compute the probability of collision and determine the risk level.</div>
           </div>
           <div class="ex-block">
             <div class="ex-label">Given</div>
@@ -6136,7 +6136,7 @@ z̈ + n²·z = f_z
           </div>
           <div class="ex-block">
             <div class="ex-label">Find</div>
-            <div class="ex-content">Effective combined uncertainty σ_c, the normalized miss distance x, Pc estimate, and risk level per the VectraSpace thresholds.</div>
+            <div class="ex-content">Effective combined uncertainty σ_c, the normalized miss distance x, Pc estimate, and risk level per the DrogueWorks thresholds.</div>
           </div>
           <div class="solution-toggle" onclick="toggleSolution(this)">
             <span class="solution-toggle-icon">▶</span> Show Solution
@@ -6176,14 +6176,14 @@ z̈ + n²·z = f_z
         <div class="exercise-body">
           <div class="ex-block">
             <div class="ex-label">Problem</div>
-            <div class="ex-content">The ISS (mass 420,000 kg) has a confirmed conjunction with a Fengyun-1C debris fragment. TCA is <code>t_TCA = 5.5 hours</code> from now. Predicted miss distance is <code>d_current = 800 m</code>. The safe separation target is <code>d_safe = 5,000 m</code>. Use the VectraSpace Δv estimate formula to find the required transverse burn. Express the Δv in m/s.</div>
+            <div class="ex-content">The ISS (mass 420,000 kg) has a confirmed conjunction with a Fengyun-1C debris fragment. TCA is <code>t_TCA = 5.5 hours</code> from now. Predicted miss distance is <code>d_current = 800 m</code>. The safe separation target is <code>d_safe = 5,000 m</code>. Use the DrogueWorks Δv estimate formula to find the required transverse burn. Express the Δv in m/s.</div>
           </div>
           <div class="ex-block">
             <div class="ex-label">Given</div>
             <div class="ex-content">
               <code>d_safe = 5,000 m</code>, <code>d_current = 800 m</code><br>
               <code>t_TCA = 5.5 h = 5.5 × 3600 = 19,800 s</code><br>
-              VectraSpace Δv formula: <code>Δv_T ≈ (d_safe − d_current) / (2 · t_TCA)</code>
+              DrogueWorks Δv formula: <code>Δv_T ≈ (d_safe − d_current) / (2 · t_TCA)</code>
             </div>
           </div>
           <div class="ex-block">
@@ -6273,7 +6273,7 @@ EDU_PERTURBATIONS_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Orbital Perturbations — VectraSpace Deep Dive</title>
+<title>Orbital Perturbations — DrogueWorks Deep Dive</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
@@ -6698,13 +6698,13 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
 <div id="progress-bar"></div>
 
 <nav>
-  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Drogue<em>Works</em></span></a>
   <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
   <div class="hero-breadcrumb">
-    <a href="/">VectraSpace</a> / <a href="/#learn">Chapters</a> / Chapter 03
+    <a href="/">DrogueWorks</a> / <a href="/#learn">Chapters</a> / Chapter 03
   </div>
   <span class="chapter-label">Chapter 03</span>
   <h1>Orbital <span class="hero-accent">Perturbations</span></h1>
@@ -7110,13 +7110,13 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
       <p>
         In the TLE format, atmospheric drag is encoded in the <strong>BSTAR drag term</strong> (units of 1/Earth radii).
         SGP4 uses this value to propagate the secular decay of mean motion over time. When BSTAR is unavailable
-        or unreliable, VectraSpace falls back to a standard assumed value based on orbital regime and estimated
+        or unreliable, DrogueWorks falls back to a standard assumed value based on orbital regime and estimated
         satellite type.
       </p>
 
       <div class="callout info">
-        <span class="callout-label">VectraSpace Implementation</span>
-        VectraSpace uses the BSTAR value from each satellite's TLE when computing 12-hour propagation
+        <span class="callout-label">DrogueWorks Implementation</span>
+        DrogueWorks uses the BSTAR value from each satellite's TLE when computing 12-hour propagation
         windows. For debris objects — which often have poorly-determined BSTAR values — position
         uncertainty grows fastest in the along-track direction. The covariance matrix assigned to debris
         objects uses σ_along = 500 m vs. σ_along = 100 m for well-tracked active satellites.
@@ -7236,8 +7236,8 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
       </p>
 
       <div class="callout info">
-        <span class="callout-label">VectraSpace TLE Management</span>
-        VectraSpace caches TLEs for up to 6 hours (configurable). Beyond this, a fresh fetch
+        <span class="callout-label">DrogueWorks TLE Management</span>
+        DrogueWorks caches TLEs for up to 6 hours (configurable). Beyond this, a fresh fetch
         is triggered before each scan. For conjunction prediction requiring high accuracy,
         operator-uploaded custom element sets can override the cached TLEs for specific objects
         of interest. Fresh element sets reduce screening false-alarm rates significantly.
@@ -7286,8 +7286,8 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
       </p>
 
       <div class="callout info">
-        <span class="callout-label">VectraSpace uses Skyfield's SGP4</span>
-        VectraSpace propagates all satellites using the Skyfield Python library's SGP4/SDP4
+        <span class="callout-label">DrogueWorks uses Skyfield's SGP4</span>
+        DrogueWorks propagates all satellites using the Skyfield Python library's SGP4/SDP4
         implementation, which conforms to the 2006 Vallado/Crawford/Hujsak revision of the
         model. The SDP4 extension is automatically applied for satellites with orbital periods
         greater than 225 minutes (semi-synchronous and higher orbits). All propagation results
@@ -7340,7 +7340,7 @@ dfn:hover { color: var(--accent,#4a9eff); border-color: var(--accent,#4a9eff); }
         <div class="exercises-badge">Practice Problems</div>
       </div>
       <h2 class="exercises-title">Chapter 03 — Worked Exercises</h2>
-      <p class="exercises-intro">Three problems on orbital perturbations — RAAN drift from J₂, atmospheric drag decay rates, and sun-synchronous orbit design. These are the calculations behind VectraSpace's long-term propagation uncertainty model.</p>
+      <p class="exercises-intro">Three problems on orbital perturbations — RAAN drift from J₂, atmospheric drag decay rates, and sun-synchronous orbit design. These are the calculations behind DrogueWorks's long-term propagation uncertainty model.</p>
 
       <!-- Exercise 1 -->
       <div class="exercise-card">
@@ -7681,7 +7681,7 @@ EDU_DEBRIS_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Debris Modeling &amp; Kessler Cascade — VectraSpace Deep Dive</title>
+<title>Debris Modeling &amp; Kessler Cascade — DrogueWorks Deep Dive</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
@@ -7956,13 +7956,13 @@ tbody tr:hover td { background:var(--ink-2); }
 <div id="progress-bar"></div>
 
 <nav>
-  <a href="/" class="nav-brand"><span class="nav-brand-name">Vectra<em>Space</em></span></a>
+  <a href="/" class="nav-brand"><span class="nav-brand-name">Drogue<em>Works</em></span></a>
   <div style="display:flex;gap:8px;"><a href="/#learn" class="nav-back">← All Chapters</a><a href="/glossary" class="nav-back">Resources</a><a href="/calculator" class="nav-back">Calculator</a></div>
 </nav>
 
 <div class="hero">
   <div class="hero-breadcrumb">
-    <a href="/">VectraSpace</a> / <a href="/#learn">Chapters</a> / Chapter 04
+    <a href="/">DrogueWorks</a> / <a href="/#learn">Chapters</a> / Chapter 04
   </div>
   <span class="chapter-label">Chapter 04</span>
   <h1>Debris Modeling &amp; <span class="hero-accent">Kessler Cascade</span></h1>
@@ -7994,7 +7994,7 @@ tbody tr:hover td { background:var(--ink-2); }
         <li><a href="#collision-probability">Collision Rate Models</a></li>
         <li><a href="#adr-remediation">Active Debris Removal</a></li>
         <li><a href="#mitigation-guidelines">Mitigation Guidelines</a></li>
-        <li><a href="#vectraspace-sim">VectraSpace Simulation</a></li>
+        <li><a href="#drogueworks-sim">DrogueWorks Simulation</a></li>
       </ul>
     </nav>
   </aside>
@@ -8343,8 +8343,8 @@ tbody tr:hover td { background:var(--ink-2); }
       </p>
 
       <div class="callout warning">
-        <span class="callout-label">VectraSpace Debris Simulation</span>
-        The VectraSpace debris simulation module implements a simplified version of the SBM lognormal
+        <span class="callout-label">DrogueWorks Debris Simulation</span>
+        The DrogueWorks debris simulation module implements a simplified version of the SBM lognormal
         fragment velocity distribution. When a fragmentation event is triggered, N_debris synthetic
         fragment objects are generated with ejection velocities sampled from the lognormal model,
         with characteristic length L_c randomly drawn between 1 cm and 50 cm. Their trajectories
@@ -8550,11 +8550,11 @@ tbody tr:hover td { background:var(--ink-2); }
     </section>
 
     <!-- VECTRASPACE SIM -->
-    <section id="vectraspace-sim" class="content-section reveal">
+    <section id="drogueworks-sim" class="content-section reveal">
       <div class="section-number">// 11</div>
-      <h2>VectraSpace Debris Simulation Engine</h2>
+      <h2>DrogueWorks Debris Simulation Engine</h2>
       <p>
-        VectraSpace includes an interactive debris simulation module that lets users explore
+        DrogueWorks includes an interactive debris simulation module that lets users explore
         fragmentation dynamics in real time. When a fragmentation event is triggered, the engine:
       </p>
 
@@ -8581,7 +8581,7 @@ tbody tr:hover td { background:var(--ink-2); }
 
       <div class="callout info">
         <span class="callout-label">Educational Accuracy Note</span>
-        The VectraSpace debris simulation is designed for educational illustration, not operational
+        The DrogueWorks debris simulation is designed for educational illustration, not operational
         conjunction prediction. The linearized trajectory model diverges from true SGP4 propagation
         within minutes for realistic ejection velocities. For operational debris cloud analysis,
         agencies use full numerical integration with the complete SBM fragment distribution,
@@ -8591,11 +8591,11 @@ tbody tr:hover td { background:var(--ink-2); }
 
       <div class="callout success">
         <span class="callout-label">Try It Live</span>
-        The VectraSpace dashboard lets you run a real conjunction scan, select any tracked satellite
+        The DrogueWorks dashboard lets you run a real conjunction scan, select any tracked satellite
         as a parent object, choose COLLISION or EXPLOSION event type, and generate up to 200 synthetic
         debris fragments displayed in real time on the Cesium globe with instant conjunction screening.
         <br><br>
-        <strong>→ Access the live platform at the VectraSpace dashboard to explore these models in action.</strong>
+        <strong>→ Access the live platform at the DrogueWorks dashboard to explore these models in action.</strong>
       </div>
 
 
@@ -8606,7 +8606,7 @@ tbody tr:hover td { background:var(--ink-2); }
         <div class="exercises-badge">Practice Problems</div>
       </div>
       <h2 class="exercises-title">Chapter 04 — Worked Exercises</h2>
-      <p class="exercises-intro">Three problems on debris modeling and cascade risk — fragment count from the NASA SBM, collision rate scaling, and critical density assessment. These underpin VectraSpace's impact calculator and long-term risk assessments.</p>
+      <p class="exercises-intro">Three problems on debris modeling and cascade risk — fragment count from the NASA SBM, collision rate scaling, and critical density assessment. These underpin DrogueWorks's impact calculator and long-term risk assessments.</p>
 
       <!-- Exercise 1 -->
       <div class="exercise-card">
@@ -8657,7 +8657,7 @@ tbody tr:hover td { background:var(--ink-2); }
               <div class="solution-answer-label">Answer</div>
               <div class="solution-answer-val">~860 trackable fragments (>10 cm) · ~6,800 estimated 1 cm+ fragments</div>
             </div>
-            <div class="relevance-block"><strong>Operational relevance:</strong> VectraSpace's impact calculator uses the SBM power law to display fragment counts — operators use these numbers to assess whether a predicted conjunction could trigger a cascade event if it resulted in a collision.</div>
+            <div class="relevance-block"><strong>Operational relevance:</strong> DrogueWorks's impact calculator uses the SBM power law to display fragment counts — operators use these numbers to assess whether a predicted conjunction could trigger a cascade event if it resulted in a collision.</div>
           </div>
         </div>
       </div>
@@ -8782,7 +8782,7 @@ tbody tr:hover td { background:var(--ink-2); }
         <a href="/" class="chapter-nav-card next">
           <div class="cnc-dir">↑ Back to Top</div>
           <div class="cnc-title">Learning Hub</div>
-          <div class="cnc-sub">VectraSpace Educational Home</div>
+          <div class="cnc-sub">DrogueWorks Educational Home</div>
         </a>
       </div>
     </section>
@@ -8923,7 +8923,7 @@ SPACE_WEATHER_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>Space Weather Explorer — VectraSpace</title>
+<title>Space Weather Explorer — DrogueWorks</title>
 <meta name="description" content="Explore how solar storms, Kp index, and space weather affect satellites in real time. Five interactive simulations with shareable result cards.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -9372,7 +9372,7 @@ input[type="range"]::-moz-range-thumb {
 
 <!-- TOPBAR -->
 <div id="topbar">
-  <a href="/" class="tb-brand">Vectra<em>Space</em></a>
+  <a href="/" class="tb-brand">Drogue<em>Works</em></a>
   <div class="tb-sep"></div>
   <span class="tb-page">Space Weather</span>
   <a href="/" class="tb-back">← Hub</a>
@@ -9783,7 +9783,7 @@ input[type="range"]::-moz-range-thumb {
     <a href="/education/orbital-mechanics" class="footer-link">Chapters</a>
     <a href="/glossary" class="footer-link">Resources</a>
   </div>
-  <div class="footer-copy">VectraSpace · Space Weather Explorer · Free, no account</div>
+  <div class="footer-copy">DrogueWorks · Space Weather Explorer · Free, no account</div>
 </footer>
 
 <!-- SHARE MODAL -->
@@ -10715,7 +10715,7 @@ function openShare(simId) {
   const insight = meta.getInsight().replace(/<[^>]+>/g, '');
 
   document.getElementById('result-card').innerHTML = `
-    <div class="rc-brand">VectraSpace · Space Weather Explorer</div>
+    <div class="rc-brand">DrogueWorks · Space Weather Explorer</div>
     <div class="rc-sim-name">${meta.name}</div>
     <div class="rc-insight">${insight.length > 160 ? insight.slice(0, 157) + '...' : insight}</div>
     <div class="rc-metrics">
@@ -10723,12 +10723,12 @@ function openShare(simId) {
       <div class="rc-metric"><div class="rc-metric-val">${metrics.m2.val}</div><div class="rc-metric-lbl">${metrics.m2.lbl}</div></div>
       <div class="rc-metric"><div class="rc-metric-val">${metrics.m3.val}</div><div class="rc-metric-lbl">${metrics.m3.lbl}</div></div>
     </div>
-    <div class="rc-url">vectraspace.onrender.com/space-weather</div>
+    <div class="rc-url">drogueworks.com/space-weather</div>
   `;
 
   // Build X/Twitter share text
   const shareText = encodeURIComponent(
-    `I just ran "${meta.name}" on VectraSpace — ${insight.slice(0, 100)}...\n\nvectraspace.onrender.com/space-weather`
+    `I just ran "${meta.name}" on DrogueWorks — ${insight.slice(0, 100)}...\n\ndrogueworks.com/space-weather`
   );
   document.getElementById('x-share-btn').href =
     `https://x.com/intent/tweet?text=${shareText}`;
@@ -10745,7 +10745,7 @@ function copyCard() {
   const meta = SIM_META[activeSim];
   const metrics = meta.getMetrics();
   const insight = meta.getInsight().replace(/<[^>]+>/g, '');
-  const text = `${meta.name} — VectraSpace Space Weather Explorer\n\n${insight}\n\n${metrics.m1.val} ${metrics.m1.lbl} · ${metrics.m2.val} ${metrics.m2.lbl} · ${metrics.m3.val} ${metrics.m3.lbl}\n\nvectraspace.onrender.com/space-weather`;
+  const text = `${meta.name} — DrogueWorks Space Weather Explorer\n\n${insight}\n\n${metrics.m1.val} ${metrics.m1.lbl} · ${metrics.m2.val} ${metrics.m2.lbl} · ${metrics.m3.val} ${metrics.m3.lbl}\n\ndrogueworks.com/space-weather`;
   navigator.clipboard?.writeText(text).then(() => {
     const btn = document.getElementById('copy-btn');
     btn.textContent = '✓ Copied to clipboard';
@@ -10791,7 +10791,7 @@ ADMIN_HTML = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VectraSpace — Admin</title>
+<title>DrogueWorks — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -11151,7 +11151,7 @@ function renderAnalytics(umami_url, umami_id) {
   if (!section) return;
   if (umami_id) {
     // Extract website slug for the share URL
-    const shareBase = 'https://cloud.umami.is/share/' + umami_id + '/vectraspace';
+    const shareBase = 'https://cloud.umami.is/share/' + umami_id + '/drogueworks';
     section.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
         <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent3);text-transform:uppercase;">
@@ -11212,7 +11212,7 @@ _LANDING_BASE = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VectraSpace — Orbital Mechanics & Space Safety Education</title>
+<title>DrogueWorks — Orbital Mechanics & Space Safety Education</title>
 <meta name="description" content="Learn orbital mechanics, Space Situational Awareness, and the physics behind Kessler Syndrome through interactive simulations and deep-dive technical chapters.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12452,9 +12452,10 @@ a[href="/instructor-guide"] .tool-card-icon {
 <!-- NAV -->
 <nav id="nav">
   <a href="/" class="nav-brand">
-    <span class="nav-brand-name">Vectra<em>Space</em></span>
+    <span class="nav-brand-name">Drogue<em>Works</em></span>
   </a>
   <ul class="nav-links">
+    <li><a href="/hardware" class="nav-link" style="color:var(--green);">Hardware ↗</a></li>
     <li><a href="#mission">Mission</a></li>
     <li><a href="#learn">Chapters</a></li>
     <li><a href="/scenarios">Scenarios</a></li>
@@ -12465,7 +12466,7 @@ a[href="/instructor-guide"] .tool-card-icon {
     <li><a href="/api/tools/trajectory">Trajectory ↗</a></li>
   </ul>
   <div class="nav-right">
-        <a href="/dashboard" class="nav-cta">Dashboard →</a>
+        <a href="/hardware" class="nav-cta">Configure Your AV Bay →</a>
   </div>
   <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -12480,7 +12481,7 @@ a[href="/instructor-guide"] .tool-card-icon {
   <a href="/calculator">Calculator <span>→</span></a>
   <a href="#contact">Contact <span>→</span></a>
   <a href="/api/tools/trajectory">Trajectory Simulator <span>↗</span></a>
-    <a href="/dashboard" class="cta-link">Open Dashboard →</a>
+    <a href="/hardware" class="cta-link">Configure Your AV Bay →</a>
 </div>
 
 <!-- HERO -->
@@ -12493,18 +12494,16 @@ a[href="/instructor-guide"] .tool-card-icon {
 
   <div class="hero-eyebrow">
     <span class="eyebrow-dot"></span>
-    Space Situational Awareness &amp; Education Platform
+    Hardware and physics tools for serious rocketeers.
   </div>
 
   <h1 class="hero-title">
-    <span class="hero-title-italic">Understanding</span>
-    <span class="hero-title-line2">the Crowded Cosmos</span>
+    <span class="hero-title-italic">Drogue</span><span class="hero-title-line2">Works</span>
   </h1>
 
   <p class="hero-desc">
-    <strong>27,000+ tracked objects.</strong> A debris field that could trigger an irreversible
-    cascade. VectraSpace gives you the physics, the data, and the tools to understand it —
-    from Kepler to Kessler, in five chapters.
+    Custom avionics bay sleds, fin alignment jigs, and the orbital mechanics behind every flight.
+    Built by a rocketeer, for rocketeers.
   </p>
 
   <!-- Social proof strip -->
@@ -12522,11 +12521,6 @@ a[href="/instructor-guide"] .tool-card-icon {
     <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
       <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:var(--green);letter-spacing:-1px;">Live</span>
       <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">SGP4 Scanner</span>
-    </div>
-    <div class="hero-proof-divider" style="width:1px;background:var(--border);"></div>
-    <div class="hero-proof-item" style="display:flex;flex-direction:column;gap:2px;">
-      <span style="font-family:var(--serif);font-size:28px;font-style:italic;color:var(--amber);letter-spacing:-1px;">Free</span>
-      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">No account needed</span>
     </div>
   </div>
 
@@ -12573,18 +12567,13 @@ a[href="/instructor-guide"] .tool-card-icon {
       <div class="section-label" style="justify-content:center;">// Our Mission</div>
       <h2 class="section-title">Built because the physics<br><em>deserves to be understood</em></h2>
       <p style="font-size:15px;color:var(--muted);max-width:600px;margin:12px auto 40px;line-height:1.85;">
-        VectraSpace exists because orbital safety is one of the most consequential engineering
+        DrogueWorks exists because orbital safety is one of the most consequential engineering
         problems of our generation — and almost no one outside the industry understands it.
         We built a platform where anyone can engage with the real mathematics: not simplified
         metaphors, but the actual SGP4 propagation, Foster-Alfano probability of collision,
         and Kessler cascade physics that real SSA operators use every day.
       </p>
       <div style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:64px;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--accent);">Free</span>
-          <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Always &amp; Forever</span>
-        </div>
-        <div style="width:1px;background:var(--border);"></div>
         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
           <span style="font-family:var(--serif);font-size:36px;font-style:italic;color:var(--green);">Real</span>
           <span style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Physics &amp; Data</span>
@@ -12808,7 +12797,7 @@ a[href="/instructor-guide"] .tool-card-icon {
       <div class="section-label">// Live Simulation Platform</div>
       <h2 class="section-title">See the math <em>in motion</em></h2>
       <p class="section-body">
-        The VectraSpace dashboard runs real SGP4 propagation on live TLE data, screens
+        The DrogueWorks dashboard runs real SGP4 propagation on live TLE data, screens
         every orbit pair for conjunctions, and visualizes the results on a photorealistic
         CesiumJS globe — all in your browser.
       </p>
@@ -13033,163 +13022,33 @@ a[href="/instructor-guide"] .tool-card-icon {
 
 <div class="section-divider"></div>
 
-<section id="contact" style="padding:100px 0; position:relative; z-index:1;">
-  <div class="container" style="max-width:1080px; margin:0 auto; padding:0 48px;">
+<section id="waitlist" style="padding:80px 0; border-top:1px solid var(--border);">
+  <div style="max-width:520px; margin:0 auto; padding:0 24px; text-align:center;">
+    <p style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:16px;">Coming Soon</p>
+    <h2 style="font-size:clamp(24px,4vw,36px); color:#fff; margin-bottom:12px; font-weight:400;">AV Bay Sled Generator</h2>
+    <p style="color:var(--muted); font-size:15px; line-height:1.6; margin-bottom:32px;">Custom 3D-printed avionics sleds configured for your tube diameter, altimeter, and battery. Parametric. Print-ready. Built for HPR.</p>
+    <form action="https://app.convertkit.com/forms/YOUR_FORM_ID/subscriptions" method="post" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+      <input type="email" name="email_address" placeholder="your@email.com" required
+        style="flex:1; min-width:200px; max-width:280px; padding:10px 16px; background:var(--ink2); border:1px solid var(--border2); border-radius:4px; color:var(--text); font-family:var(--mono); font-size:12px; outline:none;" />
+      <button type="submit"
+        style="padding:10px 20px; background:var(--green); color:#000; border:none; border-radius:4px; font-family:var(--mono); font-size:11px; letter-spacing:1px; cursor:pointer; white-space:nowrap;">Notify Me</button>
+    </form>
+    <p style="color:var(--muted); font-size:11px; margin-top:12px; font-family:var(--mono);">No spam. One email when it launches.</p>
+  </div>
+</section>
 
-    <!-- section eyebrow -->
-    <div style="font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:10px;">
-      <span style="display:inline-block; width:14px; height:1px; background:var(--green);"></span>The Team
-    </div>
-    <div style="font-family:var(--serif); font-size:clamp(28px,3.5vw,44px); color:#fff; font-weight:400; line-height:1.15; letter-spacing:-0.4px; margin-bottom:52px;">
-      The people behind<br><em style="font-style:italic; color:var(--accent2);">VectraSpace</em>
-    </div>
-
-    <!-- 2x2 card grid -->
-    <div class="team-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:60px;">
-
-      <!-- ── Truman card ── -->
-      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
-        <div style="height:2px; background:linear-gradient(90deg, var(--accent) 0%, var(--green) 60%, transparent 100%);"></div>
-        <div style="padding:40px 44px;">
-          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:24px;">CEO &amp; Founder</div>
-          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
-            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--accent) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(74,158,255,0.2);">T</div>
-            <div>
-              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Truman Heaston</div>
-              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--accent); text-transform:uppercase;">CEO · Product Vision · Orbital Mechanics</div>
-            </div>
-          </div>
-          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
-            Owns the product vision and technical direction — roadmap, physics accuracy, LinkedIn presence, and university outreach. Runs the team, keeps alignment tight, and makes sure VectraSpace moves fast without losing credibility.
-          </p>
-          <div style="display:flex; flex-wrap:wrap; gap:10px;">
-            <a href="mailto:trumanheaston@gmail.com"
-               style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
-                      background:var(--accent); color:#fff; border-radius:6px;
-                      font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
-                      text-decoration:none; transition:all 0.2s; font-weight:500;
-                      box-shadow:0 4px 20px rgba(74,158,255,0.25);"
-               onmouseover="this.style.background='#6ab4ff'; this.style.transform='translateY(-2px)';"
-               onmouseout="this.style.background='var(--accent)'; this.style.transform='';">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              trumanheaston@gmail.com
-            </a>
-            <a href="https://github.com/trumanheaston-lab/PropulsionDemos/tree/main"
-               target="_blank" rel="noopener noreferrer"
-               style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
-                      background:transparent; color:var(--accent); border-radius:6px;
-                      border:1px solid rgba(74,158,255,0.4);
-                      font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
-                      text-decoration:none; transition:all 0.2s; font-weight:500;"
-               onmouseover="this.style.background='rgba(74,158,255,0.08)'; this.style.borderColor='var(--accent)'; this.style.transform='translateY(-2px)';"
-               onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(74,158,255,0.4)'; this.style.transform='';">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-              Propulsion Demos ↗
-            </a>
-          </div>
-          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(74,158,255,0.05) 0%, transparent 70%); pointer-events:none;"></div>
-        </div>
-      </div>
-
-      <!-- ── Will card ── -->
-      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
-        <div style="height:2px; background:linear-gradient(90deg, var(--amber) 0%, var(--green) 60%, transparent 100%);"></div>
-        <div style="padding:40px 44px;">
-          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--amber); text-transform:uppercase; margin-bottom:24px;">Marketing &amp; Community</div>
-          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
-            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--amber) 0%, var(--green) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(245,158,11,0.2);">W</div>
-            <div>
-              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Will Lovelace</div>
-              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--amber); text-transform:uppercase;">Marketing · Discord · Aerospace Outreach</div>
-            </div>
-          </div>
-          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
-            Owns marketing — LinkedIn content that shows what the platform actually does, building the Discord, running outreach to aerospace clubs and professors, and turning early users into advocates. Not just posting — building a community.
-          </p>
-          <a href="mailto:Will.s.lovelace@gmail.com"
-             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
-                    background:var(--amber); color:#000; border-radius:6px;
-                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
-                    text-decoration:none; transition:all 0.2s; font-weight:500;
-                    box-shadow:0 4px 20px rgba(245,158,11,0.25);"
-             onmouseover="this.style.background='#fbbf24'; this.style.transform='translateY(-2px)';"
-             onmouseout="this.style.background='var(--amber)'; this.style.transform='';">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-            Will.s.lovelace@gmail.com
-          </a>
-          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(245,158,11,0.05) 0%, transparent 70%); pointer-events:none;"></div>
-        </div>
-      </div>
-
-      <!-- ── Advay card ── -->
-      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
-        <div style="height:2px; background:linear-gradient(90deg, #a78bfa 0%, var(--accent) 60%, transparent 100%);"></div>
-        <div style="padding:40px 44px;">
-          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:#a78bfa; text-transform:uppercase; margin-bottom:24px;">Strategy &amp; Growth</div>
-          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
-            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, #a78bfa 0%, var(--accent) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(167,139,250,0.2);">A</div>
-            <div>
-              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Advay Marwah</div>
-              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:#a78bfa; text-transform:uppercase;">Metrics · Growth Model · Sustainability</div>
-            </div>
-          </div>
-          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
-            Owns the numbers — user growth modeling, key metric tracking, and long-term sustainability thinking. Whether that means a Pro tier, grants, or donations, Advay keeps the team grounded in data and thinking ahead.
-          </p>
-          <a href="mailto:advaymarwah@gmail.com"
-             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
-                    background:#a78bfa; color:#fff; border-radius:6px;
-                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
-                    text-decoration:none; transition:all 0.2s; font-weight:500;
-                    box-shadow:0 4px 20px rgba(167,139,250,0.25);"
-             onmouseover="this.style.background='#c4b5fd'; this.style.transform='translateY(-2px)';"
-             onmouseout="this.style.background='#a78bfa'; this.style.transform='';">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-            advaymarwah@gmail.com
-          </a>
-          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(167,139,250,0.05) 0%, transparent 70%); pointer-events:none;"></div>
-        </div>
-      </div>
-
-      <!-- ── Grant card ── -->
-      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
-        <div style="height:2px; background:linear-gradient(90deg, var(--green) 0%, var(--accent) 60%, transparent 100%);"></div>
-        <div style="padding:40px 44px;">
-          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:24px;">Hardware &amp; Performance</div>
-          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
-            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--green) 0%, var(--accent) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(52,211,153,0.2);">G</div>
-            <div>
-              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Grant Gill</div>
-              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--green); text-transform:uppercase;">Hardware · Performance · 3D Rendering</div>
-            </div>
-          </div>
-          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
-            Brings the hardware and real-world perspective — testing the dashboard across devices, giving honest feedback on where 3D rendering bogs down, and bridging the gap between software simulation and actual space hardware realities. Keeps us credible.
-          </p>
-          <a href="mailto:jellycatgrant@gmail.com"
-             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
-                    background:var(--green); color:#000; border-radius:6px;
-                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
-                    text-decoration:none; transition:all 0.2s; font-weight:500;
-                    box-shadow:0 4px 20px rgba(52,211,153,0.25);"
-             onmouseover="this.style.background='#6ee7b7'; this.style.transform='translateY(-2px)';"
-             onmouseout="this.style.background='var(--green)'; this.style.transform='';">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-            jellycatgrant@gmail.com
-          </a>
-          <div style="position:absolute; bottom:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(ellipse, rgba(52,211,153,0.05) 0%, transparent 70%); pointer-events:none;"></div>
-        </div>
-      </div>
-
-    </div>
-
+<section id="contact" style="padding:80px 0; text-align:center;">
+  <div style="max-width:480px; margin:0 auto; padding:0 24px;">
+    <p style="font-family:var(--mono); font-size:11px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:16px;">Contact</p>
+    <p style="color:var(--text); font-size:16px; margin-bottom:24px;">Questions about hardware, custom configs, or partnerships.</p>
+    <a href="mailto:truman@drogueworks.com" style="font-family:var(--mono); font-size:12px; letter-spacing:1px; color:var(--accent); text-decoration:none; border:1px solid rgba(74,158,255,0.3); padding:10px 24px; border-radius:4px;">truman@drogueworks.com</a>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
   <div class="footer-top">
-    <div class="footer-brand">Vectra<em>Space</em></div>
+    <div class="footer-brand">Drogue<em>Works</em></div>
     <ul class="footer-links">
       <li><a href="/education/orbital-mechanics">Orbital Mechanics</a></li>
       <li><a href="/education/collision-prediction">Collision Prediction</a></li>
@@ -13198,9 +13057,9 @@ a[href="/instructor-guide"] .tool-card-icon {
       <li><a href="/dashboard">Dashboard</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
-    <div class="footer-contact">Built by Truman Heaston · <a href="mailto:trumanheaston@gmail.com">trumanheaston@gmail.com</a></div>
+    <div class="footer-contact">Built by Truman Heaston · <a href="mailto:truman@drogueworks.com">truman@drogueworks.com</a></div>
   </div>
-  <div class="footer-copy">© 2026 VectraSpace · Educational Orbital Platform</div>
+  <div class="footer-copy">© 2026 DrogueWorks · Educational Orbital Platform</div>
 </footer>
 
 <script>
@@ -13364,39 +13223,11 @@ if (metricsEl) counterObserver.observe(metricsEl);
 
 '''
 
-# ── Patch: GitHub link + Grant Gill card ─────────────────────────────────────
+# ── Patch: GitHub link ───────────────────────────────────────────────────────
 _GITHUB_FOOTER_LINK = (
-    '<li><a href="https://github.com/trumanheaston-lab/VectraSpace" '
+    '<li><a href="https://github.com/trumanheaston-lab/DrogueWorks" '
     'target="_blank" rel="noopener">GitHub</a></li>'
 )
-
-_GRANT_CARD = """
-      <!-- ── Grant card ── -->
-      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); border-radius:16px; overflow:hidden; position:relative;">
-        <div style="height:2px; background:linear-gradient(90deg, var(--green) 0%, var(--accent) 60%, transparent 100%);"></div>
-        <div style="padding:40px 44px;">
-          <div style="font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:24px;">Hardware Lead</div>
-          <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:24px;">
-            <div style="flex-shrink:0; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--green) 0%, var(--accent) 100%); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:#fff; box-shadow:0 0 0 3px var(--border), 0 0 24px rgba(52,211,153,0.2);">G</div>
-            <div>
-              <div style="font-family:var(--serif); font-size:22px; color:#fff; font-weight:400; margin-bottom:4px; letter-spacing:-0.2px;">Grant Gill</div>
-              <div style="font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--green); text-transform:uppercase;">Hardware Lead · 3D File Store Contributor</div>
-            </div>
-          </div>
-          <p style="font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 28px;">
-            Hardware lead and 3D file store contributor for VectraSpace.
-          </p>
-          <a href="mailto:jellycatgrant@gmail.com"
-             style="display:inline-flex; align-items:center; gap:8px; padding:11px 22px;
-                    background:var(--green); color:#000; border-radius:6px;
-                    font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
-                    text-decoration:none; transition:all 0.2s; font-weight:500;">
-            jellycatgrant@gmail.com
-          </a>
-        </div>
-      </div>
-"""
-
 
 def _patch_landing(html: str) -> str:
     FOOTER_ANCHOR = '<li><a href="/education/orbital-mechanics">Orbital Mechanics</a></li>'
@@ -13405,15 +13236,9 @@ def _patch_landing(html: str) -> str:
             FOOTER_ANCHOR,
             _GITHUB_FOOTER_LINK + "\n      " + FOOTER_ANCHOR,
         )
-    WILL_CARD_END = "<!-- get in touch strip -->"
-    if WILL_CARD_END in html:
-        html = html.replace(
-            WILL_CARD_END,
-            _GRANT_CARD + "\n    " + WILL_CARD_END,
-        )
     MOBILE_NAV_ANCHOR = '<a href="#contact">Contact <span>→</span></a>'
     GITHUB_MOBILE = (
-        '<a href="https://github.com/trumanheaston-lab/VectraSpace" '
+        '<a href="https://github.com/trumanheaston-lab/DrogueWorks" '
         'target="_blank" rel="noopener">GitHub <span>↗</span></a>'
     )
     if MOBILE_NAV_ANCHOR in html and GITHUB_MOBILE not in html:
@@ -13423,7 +13248,7 @@ def _patch_landing(html: str) -> str:
         )
     DESKTOP_NAV_ANCHOR = '<li><a href="#contact">Contact</a></li>'
     GITHUB_DESKTOP = (
-        '<li><a href="https://github.com/trumanheaston-lab/VectraSpace" '
+        '<li><a href="https://github.com/trumanheaston-lab/DrogueWorks" '
         'target="_blank" rel="noopener">GitHub</a></li>'
     )
     if DESKTOP_NAV_ANCHOR in html and GITHUB_DESKTOP not in html:
@@ -13435,3 +13260,61 @@ def _patch_landing(html: str) -> str:
 
 
 LANDING_HTML = _patch_landing(_LANDING_BASE)
+
+
+HARDWARE_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hardware — DrogueWorks</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#080c12; --bg2:#0d1320; --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13); --accent:#4a9eff; --accent3:#34d399; --text:#ccd6e0; --muted:#8aaac5; --mono:'DM Mono',monospace; --sans:'Outfit',sans-serif; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
+  nav { position:fixed; top:0; left:0; right:0; z-index:100; height:60px; padding:0 40px; display:flex; align-items:center; justify-content:space-between; background:rgba(8,12,18,0.94); border-bottom:1px solid var(--border); backdrop-filter:blur(16px); }
+  .nav-brand { font-family:var(--mono); font-size:13px; letter-spacing:2px; color:#fff; text-decoration:none; text-transform:uppercase; }
+  .nav-brand em { color:var(--accent3); font-style:normal; }
+  .nav-back { font-family:var(--mono); font-size:10px; letter-spacing:1px; color:var(--muted); text-decoration:none; padding:7px 14px; border:1px solid var(--border); border-radius:4px; }
+  main { max-width:640px; margin:0 auto; padding:120px 24px 80px; text-align:center; }
+  .tag { font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--accent3); text-transform:uppercase; margin-bottom:20px; }
+  h1 { font-size:clamp(28px,5vw,48px); font-weight:400; color:#fff; margin-bottom:16px; line-height:1.1; }
+  .sub { color:var(--muted); font-size:16px; line-height:1.65; margin-bottom:40px; max-width:480px; margin-left:auto; margin-right:auto; }
+  .card { background:var(--bg2); border:1px solid var(--border2); border-radius:8px; padding:28px 32px; margin-bottom:16px; text-align:left; }
+  .card-tag { font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--accent3); text-transform:uppercase; margin-bottom:8px; }
+  .card-title { font-size:18px; color:#fff; margin-bottom:8px; font-weight:500; }
+  .card-body { color:var(--muted); font-size:14px; line-height:1.6; }
+  .badge { display:inline-block; font-family:var(--mono); font-size:9px; letter-spacing:1px; padding:3px 8px; border-radius:3px; background:rgba(52,211,153,0.1); color:var(--accent3); border:1px solid rgba(52,211,153,0.2); margin-top:12px; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-brand">Drogue<em>Works</em></a>
+  <a href="/" class="nav-back">← Back</a>
+</nav>
+<main>
+  <p class="tag">Hardware Tools</p>
+  <h1>Built for your specific rocket.</h1>
+  <p class="sub">Custom avionics bay sleds, fin alignment jigs, and tracker mounts. Configured for your tube diameter, altimeter, and battery. Print-ready STL files or printed-to-order.</p>
+
+  <div class="card">
+    <div class="card-tag">Coming Soon</div>
+    <div class="card-title">AV Bay Sled Generator</div>
+    <div class="card-body">Select your tube inner diameter, rod spacing, altimeter model(s), battery type, and switch — get a print-ready STL. Supports Eggtimer Quantum, Quark, Quasar, MissileWorks RRC3, StratoLoggerCF, Blue Raven, and more.</div>
+    <span class="badge">In Development</span>
+  </div>
+
+  <div class="card">
+    <div class="card-tag">Coming Soon</div>
+    <div class="card-title">Fin Alignment Jigs</div>
+    <div class="card-body">Precision jigs for common HPR tube diameters (2.2", 3", 4", 4.5"). No more measuring by hand. PETG printed, reusable, designed to the same tolerances as commercial alternatives.</div>
+    <span class="badge">In Development</span>
+  </div>
+
+  <div class="card" style="margin-top:32px; background:transparent; border-color:rgba(74,158,255,0.15);">
+    <div class="card-body" style="text-align:center;">Want a specific config now? Email <a href="mailto:truman@drogueworks.com" style="color:var(--accent);">truman@drogueworks.com</a> with your tube diameter, altimeter model, and rod spacing. Custom quotes within 24 hours.</div>
+  </div>
+</main>
+</body>
+</html>'''
